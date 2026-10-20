@@ -234,28 +234,30 @@
         </p>
         <h4>Quick setup with npm commands</h4>
         <p>From this repo, run on the machine hosting Kubo:</p>
-        <pre># Add a /ws listener to Kubo on port 4002
+        <pre># 1. Plain WebSocket (works for local HTTP dev)
 npm run kubo:ws
+ipfs daemon
+# Dial: /ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;</pre>
+        <h4>Option A: Native Kubo WSS (public nodes)</h4>
+        <p>Kubo can automatically obtain a TLS certificate via AutoTLS. The resulting address uses a <code>*.libp2p.direct</code> domain, so this only works for publicly reachable nodes.</p>
+        <pre>npm run kubo:wss
+ipfs daemon
+# After the node is online, look for an address like:
+# /dns4/&lt;PEER_ID&gt;.libp2p.direct/tcp/443/wss/p2p/&lt;PEER_ID&gt;</pre>
+        <h4>Option B: Reverse-proxy WSS (LAN / custom domain)</h4>
+        <p>For local IPs like <code>192.168.1.74</code> or your own domain, Kubo cannot use a custom certificate natively. Run a local TLS proxy in front of Kubo's <code>/ws</code> listener instead.</p>
+        <pre># 1. Start Kubo with a plain /ws listener
+npm run kubo:ws
+ipfs daemon
 
-# Restart Kubo, then use:
-# /ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;</pre>
-        <h4>Enable WSS (for HTTPS-hosted apps)</h4>
-        <p>If the page is served over HTTPS (e.g. GitHub Pages), browsers require <code>/wss</code> for non-localhost addresses.</p>
-        <pre># 1. Generate a self-signed certificate
-npm run cert:generate
+# 2. In another terminal, generate a cert and start the proxy
+npm run cert:generate      # add CERT_SANS=192.168.1.74 if needed
+npm run proxy:wss          # listens on wss://0.0.0.0:4003
 
-# 2. Configure Kubo to listen on /wss
-npm run kubo:wss
-
-# 3. Restart Kubo. It will advertise an address like:
+# 3. Dial the proxy:
 # /ip4/192.168.1.74/tcp/4003/wss/p2p/&lt;KUBO_PEER_ID&gt;</pre>
-        <p>To include a LAN IP in the certificate, run:</p>
+        <p>To include a LAN IP in the self-signed certificate, run:</p>
         <pre>CERT_SANS=192.168.1.74 npm run cert:generate</pre>
-        <h4>Reverse-proxy WSS (alternative)</h4>
-        <p>If you already have Kubo listening on <code>/ws</code>, you can run a local TLS proxy instead of native Kubo WSS:</p>
-        <pre>npm run cert:generate
-npm run proxy:wss</pre>
-        <p>The proxy listens on <code>wss://0.0.0.0:4003</code> and forwards to Kubo at <code>ws://127.0.0.1:4002</code>.</p>
         <h4>Which addresses work from a browser?</h4>
         <ul>
           <li><strong>Works:</strong> <code>/ip4/127.0.0.1/tcp/4002/ws/p2p/...</code></li>

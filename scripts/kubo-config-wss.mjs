@@ -20,18 +20,8 @@ function ipfsConfigGet(key) {
   }
 }
 
-if (!fs.existsSync(CERT_FILE) || !fs.existsSync(KEY_FILE)) {
-  console.error('Certificate files not found:');
-  console.error('  CERT:', CERT_FILE);
-  console.error('  KEY:', KEY_FILE);
-  console.error('Generate them first with: npm run cert:generate');
-  process.exit(1);
-}
-
 console.log('Configuring Kubo WSS listener...');
 console.log('Address to add:', WSS_ADDR);
-console.log('Certificate:', CERT_FILE);
-console.log('Key:', KEY_FILE);
 
 const swarm = ipfsConfigGet('Addresses.Swarm') || [];
 if (swarm.includes(WSS_ADDR)) {
@@ -42,11 +32,30 @@ if (swarm.includes(WSS_ADDR)) {
   console.log('Added:', WSS_ADDR);
 }
 
-ipfsConfig('Swarm.Transports.Network.Websocket', {
-  Cert: CERT_FILE,
-  Key: KEY_FILE
-});
+console.log('');
+console.log('NOTE: Kubo does not support custom TLS certificates for WSS listeners.');
+console.log('Native WSS uses AutoTLS and advertises a *.libp2p.direct address.');
+console.log('');
 
+const autoTLS = ipfsConfigGet('AutoTLS') || {};
+if (!autoTLS.Enabled) {
+  console.log('Enabling AutoTLS so Kubo can obtain a WSS certificate...');
+  ipfsConfig('AutoTLS', { Enabled: true, AutoWSS: true });
+  console.log('AutoTLS enabled with AutoWSS.');
+} else if (!autoTLS.AutoWSS) {
+  console.log('AutoTLS is already enabled; enabling AutoWSS...');
+  autoTLS.AutoWSS = true;
+  ipfsConfig('AutoTLS', autoTLS);
+} else {
+  console.log('AutoTLS + AutoWSS already enabled.');
+}
+
+console.log('');
 console.log('Run `ipfs daemon` (or restart Kubo) for the change to take effect.');
-console.log('After restart, use an address like:');
-console.log('  /ip4/192.168.1.74/tcp/4003/wss/p2p/<KUBO_PEER_ID>');
+console.log('If the node is publicly reachable, Kubo will advertise an address like:');
+console.log('  /dns4/<PEER_ID>.libp2p.direct/tcp/443/wss/p2p/<PEER_ID>');
+console.log('');
+console.log('For a custom domain or LAN IP with your own certificate, use the reverse proxy instead:');
+console.log('  npm run kubo:ws');
+console.log('  npm run cert:generate');
+console.log('  npm run proxy:wss');
