@@ -66,14 +66,26 @@ function renderRepoTree() {
       const childPath = parentPath ? parentPath + '/' + name : name;
       const li = document.createElement('li');
 
-      const cid = repoTreeCids.get(child.isDir ? childPath : childPath);
-      const cidText = cid ? '  ' + cid : '';
+      const cid = repoTreeCids.get(childPath);
 
       if (child.isDir) {
         const details = document.createElement('details');
         details.open = true;
         const summary = document.createElement('summary');
-        summary.textContent = '📁 ' + name + cidText;
+        summary.textContent = '📁 ' + name;
+        if (cid) {
+          const cidEl = document.createElement('span');
+          cidEl.textContent = '  ' + cid;
+          cidEl.style.cursor = 'pointer';
+          cidEl.style.color = '#4da3ff';
+          cidEl.title = 'Click to fetch this CID';
+          cidEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            fetchContent(cid);
+          });
+          summary.appendChild(cidEl);
+        }
         details.appendChild(summary);
         if (Object.keys(child.children).length > 0) {
           details.appendChild(renderNode(child, childPath));
@@ -81,7 +93,20 @@ function renderRepoTree() {
         li.appendChild(details);
       } else {
         const span = document.createElement('span');
-        span.textContent = '📄 ' + name + cidText;
+        span.textContent = '📄 ' + name;
+        if (cid) {
+          const cidEl = document.createElement('span');
+          cidEl.textContent = '  ' + cid;
+          cidEl.style.cursor = 'pointer';
+          cidEl.style.color = '#4da3ff';
+          cidEl.title = 'Click to fetch this CID';
+          cidEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            fetchContent(cid);
+          });
+          span.appendChild(cidEl);
+        }
         li.appendChild(span);
       }
       ul.appendChild(li);
@@ -169,23 +194,58 @@ publishBtn.addEventListener('click', async () => {
   }
 });
 
-// Fetch IPFS content from any peer across the network using CID
-fetchBtn.addEventListener('click', async () => {
-  const cidStr = inputCid.value.trim();
+async function fetchContent(cidStr) {
   if (!cidStr) return;
-
+  inputCid.value = cidStr;
   fetchBtn.disabled = true;
   outputContent.textContent = 'Resolving blocks from IPFS network...';
 
   try {
     const cid = CID.parse(cidStr);
-    const content = await heliaStrings.get(cid);
-    outputContent.textContent = content;
+    const stat = await heliaUnixfs.stat(cid);
+    if (stat.type === 'directory') {
+      const entries = [];
+      for await (const entry of heliaUnixfs.ls(cid)) {
+        entries.push((entry.type === 'directory' ? '📁 ' : '📄 ') + entry.name);
+      }
+      outputContent.textContent = entries.length ? entries.join('\\n') : '(empty directory)';
+    } else {
+      const chunks = [];
+      for await (const chunk of heliaUnixfs.cat(cid)) {
+        chunks.push(chunk);
+      }
+      const total = chunks.reduce((n, c) => n + c.length, 0);
+      const bytes = new Uint8Array(total);
+      let off = 0;
+      for (const c of chunks) {
+        bytes.set(c, off);
+        off += c.length;
+      }
+      try {
+        outputContent.textContent = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      } catch (e) {
+        outputContent.textContent = `Binary content (${bytes.length} bytes)`;
+      }
+    }
   } catch (err) {
-    outputContent.textContent = `Error retrieving CID: ${err.message}`;
+    // Fallback for string CIDs created via heliaStrings
+    try {
+      const cid = CID.parse(cidStr);
+      const content = await heliaStrings.get(cid);
+      outputContent.textContent = content;
+    } catch (err2) {
+      outputContent.textContent = `Error retrieving CID: ${err2.message}`;
+    }
   } finally {
     fetchBtn.disabled = false;
   }
+}
+
+// Fetch IPFS content from any peer across the network using CID
+fetchBtn.addEventListener('click', async () => {
+  const cidStr = inputCid.value.trim();
+  if (!cidStr) return;
+  await fetchContent(cidStr);
 });
 
 initHelia();
