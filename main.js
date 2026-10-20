@@ -3,6 +3,7 @@ import { strings } from '@helia/strings';
 import { unixfs } from '@helia/unixfs';
 import { CID } from 'multiformats/cid';
 import repoFiles from 'virtual:repo-files';
+import { zipSync } from 'fflate';
 
 let heliaNode = null;
 let heliaStrings = null;
@@ -10,6 +11,8 @@ let heliaUnixfs = null;
 const repoTreeCids = new Map();
 let lastFetchedBytes = null;
 let lastFetchedName = 'ipfs-content';
+let lastFetchedCid = null;
+let lastFetchedIsDir = false;
 
 const statusEl = document.getElementById('node-status');
 const peerIdEl = document.getElementById('peer-id');
@@ -85,7 +88,7 @@ function renderRepoTree() {
           cidEl.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
-            fetchContent(cid);
+            fetchContent(cid, name);
           });
           summary.appendChild(cidEl);
         }
@@ -106,7 +109,7 @@ function renderRepoTree() {
           cidEl.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
-            fetchContent(cid);
+            fetchContent(cid, name);
           });
           span.appendChild(cidEl);
         }
@@ -197,12 +200,15 @@ publishBtn.addEventListener('click', async () => {
   }
 });
 
-async function fetchContent(cidStr) {
+async function fetchContent(cidStr, nameHint) {
   if (!cidStr) return;
   inputCid.value = cidStr;
   fetchBtn.disabled = true;
   downloadBtn.disabled = true;
   outputContent.textContent = 'Resolving blocks from IPFS network...';
+  const downloadName = nameHint || null;
+  lastFetchedCid = null;
+  lastFetchedIsDir = false;
 
   try {
     const cid = CID.parse(cidStr);
@@ -215,7 +221,9 @@ async function fetchContent(cidStr) {
       const dirText = entries.length ? entries.join('\\n') : '(empty directory)';
       outputContent.textContent = dirText;
       lastFetchedBytes = new TextEncoder().encode(dirText);
-      lastFetchedName = `ipfs-${cidStr.slice(0, 12)}-listing.txt`;
+      lastFetchedName = downloadName ? downloadName + (downloadName.includes('.') ? '' : '.txt') : `ipfs-${cidStr.slice(0, 12)}-listing.txt`;
+      lastFetchedCid = cidStr;
+      lastFetchedIsDir = true;
       downloadBtn.disabled = false;
     } else {
       const chunks = [];
@@ -235,7 +243,9 @@ async function fetchContent(cidStr) {
         outputContent.textContent = `Binary content (${bytes.length} bytes)`;
       }
       lastFetchedBytes = bytes;
-      lastFetchedName = `ipfs-${cidStr.slice(0, 12)}`;
+      lastFetchedName = downloadName || `ipfs-${cidStr.slice(0, 12)}`;
+      lastFetchedCid = cidStr;
+      lastFetchedIsDir = false;
       downloadBtn.disabled = false;
     }
   } catch (err) {
@@ -245,7 +255,9 @@ async function fetchContent(cidStr) {
       const content = await heliaStrings.get(cid);
       outputContent.textContent = content;
       lastFetchedBytes = new TextEncoder().encode(content);
-      lastFetchedName = `ipfs-${cidStr.slice(0, 12)}.txt`;
+      lastFetchedName = downloadName || `ipfs-${cidStr.slice(0, 12)}.txt`;
+      lastFetchedCid = cidStr;
+      lastFetchedIsDir = false;
       downloadBtn.disabled = false;
     } catch (err2) {
       outputContent.textContent = `Error retrieving CID: ${err2.message}`;
@@ -262,18 +274,71 @@ fetchBtn.addEventListener('click', async () => {
   await fetchContent(cidStr);
 });
 
+async function collectIpfsDir(cidStr) {
+  const cid = CID.parse(cidStr);
+  const result = {};
+  for await (const entry of heliaUnixfs.ls(cid)) {
+    if (entry.type === 'directory') {
+      result[entry.name] = await collectIpfsDir(entry.cid.toString());
+    } else {
+      const chunks = [];
+      for await (const chunk of heliaUnixfs.cat(entry.cid)) {
+        chunks.push(chunk);
+      }
+      const total = chunks.reduce((n, c) => n + c.length, 0);
+      const bytes = new Uint8Array(total);
+      let off = 0;
+      for (const c of chunks) {
+        bytes.set(c, off);
+        off += c.length;
+      }
+      result[entry.name] = bytes;
+    }
+  }
+  return result;
+}
+
 // Download the most recently fetched content
-downloadBtn.addEventListener('click', () => {
-  if (!lastFetchedBytes) return;
-  const blob = new Blob([lastFetchedBytes], { type: 'application/octet-stream' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = lastFetchedName;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+downloadBtn.addEventListener('click', async () => {
+  if (!lastFetchedBytes && !lastFetchedCid) return;
+  downloadBtn.disabled = true;
+  try {
+    let blob;
+    let filename;
+    if (lastFetchedIsDir && lastFetchedCid) {
+      const tree = await collectIpfsDir(lastFetchedCid);
+      const zipped = zipSync(tree);
+      blob = new Blob([zipped], { type: 'application/zip' });
+      filename = lastFetchedName.replace(/\.(txt|listing\.txt)$/, '') + '.zip';
+      if (!filename || filename === '.zip') filename = 'ipfs-files.zip';
+    } else {
+      blob = new Blob([lastFetchedBytes], { type: 'application/octet-stream' });
+      filename = lastFetchedName;
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    outputContent.textContent = `Download error: ${err.message}`;
+  } finally {
+    downloadBtn.disabled = false;
+  }
 });
+
+
+
+// Debug helpers (used by integration tests)
+window.__runFetch = fetchContent;
+window.__getLastFetched = () => ({ len: lastFetchedBytes ? lastFetchedBytes.length : 0, name: lastFetchedName, isDir: lastFetchedIsDir });
+window.__collectZipSize = async (cid) => {
+  const tree = await collectIpfsDir(cid);
+  const z = zipSync(tree);
+  return z.length;
+};
 
 initHelia();
