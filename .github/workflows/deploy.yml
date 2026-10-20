@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
 
 permissions:
   contents: read
@@ -15,7 +16,49 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Chromium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Start Dev Server
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 5173 &
+          for i in $(seq 1 60); do
+            if curl -s http://127.0.0.1:5173 >/dev/null; then
+              echo "Dev server ready"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run Tests
+        env:
+          CHROME_PATH: /usr/bin/chromium-browser
+        run: |
+          npm run test
+          npm run test:eval
+          npm run test:zip
+          npm run test:download
+
   deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

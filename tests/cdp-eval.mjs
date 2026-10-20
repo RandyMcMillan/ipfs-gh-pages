@@ -1,7 +1,8 @@
 import WebSocket from 'ws';
 import { spawn } from 'child_process';
+import { tmpDir, findChrome } from './utils.mjs';
 
-const chrome = '/Applications/Google Chrome Dev.app/Contents/MacOS/Google Chrome Dev';
+const chrome = findChrome();
 const proc = spawn(chrome, ['--headless=new', '--disable-gpu', '--remote-debugging-port=9225'], { stdio: 'ignore' });
 
 await new Promise(r => setTimeout(r, 6000));

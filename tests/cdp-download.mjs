@@ -1,9 +1,10 @@
 import WebSocket from 'ws';
 import { spawn } from 'child_process';
 import fs from 'fs';
+import { tmpDir, findChrome } from './utils.mjs';
 
-const chrome = '/Applications/Google Chrome Dev.app/Contents/MacOS/Google Chrome Dev';
-const dlDir = '/tmp/dltest';
+const chrome = findChrome();
+const dlDir = tmpDir('dltest');
 fs.rmSync(dlDir, { recursive: true, force: true });
 fs.mkdirSync(dlDir, { recursive: true });
 const proc = spawn(chrome, ['--headless=new', '--disable-gpu', '--remote-debugging-port=9224'], { stdio: 'ignore' });
