@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@helia/strings": "^4.0.0",
+    "@helia/unixfs": "^5.0.0",
     "@helia/verified-fetch": "^2.0.0",
     "helia": "^5.0.0"
   },
