@@ -30,11 +30,13 @@ function repoFilesPlugin() {
         };
         walk(root);
       }
-      const entries = files.map((f) => {
-        const full = path.join(root, f);
-        const buf = fs.readFileSync(full);
-        return `${JSON.stringify(f)}: ${JSON.stringify(buf.toString('base64'))}`;
-      });
+      const entries = files
+        .filter((f) => fs.statSync(path.join(root, f)).isFile())
+        .map((f) => {
+          const full = path.join(root, f);
+          const buf = fs.readFileSync(full);
+          return `${JSON.stringify(f)}: ${JSON.stringify(buf.toString('base64'))}`;
+        });
       return `export default { ${entries.join(',\n')} };`;
     }
   };

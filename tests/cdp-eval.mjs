@@ -1,15 +1,18 @@
 import WebSocket from 'ws';
 import { spawn } from 'child_process';
-import { tmpDir, findChrome } from './utils.mjs';
+import { tmpDir, findChrome, isVerbose, vlog } from './utils.mjs';
 
 const chrome = findChrome();
+vlog('Using Chrome:', chrome);
 const proc = spawn(chrome, ['--headless=new', '--disable-gpu', '--remote-debugging-port=9225'], { stdio: 'ignore' });
 
+vlog('Waiting for Chrome DevTools Protocol...');
 await new Promise(r => setTimeout(r, 6000));
 const targets = await fetch('http://127.0.0.1:9225/json').then(r => r.json());
 const page = targets.find(t => t.type === 'page');
 const ws = new WebSocket(page.webSocketDebuggerUrl);
 await new Promise((res, rej) => { ws.on('open', res); ws.on('error', rej); });
+vlog('CDP WebSocket connected');
 
 let msgId = 1;
 function send(method, params = {}) {
@@ -26,11 +29,14 @@ function send(method, params = {}) {
 
 await send('Page.enable');
 await send('Runtime.enable');
+vlog('Navigating to http://127.0.0.1:5173');
 await send('Page.navigate', { url: 'http://127.0.0.1:5173' });
 
+vlog('Waiting for node status to become ready...');
 for (let i = 0; i < 60; i++) {
   const r = await send('Runtime.evaluate', { expression: 'document.getElementById("node-status").textContent', returnByValue: true });
   const t = r?.result?.value || '';
+  vlog(`node-status #${i + 1}:`, t);
   if (t.includes('All repository files added')) break;
   await new Promise(r => setTimeout(r, 1000));
 }
@@ -42,6 +48,7 @@ const expr = `(() => {
   return m ? m[1] : null;
 })()`;
 const cid = (await send('Runtime.evaluate', { expression: expr, returnByValue: true }))?.result?.value;
+vlog('Running window.__runFetch for', cid);
 await send('Runtime.evaluate', { expression: `window.__runFetch(${JSON.stringify(cid)}, 'index.html')`, awaitPromise: true });
 await new Promise(r => setTimeout(r, 2000));
 
@@ -54,6 +61,7 @@ const r = await send('Runtime.evaluate', {
 });
 console.log('LAST FETCHED:', r?.result?.value);
 
+vlog('Cleaning up Chrome process');
 ws.close();
 proc.kill();
 process.exit(0);

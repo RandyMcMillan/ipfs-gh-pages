@@ -2,6 +2,12 @@ import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs';
 
+export const isVerbose = process.env.VERBOSE === '1' || process.env.VERBOSE === 'true';
+
+export function vlog(...args) {
+  if (isVerbose) console.log('[verbose]', ...args);
+}
+
 export function tmpDir(name) {
   return path.join(os.tmpdir(), name);
 }

@@ -47,6 +47,30 @@
       font-weight: bold;
       color: #00ff88;
     }
+    .help {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #bbb;
+    }
+    .help code {
+      background: #2a2a2a;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      color: #4da3ff;
+    }
+    .help pre {
+      background: #111;
+      padding: 0.75rem;
+      border-radius: 4px;
+      color: #00ff88;
+      overflow-x: auto;
+    }
+    .help ul {
+      padding-left: 1.25rem;
+    }
+    .help li {
+      margin-bottom: 0.4rem;
+    }
     pre {
       background: #000;
       padding: 1rem;
@@ -71,6 +95,69 @@
     <h3>Node Status</h3>
     <p>Status: <span id="node-status" class="status">Initializing Helia IPFS Node...</span></p>
     <p>Peer ID: <code id="peer-id">...</code></p>
+    <p>Multiaddrs: <code id="multiaddrs">...</code></p>
+  </div>
+
+  <div class="card">
+    <h3>Connect to Peer (e.g. Kubo Desktop)</h3>
+    <label for="input-multiaddr">Peer Multiaddr:</label>
+    <input type="text" id="input-multiaddr" placeholder="/ip4/127.0.0.1/tcp/4001/ws/p2p/&lt;KUBO_PEER_ID&gt;" value="/ip4/127.0.0.1/tcp/4001/ws/p2p/&lt;KUBO_PEER_ID&gt;" list="common-addrs" />
+    <datalist id="common-addrs">
+      <option value="/ip4/127.0.0.1/tcp/4001/ws/p2p/&lt;KUBO_PEER_ID&gt;"></option>
+      <option value="/ip4/127.0.0.1/tcp/4001/ws"></option>
+      <option value="/dns4/example.com/tcp/443/wss/p2p/&lt;KUBO_PEER_ID&gt;"></option>
+    </datalist>
+    <small>Browser nodes can only dial WebSocket transports (<code>/ws</code> or <code>/wss</code>). Replace <code>&lt;KUBO_PEER_ID&gt;</code> with the peer ID from your Kubo node.</small>
+    <button id="btn-connect" disabled>Connect</button>
+    <button id="btn-bootstrap" disabled>Connect to Bootstrap Peers</button>
+    <p id="connect-status"></p>
+  </div>
+
+  <div class="card help">
+    <h3>Connection Help</h3>
+    <p>
+      Browsers cannot open raw TCP or UDP sockets. This Helia node can only dial peers over
+      <code>/ws</code>, <code>/wss</code>, WebTransport, or WebRTC-direct addresses.
+    </p>
+    <p>
+      If you see <em>"Connection failed: The dial request has no valid addresses"</em>, Kubo is probably
+      not listening on a browser-compatible transport.
+    </p>
+    <h4>Quick setup with npm commands</h4>
+    <p>From this repo, run on the machine hosting Kubo:</p>
+    <pre># Add a /ws listener to Kubo on port 4002
+npm run kubo:ws
+
+# Restart Kubo, then use:
+# /ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;</pre>
+    <h4>Enable WSS (for HTTPS-hosted apps)</h4>
+    <p>If the page is served over HTTPS (e.g. GitHub Pages), browsers require <code>/wss</code> for non-localhost addresses.</p>
+    <pre># 1. Generate a self-signed certificate
+npm run cert:generate
+
+# 2. Configure Kubo to listen on /wss
+npm run kubo:wss
+
+# 3. Restart Kubo. It will advertise an address like:
+# /ip4/192.168.1.74/tcp/4003/wss/p2p/&lt;KUBO_PEER_ID&gt;</pre>
+    <p>To include a LAN IP in the certificate, run:</p>
+    <pre>CERT_SANS=192.168.1.74 npm run cert:generate</pre>
+    <h4>Reverse-proxy WSS (alternative)</h4>
+    <p>If you already have Kubo listening on <code>/ws</code>, you can run a local TLS proxy instead of native Kubo WSS:</p>
+    <pre>npm run cert:generate
+npm run proxy:wss</pre>
+    <p>The proxy listens on <code>wss://0.0.0.0:4003</code> and forwards to Kubo at <code>ws://127.0.0.1:4002</code>.</p>
+    <h4>Which addresses work from a browser?</h4>
+    <ul>
+      <li><strong>Works:</strong> <code>/ip4/127.0.0.1/tcp/4002/ws/p2p/...</code></li>
+      <li><strong>Works:</strong> <code>/dns4/example.com/tcp/443/wss/p2p/...</code> (HTTPS-proxied Kubo)</li>
+      <li><strong>May work:</strong> WebTransport or WebRTC-direct addresses (requires HTTPS except on localhost)</li>
+      <li><strong>Does not work:</strong> raw TCP such as <code>/ip4/127.0.0.1/tcp/4001/p2p/...</code></li>
+      <li><strong>Does not work:</strong> QUIC such as <code>/ip4/127.0.0.1/udp/4001/quic-v1/p2p/...</code></li>
+    </ul>
+    <p>
+      Use <code>ipfs id</code> to see your Kubo peer ID and current addresses.
+    </p>
   </div>
 
   <div class="card">

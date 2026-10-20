@@ -1,21 +1,29 @@
 {
   "name": "helio-ipfs-github-pages",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node tests/cdp-test.mjs",
+    "test": "npm run test:all",
+    "test:all": "node tests/cdp-test.mjs && node tests/cdp-eval.mjs && node tests/cdp-zip.mjs && node tests/cdp-download.mjs && node tests/cdp-connect.mjs",
+    "test:verbose": "VERBOSE=1 npm run test:all",
     "test:download": "node tests/cdp-download.mjs",
     "test:eval": "node tests/cdp-eval.mjs",
-    "test:zip": "node tests/cdp-zip.mjs"
+    "test:zip": "node tests/cdp-zip.mjs",
+    "test:connect": "node tests/cdp-connect.mjs",
+    "kubo:ws": "node scripts/kubo-config-ws.mjs",
+    "kubo:wss": "node scripts/kubo-config-wss.mjs",
+    "cert:generate": "node scripts/cert-generate.mjs",
+    "proxy:wss": "node scripts/wss-proxy.mjs"
   },
   "dependencies": {
     "@helia/strings": "^4.0.0",
     "@helia/unixfs": "^5.0.0",
     "@helia/verified-fetch": "^2.0.0",
+    "@multiformats/multiaddr": "^12.0.0",
     "fflate": "^0.8.0",
     "helia": "^5.0.0"
   },

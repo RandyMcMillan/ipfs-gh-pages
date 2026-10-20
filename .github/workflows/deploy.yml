@@ -51,10 +51,7 @@ jobs:
         env:
           CHROME_PATH: /usr/bin/chromium-browser
         run: |
-          npm run test
-          npm run test:eval
-          npm run test:zip
-          npm run test:download
+          npm test
 
   deploy:
     needs: test

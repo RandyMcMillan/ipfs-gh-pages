@@ -4,6 +4,7 @@ import { unixfs } from '@helia/unixfs';
 import { CID } from 'multiformats/cid';
 import repoFiles from 'virtual:repo-files';
 import { zipSync } from 'fflate';
+import { multiaddr } from '@multiformats/multiaddr';
 
 let heliaNode = null;
 let heliaStrings = null;
@@ -13,9 +14,15 @@ let lastFetchedBytes = null;
 let lastFetchedName = 'ipfs-content';
 let lastFetchedCid = null;
 let lastFetchedIsDir = false;
+let rootCidForProvide = null;
 
 const statusEl = document.getElementById('node-status');
 const peerIdEl = document.getElementById('peer-id');
+const multiaddrsEl = document.getElementById('multiaddrs');
+const connectBtn = document.getElementById('btn-connect');
+const bootstrapBtn = document.getElementById('btn-bootstrap');
+const inputMultiaddr = document.getElementById('input-multiaddr');
+const connectStatus = document.getElementById('connect-status');
 const publishBtn = document.getElementById('btn-publish');
 const fetchBtn = document.getElementById('btn-fetch');
 const downloadBtn = document.getElementById('btn-download');
@@ -146,7 +153,28 @@ async function addAllRepoFiles() {
     if (rootCid) {
       outputCid.textContent = rootCid.toString();
       inputCid.value = rootCid.toString();
+      rootCidForProvide = rootCid;
       statusEl.textContent = 'Online & All repository files added to IPFS';
+
+      // Announce the root CID to the IPFS network so other peers
+      // (e.g. Kubo Desktop) can discover and retrieve it.
+      if (heliaNode && heliaNode.routing && typeof heliaNode.routing.provide === 'function') {
+        statusEl.textContent = 'Online & Publishing root CID to IPFS network...';
+        heliaNode.routing.provide(rootCid)
+          .then(() => {
+            statusEl.textContent = 'Online & Root CID published to IPFS network';
+          })
+          .catch((err) => {
+            statusEl.textContent = `Online & Added files (publish: ${err.message})`;
+          });
+        // Best-effort announce individual file CIDs
+        for (const cidStr of repoTreeCids.values()) {
+          heliaNode.routing.provide(CID.parse(cidStr)).catch(() => {});
+        }
+      } else {
+        statusEl.textContent = 'Online & All repository files added to IPFS';
+      }
+
       renderRepoTree();
     }
   } catch (err) {
@@ -161,14 +189,54 @@ async function initHelia() {
     heliaNode = await createHelia();
     heliaStrings = strings(heliaNode);
     heliaUnixfs = unixfs(heliaNode);
+    window.__heliaNode = heliaNode;
 
     const peerId = heliaNode.libp2p.peerId.toString();
 
     statusEl.textContent = 'Online & Connected to Peer-to-Peer Network';
     peerIdEl.textContent = peerId;
 
+    try {
+      const addrs = heliaNode.libp2p.getMultiaddrs().map((a) => a.toString());
+      multiaddrsEl.textContent = addrs.length ? addrs.join(', ') : '(none - browser node)';
+    } catch (e) {
+      multiaddrsEl.textContent = '(unavailable)';
+    }
+
     publishBtn.disabled = false;
     fetchBtn.disabled = false;
+    connectBtn.disabled = false;
+    bootstrapBtn.disabled = false;
+
+    // Try common local Kubo multiaddrs by default
+    const commonAddrs = ['/ip4/127.0.0.1/tcp/4001', '/ip4/127.0.0.1/tcp/4001/ws', '/ip4/127.0.0.1/tcp/5001'];
+    (async () => {
+      for (const a of commonAddrs) {
+        try {
+          await heliaNode.libp2p.dial(multiaddr(a));
+          connectStatus.textContent = `Connected to ${a}`;
+          inputMultiaddr.value = a;
+          return;
+        } catch (e) {
+          // try next
+        }
+      }
+      // Fall back to public bootstrap peers
+      let connected = 0;
+      for (const addr of bootstrapPeers) {
+        try {
+          await heliaNode.libp2p.dial(multiaddr(addr));
+          connected++;
+        } catch (e) {
+          // ignore
+        }
+      }
+      if (connected > 0) {
+        connectStatus.textContent = `Connected to ${connected} bootstrap peer(s).`;
+      } else {
+        connectStatus.textContent = 'No common peer found. Enter a multiaddr manually.';
+      }
+    })();
 
     // Render the repository file tree immediately
     renderRepoTree();
@@ -334,11 +402,71 @@ downloadBtn.addEventListener('click', async () => {
 
 // Debug helpers (used by integration tests)
 window.__runFetch = fetchContent;
+window.__provideRoot = async () => {
+  try {
+    if (!heliaNode || !heliaNode.routing) return 'no routing';
+    const cid = CID.parse(outputCid.textContent.trim());
+    await Promise.race([
+      heliaNode.routing.provide(cid),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+    ]);
+    return 'provided OK';
+  } catch (e) {
+    return 'provide failed: ' + e.message;
+  }
+};
 window.__getLastFetched = () => ({ len: lastFetchedBytes ? lastFetchedBytes.length : 0, name: lastFetchedName, isDir: lastFetchedIsDir });
 window.__collectZipSize = async (cid) => {
   const tree = await collectIpfsDir(cid);
   const z = zipSync(tree);
   return z.length;
 };
+
+// Connect to a peer (e.g. Kubo Desktop) so it can fetch our blocks
+connectBtn.addEventListener('click', async () => {
+  const addr = inputMultiaddr.value.trim();
+  if (!addr) return;
+  connectBtn.disabled = true;
+  connectStatus.textContent = 'Dialing peer...';
+  try {
+    const ma = multiaddr(addr);
+    await heliaNode.libp2p.dial(ma);
+    connectStatus.textContent = 'Connected. The peer can now fetch the root CID.';
+    // Re-provide after connecting
+    if (rootCidForProvide) {
+      try { await heliaNode.routing.provide(rootCidForProvide); } catch (e) {}
+    }
+  } catch (err) {
+    connectStatus.textContent = `Connection failed: ${err.message}`;
+  } finally {
+    connectBtn.disabled = false;
+  }
+});
+
+const bootstrapPeers = [
+  '/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN',
+  '/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb',
+  '/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt',
+  '/dnsaddr/va1.bootstrap.libp2p.io/p2p/12D3KooWKnDdG3iXw9eTFijk3EWSunZcFi54Zka4wmtqtt6rPxc8',
+  '/ip4/104.131.131.82/tcp/4001/p2p/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ'
+];
+
+bootstrapBtn.addEventListener('click', async () => {
+  bootstrapBtn.disabled = true;
+  connectStatus.textContent = 'Connecting to bootstrap peers...';
+  let connected = 0;
+  for (const addr of bootstrapPeers) {
+    try {
+      await heliaNode.libp2p.dial(multiaddr(addr));
+      connected++;
+    } catch (e) {
+      // ignore
+    }
+  }
+  connectStatus.textContent = connected > 0
+    ? `Connected to ${connected} bootstrap peer(s).`
+    : 'Could not connect to bootstrap peers.';
+  bootstrapBtn.disabled = false;
+});
 
 initHelia();
