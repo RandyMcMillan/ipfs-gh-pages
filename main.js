@@ -8,11 +8,14 @@ let heliaNode = null;
 let heliaStrings = null;
 let heliaUnixfs = null;
 const repoTreeCids = new Map();
+let lastFetchedBytes = null;
+let lastFetchedName = 'ipfs-content';
 
 const statusEl = document.getElementById('node-status');
 const peerIdEl = document.getElementById('peer-id');
 const publishBtn = document.getElementById('btn-publish');
 const fetchBtn = document.getElementById('btn-fetch');
+const downloadBtn = document.getElementById('btn-download');
 const inputContent = document.getElementById('input-content');
 const outputCid = document.getElementById('output-cid');
 const inputCid = document.getElementById('input-cid');
@@ -198,6 +201,7 @@ async function fetchContent(cidStr) {
   if (!cidStr) return;
   inputCid.value = cidStr;
   fetchBtn.disabled = true;
+  downloadBtn.disabled = true;
   outputContent.textContent = 'Resolving blocks from IPFS network...';
 
   try {
@@ -208,7 +212,11 @@ async function fetchContent(cidStr) {
       for await (const entry of heliaUnixfs.ls(cid)) {
         entries.push((entry.type === 'directory' ? '📁 ' : '📄 ') + entry.name);
       }
-      outputContent.textContent = entries.length ? entries.join('\\n') : '(empty directory)';
+      const dirText = entries.length ? entries.join('\\n') : '(empty directory)';
+      outputContent.textContent = dirText;
+      lastFetchedBytes = new TextEncoder().encode(dirText);
+      lastFetchedName = `ipfs-${cidStr.slice(0, 12)}-listing.txt`;
+      downloadBtn.disabled = false;
     } else {
       const chunks = [];
       for await (const chunk of heliaUnixfs.cat(cid)) {
@@ -226,6 +234,9 @@ async function fetchContent(cidStr) {
       } catch (e) {
         outputContent.textContent = `Binary content (${bytes.length} bytes)`;
       }
+      lastFetchedBytes = bytes;
+      lastFetchedName = `ipfs-${cidStr.slice(0, 12)}`;
+      downloadBtn.disabled = false;
     }
   } catch (err) {
     // Fallback for string CIDs created via heliaStrings
@@ -233,6 +244,9 @@ async function fetchContent(cidStr) {
       const cid = CID.parse(cidStr);
       const content = await heliaStrings.get(cid);
       outputContent.textContent = content;
+      lastFetchedBytes = new TextEncoder().encode(content);
+      lastFetchedName = `ipfs-${cidStr.slice(0, 12)}.txt`;
+      downloadBtn.disabled = false;
     } catch (err2) {
       outputContent.textContent = `Error retrieving CID: ${err2.message}`;
     }
@@ -246,6 +260,20 @@ fetchBtn.addEventListener('click', async () => {
   const cidStr = inputCid.value.trim();
   if (!cidStr) return;
   await fetchContent(cidStr);
+});
+
+// Download the most recently fetched content
+downloadBtn.addEventListener('click', () => {
+  if (!lastFetchedBytes) return;
+  const blob = new Blob([lastFetchedBytes], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = lastFetchedName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 });
 
 initHelia();
