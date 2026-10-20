@@ -469,4 +469,22 @@ bootstrapBtn.addEventListener('click', async () => {
   bootstrapBtn.disabled = false;
 });
 
+// Tab navigation
+document.querySelectorAll('.tab-button').forEach((button) => {
+  button.addEventListener('click', () => {
+    const tab = button.dataset.tab;
+    document.querySelectorAll('.tab-button').forEach((btn) => {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-selected', 'false');
+    });
+    document.querySelectorAll('.tab-panel').forEach((panel) => {
+      panel.classList.remove('active');
+    });
+    button.classList.add('active');
+    button.setAttribute('aria-selected', 'true');
+    const panel = document.getElementById(`tab-${tab}`);
+    if (panel) panel.classList.add('active');
+  });
+});
+
 initHelia();
