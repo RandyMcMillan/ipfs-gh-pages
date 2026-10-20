@@ -7,6 +7,7 @@ import repoFiles from 'virtual:repo-files';
 let heliaNode = null;
 let heliaStrings = null;
 let heliaUnixfs = null;
+const repoTreeCids = new Map();
 
 const statusEl = document.getElementById('node-status');
 const peerIdEl = document.getElementById('peer-id');
@@ -16,6 +17,7 @@ const inputContent = document.getElementById('input-content');
 const outputCid = document.getElementById('output-cid');
 const inputCid = document.getElementById('input-cid');
 const outputContent = document.getElementById('output-content');
+const fileTreeEl = document.getElementById('file-tree');
 
 function base64ToUint8Array(b64) {
   const binary = atob(b64);
@@ -24,6 +26,75 @@ function base64ToUint8Array(b64) {
     bytes[i] = binary.charCodeAt(i);
   }
   return bytes;
+}
+
+function buildRepoTree(paths) {
+  const root = { name: '', children: {}, isDir: true };
+  for (const p of paths) {
+    const parts = p.split('/');
+    let cur = root;
+    for (let i = 0; i < parts.length; i++) {
+      const name = parts[i];
+      if (!cur.children[name]) {
+        cur.children[name] = { name, children: {}, isDir: i < parts.length - 1 };
+      } else if (i < parts.length - 1) {
+        cur.children[name].isDir = true;
+      }
+      cur = cur.children[name];
+    }
+  }
+  return root;
+}
+
+function renderRepoTree() {
+  if (!fileTreeEl) return;
+  fileTreeEl.innerHTML = '';
+  const paths = Object.keys(repoFiles);
+  const tree = buildRepoTree(paths);
+  const rootUl = document.createElement('ul');
+
+  function renderNode(node, parentPath) {
+    const ul = document.createElement('ul');
+    const names = Object.keys(node.children).sort((a, b) => {
+      const aDir = node.children[a].isDir;
+      const bDir = node.children[b].isDir;
+      if (aDir !== bDir) return aDir ? -1 : 1;
+      return a.localeCompare(b);
+    });
+    for (const name of names) {
+      const child = node.children[name];
+      const childPath = parentPath ? parentPath + '/' + name : name;
+      const li = document.createElement('li');
+
+      const cid = repoTreeCids.get(child.isDir ? childPath : childPath);
+      const cidText = cid ? '  ' + cid : '';
+
+      if (child.isDir) {
+        const details = document.createElement('details');
+        details.open = true;
+        const summary = document.createElement('summary');
+        summary.textContent = '📁 ' + name + cidText;
+        details.appendChild(summary);
+        if (Object.keys(child.children).length > 0) {
+          details.appendChild(renderNode(child, childPath));
+        }
+        li.appendChild(details);
+      } else {
+        const span = document.createElement('span');
+        span.textContent = '📄 ' + name + cidText;
+        li.appendChild(span);
+      }
+      ul.appendChild(li);
+    }
+    return ul;
+  }
+
+  const rendered = renderNode(tree, '');
+  // promote children of root into the top-level list
+  while (rendered.firstChild) {
+    rootUl.appendChild(rendered.firstChild);
+  }
+  fileTreeEl.appendChild(rootUl);
 }
 
 async function addAllRepoFiles() {
@@ -39,11 +110,13 @@ async function addAllRepoFiles() {
   try {
     for await (const entry of heliaUnixfs.addAll(candidates, { wrapWithDirectory: true })) {
       rootCid = entry.cid;
+      repoTreeCids.set(entry.path == null ? '' : entry.path, entry.cid.toString());
     }
     if (rootCid) {
       outputCid.textContent = rootCid.toString();
       inputCid.value = rootCid.toString();
       statusEl.textContent = 'Online & All repository files added to IPFS';
+      renderRepoTree();
     }
   } catch (err) {
     statusEl.textContent = `Error adding repository files: ${err.message}`;
@@ -65,6 +138,9 @@ async function initHelia() {
 
     publishBtn.disabled = false;
     fetchBtn.disabled = false;
+
+    // Render the repository file tree immediately
+    renderRepoTree();
 
     // Automatically add all files in the repo to IPFS
     addAllRepoFiles();
