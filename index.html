@@ -248,10 +248,10 @@
       <div class="card">
         <h3>Connect to Peer (e.g. Kubo Desktop)</h3>
         <label for="input-multiaddr">Peer Multiaddr:</label>
-        <input type="text" id="input-multiaddr" placeholder="/ip4/127.0.0.1/tcp/4001/ws/p2p/&lt;KUBO_PEER_ID&gt;" value="/ip4/127.0.0.1/tcp/4001/ws/p2p/&lt;KUBO_PEER_ID&gt;" list="common-addrs" />
+        <input type="text" id="input-multiaddr" placeholder="/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;" value="/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;" list="common-addrs" />
         <datalist id="common-addrs">
-          <option value="/ip4/127.0.0.1/tcp/4001/ws/p2p/&lt;KUBO_PEER_ID&gt;"></option>
-          <option value="/ip4/127.0.0.1/tcp/4001/ws"></option>
+          <option value="/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;"></option>
+          <option value="/ip4/127.0.0.1/tcp/4002/ws"></option>
           <option value="/dns4/example.com/tcp/443/wss/p2p/&lt;KUBO_PEER_ID&gt;"></option>
         </datalist>
         <small>Browser nodes can only dial WebSocket transports (<code>/ws</code> or <code>/wss</code>). Replace <code>&lt;KUBO_PEER_ID&gt;</code> with the peer ID from your Kubo node.</small>
@@ -365,8 +365,47 @@ npm run proxy:wss          # listens on wss://0.0.0.0:4003
         </div>
         <div class="help" style="margin-top:1rem;">
           <h4>Enable CORS in Kubo</h4>
+          <p>
+            The page origin depends on how you open the app. Browsers treat <code>127.0.0.1</code> and <code>localhost</code> as different origins, so allow both.
+          </p>
+          <table style="width:100%; border-collapse:collapse; margin-bottom:0.75rem; font-size:0.85rem;">
+            <thead>
+              <tr style="border-bottom:1px solid #444;">
+                <th style="text-align:left; padding:0.3rem;">Command</th>
+                <th style="text-align:left; padding:0.3rem;">URL</th>
+                <th style="text-align:left; padding:0.3rem;">Origin to allow</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid #333;">
+                <td style="padding:0.3rem;"><code>npm run dev</code></td>
+                <td style="padding:0.3rem;"><code>http://127.0.0.1:5173</code></td>
+                <td style="padding:0.3rem;"><code>http://127.0.0.1:5173</code></td>
+              </tr>
+              <tr style="border-bottom:1px solid #333;">
+                <td style="padding:0.3rem;"><code>npm run dev</code></td>
+                <td style="padding:0.3rem;"><code>http://localhost:5173</code></td>
+                <td style="padding:0.3rem;"><code>http://localhost:5173</code></td>
+              </tr>
+              <tr style="border-bottom:1px solid #333;">
+                <td style="padding:0.3rem;"><code>npm run preview</code></td>
+                <td style="padding:0.3rem;"><code>http://127.0.0.1:4173</code></td>
+                <td style="padding:0.3rem;"><code>http://127.0.0.1:4173</code></td>
+              </tr>
+              <tr>
+                <td style="padding:0.3rem;">GitHub Pages</td>
+                <td style="padding:0.3rem;"><code>https://yourusername.github.io/ipfs-gh-pages</code></td>
+                <td style="padding:0.3rem;">your actual Pages URL</td>
+              </tr>
+            </tbody>
+          </table>
           <p>If detection fails with a CORS error, run these commands on the Kubo host (then restart Kubo):</p>
-          <pre>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["http://127.0.0.1:5173", "https://yourdomain.com"]'
+          <pre>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '[
+  "http://127.0.0.1:5173",
+  "http://localhost:5173",
+  "http://127.0.0.1:4173",
+  "https://yourusername.github.io"
+]'
 ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
 ipfs daemon</pre>
         </div>
