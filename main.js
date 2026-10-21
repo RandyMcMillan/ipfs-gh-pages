@@ -694,74 +694,81 @@ async function tryKuboRpc(host, ports) {
   throw new Error(errors.join('; '));
 }
 
-if (detectKuboBtn) {
-  detectKuboBtn.addEventListener('click', async () => {
-    const host = settingsRpcHost.value.trim() || '127.0.0.1';
-    const userPort = settingsRpcPort.value.trim();
-    const proxyPort = settingsRpcProxyPort.value.trim() || '4003';
-    const ports = userPort ? [userPort] : ['5001', '5002'];
+async function detectKubo() {
+  const host = settingsRpcHost.value.trim() || '127.0.0.1';
+  const userPort = settingsRpcPort.value.trim();
+  const proxyPort = settingsRpcProxyPort.value.trim() || '4003';
+  const ports = userPort ? [userPort] : ['5001', '5002'];
 
-    settingsKuboStatus.textContent = 'Detecting Kubo on ' + ports.map(p => `${host}:${p}`).join(', ') + '...';
-    settingsKuboResult.style.display = 'none';
-    settingsKuboAddresses.innerHTML = '';
+  settingsKuboStatus.textContent = 'Detecting Kubo on ' + ports.map(p => `${host}:${p}`).join(', ') + '...';
+  settingsKuboResult.style.display = 'none';
+  settingsKuboAddresses.innerHTML = '';
 
-    try {
-      const { info, port } = await tryKuboRpc(host, ports);
-      const peerId = info.ID;
-      const addresses = (info.Addresses || []).filter(isBrowserDialable);
+  try {
+    const { info, port } = await tryKuboRpc(host, ports);
+    const peerId = info.ID;
+    const addresses = (info.Addresses || []).filter(isBrowserDialable);
 
-      settingsRpcPort.value = port;
-      settingsKuboPeerId.textContent = peerId;
-      settingsKuboStatus.textContent = addresses.length
-        ? `Found ${addresses.length} browser-dialable address(es) via RPC port ${port}.`
-        : `Kubo found on port ${port}, but no browser-dialable /ws or /wss addresses. Run npm run kubo:ws first.`;
+    settingsRpcPort.value = port;
+    settingsKuboPeerId.textContent = peerId;
+    settingsKuboStatus.textContent = addresses.length
+      ? `Found ${addresses.length} browser-dialable address(es) via RPC port ${port}.`
+      : `Kubo found on port ${port}, but no browser-dialable /ws or /wss addresses. Run npm run kubo:ws first.`;
 
-      // Update Connect input with the best detected address
-      if (addresses.length && inputMultiaddr) {
-        const best =
-          addresses.find(a => a.includes('/ip4/127.0.0.1/') && a.includes('/ws') && !a.includes('/wss')) ||
-          addresses.find(a => a.includes('/ws') && !a.includes('/wss')) ||
-          addresses.find(a => a.includes('/wss')) ||
-          addresses[0];
-        inputMultiaddr.value = best;
+    // Update Connect input with the best detected address
+    if (addresses.length && inputMultiaddr) {
+      const best =
+        addresses.find(a => a.includes('/ip4/127.0.0.1/') && a.includes('/ws') && !a.includes('/wss')) ||
+        addresses.find(a => a.includes('/ws') && !a.includes('/wss')) ||
+        addresses.find(a => a.includes('/wss')) ||
+        addresses[0];
+      inputMultiaddr.value = best;
+    }
+
+    const seen = new Set();
+    for (const addr of addresses) {
+      if (!seen.has(addr)) {
+        seen.add(addr);
+        const li = document.createElement('li');
+        li.textContent = addr;
+        li.title = 'Click to use this address';
+        li.addEventListener('click', () => {
+          inputMultiaddr.value = addr;
+          document.getElementById('sub-tab-btn-connect').click();
+        });
+        settingsKuboAddresses.appendChild(li);
       }
-
-      const seen = new Set();
-      for (const addr of addresses) {
-        if (!seen.has(addr)) {
-          seen.add(addr);
+      // Also offer a WSS proxy variant for plain WS addresses
+      if (addr.includes('/ws') && !addr.includes('/wss')) {
+        const proxyAddr = normalizeAddressForProxy(addr, proxyPort) + `/p2p/${peerId}`;
+        if (!seen.has(proxyAddr)) {
+          seen.add(proxyAddr);
           const li = document.createElement('li');
-          li.textContent = addr;
+          li.textContent = proxyAddr + ' (via local WSS proxy)';
           li.title = 'Click to use this address';
           li.addEventListener('click', () => {
-            inputMultiaddr.value = addr;
+            inputMultiaddr.value = proxyAddr;
             document.getElementById('sub-tab-btn-connect').click();
           });
           settingsKuboAddresses.appendChild(li);
         }
-        // Also offer a WSS proxy variant for plain WS addresses
-        if (addr.includes('/ws') && !addr.includes('/wss')) {
-          const proxyAddr = normalizeAddressForProxy(addr, proxyPort) + `/p2p/${peerId}`;
-          if (!seen.has(proxyAddr)) {
-            seen.add(proxyAddr);
-            const li = document.createElement('li');
-            li.textContent = proxyAddr + ' (via local WSS proxy)';
-            li.title = 'Click to use this address';
-            li.addEventListener('click', () => {
-              inputMultiaddr.value = proxyAddr;
-              document.getElementById('sub-tab-btn-connect').click();
-            });
-            settingsKuboAddresses.appendChild(li);
-          }
-        }
       }
-
-      settingsKuboResult.style.display = 'block';
-    } catch (err) {
-      settingsKuboStatus.innerHTML = `Detection failed. <br><strong>Current page origin:</strong> ${window.location.origin}<br>Kubo must allow this origin via CORS (see below).<br><small>RPC errors: ${err.message}</small>`;
     }
-  });
+
+    settingsKuboResult.style.display = 'block';
+  } catch (err) {
+    settingsKuboStatus.innerHTML = `Detection failed. <br><strong>Current page origin:</strong> ${window.location.origin}<br>Kubo must allow this origin via CORS (see below).<br><small>RPC errors: ${err.message}</small>`;
+  }
 }
+
+if (detectKuboBtn) {
+  detectKuboBtn.addEventListener('click', detectKubo);
+}
+
+// Auto-detect Kubo shortly after page load
+setTimeout(() => {
+  if (detectKuboBtn) detectKubo();
+}, 1000);
 
 // Tab navigation
 document.querySelectorAll('.tab-button').forEach((button) => {
