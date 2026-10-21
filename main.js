@@ -42,6 +42,9 @@ const settingsKuboStatus = document.getElementById('settings-kubo-status');
 const settingsKuboResult = document.getElementById('settings-kubo-result');
 const settingsKuboPeerId = document.getElementById('settings-kubo-peer-id');
 const settingsKuboAddresses = document.getElementById('settings-kubo-addresses');
+const settingsCurrentOrigin = document.getElementById('settings-current-origin');
+const settingsCorsCommand = document.getElementById('settings-cors-command');
+const copyCorsBtn = document.getElementById('btn-copy-cors');
 const fileSelectedEl = document.getElementById('file-selected');
 const fetchSelectedBtn = document.getElementById('btn-fetch-selected');
 const downloadSelectedBtn = document.getElementById('btn-download-selected');
@@ -621,28 +624,107 @@ function normalizeAddressForProxy(addr, proxyPort) {
   return addr.replace(/\/tcp\/\d+\/ws$/, `/tcp/${proxyPort}/wss`);
 }
 
+const currentOrigin = window.location.origin;
+const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+
+if (settingsCurrentOrigin) {
+  settingsCurrentOrigin.textContent = `Current page origin: ${currentOrigin}`;
+}
+
+// Update CORS origin table with the actual port
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+setText('settings-url-127', `http://127.0.0.1:${currentPort}`);
+setText('settings-origin-127', `http://127.0.0.1:${currentPort}`);
+setText('settings-url-localhost', `http://localhost:${currentPort}`);
+setText('settings-origin-localhost', `http://localhost:${currentPort}`);
+
+const corsCommandText = `ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '${JSON.stringify([currentOrigin])}'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
+ipfs daemon`;
+
+const multiOriginCommandText = `ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '${JSON.stringify([
+  `http://127.0.0.1:${currentPort}`,
+  `http://localhost:${currentPort}`,
+  'http://127.0.0.1:4173',
+  'https://yourusername.github.io'
+])}'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
+ipfs daemon`;
+
+if (settingsCorsCommand) {
+  settingsCorsCommand.textContent = corsCommandText;
+}
+
+const settingsCorsMultiCommand = document.getElementById('settings-cors-multi-command');
+if (settingsCorsMultiCommand) {
+  settingsCorsMultiCommand.textContent = multiOriginCommandText;
+}
+
+if (copyCorsBtn) {
+  copyCorsBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(corsCommandText);
+      copyCorsBtn.textContent = 'Copied!';
+      setTimeout(() => { copyCorsBtn.textContent = 'Copy CORS Command'; }, 1500);
+    } catch (err) {
+      copyCorsBtn.textContent = 'Copy failed';
+      setTimeout(() => { copyCorsBtn.textContent = 'Copy CORS Command'; }, 1500);
+    }
+  });
+}
+
+async function tryKuboRpc(host, ports) {
+  const errors = [];
+  for (const port of ports) {
+    const url = `http://${host}:${port}/api/v0/id`;
+    try {
+      const res = await fetch(url, { method: 'POST' });
+      if (res.ok) {
+        const info = await res.json();
+        return { info, port };
+      }
+      errors.push(`${port}: HTTP ${res.status}`);
+    } catch (err) {
+      errors.push(`${port}: ${err.message || 'connection failed'}`);
+    }
+  }
+  throw new Error(errors.join('; '));
+}
+
 if (detectKuboBtn) {
   detectKuboBtn.addEventListener('click', async () => {
     const host = settingsRpcHost.value.trim() || '127.0.0.1';
-    const port = settingsRpcPort.value.trim() || '5001';
+    const userPort = settingsRpcPort.value.trim();
     const proxyPort = settingsRpcProxyPort.value.trim() || '4003';
-    const url = `http://${host}:${port}/api/v0/id`;
+    const ports = userPort ? [userPort] : ['5001', '5002'];
 
-    settingsKuboStatus.textContent = 'Detecting Kubo...';
+    settingsKuboStatus.textContent = 'Detecting Kubo on ' + ports.map(p => `${host}:${p}`).join(', ') + '...';
     settingsKuboResult.style.display = 'none';
     settingsKuboAddresses.innerHTML = '';
 
     try {
-      const res = await fetch(url, { method: 'POST' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const info = await res.json();
+      const { info, port } = await tryKuboRpc(host, ports);
       const peerId = info.ID;
       const addresses = (info.Addresses || []).filter(isBrowserDialable);
 
+      settingsRpcPort.value = port;
       settingsKuboPeerId.textContent = peerId;
       settingsKuboStatus.textContent = addresses.length
-        ? `Found ${addresses.length} browser-dialable address(es).`
-        : 'Kubo found, but no browser-dialable /ws or /wss addresses. Run npm run kubo:ws first.';
+        ? `Found ${addresses.length} browser-dialable address(es) via RPC port ${port}.`
+        : `Kubo found on port ${port}, but no browser-dialable /ws or /wss addresses. Run npm run kubo:ws first.`;
+
+      // Update Connect input with the best detected address
+      if (addresses.length && inputMultiaddr) {
+        const best =
+          addresses.find(a => a.includes('/ip4/127.0.0.1/') && a.includes('/ws') && !a.includes('/wss')) ||
+          addresses.find(a => a.includes('/ws') && !a.includes('/wss')) ||
+          addresses.find(a => a.includes('/wss')) ||
+          addresses[0];
+        inputMultiaddr.value = best;
+      }
 
       const seen = new Set();
       for (const addr of addresses) {
@@ -676,7 +758,7 @@ if (detectKuboBtn) {
 
       settingsKuboResult.style.display = 'block';
     } catch (err) {
-      settingsKuboStatus.textContent = `Detection failed: ${err.message}. Is Kubo running? Check CORS settings below.`;
+      settingsKuboStatus.innerHTML = `Detection failed. <br><strong>Current page origin:</strong> ${window.location.origin}<br>Kubo must allow this origin via CORS (see below).<br><small>RPC errors: ${err.message}</small>`;
     }
   });
 }

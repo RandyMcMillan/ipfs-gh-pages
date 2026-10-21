@@ -343,6 +343,7 @@ npm run proxy:wss          # listens on wss://0.0.0.0:4003
           Detect a local Kubo node via its RPC API and copy a browser-dialable multiaddr.
           The Kubo API must allow CORS from this page's origin.
         </p>
+        <p id="settings-current-origin" style="margin: 0 0 0.75rem 0; color: #4da3ff;"></p>
         <div class="settings-row">
           <label for="settings-rpc-host">RPC Host:</label>
           <input type="text" id="settings-rpc-host" value="127.0.0.1" />
@@ -379,18 +380,18 @@ npm run proxy:wss          # listens on wss://0.0.0.0:4003
             <tbody>
               <tr style="border-bottom:1px solid #333;">
                 <td style="padding:0.3rem;"><code>npm run dev</code></td>
-                <td style="padding:0.3rem;"><code>http://127.0.0.1:5173</code></td>
-                <td style="padding:0.3rem;"><code>http://127.0.0.1:5173</code></td>
+                <td style="padding:0.3rem;"><code id="settings-url-127">http://127.0.0.1:5173</code></td>
+                <td style="padding:0.3rem;"><code id="settings-origin-127">http://127.0.0.1:5173</code></td>
               </tr>
               <tr style="border-bottom:1px solid #333;">
                 <td style="padding:0.3rem;"><code>npm run dev</code></td>
-                <td style="padding:0.3rem;"><code>http://localhost:5173</code></td>
-                <td style="padding:0.3rem;"><code>http://localhost:5173</code></td>
+                <td style="padding:0.3rem;"><code id="settings-url-localhost">http://localhost:5173</code></td>
+                <td style="padding:0.3rem;"><code id="settings-origin-localhost">http://localhost:5173</code></td>
               </tr>
               <tr style="border-bottom:1px solid #333;">
                 <td style="padding:0.3rem;"><code>npm run preview</code></td>
-                <td style="padding:0.3rem;"><code>http://127.0.0.1:4173</code></td>
-                <td style="padding:0.3rem;"><code>http://127.0.0.1:4173</code></td>
+                <td style="padding:0.3rem;"><code id="settings-url-preview">http://127.0.0.1:4173</code></td>
+                <td style="padding:0.3rem;"><code id="settings-origin-preview">http://127.0.0.1:4173</code></td>
               </tr>
               <tr>
                 <td style="padding:0.3rem;">GitHub Pages</td>
@@ -399,8 +400,13 @@ npm run proxy:wss          # listens on wss://0.0.0.0:4003
               </tr>
             </tbody>
           </table>
-          <p>If detection fails with a CORS error, run these commands on the Kubo host (then restart Kubo):</p>
-          <pre>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '[
+          <p>For your current session, allow this origin:</p>
+          <pre id="settings-cors-command">ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["http://127.0.0.1:5173"]'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
+ipfs daemon</pre>
+          <button id="btn-copy-cors" type="button">Copy CORS Command</button>
+          <p style="margin-top:0.75rem;">For persistent access from other origins, allow them all at once:</p>
+          <pre id="settings-cors-multi-command">ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '[
   "http://127.0.0.1:5173",
   "http://localhost:5173",
   "http://127.0.0.1:4173",
