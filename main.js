@@ -127,7 +127,7 @@ function renderRepoTree() {
 
       if (child.isDir) {
         const details = document.createElement('details');
-        details.open = true;
+        details.open = false;
         const summary = document.createElement('summary');
         summary.textContent = '📁 ' + name;
         if (cid) {
