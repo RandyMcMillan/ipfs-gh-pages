@@ -831,30 +831,46 @@ if (copyCorsMultiBtn) {
   });
 }
 
-async function tryKuboRpc(host, ports) {
-  const errors = [];
-  for (const port of ports) {
-    const url = `http://${host}:${port}/api/v0/id`;
-    try {
-      const res = await fetch(url, { method: 'POST' });
-      if (res.ok) {
-        const info = await res.json();
-        return { info, port };
-      }
-      errors.push(`${port}: HTTP ${res.status}`);
-    } catch (err) {
-      errors.push(`${port}: ${err.message || 'connection failed'}`);
+// Kubo API ports we probe when none is pinned in Settings.
+const KUBO_RPC_PORTS = Array.from({ length: 10 }, (_, i) => String(5001 + i));
+const KUBO_PROBE_TIMEOUT_MS = 2000;
+
+async function probeKuboRpc(host, port) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), KUBO_PROBE_TIMEOUT_MS);
+  try {
+    const res = await fetch(`http://${host}:${port}/api/v0/id`, {
+      method: 'POST',
+      signal: controller.signal
+    });
+    if (res.ok) {
+      return { port, info: await res.json() };
     }
+    return { port, error: `${port}: HTTP ${res.status}` };
+  } catch (err) {
+    return { port, error: `${port}: ${err.message || 'connection failed'}` };
+  } finally {
+    clearTimeout(timer);
   }
-  throw new Error(errors.join('; '));
 }
 
+// Probe every port in parallel so one dead/unresponsive port can't stall the scan.
+async function tryKuboRpc(host, ports) {
+  const results = await Promise.all(ports.map(port => probeKuboRpc(host, port)));
+  const found = results.find(result => result.info);
+  if (found) {
+    return { info: found.info, port: found.port };
+  }
+  throw new Error(results.map(result => result.error).join('; '));
+}
+
+// A pinned port in Settings is probed first, then the full 5001-5010 range.
 async function detectKubo(autoConnect = false) {
   const host = settingsRpcHost.value.trim() || '127.0.0.1';
   const userPort = settingsRpcPort.value.trim();
   const proxyPort = settingsRpcProxyPort.value.trim() || '4003';
-  const defaultPorts = Array.from({ length: 10 }, (_, i) => String(5001 + i));
-  const ports = userPort ? [userPort] : defaultPorts;
+  const pinnedPorts = userPort ? [userPort] : [];
+  const ports = [...pinnedPorts, ...KUBO_RPC_PORTS.filter(port => !pinnedPorts.includes(port))];
 
   settingsKuboStatus.textContent = 'Detecting Kubo on ' + ports.map(p => `${host}:${p}`).join(', ') + '...';
   settingsKuboResult.style.display = 'none';
