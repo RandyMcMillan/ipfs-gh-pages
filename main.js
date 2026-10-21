@@ -52,6 +52,8 @@ const downloadSelectedBtn = document.getElementById('btn-download-selected');
 const fetchRepoBtn = document.getElementById('btn-fetch-repo');
 const downloadRepoBtn = document.getElementById('btn-download-repo');
 const fileActionStatus = document.getElementById('file-action-status');
+const fetchedRepoCard = document.getElementById('fetched-repo-card');
+const fetchedRepoTree = document.getElementById('fetched-repo-tree');
 
 function base64ToUint8Array(b64) {
   const binary = atob(b64);
@@ -314,6 +316,32 @@ publishBtn.addEventListener('click', async () => {
   }
 });
 
+function renderFetchedTree(entries) {
+  const rootUl = document.createElement('ul');
+  rootUl.style.listStyle = 'none';
+  rootUl.style.paddingLeft = '0';
+  for (const entry of entries) {
+    const li = document.createElement('li');
+    li.style.marginBottom = '0.25rem';
+    const icon = entry.type === 'directory' ? '📁' : '📄';
+    const cidStr = entry.cid.toString();
+    li.innerHTML = `${icon} ${escapeHtml(entry.name)} <span style="color:#4da3ff;cursor:pointer;" data-cid="${cidStr}">${cidStr}</span>`;
+    const cidEl = li.querySelector('span[data-cid]');
+    cidEl.addEventListener('click', () => {
+      inputCid.value = cidStr;
+      fetchContent(cidStr, entry.name);
+    });
+    rootUl.appendChild(li);
+  }
+  return rootUl;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 async function fetchContent(cidStr, nameHint) {
   if (!cidStr) return;
   inputCid.value = cidStr;
@@ -330,11 +358,21 @@ async function fetchContent(cidStr, nameHint) {
     if (stat.type === 'directory') {
       const entries = [];
       for await (const entry of heliaUnixfs.ls(cid)) {
-        entries.push((entry.type === 'directory' ? '📁 ' : '📄 ') + entry.name);
+        entries.push(entry);
       }
-      const dirText = entries.length ? entries.join('\\n') : '(empty directory)';
-      outputContent.textContent = dirText;
-      lastFetchedBytes = new TextEncoder().encode(dirText);
+      outputContent.innerHTML = '';
+      if (entries.length) {
+        const heading = document.createElement('p');
+        heading.textContent = `Directory with ${entries.length} item(s):`;
+        heading.style.marginTop = '0';
+        outputContent.appendChild(heading);
+        outputContent.appendChild(renderFetchedTree(entries));
+        const dirText = entries.map(e => (e.type === 'directory' ? '📁 ' : '📄 ') + e.name).join('\\n');
+        lastFetchedBytes = new TextEncoder().encode(dirText);
+      } else {
+        outputContent.textContent = '(empty directory)';
+        lastFetchedBytes = new TextEncoder().encode('(empty directory)');
+      }
       lastFetchedName = downloadName ? downloadName + (downloadName.includes('.') ? '' : '.txt') : `ipfs-${cidStr.slice(0, 12)}-listing.txt`;
       lastFetchedCid = cidStr;
       lastFetchedIsDir = true;
@@ -518,8 +556,24 @@ if (fetchRepoBtn) {
     fileActionStatus.style.color = '#00ff88';
     fileActionStatus.textContent = 'Fetching whole repo...';
     try {
+      const cid = CID.parse(rootCid);
+      const stat = await heliaUnixfs.stat(cid);
       await fetchContent(rootCid, 'repo');
-      fileActionStatus.textContent = 'Fetched whole repo. Switch to the Fetch tab to view.';
+      if (stat.type === 'directory') {
+        const entries = [];
+        for await (const entry of heliaUnixfs.ls(cid)) {
+          entries.push(entry);
+        }
+        if (fetchedRepoCard && fetchedRepoTree) {
+          fetchedRepoTree.innerHTML = '';
+          fetchedRepoTree.appendChild(renderFetchedTree(entries));
+          fetchedRepoCard.style.display = 'block';
+        }
+        fileActionStatus.textContent = '';
+      } else {
+        if (fetchedRepoCard) fetchedRepoCard.style.display = 'none';
+        fileActionStatus.textContent = 'Fetched whole repo. Switch to the Fetch tab to view.';
+      }
     } catch (err) {
       fileActionStatus.textContent = `Fetch failed: ${err.message}`;
       fileActionStatus.style.color = '#ff4444';
@@ -537,8 +591,9 @@ if (downloadRepoBtn) {
     try {
       const tree = await collectIpfsDir(rootCid);
       const zipped = zipSync(tree);
-      downloadBytes(zipped, 'repo.zip');
-      fileActionStatus.textContent = 'Downloaded repo.zip';
+      const filename = `${rootCid}.zip`;
+      downloadBytes(zipped, filename);
+      fileActionStatus.textContent = `Downloaded ${filename}`;
     } catch (err) {
       fileActionStatus.textContent = `Download failed: ${err.message}`;
       fileActionStatus.style.color = '#ff4444';
