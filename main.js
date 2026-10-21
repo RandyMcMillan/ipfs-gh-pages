@@ -56,6 +56,7 @@ const settingsKuboAddresses = document.getElementById('settings-kubo-addresses')
 const settingsCurrentOrigin = document.getElementById('settings-current-origin');
 const settingsCorsCommand = document.getElementById('settings-cors-command');
 const copyCorsBtn = document.getElementById('btn-copy-cors');
+const copyCorsMultiBtn = document.getElementById('btn-copy-cors-multi');
 const fileSelectedEl = document.getElementById('file-selected');
 const fetchSelectedBtn = document.getElementById('btn-fetch-selected');
 const downloadSelectedBtn = document.getElementById('btn-download-selected');
@@ -772,20 +773,25 @@ function setText(id, text) {
   const el = document.getElementById(id);
   if (el) el.textContent = text;
 }
-setText('settings-url-127', `http://127.0.0.1:${currentPort}`);
-setText('settings-origin-127', `http://127.0.0.1:${currentPort}`);
-setText('settings-url-localhost', `http://localhost:${currentPort}`);
-setText('settings-origin-localhost', `http://localhost:${currentPort}`);
+const isLocalDev = currentOrigin.startsWith('http://127.0.0.1') || currentOrigin.startsWith('http://localhost');
+const devPort = isLocalDev ? currentPort : '5173';
+const previewPort = isLocalDev ? currentPort : '4173';
+setText('settings-url-127', `http://127.0.0.1:${devPort}`);
+setText('settings-origin-127', `http://127.0.0.1:${devPort}`);
+setText('settings-url-localhost', `http://localhost:${devPort}`);
+setText('settings-origin-localhost', `http://localhost:${devPort}`);
+setText('settings-url-preview', `http://127.0.0.1:${previewPort}`);
+setText('settings-origin-preview', `http://127.0.0.1:${previewPort}`);
 
 const corsCommandText = `ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '${JSON.stringify([currentOrigin])}'
 ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
 ipfs daemon`;
 
 const multiOriginCommandText = `ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '${JSON.stringify([
-  `http://127.0.0.1:${currentPort}`,
-  `http://localhost:${currentPort}`,
-  'http://127.0.0.1:4173',
-  'https://yourusername.github.io'
+  currentOrigin,
+  `http://127.0.0.1:${devPort}`,
+  `http://localhost:${devPort}`,
+  `http://127.0.0.1:${previewPort}`
 ])}'
 ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
 ipfs daemon`;
@@ -808,6 +814,19 @@ if (copyCorsBtn) {
     } catch (err) {
       copyCorsBtn.textContent = 'Copy failed';
       setTimeout(() => { copyCorsBtn.textContent = 'Copy CORS Command'; }, 1500);
+    }
+  });
+}
+
+if (copyCorsMultiBtn) {
+  copyCorsMultiBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(multiOriginCommandText);
+      copyCorsMultiBtn.textContent = 'Copied!';
+      setTimeout(() => { copyCorsMultiBtn.textContent = 'Copy Multi-Origin CORS Command'; }, 1500);
+    } catch (err) {
+      copyCorsMultiBtn.textContent = 'Copy failed';
+      setTimeout(() => { copyCorsMultiBtn.textContent = 'Copy Multi-Origin CORS Command'; }, 1500);
     }
   });
 }
