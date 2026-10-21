@@ -249,6 +249,7 @@ async function initHelia() {
     publishBtn.disabled = false;
     fetchBtn.disabled = false;
     connectBtn.disabled = false;
+    setConnectState('disconnected');
     bootstrapBtn.disabled = false;
 
     // Try common local Kubo multiaddrs by default
@@ -567,21 +568,29 @@ window.__collectZipSize = async (cid) => {
   return z.length;
 };
 
+function setConnectState(state) {
+  connectBtn.classList.remove('disconnected', 'connecting', 'connected');
+  connectBtn.classList.add(state);
+}
+
 // Connect to a peer (e.g. Kubo Desktop) so it can fetch our blocks
 connectBtn.addEventListener('click', async () => {
   const addr = inputMultiaddr.value.trim();
   if (!addr) return;
   connectBtn.disabled = true;
+  setConnectState('connecting');
   connectStatus.textContent = 'Dialing peer...';
   try {
     const ma = multiaddr(addr);
     await heliaNode.libp2p.dial(ma);
+    setConnectState('connected');
     connectStatus.textContent = 'Connected. The peer can now fetch the root CID.';
     // Re-provide after connecting
     if (rootCidForProvide) {
       try { await heliaNode.routing.provide(rootCidForProvide); } catch (e) {}
     }
   } catch (err) {
+    setConnectState('disconnected');
     connectStatus.textContent = `Connection failed: ${err.message}`;
   } finally {
     connectBtn.disabled = false;

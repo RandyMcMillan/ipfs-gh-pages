@@ -63,6 +63,19 @@
       background: #555;
       cursor: not-allowed;
     }
+    #btn-connect {
+      transition: background 0.2s, color 0.2s;
+    }
+    #btn-connect.disconnected {
+      background: #cc3333;
+    }
+    #btn-connect.connecting {
+      background: #ffcc00;
+      color: #000;
+    }
+    #btn-connect.connected {
+      background: #00cc66;
+    }
     .status {
       font-weight: bold;
       color: #00ff88;
