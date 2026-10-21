@@ -765,7 +765,13 @@ const currentOrigin = window.location.origin;
 const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
 
 if (settingsCurrentOrigin) {
-  settingsCurrentOrigin.textContent = `Current page origin: ${currentOrigin}`;
+  const originLink = document.createElement('a');
+  originLink.href = currentOrigin;
+  originLink.textContent = currentOrigin;
+  originLink.target = '_blank';
+  originLink.rel = 'noopener';
+  settingsCurrentOrigin.textContent = '';
+  settingsCurrentOrigin.appendChild(originLink);
 }
 
 // Update CORS origin table with the actual port
@@ -934,7 +940,7 @@ async function detectKubo(autoConnect = false) {
 
     settingsKuboResult.style.display = 'block';
   } catch (err) {
-    settingsKuboStatus.innerHTML = `Detection failed. <br><strong>Current page origin:</strong> ${window.location.origin}<br>Kubo must allow this origin via CORS (see below).<br><small>RPC errors: ${err.message}</small>`;
+    settingsKuboStatus.innerHTML = `Detection failed. <br>Kubo must allow this origin via CORS (see below): <a href="${window.location.origin}" target="_blank" rel="noopener">${window.location.origin}</a><br><small>RPC errors: ${err.message}</small>`;
   }
 }
 
