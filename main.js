@@ -23,10 +23,11 @@ const repoTreeSizes = new Map();
 
 function formatSize(bytes) {
   if (bytes == null) return '';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} kB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  const n = typeof bytes === 'bigint' ? Number(bytes) : bytes;
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} kB`;
+  if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(n / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }
 
 const statusEl = document.getElementById('node-status');
@@ -134,24 +135,35 @@ function renderRepoTree() {
 
       const cid = repoTreeCids.get(childPath);
 
+      function appendCidAndSize(container, cid, path) {
+        if (!cid) return;
+        const cidEl = document.createElement('span');
+        cidEl.textContent = '  ' + cid;
+        cidEl.style.cursor = 'pointer';
+        cidEl.style.color = '#4da3ff';
+        cidEl.title = 'Click to select this CID';
+        cidEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          selectFile(cid, name, cidEl);
+        });
+        container.appendChild(cidEl);
+        const size = repoTreeSizes.get(path);
+        if (size != null) {
+          const sizeEl = document.createElement('span');
+          sizeEl.textContent = ` (${formatSize(size)})`;
+          sizeEl.style.color = '#888';
+          sizeEl.style.fontSize = '0.85rem';
+          container.appendChild(sizeEl);
+        }
+      }
+
       if (child.isDir) {
         const details = document.createElement('details');
         details.open = false;
         const summary = document.createElement('summary');
         summary.textContent = '📁 ' + name;
-        if (cid) {
-          const cidEl = document.createElement('span');
-          cidEl.textContent = '  ' + cid;
-          cidEl.style.cursor = 'pointer';
-          cidEl.style.color = '#4da3ff';
-          cidEl.title = 'Click to select this CID';
-          cidEl.addEventListener('click', (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            selectFile(cid, name, cidEl);
-          });
-          summary.appendChild(cidEl);
-        }
+        appendCidAndSize(summary, cid, childPath);
         details.appendChild(summary);
         if (Object.keys(child.children).length > 0) {
           details.appendChild(renderNode(child, childPath));
@@ -160,19 +172,7 @@ function renderRepoTree() {
       } else {
         const span = document.createElement('span');
         span.textContent = '📄 ' + name;
-        if (cid) {
-          const cidEl = document.createElement('span');
-          cidEl.textContent = '  ' + cid;
-          cidEl.style.cursor = 'pointer';
-          cidEl.style.color = '#4da3ff';
-          cidEl.title = 'Click to select this CID';
-          cidEl.addEventListener('click', (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            selectFile(cid, name, cidEl);
-          });
-          span.appendChild(cidEl);
-        }
+        appendCidAndSize(span, cid, childPath);
         li.appendChild(span);
       }
       ul.appendChild(li);
@@ -230,6 +230,18 @@ async function addAllRepoFiles() {
       } else {
         statusEl.textContent = 'Online & All repository files added to IPFS';
       }
+
+      // Collect sizes for each CID in the tree
+      await Promise.all(
+        Array.from(repoTreeCids.entries()).map(async ([path, cidStr]) => {
+          try {
+            const st = await heliaUnixfs.stat(CID.parse(cidStr));
+            repoTreeSizes.set(path, st.size);
+          } catch {
+            repoTreeSizes.set(path, null);
+          }
+        })
+      );
 
       renderRepoTree();
     }
@@ -325,23 +337,53 @@ publishBtn.addEventListener('click', async () => {
   }
 });
 
-function renderFetchedTree(entries) {
+async function renderFetchedTree(entries) {
   const rootUl = document.createElement('ul');
   rootUl.style.listStyle = 'none';
   rootUl.style.paddingLeft = '0';
-  for (const entry of entries) {
+
+  const sizes = await Promise.all(
+    entries.map(async (entry) => {
+      try {
+        const st = await heliaUnixfs.stat(entry.cid);
+        return st.size;
+      } catch (e) {
+        return null;
+      }
+    })
+  );
+
+  entries.forEach((entry, i) => {
     const li = document.createElement('li');
     li.style.marginBottom = '0.25rem';
     const icon = entry.type === 'directory' ? '📁' : '📄';
     const cidStr = entry.cid.toString();
-    li.innerHTML = `${icon} ${escapeHtml(entry.name)} <span style="color:#4da3ff;cursor:pointer;" data-cid="${cidStr}">${cidStr}</span>`;
-    const cidEl = li.querySelector('span[data-cid]');
+
+    const nameEl = document.createElement('span');
+    nameEl.textContent = `${icon} ${entry.name} `;
+    li.appendChild(nameEl);
+
+    const cidEl = document.createElement('span');
+    cidEl.textContent = cidStr;
+    cidEl.style.color = '#4da3ff';
+    cidEl.style.cursor = 'pointer';
     cidEl.addEventListener('click', () => {
       inputCid.value = cidStr;
       fetchContent(cidStr, entry.name);
     });
+    li.appendChild(cidEl);
+
+    const size = sizes[i];
+    if (size != null && size > 0) {
+      const sizeEl = document.createElement('span');
+      sizeEl.textContent = ` (${formatSize(size)})`;
+      sizeEl.style.color = '#888';
+      sizeEl.style.fontSize = '0.85rem';
+      li.appendChild(sizeEl);
+    }
+
     rootUl.appendChild(li);
-  }
+  });
   return rootUl;
 }
 
@@ -375,7 +417,7 @@ async function fetchContent(cidStr, nameHint) {
         heading.textContent = `Directory with ${entries.length} item(s):`;
         heading.style.marginTop = '0';
         outputContent.appendChild(heading);
-        outputContent.appendChild(renderFetchedTree(entries));
+        outputContent.appendChild(await renderFetchedTree(entries));
         const dirText = entries.map(e => (e.type === 'directory' ? '📁 ' : '📄 ') + e.name).join('\\n');
         lastFetchedBytes = new TextEncoder().encode(dirText);
       } else {
@@ -574,7 +616,7 @@ if (fetchRepoBtn) {
         }
         if (fetchedRepoCard && fetchedRepoTree) {
           fetchedRepoTree.innerHTML = '';
-          fetchedRepoTree.appendChild(renderFetchedTree(entries));
+          fetchedRepoTree.appendChild(await renderFetchedTree(entries));
           fetchedRepoCard.style.display = 'block';
         }
         fileActionStatus.textContent = '';
