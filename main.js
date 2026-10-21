@@ -18,6 +18,7 @@ let rootCidForProvide = null;
 let selectedFileCid = null;
 let selectedFileName = null;
 let selectedFileEl = null;
+let connectedPeerAddr = null;
 
 const statusEl = document.getElementById('node-status');
 const peerIdEl = document.getElementById('peer-id');
@@ -578,12 +579,23 @@ function setConnectState(state) {
 connectBtn.addEventListener('click', async () => {
   const addr = inputMultiaddr.value.trim();
   if (!addr) return;
+
+  // If already connected to the same peer, hang up first so the button acts as a retry
+  if (connectedPeerAddr === addr) {
+    try {
+      await heliaNode.libp2p.hangUp(multiaddr(addr));
+    } catch (e) {
+      // ignore hangUp errors
+    }
+  }
+
   connectBtn.disabled = true;
   setConnectState('connecting');
   connectStatus.textContent = 'Dialing peer...';
   try {
     const ma = multiaddr(addr);
     await heliaNode.libp2p.dial(ma);
+    connectedPeerAddr = addr;
     setConnectState('connected');
     connectStatus.textContent = 'Connected. The peer can now fetch the root CID.';
     // Re-provide after connecting
@@ -591,6 +603,7 @@ connectBtn.addEventListener('click', async () => {
       try { await heliaNode.routing.provide(rootCidForProvide); } catch (e) {}
     }
   } catch (err) {
+    connectedPeerAddr = null;
     setConnectState('disconnected');
     connectStatus.textContent = `Connection failed: ${err.message}`;
   } finally {
