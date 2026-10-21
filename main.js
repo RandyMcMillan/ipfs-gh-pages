@@ -31,6 +31,14 @@ const outputCid = document.getElementById('output-cid');
 const inputCid = document.getElementById('input-cid');
 const outputContent = document.getElementById('output-content');
 const fileTreeEl = document.getElementById('file-tree');
+const detectKuboBtn = document.getElementById('btn-detect-kubo');
+const settingsRpcHost = document.getElementById('settings-rpc-host');
+const settingsRpcPort = document.getElementById('settings-rpc-port');
+const settingsRpcProxyPort = document.getElementById('settings-rpc-proxy-port');
+const settingsKuboStatus = document.getElementById('settings-kubo-status');
+const settingsKuboResult = document.getElementById('settings-kubo-result');
+const settingsKuboPeerId = document.getElementById('settings-kubo-peer-id');
+const settingsKuboAddresses = document.getElementById('settings-kubo-addresses');
 
 function base64ToUint8Array(b64) {
   const binary = atob(b64);
@@ -468,6 +476,76 @@ bootstrapBtn.addEventListener('click', async () => {
     : 'Could not connect to bootstrap peers.';
   bootstrapBtn.disabled = false;
 });
+
+// Kubo RPC detection in Settings tab
+function isBrowserDialable(addr) {
+  return addr.includes('/ws') || addr.includes('/wss') || addr.includes('/webrtc') || addr.includes('/webtransport');
+}
+
+function normalizeAddressForProxy(addr, proxyPort) {
+  // Replace /tcp/4002/ws with /tcp/<proxyPort>/wss for LAN use behind the local TLS proxy
+  return addr.replace(/\/tcp\/\d+\/ws$/, `/tcp/${proxyPort}/wss`);
+}
+
+if (detectKuboBtn) {
+  detectKuboBtn.addEventListener('click', async () => {
+    const host = settingsRpcHost.value.trim() || '127.0.0.1';
+    const port = settingsRpcPort.value.trim() || '5001';
+    const proxyPort = settingsRpcProxyPort.value.trim() || '4003';
+    const url = `http://${host}:${port}/api/v0/id`;
+
+    settingsKuboStatus.textContent = 'Detecting Kubo...';
+    settingsKuboResult.style.display = 'none';
+    settingsKuboAddresses.innerHTML = '';
+
+    try {
+      const res = await fetch(url, { method: 'POST' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const info = await res.json();
+      const peerId = info.ID;
+      const addresses = (info.Addresses || []).filter(isBrowserDialable);
+
+      settingsKuboPeerId.textContent = peerId;
+      settingsKuboStatus.textContent = addresses.length
+        ? `Found ${addresses.length} browser-dialable address(es).`
+        : 'Kubo found, but no browser-dialable /ws or /wss addresses. Run npm run kubo:ws first.';
+
+      const seen = new Set();
+      for (const addr of addresses) {
+        if (!seen.has(addr)) {
+          seen.add(addr);
+          const li = document.createElement('li');
+          li.textContent = addr;
+          li.title = 'Click to use this address';
+          li.addEventListener('click', () => {
+            inputMultiaddr.value = addr;
+            document.getElementById('tab-btn-connect').click();
+          });
+          settingsKuboAddresses.appendChild(li);
+        }
+        // Also offer a WSS proxy variant for plain WS addresses
+        if (addr.includes('/ws') && !addr.includes('/wss')) {
+          const proxyAddr = normalizeAddressForProxy(addr, proxyPort) + `/p2p/${peerId}`;
+          if (!seen.has(proxyAddr)) {
+            seen.add(proxyAddr);
+            const li = document.createElement('li');
+            li.textContent = proxyAddr + ' (via local WSS proxy)';
+            li.title = 'Click to use this address';
+            li.addEventListener('click', () => {
+              inputMultiaddr.value = proxyAddr;
+              document.getElementById('tab-btn-connect').click();
+            });
+            settingsKuboAddresses.appendChild(li);
+          }
+        }
+      }
+
+      settingsKuboResult.style.display = 'block';
+    } catch (err) {
+      settingsKuboStatus.textContent = `Detection failed: ${err.message}. Is Kubo running? Check CORS settings below.`;
+    }
+  });
+}
 
 // Tab navigation
 document.querySelectorAll('.tab-button').forEach((button) => {

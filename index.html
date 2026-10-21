@@ -141,6 +141,35 @@
     .help li {
       margin-bottom: 0.4rem;
     }
+    .settings-row {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0.75rem;
+    }
+    .settings-row label {
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+      color: #ccc;
+    }
+    .settings-row input {
+      margin: 0;
+    }
+    #settings-kubo-addresses {
+      list-style: none;
+      padding-left: 0;
+    }
+    #settings-kubo-addresses li {
+      background: #111;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      word-break: break-all;
+      color: #00ff88;
+    }
+    #settings-kubo-addresses li:hover {
+      background: #1a1a1a;
+    }
     small {
       display: block;
       color: #999;
@@ -195,6 +224,7 @@
     <button class="tab-button" role="tab" aria-selected="false" data-tab="connect" id="tab-btn-connect">Connect</button>
     <button class="tab-button" role="tab" aria-selected="false" data-tab="publish" id="tab-btn-publish">Publish</button>
     <button class="tab-button" role="tab" aria-selected="false" data-tab="fetch" id="tab-btn-fetch">Fetch</button>
+    <button class="tab-button" role="tab" aria-selected="false" data-tab="settings" id="tab-btn-settings">Settings</button>
     <button class="tab-button" role="tab" aria-selected="false" data-tab="status" id="tab-btn-status">Status</button>
   </nav>
 
@@ -294,6 +324,44 @@ npm run proxy:wss          # listens on wss://0.0.0.0:4003
 
         <h4>Retrieved Data:</h4>
         <pre id="output-content">None</pre>
+      </div>
+    </section>
+
+    <section class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-settings" id="tab-settings">
+      <div class="card">
+        <h3>Settings</h3>
+        <h4>Kubo RPC Detection</h4>
+        <p class="help">
+          Detect a local Kubo node via its RPC API and copy a browser-dialable multiaddr.
+          The Kubo API must allow CORS from this page's origin.
+        </p>
+        <div class="settings-row">
+          <label for="settings-rpc-host">RPC Host:</label>
+          <input type="text" id="settings-rpc-host" value="127.0.0.1" />
+        </div>
+        <div class="settings-row">
+          <label for="settings-rpc-port">RPC Port:</label>
+          <input type="text" id="settings-rpc-port" value="5001" />
+        </div>
+        <div class="settings-row">
+          <label for="settings-rpc-path">Proxy Port (for WSS):</label>
+          <input type="text" id="settings-rpc-proxy-port" value="4003" />
+        </div>
+        <button id="btn-detect-kubo">Detect Kubo</button>
+        <p id="settings-kubo-status"></p>
+        <div id="settings-kubo-result" style="display:none;">
+          <p><strong>Peer ID:</strong> <code id="settings-kubo-peer-id"></code></p>
+          <h4>Browser-dialable addresses</h4>
+          <ul id="settings-kubo-addresses"></ul>
+          <small>Click an address to copy it to the Connect tab's multiaddr field.</small>
+        </div>
+        <div class="help" style="margin-top:1rem;">
+          <h4>Enable CORS in Kubo</h4>
+          <p>If detection fails with a CORS error, run these commands on the Kubo host (then restart Kubo):</p>
+          <pre>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["http://127.0.0.1:5173", "https://yourdomain.com"]'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
+ipfs daemon</pre>
+        </div>
       </div>
     </section>
 
