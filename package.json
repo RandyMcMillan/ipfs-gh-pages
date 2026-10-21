@@ -16,6 +16,7 @@
     "test:connect": "node tests/cdp-connect.mjs",
     "kubo:ws": "node scripts/kubo-config-ws.mjs",
     "kubo:wss": "node scripts/kubo-config-wss.mjs",
+    "kubo:id": "node scripts/kubo-rpc-id.mjs",
     "cert:generate": "node scripts/cert-generate.mjs",
     "proxy:wss": "node scripts/wss-proxy.mjs"
   },

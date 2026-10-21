@@ -1,30 +1,20 @@
-import { execSync } from 'node:child_process';
+import { requireIpfs, readConfig, writeConfig, addSwarmAddress } from './kubo-config-utils.mjs';
 
 const WS_ADDR = process.env.KUBO_WS_ADDR || '/ip4/0.0.0.0/tcp/4002/ws';
 
-function ipfsConfig(key, value) {
-  execSync(`ipfs config ${key} --json ${JSON.stringify(JSON.stringify(value))}`, { stdio: 'inherit' });
-}
-
-function ipfsConfigGet(key) {
-  try {
-    const out = execSync(`ipfs config ${key} --json`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-    return JSON.parse(out);
-  } catch {
-    return null;
-  }
-}
+requireIpfs();
 
 console.log('Configuring Kubo WebSocket listener...');
 console.log('Address to add:', WS_ADDR);
 
-const swarm = ipfsConfigGet('Addresses.Swarm') || [];
-if (swarm.includes(WS_ADDR)) {
-  console.log('Address already present:', WS_ADDR);
-} else {
-  swarm.push(WS_ADDR);
-  ipfsConfig('Addresses.Swarm', swarm);
+const config = readConfig();
+const added = addSwarmAddress(config, WS_ADDR);
+
+if (added) {
+  writeConfig(config);
   console.log('Added:', WS_ADDR);
+} else {
+  console.log('Address already present:', WS_ADDR);
 }
 
 console.log('Run `ipfs daemon` (or restart Kubo) for the change to take effect.');
