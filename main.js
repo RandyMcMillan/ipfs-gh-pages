@@ -694,7 +694,7 @@ async function tryKuboRpc(host, ports) {
   throw new Error(errors.join('; '));
 }
 
-async function detectKubo() {
+async function detectKubo(autoConnect = false) {
   const host = settingsRpcHost.value.trim() || '127.0.0.1';
   const userPort = settingsRpcPort.value.trim();
   const proxyPort = settingsRpcProxyPort.value.trim() || '4003';
@@ -723,6 +723,11 @@ async function detectKubo() {
         addresses.find(a => a.includes('/wss')) ||
         addresses[0];
       inputMultiaddr.value = best;
+
+      // Auto-connect if requested and Helia is ready
+      if (autoConnect && connectBtn && !connectBtn.disabled) {
+        setTimeout(() => connectBtn.click(), 100);
+      }
     }
 
     const seen = new Set();
@@ -762,12 +767,12 @@ async function detectKubo() {
 }
 
 if (detectKuboBtn) {
-  detectKuboBtn.addEventListener('click', detectKubo);
+  detectKuboBtn.addEventListener('click', () => detectKubo(true));
 }
 
-// Auto-detect Kubo shortly after page load
+// Auto-detect Kubo shortly after page load and auto-connect if found
 setTimeout(() => {
-  if (detectKuboBtn) detectKubo();
+  if (detectKuboBtn) detectKubo(true);
 }, 1000);
 
 // Tab navigation
