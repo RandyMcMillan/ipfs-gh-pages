@@ -149,7 +149,7 @@ function renderRepoTree() {
         });
         container.appendChild(cidEl);
         const size = repoTreeSizes.get(path);
-        if (size != null) {
+        if (size != null && Number(size) > 0) {
           const sizeEl = document.createElement('span');
           sizeEl.textContent = ` (${formatSize(size)})`;
           sizeEl.style.color = '#888';
