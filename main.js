@@ -729,7 +729,8 @@ async function detectKubo(autoConnect = false) {
   const host = settingsRpcHost.value.trim() || '127.0.0.1';
   const userPort = settingsRpcPort.value.trim();
   const proxyPort = settingsRpcProxyPort.value.trim() || '4003';
-  const ports = userPort ? [userPort] : ['5001', '5002'];
+  const defaultPorts = Array.from({ length: 10 }, (_, i) => String(5001 + i));
+  const ports = userPort ? [userPort] : defaultPorts;
 
   settingsKuboStatus.textContent = 'Detecting Kubo on ' + ports.map(p => `${host}:${p}`).join(', ') + '...';
   settingsKuboResult.style.display = 'none';
