@@ -202,13 +202,14 @@ async function addAllRepoFiles() {
       // Announce the root CID to the IPFS network so other peers
       // (e.g. Kubo Desktop) can discover and retrieve it.
       if (heliaNode && heliaNode.routing && typeof heliaNode.routing.provide === 'function') {
-        statusEl.textContent = 'Online & Publishing root CID to IPFS network...';
+        const cidStr = rootCid.toString();
+        statusEl.textContent = `Online & Publishing root CID ${cidStr} to IPFS network...`;
         heliaNode.routing.provide(rootCid)
           .then(() => {
-            statusEl.textContent = 'Online & Root CID published to IPFS network';
+            statusEl.textContent = `Online & Root CID ${cidStr} published to IPFS network`;
           })
           .catch((err) => {
-            statusEl.textContent = `Online & Added files (publish: ${err.message})`;
+            statusEl.textContent = `Online & Added files (publish ${cidStr}: ${err.message})`;
           });
         // Best-effort announce individual file CIDs
         for (const cidStr of repoTreeCids.values()) {
@@ -605,22 +606,30 @@ const bootstrapPeers = [
   '/ip4/104.131.131.82/tcp/4001/p2p/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ'
 ];
 
-bootstrapBtn.addEventListener('click', async () => {
+bootstrapBtn.addEventListener('click', () => {
   bootstrapBtn.disabled = true;
-  connectStatus.textContent = 'Connecting to bootstrap peers...';
   let connected = 0;
-  for (const addr of bootstrapPeers) {
+  let completed = 0;
+  connectStatus.textContent = `Connecting to bootstrap peers... (0/${bootstrapPeers.length})`;
+
+  const attempts = bootstrapPeers.map(async (addr) => {
     try {
       await heliaNode.libp2p.dial(multiaddr(addr));
       connected++;
     } catch (e) {
       // ignore
+    } finally {
+      completed++;
+      connectStatus.textContent = `Connecting to bootstrap peers... (${connected}/${completed})`;
     }
-  }
-  connectStatus.textContent = connected > 0
-    ? `Connected to ${connected} bootstrap peer(s).`
-    : 'Could not connect to bootstrap peers.';
-  bootstrapBtn.disabled = false;
+  });
+
+  Promise.allSettled(attempts).then(() => {
+    connectStatus.textContent = connected > 0
+      ? `Connected to ${connected} bootstrap peer(s).`
+      : 'Could not connect to bootstrap peers.';
+    bootstrapBtn.disabled = false;
+  });
 });
 
 // Kubo RPC detection in Settings tab
