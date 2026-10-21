@@ -19,6 +19,15 @@ let selectedFileCid = null;
 let selectedFileName = null;
 let selectedFileEl = null;
 let connectedPeerAddr = null;
+const repoTreeSizes = new Map();
+
+function formatSize(bytes) {
+  if (bytes == null) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} kB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+}
 
 const statusEl = document.getElementById('node-status');
 const peerIdEl = document.getElementById('peer-id');
@@ -455,18 +464,16 @@ downloadBtn.addEventListener('click', async () => {
   if (!lastFetchedBytes && !lastFetchedCid) return;
   downloadBtn.disabled = true;
   try {
-    let blob;
-    let filename;
+    const baseName = (lastFetchedName || `ipfs-${lastFetchedCid.slice(0, 12)}`).replace(/\.(txt|listing\.txt)$/, '');
+    const filename = `${baseName}.${lastFetchedCid}.zip`;
+    let zipped;
     if (lastFetchedIsDir && lastFetchedCid) {
       const tree = await collectIpfsDir(lastFetchedCid);
-      const zipped = zipSync(tree);
-      blob = new Blob([zipped], { type: 'application/zip' });
-      filename = lastFetchedName.replace(/\.(txt|listing\.txt)$/, '') + '.zip';
-      if (!filename || filename === '.zip') filename = 'ipfs-files.zip';
+      zipped = zipSync(tree);
     } else {
-      blob = new Blob([lastFetchedBytes], { type: 'application/octet-stream' });
-      filename = lastFetchedName;
+      zipped = zipSync({ [baseName]: lastFetchedBytes });
     }
+    const blob = new Blob([zipped], { type: 'application/zip' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -518,12 +525,12 @@ if (downloadSelectedBtn) {
     try {
       const cid = CID.parse(selectedFileCid);
       const stat = await heliaUnixfs.stat(cid);
+      const baseName = (selectedFileName || `ipfs-${selectedFileCid.slice(0, 12)}`).replace(/\.(txt|listing\.txt)$/, '');
+      const filename = `${baseName}.${selectedFileCid}.zip`;
+      let zipped;
       if (stat.type === 'directory') {
         const tree = await collectIpfsDir(selectedFileCid);
-        const zipped = zipSync(tree);
-        const filename = (selectedFileName || 'ipfs-files').replace(/\.(txt|listing\.txt)$/, '') + '.zip';
-        downloadBytes(zipped, filename || 'ipfs-files.zip');
-        fileActionStatus.textContent = `Downloaded ${filename}`;
+        zipped = zipSync(tree);
       } else {
         const chunks = [];
         for await (const chunk of heliaUnixfs.cat(cid)) {
@@ -536,9 +543,10 @@ if (downloadSelectedBtn) {
           bytes.set(c, off);
           off += c.length;
         }
-        downloadBytes(bytes, selectedFileName || `ipfs-${selectedFileCid.slice(0, 12)}`);
-        fileActionStatus.textContent = `Downloaded ${selectedFileName}`;
+        zipped = zipSync({ [baseName]: bytes });
       }
+      downloadBytes(zipped, filename);
+      fileActionStatus.textContent = `Downloaded ${filename}`;
     } catch (err) {
       fileActionStatus.textContent = `Download failed: ${err.message}`;
       fileActionStatus.style.color = '#ff4444';
