@@ -273,7 +273,6 @@
     <button class="tab-button" role="tab" aria-selected="false" data-tab="peer" id="tab-btn-peer">Peer</button>
     <button class="tab-button" role="tab" aria-selected="false" data-tab="publish" id="tab-btn-publish">Publish</button>
     <button class="tab-button" role="tab" aria-selected="false" data-tab="fetch" id="tab-btn-fetch">Fetch</button>
-    <button class="tab-button" role="tab" aria-selected="false" data-tab="status" id="tab-btn-status">Status</button>
   </nav>
 
   <main>
@@ -293,6 +292,13 @@
     </section>
 
     <section class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-peer" id="tab-peer">
+      <div class="card">
+        <h3>Node Status</h3>
+        <p>Status: <span id="node-status" class="status">Initializing Helia IPFS Node...</span></p>
+        <p>Peer ID: <code id="peer-id">...</code></p>
+        <p>Multiaddrs: <code id="multiaddrs">...</code></p>
+      </div>
+
       <div class="card">
         <h3>Peer</h3>
         <nav class="sub-tab-bar" role="tablist" aria-label="Peer sections">
@@ -377,7 +383,7 @@ npm run proxy:wss          # listens on wss://0.0.0.0:4003
           </div>
           <div class="settings-row">
             <label for="settings-rpc-port">RPC Port:</label>
-            <input type="text" id="settings-rpc-port" value="5001" />
+            <input type="text" id="settings-rpc-port" placeholder="5001" />
           </div>
           <div class="settings-row">
             <label for="settings-rpc-path">Proxy Port (for WSS):</label>
