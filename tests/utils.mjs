@@ -3,6 +3,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 export const isVerbose = process.env.VERBOSE === '1' || process.env.VERBOSE === 'true';
+export const testUrl = process.env.TEST_URL || 'http://127.0.0.1:5173';
 
 export function vlog(...args) {
   if (isVerbose) console.log('[verbose]', ...args);

@@ -59,6 +59,8 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -87,3 +89,43 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  smoke-test:
+    needs: deploy
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Chromium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Wait for Pages deployment
+        run: |
+          url="${{ needs.deploy.outputs.page_url }}"
+          echo "Waiting for $url"
+          for i in $(seq 1 60); do
+            if curl -s -o /dev/null -w "%{http_code}" "$url" | grep -q "200"; then
+              echo "Pages site is live"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Run tests against deployed site
+        env:
+          CHROME_PATH: /usr/bin/chromium-browser
+          TEST_URL: ${{ needs.deploy.outputs.page_url }}
+        run: npm run test:all

@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import { spawn } from 'child_process';
 import fs from 'fs';
-import { tmpDir, findChrome, isVerbose, vlog } from './utils.mjs';
+import { tmpDir, findChrome, isVerbose, vlog, testUrl } from './utils.mjs';
 
 const chrome = findChrome();
 vlog('Using Chrome:', chrome);
@@ -36,8 +36,8 @@ await send('Page.enable');
 await send('Runtime.enable');
 vlog('Configuring Chrome download behavior:', dlDir);
 await send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: dlDir });
-vlog('Navigating to http://127.0.0.1:5173');
-await send('Page.navigate', { url: 'http://127.0.0.1:5173' });
+vlog('Navigating to', testUrl);
+await send('Page.navigate', { url: testUrl });
 
 vlog('Waiting for node status to become ready...');
 for (let i = 0; i < 60; i++) {

@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import { spawn } from 'child_process';
-import { tmpDir, findChrome, isVerbose, vlog } from './utils.mjs';
+import { tmpDir, findChrome, isVerbose, vlog, testUrl } from './utils.mjs';
 
 const chrome = findChrome();
 vlog('Using Chrome:', chrome);
@@ -29,8 +29,8 @@ function send(method, params = {}) {
 
 await send('Page.enable');
 await send('Runtime.enable');
-vlog('Navigating to http://127.0.0.1:5173');
-await send('Page.navigate', { url: 'http://127.0.0.1:5173' });
+vlog('Navigating to', testUrl);
+await send('Page.navigate', { url: testUrl });
 
 vlog('Waiting for node status to become ready...');
 for (let i = 0; i < 60; i++) {

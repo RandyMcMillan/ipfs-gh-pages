@@ -1,7 +1,7 @@
 {
   "name": "helio-ipfs-github-pages",
   "private": true,
-  "version": "1.2.1",
+  "version": "1.2.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +10,7 @@
     "test": "npm run test:all",
     "test:all": "node tests/cdp-test.mjs && node tests/cdp-eval.mjs && node tests/cdp-zip.mjs && node tests/cdp-download.mjs && node tests/cdp-connect.mjs",
     "test:verbose": "VERBOSE=1 npm run test:all",
+    "test:deployed": "TEST_URL=https://randymcmillan.github.io/ipfs-gh-pages/ npm run test:all",
     "test:download": "node tests/cdp-download.mjs",
     "test:eval": "node tests/cdp-eval.mjs",
     "test:zip": "node tests/cdp-zip.mjs",
