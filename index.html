@@ -112,6 +112,42 @@
       from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    .sub-tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #333;
+      padding-bottom: 0.5rem;
+    }
+    .sub-tab-button {
+      flex: 1 1 auto;
+      min-width: 80px;
+      padding: 0.5rem 0.75rem;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #aaa;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 0;
+    }
+    .sub-tab-button:hover {
+      background: #2a2a2a;
+      color: #fff;
+    }
+    .sub-tab-button.active {
+      background: #0066cc;
+      border-color: #0066cc;
+      color: #fff;
+    }
+    .sub-tab-panel {
+      display: none;
+    }
+    .sub-tab-panel.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
     pre {
       background: #000;
       padding: 1rem;
@@ -196,7 +232,7 @@
       .card {
         padding: 0.875rem;
       }
-      .tab-button {
+      .tab-button, .sub-tab-button {
         min-width: 60px;
         padding: 0.55rem 0.5rem;
         font-size: 0.85rem;
@@ -221,10 +257,9 @@
 
   <nav class="tab-bar" role="tablist" aria-label="App sections">
     <button class="tab-button active" role="tab" aria-selected="true" data-tab="files" id="tab-btn-files">Files</button>
-    <button class="tab-button" role="tab" aria-selected="false" data-tab="connect" id="tab-btn-connect">Connect</button>
+    <button class="tab-button" role="tab" aria-selected="false" data-tab="peer" id="tab-btn-peer">Peer</button>
     <button class="tab-button" role="tab" aria-selected="false" data-tab="publish" id="tab-btn-publish">Publish</button>
     <button class="tab-button" role="tab" aria-selected="false" data-tab="fetch" id="tab-btn-fetch">Fetch</button>
-    <button class="tab-button" role="tab" aria-selected="false" data-tab="settings" id="tab-btn-settings">Settings</button>
     <button class="tab-button" role="tab" aria-selected="false" data-tab="status" id="tab-btn-status">Status</button>
   </nav>
 
@@ -244,47 +279,53 @@
       </div>
     </section>
 
-    <section class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-connect" id="tab-connect">
+    <section class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-peer" id="tab-peer">
       <div class="card">
-        <h3>Connect to Peer (e.g. Kubo Desktop)</h3>
-        <label for="input-multiaddr">Peer Multiaddr:</label>
-        <input type="text" id="input-multiaddr" placeholder="/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;" value="/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;" list="common-addrs" />
-        <datalist id="common-addrs">
-          <option value="/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;"></option>
-          <option value="/ip4/127.0.0.1/tcp/4002/ws"></option>
-          <option value="/dns4/example.com/tcp/443/wss/p2p/&lt;KUBO_PEER_ID&gt;"></option>
-        </datalist>
-        <small>Browser nodes can only dial WebSocket transports (<code>/ws</code> or <code>/wss</code>). Replace <code>&lt;KUBO_PEER_ID&gt;</code> with the peer ID from your Kubo node.</small>
-        <button id="btn-connect" disabled>Connect</button>
-        <button id="btn-bootstrap" disabled>Connect to Bootstrap Peers</button>
-        <p id="connect-status"></p>
-      </div>
+        <h3>Peer</h3>
+        <nav class="sub-tab-bar" role="tablist" aria-label="Peer sections">
+          <button class="sub-tab-button active" role="tab" aria-selected="true" data-subtab="connect" id="sub-tab-btn-connect">Connect</button>
+          <button class="sub-tab-button" role="tab" aria-selected="false" data-subtab="settings" id="sub-tab-btn-settings">Settings</button>
+        </nav>
 
-      <div class="card help">
-        <h3>Connection Help</h3>
-        <p>
-          Browsers cannot open raw TCP or UDP sockets. This Helia node can only dial peers over
-          <code>/ws</code>, <code>/wss</code>, WebTransport, or WebRTC-direct addresses.
-        </p>
-        <p>
-          If you see <em>"Connection failed: The dial request has no valid addresses"</em>, Kubo is probably
-          not listening on a browser-compatible transport.
-        </p>
-        <h4>Quick setup with npm commands</h4>
-        <p>From this repo, run on the machine hosting Kubo:</p>
-        <pre># 1. Plain WebSocket (works for local HTTP dev)
+        <div class="sub-tab-panel active" role="tabpanel" aria-labelledby="sub-tab-btn-connect" id="sub-tab-connect">
+          <h4>Connect to Peer (e.g. Kubo Desktop)</h4>
+          <label for="input-multiaddr">Peer Multiaddr:</label>
+          <input type="text" id="input-multiaddr" placeholder="/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;" value="/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;" list="common-addrs" />
+          <datalist id="common-addrs">
+            <option value="/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;"></option>
+            <option value="/ip4/127.0.0.1/tcp/4002/ws"></option>
+            <option value="/dns4/example.com/tcp/443/wss/p2p/&lt;KUBO_PEER_ID&gt;"></option>
+          </datalist>
+          <small>Browser nodes can only dial WebSocket transports (<code>/ws</code> or <code>/wss</code>). Replace <code>&lt;KUBO_PEER_ID&gt;</code> with the peer ID from your Kubo node.</small>
+          <button id="btn-connect" disabled>Connect</button>
+          <button id="btn-bootstrap" disabled>Connect to Bootstrap Peers</button>
+          <p id="connect-status"></p>
+
+          <div class="help" style="margin-top:1rem;">
+            <h4>Connection Help</h4>
+            <p>
+              Browsers cannot open raw TCP or UDP sockets. This Helia node can only dial peers over
+              <code>/ws</code>, <code>/wss</code>, WebTransport, or WebRTC-direct addresses.
+            </p>
+            <p>
+              If you see <em>"Connection failed: The dial request has no valid addresses"</em>, Kubo is probably
+              not listening on a browser-compatible transport.
+            </p>
+            <h4>Quick setup with npm commands</h4>
+            <p>From this repo, run on the machine hosting Kubo:</p>
+            <pre># 1. Plain WebSocket (works for local HTTP dev)
 npm run kubo:ws
 ipfs daemon
 # Dial: /ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;</pre>
-        <h4>Option A: Native Kubo WSS (public nodes)</h4>
-        <p>Kubo can automatically obtain a TLS certificate via AutoTLS. The resulting address uses a <code>*.libp2p.direct</code> domain, so this only works for publicly reachable nodes.</p>
-        <pre>npm run kubo:wss
+            <h4>Option A: Native Kubo WSS (public nodes)</h4>
+            <p>Kubo can automatically obtain a TLS certificate via AutoTLS. The resulting address uses a <code>*.libp2p.direct</code> domain, so this only works for publicly reachable nodes.</p>
+            <pre>npm run kubo:wss
 ipfs daemon
 # After the node is online, look for an address like:
 # /dns4/&lt;PEER_ID&gt;.libp2p.direct/tcp/443/wss/p2p/&lt;PEER_ID&gt;</pre>
-        <h4>Option B: Reverse-proxy WSS (LAN / custom domain)</h4>
-        <p>For local IPs like <code>192.168.1.74</code> or your own domain, Kubo cannot use a custom certificate natively. Run a local TLS proxy in front of Kubo's <code>/ws</code> listener instead.</p>
-        <pre># 1. Start Kubo with a plain /ws listener
+            <h4>Option B: Reverse-proxy WSS (LAN / custom domain)</h4>
+            <p>For local IPs like <code>192.168.1.74</code> or your own domain, Kubo cannot use a custom certificate natively. Run a local TLS proxy in front of Kubo's <code>/ws</code> listener instead.</p>
+            <pre># 1. Start Kubo with a plain /ws listener
 npm run kubo:ws
 ipfs daemon
 
@@ -294,19 +335,101 @@ npm run proxy:wss          # listens on wss://0.0.0.0:4003
 
 # 3. Dial the proxy:
 # /ip4/192.168.1.74/tcp/4003/wss/p2p/&lt;KUBO_PEER_ID&gt;</pre>
-        <p>To include a LAN IP in the self-signed certificate, run:</p>
-        <pre>CERT_SANS=192.168.1.74 npm run cert:generate</pre>
-        <h4>Which addresses work from a browser?</h4>
-        <ul>
-          <li><strong>Works:</strong> <code>/ip4/127.0.0.1/tcp/4002/ws/p2p/...</code></li>
-          <li><strong>Works:</strong> <code>/dns4/example.com/tcp/443/wss/p2p/...</code> (HTTPS-proxied Kubo)</li>
-          <li><strong>May work:</strong> WebTransport or WebRTC-direct addresses (requires HTTPS except on localhost)</li>
-          <li><strong>Does not work:</strong> raw TCP such as <code>/ip4/127.0.0.1/tcp/4001/p2p/...</code></li>
-          <li><strong>Does not work:</strong> QUIC such as <code>/ip4/127.0.0.1/udp/4001/quic-v1/p2p/...</code></li>
-        </ul>
-        <p>
-          Use <code>ipfs id</code> to see your Kubo peer ID and current addresses.
-        </p>
+            <p>To include a LAN IP in the self-signed certificate, run:</p>
+            <pre>CERT_SANS=192.168.1.74 npm run cert:generate</pre>
+            <h4>Which addresses work from a browser?</h4>
+            <ul>
+              <li><strong>Works:</strong> <code>/ip4/127.0.0.1/tcp/4002/ws/p2p/...</code></li>
+              <li><strong>Works:</strong> <code>/dns4/example.com/tcp/443/wss/p2p/...</code> (HTTPS-proxied Kubo)</li>
+              <li><strong>May work:</strong> WebTransport or WebRTC-direct addresses (requires HTTPS except on localhost)</li>
+              <li><strong>Does not work:</strong> raw TCP such as <code>/ip4/127.0.0.1/tcp/4001/p2p/...</code></li>
+              <li><strong>Does not work:</strong> QUIC such as <code>/ip4/127.0.0.1/udp/4001/quic-v1/p2p/...</code></li>
+            </ul>
+            <p>
+              Use <code>ipfs id</code> to see your Kubo peer ID and current addresses.
+            </p>
+          </div>
+        </div>
+
+        <div class="sub-tab-panel" role="tabpanel" aria-labelledby="sub-tab-btn-settings" id="sub-tab-settings">
+          <h4>Kubo RPC Detection</h4>
+          <p class="help">
+            Detect a local Kubo node via its RPC API and copy a browser-dialable multiaddr.
+            The Kubo API must allow CORS from this page's origin.
+          </p>
+          <p id="settings-current-origin" style="margin: 0 0 0.75rem 0; color: #4da3ff;"></p>
+          <div class="settings-row">
+            <label for="settings-rpc-host">RPC Host:</label>
+            <input type="text" id="settings-rpc-host" value="127.0.0.1" />
+          </div>
+          <div class="settings-row">
+            <label for="settings-rpc-port">RPC Port:</label>
+            <input type="text" id="settings-rpc-port" value="5001" />
+          </div>
+          <div class="settings-row">
+            <label for="settings-rpc-path">Proxy Port (for WSS):</label>
+            <input type="text" id="settings-rpc-proxy-port" value="4003" />
+          </div>
+          <button id="btn-detect-kubo">Detect Kubo</button>
+          <p id="settings-kubo-status"></p>
+          <div id="settings-kubo-result" style="display:none;">
+            <p><strong>Peer ID:</strong> <code id="settings-kubo-peer-id"></code></p>
+            <h4>Browser-dialable addresses</h4>
+            <ul id="settings-kubo-addresses"></ul>
+            <small>Click an address to copy it to the Connect tab's multiaddr field.</small>
+          </div>
+          <div class="help" style="margin-top:1rem;">
+            <h4>Enable CORS in Kubo</h4>
+            <p>
+              The page origin depends on how you open the app. Browsers treat <code>127.0.0.1</code> and <code>localhost</code> as different origins, so allow both.
+            </p>
+            <table style="width:100%; border-collapse:collapse; margin-bottom:0.75rem; font-size:0.85rem;">
+              <thead>
+                <tr style="border-bottom:1px solid #444;">
+                  <th style="text-align:left; padding:0.3rem;">Command</th>
+                  <th style="text-align:left; padding:0.3rem;">URL</th>
+                  <th style="text-align:left; padding:0.3rem;">Origin to allow</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom:1px solid #333;">
+                  <td style="padding:0.3rem;"><code>npm run dev</code></td>
+                  <td style="padding:0.3rem;"><code id="settings-url-127">http://127.0.0.1:5173</code></td>
+                  <td style="padding:0.3rem;"><code id="settings-origin-127">http://127.0.0.1:5173</code></td>
+                </tr>
+                <tr style="border-bottom:1px solid #333;">
+                  <td style="padding:0.3rem;"><code>npm run dev</code></td>
+                  <td style="padding:0.3rem;"><code id="settings-url-localhost">http://localhost:5173</code></td>
+                  <td style="padding:0.3rem;"><code id="settings-origin-localhost">http://localhost:5173</code></td>
+                </tr>
+                <tr style="border-bottom:1px solid #333;">
+                  <td style="padding:0.3rem;"><code>npm run preview</code></td>
+                  <td style="padding:0.3rem;"><code id="settings-url-preview">http://127.0.0.1:4173</code></td>
+                  <td style="padding:0.3rem;"><code id="settings-origin-preview">http://127.0.0.1:4173</code></td>
+                </tr>
+                <tr>
+                  <td style="padding:0.3rem;">GitHub Pages</td>
+                  <td style="padding:0.3rem;"><code>https://yourusername.github.io/ipfs-gh-pages</code></td>
+                  <td style="padding:0.3rem;">your actual Pages URL</td>
+                </tr>
+              </tbody>
+            </table>
+            <p>For your current session, allow this origin:</p>
+            <pre id="settings-cors-command">ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["http://127.0.0.1:5173"]'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
+ipfs daemon</pre>
+            <button id="btn-copy-cors" type="button">Copy CORS Command</button>
+            <p style="margin-top:0.75rem;">For persistent access from other origins, allow them all at once:</p>
+            <pre id="settings-cors-multi-command">ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '[
+  "http://127.0.0.1:5173",
+  "http://localhost:5173",
+  "http://127.0.0.1:4173",
+  "https://yourusername.github.io"
+]'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
+ipfs daemon</pre>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -332,89 +455,6 @@ npm run proxy:wss          # listens on wss://0.0.0.0:4003
 
         <h4>Retrieved Data:</h4>
         <pre id="output-content">None</pre>
-      </div>
-    </section>
-
-    <section class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-settings" id="tab-settings">
-      <div class="card">
-        <h3>Settings</h3>
-        <h4>Kubo RPC Detection</h4>
-        <p class="help">
-          Detect a local Kubo node via its RPC API and copy a browser-dialable multiaddr.
-          The Kubo API must allow CORS from this page's origin.
-        </p>
-        <p id="settings-current-origin" style="margin: 0 0 0.75rem 0; color: #4da3ff;"></p>
-        <div class="settings-row">
-          <label for="settings-rpc-host">RPC Host:</label>
-          <input type="text" id="settings-rpc-host" value="127.0.0.1" />
-        </div>
-        <div class="settings-row">
-          <label for="settings-rpc-port">RPC Port:</label>
-          <input type="text" id="settings-rpc-port" value="5001" />
-        </div>
-        <div class="settings-row">
-          <label for="settings-rpc-path">Proxy Port (for WSS):</label>
-          <input type="text" id="settings-rpc-proxy-port" value="4003" />
-        </div>
-        <button id="btn-detect-kubo">Detect Kubo</button>
-        <p id="settings-kubo-status"></p>
-        <div id="settings-kubo-result" style="display:none;">
-          <p><strong>Peer ID:</strong> <code id="settings-kubo-peer-id"></code></p>
-          <h4>Browser-dialable addresses</h4>
-          <ul id="settings-kubo-addresses"></ul>
-          <small>Click an address to copy it to the Connect tab's multiaddr field.</small>
-        </div>
-        <div class="help" style="margin-top:1rem;">
-          <h4>Enable CORS in Kubo</h4>
-          <p>
-            The page origin depends on how you open the app. Browsers treat <code>127.0.0.1</code> and <code>localhost</code> as different origins, so allow both.
-          </p>
-          <table style="width:100%; border-collapse:collapse; margin-bottom:0.75rem; font-size:0.85rem;">
-            <thead>
-              <tr style="border-bottom:1px solid #444;">
-                <th style="text-align:left; padding:0.3rem;">Command</th>
-                <th style="text-align:left; padding:0.3rem;">URL</th>
-                <th style="text-align:left; padding:0.3rem;">Origin to allow</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style="border-bottom:1px solid #333;">
-                <td style="padding:0.3rem;"><code>npm run dev</code></td>
-                <td style="padding:0.3rem;"><code id="settings-url-127">http://127.0.0.1:5173</code></td>
-                <td style="padding:0.3rem;"><code id="settings-origin-127">http://127.0.0.1:5173</code></td>
-              </tr>
-              <tr style="border-bottom:1px solid #333;">
-                <td style="padding:0.3rem;"><code>npm run dev</code></td>
-                <td style="padding:0.3rem;"><code id="settings-url-localhost">http://localhost:5173</code></td>
-                <td style="padding:0.3rem;"><code id="settings-origin-localhost">http://localhost:5173</code></td>
-              </tr>
-              <tr style="border-bottom:1px solid #333;">
-                <td style="padding:0.3rem;"><code>npm run preview</code></td>
-                <td style="padding:0.3rem;"><code id="settings-url-preview">http://127.0.0.1:4173</code></td>
-                <td style="padding:0.3rem;"><code id="settings-origin-preview">http://127.0.0.1:4173</code></td>
-              </tr>
-              <tr>
-                <td style="padding:0.3rem;">GitHub Pages</td>
-                <td style="padding:0.3rem;"><code>https://yourusername.github.io/ipfs-gh-pages</code></td>
-                <td style="padding:0.3rem;">your actual Pages URL</td>
-              </tr>
-            </tbody>
-          </table>
-          <p>For your current session, allow this origin:</p>
-          <pre id="settings-cors-command">ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["http://127.0.0.1:5173"]'
-ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
-ipfs daemon</pre>
-          <button id="btn-copy-cors" type="button">Copy CORS Command</button>
-          <p style="margin-top:0.75rem;">For persistent access from other origins, allow them all at once:</p>
-          <pre id="settings-cors-multi-command">ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '[
-  "http://127.0.0.1:5173",
-  "http://localhost:5173",
-  "http://127.0.0.1:4173",
-  "https://yourusername.github.io"
-]'
-ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
-ipfs daemon</pre>
-        </div>
       </div>
     </section>
 

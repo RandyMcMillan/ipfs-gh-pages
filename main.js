@@ -735,7 +735,7 @@ if (detectKuboBtn) {
           li.title = 'Click to use this address';
           li.addEventListener('click', () => {
             inputMultiaddr.value = addr;
-            document.getElementById('tab-btn-connect').click();
+            document.getElementById('sub-tab-btn-connect').click();
           });
           settingsKuboAddresses.appendChild(li);
         }
@@ -749,7 +749,7 @@ if (detectKuboBtn) {
             li.title = 'Click to use this address';
             li.addEventListener('click', () => {
               inputMultiaddr.value = proxyAddr;
-              document.getElementById('tab-btn-connect').click();
+              document.getElementById('sub-tab-btn-connect').click();
             });
             settingsKuboAddresses.appendChild(li);
           }
@@ -777,6 +777,25 @@ document.querySelectorAll('.tab-button').forEach((button) => {
     button.classList.add('active');
     button.setAttribute('aria-selected', 'true');
     const panel = document.getElementById(`tab-${tab}`);
+    if (panel) panel.classList.add('active');
+  });
+});
+
+// Sub-tab navigation (inside Peer tab)
+document.querySelectorAll('.sub-tab-button').forEach((button) => {
+  button.addEventListener('click', () => {
+    const subtab = button.dataset.subtab;
+    const parent = button.closest('.card');
+    parent.querySelectorAll('.sub-tab-button').forEach((btn) => {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-selected', 'false');
+    });
+    parent.querySelectorAll('.sub-tab-panel').forEach((panel) => {
+      panel.classList.remove('active');
+    });
+    button.classList.add('active');
+    button.setAttribute('aria-selected', 'true');
+    const panel = document.getElementById(`sub-tab-${subtab}`);
     if (panel) panel.classList.add('active');
   });
 });
