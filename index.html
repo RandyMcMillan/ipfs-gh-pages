@@ -233,6 +233,14 @@
       <div class="card">
         <h3>Repository File Tree</h3>
         <div id="file-tree">Loading repository tree...</div>
+        <div id="file-actions" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #333;">
+          <p id="file-selected" style="margin: 0 0 0.75rem 0; color: #aaa;">No file selected. Click a CID in the tree above.</p>
+          <button id="btn-fetch-selected" disabled>Fetch Selected</button>
+          <button id="btn-download-selected" disabled>Download Selected</button>
+          <button id="btn-fetch-repo" disabled>Fetch Whole Repo</button>
+          <button id="btn-download-repo" disabled>Download Whole Repo</button>
+          <p id="file-action-status" style="margin-top: 0.75rem; color: #00ff88;"></p>
+        </div>
       </div>
     </section>
 

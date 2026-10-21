@@ -15,6 +15,9 @@ let lastFetchedName = 'ipfs-content';
 let lastFetchedCid = null;
 let lastFetchedIsDir = false;
 let rootCidForProvide = null;
+let selectedFileCid = null;
+let selectedFileName = null;
+let selectedFileEl = null;
 
 const statusEl = document.getElementById('node-status');
 const peerIdEl = document.getElementById('peer-id');
@@ -39,6 +42,12 @@ const settingsKuboStatus = document.getElementById('settings-kubo-status');
 const settingsKuboResult = document.getElementById('settings-kubo-result');
 const settingsKuboPeerId = document.getElementById('settings-kubo-peer-id');
 const settingsKuboAddresses = document.getElementById('settings-kubo-addresses');
+const fileSelectedEl = document.getElementById('file-selected');
+const fetchSelectedBtn = document.getElementById('btn-fetch-selected');
+const downloadSelectedBtn = document.getElementById('btn-download-selected');
+const fetchRepoBtn = document.getElementById('btn-fetch-repo');
+const downloadRepoBtn = document.getElementById('btn-download-repo');
+const fileActionStatus = document.getElementById('file-action-status');
 
 function base64ToUint8Array(b64) {
   const binary = atob(b64);
@@ -65,6 +74,27 @@ function buildRepoTree(paths) {
     }
   }
   return root;
+}
+
+function selectFile(cid, name, element) {
+  selectedFileCid = cid;
+  selectedFileName = name;
+  if (selectedFileEl) {
+    selectedFileEl.style.backgroundColor = '';
+    selectedFileEl.style.borderRadius = '';
+  }
+  selectedFileEl = element;
+  if (selectedFileEl) {
+    selectedFileEl.style.backgroundColor = '#2a2a2a';
+    selectedFileEl.style.borderRadius = '4px';
+  }
+  if (fileSelectedEl) {
+    fileSelectedEl.textContent = `Selected: ${name} (${cid})`;
+    fileSelectedEl.style.color = '#fff';
+  }
+  if (fetchSelectedBtn) fetchSelectedBtn.disabled = false;
+  if (downloadSelectedBtn) downloadSelectedBtn.disabled = false;
+  if (fileActionStatus) fileActionStatus.textContent = '';
 }
 
 function renderRepoTree() {
@@ -99,11 +129,11 @@ function renderRepoTree() {
           cidEl.textContent = '  ' + cid;
           cidEl.style.cursor = 'pointer';
           cidEl.style.color = '#4da3ff';
-          cidEl.title = 'Click to fetch this CID';
+          cidEl.title = 'Click to select this CID';
           cidEl.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
-            fetchContent(cid, name);
+            selectFile(cid, name, cidEl);
           });
           summary.appendChild(cidEl);
         }
@@ -120,11 +150,11 @@ function renderRepoTree() {
           cidEl.textContent = '  ' + cid;
           cidEl.style.cursor = 'pointer';
           cidEl.style.color = '#4da3ff';
-          cidEl.title = 'Click to fetch this CID';
+          cidEl.title = 'Click to select this CID';
           cidEl.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
-            fetchContent(cid, name);
+            selectFile(cid, name, cidEl);
           });
           span.appendChild(cidEl);
         }
@@ -162,6 +192,8 @@ async function addAllRepoFiles() {
       outputCid.textContent = rootCid.toString();
       inputCid.value = rootCid.toString();
       rootCidForProvide = rootCid;
+      if (fetchRepoBtn) fetchRepoBtn.disabled = false;
+      if (downloadRepoBtn) downloadRepoBtn.disabled = false;
       statusEl.textContent = 'Online & All repository files added to IPFS';
 
       // Announce the root CID to the IPFS network so other peers
@@ -406,7 +438,109 @@ downloadBtn.addEventListener('click', async () => {
   }
 });
 
+function downloadBytes(bytes, filename) {
+  const blob = new Blob([bytes], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
+// Files tab actions
+if (fetchSelectedBtn) {
+  fetchSelectedBtn.addEventListener('click', async () => {
+    if (!selectedFileCid) return;
+    fileActionStatus.textContent = 'Fetching...';
+    try {
+      await fetchContent(selectedFileCid, selectedFileName);
+      fileActionStatus.textContent = `Fetched ${selectedFileName}. Switch to the Fetch tab to view.`;
+    } catch (err) {
+      fileActionStatus.textContent = `Fetch failed: ${err.message}`;
+      fileActionStatus.style.color = '#ff4444';
+    }
+  });
+}
+
+if (downloadSelectedBtn) {
+  downloadSelectedBtn.addEventListener('click', async () => {
+    if (!selectedFileCid) return;
+    downloadSelectedBtn.disabled = true;
+    fileActionStatus.textContent = 'Downloading...';
+    fileActionStatus.style.color = '#00ff88';
+    try {
+      const cid = CID.parse(selectedFileCid);
+      const stat = await heliaUnixfs.stat(cid);
+      if (stat.type === 'directory') {
+        const tree = await collectIpfsDir(selectedFileCid);
+        const zipped = zipSync(tree);
+        const filename = (selectedFileName || 'ipfs-files').replace(/\.(txt|listing\.txt)$/, '') + '.zip';
+        downloadBytes(zipped, filename || 'ipfs-files.zip');
+        fileActionStatus.textContent = `Downloaded ${filename}`;
+      } else {
+        const chunks = [];
+        for await (const chunk of heliaUnixfs.cat(cid)) {
+          chunks.push(chunk);
+        }
+        const total = chunks.reduce((n, c) => n + c.length, 0);
+        const bytes = new Uint8Array(total);
+        let off = 0;
+        for (const c of chunks) {
+          bytes.set(c, off);
+          off += c.length;
+        }
+        downloadBytes(bytes, selectedFileName || `ipfs-${selectedFileCid.slice(0, 12)}`);
+        fileActionStatus.textContent = `Downloaded ${selectedFileName}`;
+      }
+    } catch (err) {
+      fileActionStatus.textContent = `Download failed: ${err.message}`;
+      fileActionStatus.style.color = '#ff4444';
+    } finally {
+      downloadSelectedBtn.disabled = false;
+    }
+  });
+}
+
+// Whole-repo actions in Files tab
+if (fetchRepoBtn) {
+  fetchRepoBtn.addEventListener('click', async () => {
+    const rootCid = outputCid.textContent.trim();
+    if (!rootCid || rootCid === 'None') return;
+    fileActionStatus.style.color = '#00ff88';
+    fileActionStatus.textContent = 'Fetching whole repo...';
+    try {
+      await fetchContent(rootCid, 'repo');
+      fileActionStatus.textContent = 'Fetched whole repo. Switch to the Fetch tab to view.';
+    } catch (err) {
+      fileActionStatus.textContent = `Fetch failed: ${err.message}`;
+      fileActionStatus.style.color = '#ff4444';
+    }
+  });
+}
+
+if (downloadRepoBtn) {
+  downloadRepoBtn.addEventListener('click', async () => {
+    const rootCid = outputCid.textContent.trim();
+    if (!rootCid || rootCid === 'None') return;
+    downloadRepoBtn.disabled = true;
+    fileActionStatus.style.color = '#00ff88';
+    fileActionStatus.textContent = 'Downloading whole repo as zip...';
+    try {
+      const tree = await collectIpfsDir(rootCid);
+      const zipped = zipSync(tree);
+      downloadBytes(zipped, 'repo.zip');
+      fileActionStatus.textContent = 'Downloaded repo.zip';
+    } catch (err) {
+      fileActionStatus.textContent = `Download failed: ${err.message}`;
+      fileActionStatus.style.color = '#ff4444';
+    } finally {
+      downloadRepoBtn.disabled = false;
+    }
+  });
+}
 
 // Debug helpers (used by integration tests)
 window.__runFetch = fetchContent;
