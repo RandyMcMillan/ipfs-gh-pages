@@ -1,0 +1,27 @@
+name: Action packaging smoke test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build via packaged action
+        uses: ./
+        with:
+          deploy: 'false'
+          out-dir: ${{ github.workspace }}/action-dist
+
+      - name: Verify bundle
+        run: |
+          test -f "${{ github.workspace }}/action-dist/index.html"
+          echo "Bundle OK"

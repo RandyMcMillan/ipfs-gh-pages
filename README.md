@@ -52,6 +52,60 @@ npm run test:download # download flow
 
 Set `CHROME_PATH` to point at your browser binary if it is not auto-detected.
 
+## Using this as a GitHub Action
+
+This repository is also a reusable GitHub Action. Other repositories can build (and deploy) a
+browser IPFS node that embeds all of their own files with a few lines of YAML:
+
+```yaml
+name: Deploy IPFS site
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and deploy IPFS site
+        id: deploy
+        uses: RandyMcMillan/ipfs-gh-pages@main
+        with:
+          node-version: '20'
+          deploy: 'true'
+```
+
+Inputs:
+
+- `node-version` (default `20`) — Node.js version used for the build.
+- `repo-root` (default `${{ github.workspace }}`) — directory whose tracked files are embedded.
+- `out-dir` (default `${{ github.workspace }}/dist`) — where the production bundle is written.
+- `deploy` (default `true`) — whether to deploy to GitHub Pages.
+- `run-tests` (default `false`) — run the integration suite (installs Chromium) before building.
+
+Outputs:
+
+- `dist-path` — absolute path to the built bundle directory.
+
+Set `deploy: 'false'` to only produce the bundle (e.g. to attach it to a release) and skip
+the Pages deployment step.
+
 ## CI / CD
 
 - `.github/workflows/deploy.yml` runs the full test suite on every push and pull request; deployment to GitHub Pages only happens on `main` after tests pass.

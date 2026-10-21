@@ -1,0 +1,95 @@
+name: 'Helia IPFS GitHub Pages'
+description: 'Build (and optionally deploy) a browser-based IPFS node that embeds every file in your repository, served from GitHub Pages.'
+author: 'RandyMcMillan'
+
+branding:
+  icon: 'box'
+  color: 'blue'
+
+inputs:
+  node-version:
+    description: 'Node.js version to use for the build.'
+    required: false
+    default: '20'
+  repo-root:
+    description: 'Directory whose tracked files are embedded into the IPFS bundle. Defaults to the checked-out repository root.'
+    required: false
+    default: ${{ github.workspace }}
+  out-dir:
+    description: 'Directory where the production bundle is written.'
+    required: false
+    default: ${{ github.workspace }}/dist
+  deploy:
+    description: 'Deploy the built bundle to GitHub Pages.'
+    required: false
+    default: 'true'
+  run-tests:
+    description: 'Run the integration test suite (requires Chromium) before building.'
+    required: false
+    default: 'false'
+
+outputs:
+  dist-path:
+    description: 'Absolute path to the built bundle directory.'
+    value: ${{ steps.build.outputs.dist_path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+        cache-dependency-path: ${{ github.action_path }}/package-lock.json
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci
+
+    - name: Run tests (optional)
+      if: ${{ inputs.run-tests == 'true' }}
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        REPO_ROOT: ${{ inputs.repo-root }}
+        CHROME_PATH: /usr/bin/chromium-browser
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y chromium-browser
+        npm run dev -- --host 127.0.0.1 --port 5173 &
+        for i in $(seq 1 60); do
+          if curl -s http://127.0.0.1:5173 >/dev/null; then
+            echo "Dev server ready"
+            break
+          fi
+          sleep 1
+        done
+        npm test
+
+    - name: Build bundle
+      id: build
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        REPO_ROOT: ${{ inputs.repo-root }}
+      run: |
+        mkdir -p "${{ inputs.out-dir }}"
+        npm run build -- --outDir "${{ inputs.out-dir }}" --emptyOutDir
+        echo "dist_path=${{ inputs.out-dir }}" >> "$GITHUB_OUTPUT"
+
+    - name: Configure Pages
+      if: ${{ inputs.deploy == 'true' }}
+      uses: actions/configure-pages@v4
+
+    - name: Upload Pages artifact
+      if: ${{ inputs.deploy == 'true' }}
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ${{ inputs.out-dir }}
+
+    - name: Deploy to GitHub Pages
+      if: ${{ inputs.deploy == 'true' }}
+      id: deployment
+      uses: actions/deploy-pages@v4

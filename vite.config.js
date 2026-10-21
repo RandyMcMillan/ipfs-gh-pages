@@ -13,7 +13,7 @@ function repoFilesPlugin() {
     },
     load(id) {
       if (id !== resolvedId) return;
-      const root = process.cwd();
+      const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
       let files = [];
       try {
         const out = execSync('git ls-files -z', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] });
@@ -31,7 +31,9 @@ function repoFilesPlugin() {
         walk(root);
       }
       const entries = files
-        .filter((f) => fs.statSync(path.join(root, f)).isFile())
+        .filter((f) => {
+          try { return fs.statSync(path.join(root, f)).isFile(); } catch { return false; }
+        })
         .map((f) => {
           const full = path.join(root, f);
           const buf = fs.readFileSync(full);
