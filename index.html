@@ -331,6 +331,18 @@
           <button id="btn-bootstrap" disabled>Connect to Bootstrap Peers</button>
           <p id="connect-status"></p>
 
+          <h4 style="margin-top:1rem;">Share this node (inter-browser)</h4>
+          <p class="help">
+            Copy a link to this node and open it in another browser/tab to connect them.
+            The node exposes a relayed WebRTC address once it has reserved a slot on a relay.
+          </p>
+          <button id="btn-copy-multiaddr" disabled>Copy My Multiaddr</button>
+          <button id="btn-copy-link" disabled>Copy Share Link</button>
+          <p id="share-status"></p>
+
+          <h4 style="margin-top:1rem;">Connected Peers</h4>
+          <ul id="peers-list"><li>(none)</li></ul>
+
           <div class="help" style="margin-top:1rem;">
             <h4>Connection Help</h4>
             <p>

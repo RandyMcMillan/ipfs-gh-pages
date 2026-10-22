@@ -35,6 +35,10 @@ const peerIdEl = document.getElementById('peer-id');
 const multiaddrsEl = document.getElementById('multiaddrs');
 const connectBtn = document.getElementById('btn-connect');
 const bootstrapBtn = document.getElementById('btn-bootstrap');
+const copyMultiaddrBtn = document.getElementById('btn-copy-multiaddr');
+const copyLinkBtn = document.getElementById('btn-copy-link');
+const shareStatus = document.getElementById('share-status');
+const peersListEl = document.getElementById('peers-list');
 const inputMultiaddr = document.getElementById('input-multiaddr');
 const connectStatus = document.getElementById('connect-status');
 const publishBtn = document.getElementById('btn-publish');
@@ -313,6 +317,9 @@ async function initHelia() {
 
     // Automatically add all files in the repo to IPFS
     addAllRepoFiles();
+
+    // Auto-connect to a peer provided via URL (?connect=...)
+    autoConnectFromUrl();
   } catch (error) {
     statusEl.textContent = `Initialization Error: ${error.message}`;
     statusEl.style.color = '#ff4444';
@@ -750,6 +757,102 @@ bootstrapBtn.addEventListener('click', () => {
     bootstrapBtn.disabled = false;
   });
 });
+
+// --- Inter-browser sharing helpers ---
+function getShareableMultiaddr() {
+  if (!heliaNode) return null;
+  const addrs = heliaNode.libp2p.getMultiaddrs().map(a => a.toString());
+  // Prefer a relayed WebRTC address (dialable by other browsers)
+  const webrtc = addrs.find(a => a.includes('/p2p-circuit') && a.includes('/webrtc'));
+  if (webrtc) return webrtc;
+  const wss = addrs.find(a => a.includes('/p2p-circuit') && a.includes('/wss'));
+  if (wss) return wss;
+  const circuit = addrs.find(a => a.includes('/p2p-circuit'));
+  if (circuit) return circuit;
+  return addrs[0] || null;
+}
+
+function refreshPeers() {
+  if (!heliaNode || !peersListEl) return;
+  try {
+    const peers = heliaNode.libp2p.getPeers();
+    if (!peers || peers.length === 0) {
+      peersListEl.innerHTML = '<li>(none)</li>';
+      return;
+    }
+    peersListEl.innerHTML = '';
+    for (const p of peers) {
+      const li = document.createElement('li');
+      li.textContent = p.toString();
+      li.style.fontSize = '0.85rem';
+      li.style.wordBreak = 'break-all';
+      peersListEl.appendChild(li);
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+if (copyMultiaddrBtn) {
+  copyMultiaddrBtn.addEventListener('click', async () => {
+    const ma = getShareableMultiaddr();
+    if (!ma) { shareStatus.textContent = 'No shareable address yet. Wait for a relay reservation.'; return; }
+    try {
+      await navigator.clipboard.writeText(ma);
+      shareStatus.textContent = 'Copied multiaddr to clipboard.';
+    } catch (e) {
+      shareStatus.textContent = ma;
+    }
+  });
+}
+
+if (copyLinkBtn) {
+  copyLinkBtn.addEventListener('click', async () => {
+    const ma = getShareableMultiaddr();
+    if (!ma) { shareStatus.textContent = 'No shareable address yet. Wait for a relay reservation.'; return; }
+    const url = new URL(window.location.href);
+    url.searchParams.set('connect', ma);
+    const link = url.toString();
+    try {
+      await navigator.clipboard.writeText(link);
+      shareStatus.textContent = 'Copied share link to clipboard.';
+    } catch (e) {
+      shareStatus.textContent = link;
+    }
+  });
+}
+
+// Auto-connect to a peer provided via URL (?connect=...)
+async function autoConnectFromUrl() {
+  if (!heliaNode) return;
+  const params = new URLSearchParams(window.location.search);
+  const addr = params.get('connect') || params.get('peer');
+  if (!addr) return;
+  try {
+    shareStatus.textContent = 'Connecting to peer from link...';
+    inputMultiaddr.value = addr;
+    await heliaNode.libp2p.dial(multiaddr(addr));
+    connectedPeerAddr = addr;
+    setConnectState('connected');
+    connectStatus.textContent = 'Connected to peer from link.';
+    if (rootCidForProvide) {
+      try { await heliaNode.routing.provide(rootCidForProvide); } catch (e) {}
+    }
+  } catch (err) {
+    setConnectState('disconnected');
+    connectStatus.textContent = `Auto-connect failed: ${err.message}`;
+  }
+}
+
+// Periodically refresh peers + enable share buttons once a circuit address exists
+setInterval(() => {
+  refreshPeers();
+  const ma = getShareableMultiaddr();
+  if (ma) {
+    if (copyMultiaddrBtn) copyMultiaddrBtn.disabled = false;
+    if (copyLinkBtn) copyLinkBtn.disabled = false;
+  }
+}, 2000);
 
 // Kubo RPC detection in Settings tab
 function isBrowserDialable(addr) {
