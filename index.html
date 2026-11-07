@@ -326,7 +326,7 @@
             <option value="/ip4/127.0.0.1/tcp/4002/ws"></option>
             <option value="/dns4/example.com/tcp/443/wss/p2p/&lt;KUBO_PEER_ID&gt;"></option>
           </datalist>
-          <small>Browser nodes can only dial WebSocket transports (<code>/ws</code> or <code>/wss</code>). Replace <code>&lt;KUBO_PEER_ID&gt;</code> with the peer ID from your Kubo node.</small>
+          <small>Browsers cannot open raw TCP or UDP sockets, but they can dial <code>/ws</code>, <code>/wss</code>, <code>webrtc-direct</code>, and WebTransport addresses. From https:// pages prefer <code>webrtc-direct</code> (plain <code>ws://</code> is blocked as mixed content) — see Connection Help below. Replace <code>&lt;KUBO_PEER_ID&gt;</code> with the peer ID from your Kubo node.</small>
           <button id="btn-connect" disabled>Connect</button>
           <button id="btn-bootstrap" disabled>Connect to Bootstrap Peers</button>
           <p id="connect-status"></p>
@@ -353,19 +353,52 @@
               If you see <em>"Connection failed: The dial request has no valid addresses"</em>, Kubo is probably
               not listening on a browser-compatible transport.
             </p>
+            <h4>Quick start (one command)</h4>
+            <p>On the machine running Kubo, run this once from this repo:</p>
+            <pre>npm run kubo:browser
+ipfs daemon</pre>
+            <p>
+              This enables everything a browser can dial — WebSocket and WebRTC Direct, on both IPv4 and IPv6.
+              Then return to this page and click <strong>Detect Kubo</strong> in the Peer → Settings tab:
+              it finds your node, picks an address that works from this page, and connects automatically.
+              No manual copying needed.
+            </p>
+            <h4>Why ws:// does not work from this page</h4>
+            <p>
+              If this app is open from an <code>https://</code> URL (GitHub Pages), the browser blocks plain
+              <code>ws://</code> dials as <em>mixed content</em> — even when the target is
+              <code>127.0.0.1</code> on your own machine. That is why "websocket is not working by default"
+              here. <code>ws://</code> dials only succeed when the page itself is served from
+              <code>http://127.0.0.1</code> or <code>http://localhost</code> (e.g. <code>npm run dev</code>).
+              From https origins, use <code>webrtc-direct</code> (UDP-based, not affected) or
+              <code>wss://</code> (TLS WebSocket).
+            </p>
             <h4>Quick setup with npm commands</h4>
             <p>From this repo, run on the machine hosting Kubo:</p>
-            <pre># 1. Plain WebSocket (works for local HTTP dev)
-npm run kubo:ws
+            <pre># 1. WebRTC Direct (recommended — works from https:// Pages too)
+npm run kubo:webrtc
 ipfs daemon
-# Dial: /ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;</pre>
-            <h4>Option A: Native Kubo WSS (public nodes)</h4>
+# Dial: /ip4/127.0.0.1/udp/4002/webrtc-direct/certhash/uXi.../p2p/&lt;KUBO_PEER_ID&gt;
+# (full address is printed by `ipfs id` after restart)</pre>
+            <h4>Option A: WebRTC Direct (recommended)</h4>
+            <p>
+              WebRTC Direct runs over UDP and is not subject to mixed-content blocking, so it works both from
+              GitHub Pages and from local dev. Requires Kubo 0.24+ (0.33+ recommended for dial reliability).
+              Kubo generates a self-signed certificate for the listener and advertises the address with a
+              <code>/certhash/uXi…</code> fingerprint — the dial fails without it, so copy the full address.
+            </p>
+            <pre>npm run kubo:webrtc
+ipfs daemon
+ipfs id    # copy the /ip4/.../udp/4002/webrtc-direct/certhash/.../p2p/... address</pre>
+            <p>Example address (Kubo over IPv6):</p>
+            <pre>/ip6/2602:f9d0:14b:b100:c1:181b:23d3:6d04/udp/4001/webrtc-direct/certhash/uEiCgMO9zfVyrbbTP9tn7C4PWcQTzYBGKVLTK-cY3DvFWuQ/p2p/12D3KooWQX7mvoyyZJDX5uAwezSZoFgHpEGoMrbktw1Vuef1qSeq</pre>
+            <h4>Option B: Native Kubo WSS (public nodes)</h4>
             <p>Kubo can automatically obtain a TLS certificate via AutoTLS. The resulting address uses a <code>*.libp2p.direct</code> domain, so this only works for publicly reachable nodes.</p>
             <pre>npm run kubo:wss
 ipfs daemon
 # After the node is online, look for an address like:
 # /dns4/&lt;PEER_ID&gt;.libp2p.direct/tcp/443/wss/p2p/&lt;PEER_ID&gt;</pre>
-            <h4>Option B: Reverse-proxy WSS (LAN / custom domain)</h4>
+            <h4>Option C: Reverse-proxy WSS (LAN / custom domain)</h4>
             <p>For local IPs like <code>192.168.1.74</code> or your own domain, Kubo cannot use a custom certificate natively. Run a local TLS proxy in front of Kubo's <code>/ws</code> listener instead.</p>
             <pre># 1. Start Kubo with a plain /ws listener
 npm run kubo:ws
@@ -379,13 +412,23 @@ npm run proxy:wss          # listens on wss://0.0.0.0:4003
 # /ip4/192.168.1.74/tcp/4003/wss/p2p/&lt;KUBO_PEER_ID&gt;</pre>
             <p>To include a LAN IP in the self-signed certificate, run:</p>
             <pre>CERT_SANS=192.168.1.74 npm run cert:generate</pre>
+            <h4>Plain WebSocket (local dev only)</h4>
+            <p>
+              Plain <code>ws://</code> works only when this page is served from
+              <code>http://127.0.0.1</code> / <code>http://localhost</code> (e.g. <code>npm run dev</code>).
+              From https origins it is blocked as mixed content — use Option A instead.
+            </p>
+            <pre>npm run kubo:ws
+ipfs daemon
+# Dial (dev pages only): /ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;</pre>
             <h4>Which addresses work from a browser?</h4>
             <ul>
-              <li><strong>Works:</strong> <code>/ip4/127.0.0.1/tcp/4002/ws/p2p/...</code></li>
-              <li><strong>Works:</strong> <code>/dns4/example.com/tcp/443/wss/p2p/...</code> (HTTPS-proxied Kubo)</li>
-              <li><strong>May work:</strong> WebTransport or WebRTC-direct addresses (requires HTTPS except on localhost)</li>
+              <li><strong>Works everywhere (recommended):</strong> <code>/ip4/…/udp/4002/webrtc-direct/certhash/uXi…/p2p/…</code> — works even from https:// Pages origins</li>
+              <li><strong>Works:</strong> <code>/dns4/example.com/tcp/443/wss/p2p/...</code> (TLS-proxied Kubo)</li>
+              <li><strong>Works only from http:// dev origins:</strong> <code>/ip4/127.0.0.1/tcp/4002/ws/p2p/...</code> — plain ws:// is blocked as mixed content from https pages</li>
+              <li><strong>May work:</strong> WebTransport or relayed WebRTC (requires HTTPS except on localhost)</li>
               <li><strong>Does not work:</strong> raw TCP such as <code>/ip4/127.0.0.1/tcp/4001/p2p/...</code></li>
-              <li><strong>Does not work:</strong> QUIC such as <code>/ip4/127.0.0.1/udp/4001/quic-v1/p2p/...</code></li>
+              <li><strong>Does not work:</strong> QUIC such as <code>/ip4/127.0.0.1/udp/4001/quic-v1/p2p/...</code> — browsers cannot dial QUIC; use webrtc-direct instead</li>
             </ul>
             <p>
               Use <code>ipfs id</code> to see your Kubo peer ID and current addresses.

@@ -2,3 +2,4 @@ node_modules/
 rust/target/
 node_modules.zip
 dist/
+certs/

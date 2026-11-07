@@ -48,6 +48,7 @@ npm run test          # fetch a file
 npm run test:eval     # inspect fetched bytes
 npm run test:zip      # zip a directory
 npm run test:download # download flow
+npm run test:share    # share link: two headless browsers, auto-connect via ?connect=
 ```
 
 Set `CHROME_PATH` to point at your browser binary if it is not auto-detected.

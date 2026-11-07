@@ -282,8 +282,9 @@ async function initHelia() {
     setConnectState('disconnected');
     bootstrapBtn.disabled = false;
 
-    // Try common local Kubo multiaddrs by default
-    const commonAddrs = ['/ip4/127.0.0.1/tcp/4001', '/ip4/127.0.0.1/tcp/4001/ws', '/ip4/127.0.0.1/tcp/5001'];
+    // Try common local Kubo WebSocket multiaddrs by default. Raw TCP (4001) and the RPC
+    // API port (5001) cannot be dialed by a browser node — see Connection Help.
+    const commonAddrs = ['/ip4/127.0.0.1/tcp/4002/ws', '/ip4/127.0.0.1/tcp/4001/ws'];
     (async () => {
       for (const a of commonAddrs) {
         try {
@@ -682,6 +683,7 @@ window.__collectZipSize = async (cid) => {
   const z = zipSync(tree);
   return z.length;
 };
+window.__getShareableMultiaddr = getShareableMultiaddr;
 
 function setConnectState(state) {
   connectBtn.classList.remove('disconnected', 'connecting', 'connected');
@@ -823,24 +825,39 @@ if (copyLinkBtn) {
 }
 
 // Auto-connect to a peer provided via URL (?connect=...)
+// Retries a few times: the sharing node's relay reservation may still be
+// settling when the recipient opens the link.
 async function autoConnectFromUrl() {
   if (!heliaNode) return;
   const params = new URLSearchParams(window.location.search);
   const addr = params.get('connect') || params.get('peer');
   if (!addr) return;
-  try {
-    shareStatus.textContent = 'Connecting to peer from link...';
-    inputMultiaddr.value = addr;
-    await heliaNode.libp2p.dial(multiaddr(addr));
-    connectedPeerAddr = addr;
-    setConnectState('connected');
-    connectStatus.textContent = 'Connected to peer from link.';
-    if (rootCidForProvide) {
-      try { await heliaNode.routing.provide(rootCidForProvide); } catch (e) {}
+  inputMultiaddr.value = addr;
+
+  const MAX_ATTEMPTS = 4;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      shareStatus.textContent = attempt === 1
+        ? 'Connecting to peer from link...'
+        : `Retrying connection from link (${attempt}/${MAX_ATTEMPTS})...`;
+      await heliaNode.libp2p.dial(multiaddr(addr));
+      connectedPeerAddr = addr;
+      setConnectState('connected');
+      connectStatus.textContent = 'Connected to peer from link.';
+      shareStatus.textContent = 'Connected via share link.';
+      if (rootCidForProvide) {
+        try { await heliaNode.routing.provide(rootCidForProvide); } catch (e) {}
+      }
+      return;
+    } catch (err) {
+      if (attempt === MAX_ATTEMPTS) {
+        setConnectState('disconnected');
+        connectStatus.textContent = `Auto-connect failed: ${err.message}`;
+        shareStatus.textContent = 'Share-link connect failed — the address may be stale. Ask the sender to copy a fresh share link.';
+      } else {
+        await new Promise((r) => setTimeout(r, 4000));
+      }
     }
-  } catch (err) {
-    setConnectState('disconnected');
-    connectStatus.textContent = `Auto-connect failed: ${err.message}`;
   }
 }
 
@@ -996,14 +1013,23 @@ async function detectKubo(autoConnect = false) {
       ? `Found ${addresses.length} browser-dialable address(es) via RPC port ${port}.`
       : `Kubo found on port ${port}, but no browser-dialable /ws or /wss addresses. Run npm run kubo:ws first.`;
 
-    // Update Connect input with the best detected address
+    // Update Connect input with the best detected address.
+    // Plain ws:// dials are blocked as mixed content from https (non-localhost) pages,
+    // so from GitHub Pages prefer a webrtc-direct address over ws://.
     if (addresses.length && inputMultiaddr) {
-      const best =
-        addresses.find(a => a.includes('/ip4/127.0.0.1/') && a.includes('/ws') && !a.includes('/wss')) ||
-        addresses.find(a => a.includes('/ws') && !a.includes('/wss')) ||
+      const isPlainWs = (a) => a.includes('/ws') && !a.includes('/wss');
+      const webrtcAddr = addresses.find(a => a.includes('/webrtc-direct'));
+      const wsChain =
+        addresses.find(a => a.includes('/ip4/127.0.0.1/') && isPlainWs(a)) ||
+        addresses.find(isPlainWs) ||
         addresses.find(a => a.includes('/wss')) ||
         addresses[0];
+      const pageIsSecureNonLocal = window.location.protocol === 'https:' && !isLocalDev;
+      const best = (pageIsSecureNonLocal && webrtcAddr) ? webrtcAddr : wsChain;
       inputMultiaddr.value = best;
+      if (pageIsSecureNonLocal && isPlainWs(best)) {
+        settingsKuboStatus.textContent += ' Note: ws:// dials are blocked from https pages (mixed content). Prefer the webrtc-direct address above.';
+      }
 
       // Auto-connect if requested and Helia is ready
       if (autoConnect && connectBtn && !connectBtn.disabled) {
