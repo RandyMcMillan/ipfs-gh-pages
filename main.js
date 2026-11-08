@@ -1137,6 +1137,26 @@ setInterval(() => {
   }
 }, 2000);
 
+// Theme toggle (light/dark via Primer color modes), persisted in localStorage.
+const themeToggleBtn = document.getElementById('btn-theme-toggle');
+const MOON_SVG = '<svg height="18" width="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M9.598 1.591a.75.75 0 0 1 .785-.175 7 7 0 1 1-9.9 9.9.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.07-7.07.75.75 0 0 1-.175-.785Z"></path></svg>';
+const SUN_SVG = '<svg height="18" width="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path></svg>';
+function applyTheme(mode) {
+  document.documentElement.setAttribute('data-color-mode', mode);
+  try { localStorage.setItem('theme', mode); } catch (e) {}
+  if (themeToggleBtn) {
+    themeToggleBtn.innerHTML = mode === 'dark' ? SUN_SVG : MOON_SVG;
+    themeToggleBtn.title = mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+  }
+}
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-color-mode') === 'dark' ? 'dark' : 'light';
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+  applyTheme(document.documentElement.getAttribute('data-color-mode') === 'dark' ? 'dark' : 'light');
+}
+
 // Kubo RPC detection in Settings tab
 const currentOrigin = window.location.origin;
 const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');

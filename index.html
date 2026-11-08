@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RandyMcMillan/ipfs-gh-pages</title>
+  <script>
+    // Restore the chosen theme before first paint (default: light).
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('theme'); } catch (e) {}
+      if (t === 'dark' || t === 'light') {
+        document.documentElement.setAttribute('data-color-mode', t);
+      }
+    })();
+  </script>
   <style>
     /* App chrome on top of Primer (GitHub's design system), light theme. */
     body {
@@ -579,6 +589,10 @@
     </div>
     <div class="Header-item Header-item--full">
       <input class="Header-input" type="text" value="RandyMcMillan/ipfs-gh-pages" aria-label="Repository" readonly />
+    </div>
+    <div class="Header-item">
+      <button type="button" id="btn-theme-toggle" title="Switch to dark mode" aria-label="Toggle theme"
+        style="background: none; border: none; box-shadow: none; padding: 0.25rem 0.5rem; margin: 0; color: var(--color-header-text, #fff); cursor: pointer; display: inline-flex; align-items: center;"></button>
     </div>
   </div>
 
