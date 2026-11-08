@@ -598,11 +598,28 @@ function renderRepoTable(nodes, depth = 0) {
   return ul;
 }
 
+// GitHub folds directory chains where each level holds a single
+// subdirectory: ".github" containing only "workflows" renders as one
+// ".github/workflows" row. Applied at every level.
+function foldRepoNodes(nodes) {
+  return nodes.map((node) => {
+    if (node.isDir && node.children && node.children.length === 1 && node.children[0].isDir) {
+      const child = node.children[0];
+      const merged = { ...node, name: `${node.name}/${child.name}`, path: child.path, children: child.children };
+      return foldRepoNodes([merged])[0];
+    }
+    if (node.isDir && node.children) {
+      return { ...node, children: foldRepoNodes(node.children) };
+    }
+    return node;
+  });
+}
+
 function renderRepoTree() {
   if (!fileTreeEl) return;
   fileTreeEl.innerHTML = '';
   const tree = buildRepoTree(Object.keys(repoFiles));
-  fileTreeEl.appendChild(renderRepoTable(repoTreeNodes(tree, '')));
+  fileTreeEl.appendChild(renderRepoTable(foldRepoNodes(repoTreeNodes(tree, ''))));
 }
 
 // Minimal, safe markdown subset for the embedded README: headings, fenced
