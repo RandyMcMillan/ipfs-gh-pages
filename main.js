@@ -793,7 +793,17 @@ async function autoConnectFromUrl() {
   if (!addr) return;
   inputMultiaddr.value = addr;
 
-  const MAX_ATTEMPTS = 4;
+  // Plain ws:// can never succeed from an https page: browsers block it as
+  // mixed content, and the failed dial would otherwise hang until libp2p's
+  // dial timeout on every retry. Fail fast with an actionable message.
+  if (window.location.protocol === 'https:' && addr.includes('/ws') && !addr.includes('/wss')) {
+    setConnectState('disconnected');
+    connectStatus.textContent = 'Auto-connect failed: plain ws:// addresses cannot be dialed from an https page (browser mixed-content block). Use a webrtc-direct or wss address instead.';
+    shareStatus.textContent = 'Share-link connect failed — this link uses ws://, which browsers block on https pages. Ask the sender for a webrtc-direct or wss link.';
+    return;
+  }
+
+  const MAX_ATTEMPTS = 6;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
       shareStatus.textContent = attempt === 1

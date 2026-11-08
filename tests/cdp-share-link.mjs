@@ -140,15 +140,17 @@ if (multiaddr) {
   // Negative path: a stale/unreachable share link must fail visibly (after retries), not hang silently.
   vlog('Checking failure path with an unreachable share link...');
   const badAddr = '/ip4/127.0.0.1/tcp/1/ws/p2p/12D3KooWRx1BxMZ7nYyeM8RLyGaWAKyqv8GhMCT7KNW7TMkTVTVB';
-  const badLink = testUrl + (testUrl.includes('?') ? '&' : '?') + 'connect=' + encodeURIComponent(badAddr);
+  const badLink = testUrl + (testUrl.includes('?') ? '&' : '?') + 'connect=' + encodeURIComponent(badAddr) + '&_cb=' + Date.now();
   await B.send('Page.navigate', { url: badLink });
   const failedVisibly = await waitFor(
     B.evalJson,
     `document.getElementById('connect-status').textContent.startsWith('Auto-connect failed')`,
-    45000,
+    90000,
     2000
   );
-  check('unreachable share link fails visibly after retries', failedVisibly === true);
+  const csText = await B.evalJson(`document.getElementById('connect-status').textContent`);
+  const ssText = await B.evalJson(`document.getElementById('share-status').textContent`);
+  check('unreachable share link fails visibly after retries', failedVisibly === true, `connect-status="${csText}" share-status="${ssText}"`);
 }
 
 A.ws.close();
