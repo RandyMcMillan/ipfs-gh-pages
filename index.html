@@ -478,10 +478,7 @@
       align-items: center;
       gap: 0.5rem;
       flex-wrap: wrap;
-      border: 1px solid var(--color-border-default);
       border-bottom: 1px solid var(--color-border-muted);
-      border-radius: 6px 6px 0 0;
-      background: var(--color-canvas-default);
       padding: 0.5rem 0.75rem;
     }
     .commit-bar .avatar {
@@ -511,9 +508,6 @@
       list-style: none;
       margin: 0;
       padding: 0;
-      border: 1px solid var(--color-border-default);
-      border-top: none;
-      border-radius: 0 0 6px 6px;
       font-size: 0.9rem;
     }
     .repo-table.nested {
@@ -530,6 +524,7 @@
       align-items: center;
       padding: 0.4rem 0.75rem;
       border-bottom: 1px solid var(--color-border-muted);
+      background: var(--color-canvas-default);
     }
     .repo-table li.row > .cells:hover {
       background: var(--color-canvas-subtle);
@@ -928,7 +923,8 @@
           <button type="button" id="btn-clone-help" class="help-btn" title="How CIDs are used">?</button>
         </div>
 
-        <div class="card">
+        <div class="card" style="padding: 0; border: none; background: transparent;">
+          <div class="directory-content bgColor-muted p-1 border rounded-top-2">
           <div class="commit-bar">
             <span class="avatar">RM</span>
             <span class="commit-msg">Publish repository files to IPFS</span>
@@ -936,7 +932,8 @@
             <code id="clone-cid" class="commit-hash" title="root CID">…</code>
           </div>
           <div id="file-tree">Loading repository tree...</div>
-          <div id="file-actions" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border-muted);">
+          </div>
+          <div id="file-actions" style="margin: 1rem 0.25rem 0; padding-top: 1rem; border-top: 1px solid var(--color-border-muted);">
             <p id="file-selected" style="margin: 0 0 0.75rem 0; color: var(--color-fg-muted);">No file selected. Click a CID in the tree above.</p>
             <button id="btn-fetch-selected" disabled>Fetch Selected</button>
             <button id="btn-download-selected" disabled>Download Selected</button>
