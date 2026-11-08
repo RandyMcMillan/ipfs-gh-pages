@@ -71,6 +71,30 @@ if (multiaddr) {
   const bConnected = await waitFor(B.evalJson, `document.getElementById('connect-status').textContent === 'Connected to peer from link.'`, 90000, 2000);
   console.log('B connected:', bConnected === true);
 
+  // Instrument the A-side view of B: what does A actually see, and when?
+  const peerIdB = await B.evalJson('window.__heliaNode?.libp2p?.peerId?.toString()');
+  console.log('peerIdB:', peerIdB);
+  console.log('B connections:', await B.evalJson(`window.__heliaNode.libp2p.getConnections().map(c => c.remotePeer.toString() + ' @ ' + c.remoteAddr.toString())`));
+  const aProbe = `JSON.stringify({
+    peers: window.__heliaNode.libp2p.getPeers().map(String),
+    conns: window.__heliaNode.libp2p.getConnections().map(c => c.remotePeer.toString()),
+    ui: document.getElementById('peers-list').textContent
+  })`;
+  const aDeadline = Date.now() + 90000;
+  let aLast = '';
+  while (Date.now() < aDeadline) {
+    const state = JSON.parse(await A.evalJson(aProbe) || '{}');
+    const seesB = (state.peers || []).includes(peerIdB);
+    const key = `peers=${state.peers?.length} seesB=${seesB}`;
+    if (key !== aLast) { console.log(new Date().toISOString().slice(11, 19), 'A:', key); aLast = key; }
+    if (seesB) {
+      console.log('A sees B — conns sample:', JSON.stringify((state.conns || []).slice(0, 5)));
+      break;
+    }
+    await new Promise((r) => setTimeout(r, 3000));
+  }
+  if (!aLast.includes('seesB=true')) console.log('A NEVER saw B within 90s');
+
   console.log('== launching C on bad link (instrumented) ==');
   const C = await launchNode(PORT_C);
   const badLink = testUrl + '?connect=' + encodeURIComponent(badAddr) + '&_cb=' + Date.now();

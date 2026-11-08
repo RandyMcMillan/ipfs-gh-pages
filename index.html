@@ -231,15 +231,51 @@
       margin-bottom: 0.75rem;
       font-size: 0.85rem;
     }
-    #file-tree ul {
+    .tree-view {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .tree-view ul {
       list-style: none;
       padding-left: 0;
+      margin: 0;
     }
-    #file-tree li > ul {
-      padding-left: 1.25rem;
+    .tree-view li ul {
+      padding-left: 2ch;
     }
-    #file-tree details > summary {
+    .tree-view summary {
       cursor: pointer;
+      list-style: none;
+    }
+    .tree-view summary::-webkit-details-marker {
+      display: none;
+    }
+    .tree-view summary::before {
+      content: '▸ ';
+      color: #888;
+    }
+    .tree-view details[open] > summary::before {
+      content: '▾ ';
+    }
+    .tree-view .tree-file {
+      display: inline-block;
+      padding-left: 2ch;
+    }
+    .tree-view .tree-cid {
+      color: #4da3ff;
+      cursor: pointer;
+    }
+    .tree-view .tree-size {
+      color: #888;
+    }
+    .tree-view .tree-dim {
+      color: #888;
+      padding-left: 2ch;
+    }
+    .tree-view .tree-error {
+      color: #ff4444;
+      padding-left: 2ch;
     }
     @media (max-width: 600px) {
       body {
@@ -394,11 +430,6 @@
           <h4>Retrieved Data:</h4>
           <pre id="output-content">None</pre>
         </div>
-      </div>
-
-      <div class="card" id="fetched-repo-card" style="display:none;">
-        <h3>Fetched Repo Tree</h3>
-        <div id="fetched-repo-tree"></div>
       </div>
     </section>
 

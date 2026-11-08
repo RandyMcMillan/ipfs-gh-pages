@@ -62,8 +62,6 @@ const downloadSelectedBtn = document.getElementById('btn-download-selected');
 const fetchRepoBtn = document.getElementById('btn-fetch-repo');
 const downloadRepoBtn = document.getElementById('btn-download-repo');
 const fileActionStatus = document.getElementById('file-action-status');
-const fetchedRepoCard = document.getElementById('fetched-repo-card');
-const fetchedRepoTree = document.getElementById('fetched-repo-tree');
 
 function selectFile(cid, name, element) {
   selectedFileCid = cid;
@@ -87,13 +85,13 @@ function selectFile(cid, name, element) {
 }
 
 // Single file/folder tree renderer shared by the Repository File Tree and the
-// fetched-content view. A node is { name, isDir, cid, size, children }, where
-// children is an array (rendered eagerly), a zero-arg async function (loaded
-// on first expand), or null for files and empty directories.
+// fetched-content view. Terminal-style: monospace rows, dirs end in '/' and
+// expand on click, CIDs are clickable. A node is { name, isDir, cid, size,
+// children }, where children is an array (rendered eagerly), a zero-arg async
+// function (loaded on first expand), or null for files and empty directories.
 function renderFileTree(nodes, onCidClick) {
   const ul = document.createElement('ul');
-  ul.style.listStyle = 'none';
-  ul.style.paddingLeft = '0';
+  ul.className = 'tree-view';
 
   const sorted = [...nodes].sort((a, b) => {
     if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
@@ -102,13 +100,11 @@ function renderFileTree(nodes, onCidClick) {
 
   for (const node of sorted) {
     const li = document.createElement('li');
-    li.style.marginBottom = '0.25rem';
 
     const makeCidEl = () => {
       const cidEl = document.createElement('span');
-      cidEl.textContent = node.cid || '';
-      cidEl.style.color = '#4da3ff';
-      cidEl.style.cursor = 'pointer';
+      cidEl.className = 'tree-cid';
+      cidEl.textContent = ' ' + (node.cid || '');
       cidEl.title = node.isDir ? 'Click to select this directory CID' : 'Click to select this CID';
       cidEl.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -120,9 +116,8 @@ function renderFileTree(nodes, onCidClick) {
 
     const makeSizeEl = () => {
       const sizeEl = document.createElement('span');
+      sizeEl.className = 'tree-size';
       sizeEl.textContent = ` (${formatSize(node.size)})`;
-      sizeEl.style.color = '#888';
-      sizeEl.style.fontSize = '0.85rem';
       return sizeEl;
     };
 
@@ -131,7 +126,7 @@ function renderFileTree(nodes, onCidClick) {
     if (node.isDir) {
       const details = document.createElement('details');
       const summary = document.createElement('summary');
-      summary.textContent = `📁 ${node.name} `;
+      summary.textContent = `${node.name}/`;
       if (node.cid) summary.appendChild(makeCidEl());
       if (hasSize) summary.appendChild(makeSizeEl());
       details.appendChild(summary);
@@ -142,10 +137,9 @@ function renderFileTree(nodes, onCidClick) {
           if (!details.open || loaded) return;
           loaded = true;
           const childUl = document.createElement('ul');
-          childUl.style.listStyle = 'none';
           const placeholder = document.createElement('li');
+          placeholder.className = 'tree-dim';
           placeholder.textContent = 'Loading...';
-          placeholder.style.color = '#888';
           childUl.appendChild(placeholder);
           details.appendChild(childUl);
           try {
@@ -153,15 +147,15 @@ function renderFileTree(nodes, onCidClick) {
             childUl.removeChild(placeholder);
             if (children.length === 0) {
               const empty = document.createElement('li');
+              empty.className = 'tree-dim';
               empty.textContent = '(empty directory)';
-              empty.style.color = '#888';
               childUl.appendChild(empty);
             } else {
               childUl.appendChild(renderFileTree(children, onCidClick));
             }
           } catch (e) {
             placeholder.textContent = `Failed to load: ${e.message}`;
-            placeholder.style.color = '#ff4444';
+            placeholder.className = 'tree-error';
           }
         });
       } else if (Array.isArray(node.children) && node.children.length > 0) {
@@ -171,7 +165,8 @@ function renderFileTree(nodes, onCidClick) {
       li.appendChild(details);
     } else {
       const nameEl = document.createElement('span');
-      nameEl.textContent = `📄 ${node.name} `;
+      nameEl.className = 'tree-file';
+      nameEl.textContent = node.name;
       li.appendChild(nameEl);
       if (node.cid) li.appendChild(makeCidEl());
       if (hasSize) li.appendChild(makeSizeEl());
@@ -606,20 +601,8 @@ if (fetchRepoBtn) {
     fileActionStatus.style.color = '#00ff88';
     fileActionStatus.textContent = 'Fetching whole repo...';
     try {
-      const cid = CID.parse(rootCid);
-      const stat = await heliaUnixfs.stat(cid);
       await fetchContent(rootCid, 'repo');
-      if (stat.type === 'directory') {
-        if (fetchedRepoCard && fetchedRepoTree) {
-          fetchedRepoTree.innerHTML = '';
-          fetchedRepoTree.appendChild(renderFileTree(await fetchedDirNodes(cid), onFetchedCidClick));
-          fetchedRepoCard.style.display = 'block';
-        }
-        fileActionStatus.textContent = '';
-      } else {
-        if (fetchedRepoCard) fetchedRepoCard.style.display = 'none';
-        fileActionStatus.textContent = 'Fetched whole repo. Switch to the Fetch tab to view.';
-      }
+      fileActionStatus.textContent = '';
     } catch (err) {
       fileActionStatus.textContent = `Fetch failed: ${err.message}`;
       fileActionStatus.style.color = '#ff4444';
