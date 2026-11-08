@@ -306,6 +306,23 @@
     .btn-clone:disabled {
       background: #555;
     }
+    .pin-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .pin-row label {
+      white-space: nowrap;
+      color: #aaa;
+      font-size: 0.85rem;
+    }
+    .pin-row input {
+      flex: 1;
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.85rem;
+    }
     @media (max-width: 600px) {
       body {
         padding: 0.75rem;
@@ -445,7 +462,12 @@
           <span class="clone-spacer"></span>
           <button id="btn-clone-zip" class="btn-clone" disabled>Download ZIP</button>
         </div>
-        <small>Anyone can fetch the whole repo from the network and download it as a zip. Keep it cloneable while you're away: <code>ipfs pin add &lt;root CID&gt;</code></small>
+        <small>Fetch the whole repo from the network as a zip.</small>
+        <div class="pin-row">
+          <label for="pin-cmd-field"><strong>Pin:</strong></label>
+          <input type="text" id="pin-cmd-field" readonly placeholder="ipfs pin add <root CID>" title="Click to select, then copy" />
+          <button type="button" id="btn-pin-copy" class="help-btn" title="Copy pin command">⧉</button>
+        </div>
         <p id="clone-status" style="margin: 0.5rem 0 0; color: #00ff88;"></p>
       </div>
 

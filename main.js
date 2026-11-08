@@ -66,6 +66,8 @@ const cloneCidEl = document.getElementById('clone-cid');
 const cloneZipBtn = document.getElementById('btn-clone-zip');
 const cloneCidCopyBtn = document.getElementById('btn-clone-cid-copy');
 const cloneStatus = document.getElementById('clone-status');
+const pinCmdField = document.getElementById('pin-cmd-field');
+const pinCopyBtn = document.getElementById('btn-pin-copy');
 
 function selectFile(cid, name, element) {
   selectedFileCid = cid;
@@ -227,6 +229,7 @@ async function addAllRepoFiles() {
         cloneCidEl.title = rootCidStr;
       }
       if (cloneZipBtn) cloneZipBtn.disabled = false;
+      if (pinCmdField) pinCmdField.value = `ipfs pin add ${rootCidStr}`;
       if (fetchRepoBtn) fetchRepoBtn.disabled = false;
       if (downloadRepoBtn) downloadRepoBtn.disabled = false;
       statusEl.textContent = 'Online & All repository files added to IPFS';
@@ -682,6 +685,24 @@ if (cloneCidEl) {
     navigator.clipboard.writeText(cid).then(() => {
       if (cloneStatus) cloneStatus.textContent = 'Copied root CID to clipboard.';
     }).catch(() => {});
+  });
+}
+
+if (pinCmdField) {
+  pinCmdField.addEventListener('click', () => pinCmdField.select());
+  pinCmdField.addEventListener('focus', () => pinCmdField.select());
+}
+
+if (pinCopyBtn) {
+  pinCopyBtn.addEventListener('click', async () => {
+    const cmd = (pinCmdField && pinCmdField.value) || '';
+    if (!cmd) return;
+    try {
+      await navigator.clipboard.writeText(cmd);
+      if (cloneStatus) cloneStatus.textContent = 'Copied pin command to clipboard.';
+    } catch (e) {
+      if (cloneStatus) cloneStatus.textContent = cmd;
+    }
   });
 }
 
