@@ -427,10 +427,15 @@ function renderRepoTable(nodes, depth = 0) {
     const cidCell = document.createElement('span');
     cidCell.className = 'cell-cid';
     cidCell.textContent = node.cid || '';
-    cidCell.title = 'Click to select this CID';
+    cidCell.title = node.isDir ? 'Click to reveal the files inside this directory' : 'Click to select this CID';
     cidCell.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (node.cid) selectFile(node.cid, node.name, cidCell);
+      if (node.isDir) {
+        const childUl = li.querySelector(':scope > ul.nested');
+        if (childUl) childUl.hidden = !childUl.hidden;
+      } else if (node.cid) {
+        selectFile(node.cid, node.name, cidCell);
+      }
     });
 
     const sizeCell = document.createElement('span');
