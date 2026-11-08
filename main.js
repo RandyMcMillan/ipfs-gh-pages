@@ -20,6 +20,9 @@ let selectedFileCid = null;
 let selectedFileName = null;
 let selectedFileEl = null;
 let connectedPeerAddr = null;
+// Set once a ?connect= share-link dial reaches a terminal state, so the
+// concurrent startup/bootstrap dialing can't overwrite its outcome.
+let shareLinkConnectSettled = false;
 const repoTreeSizes = new Map();
 
 const statusEl = document.getElementById('node-status');
@@ -254,8 +257,10 @@ async function initHelia() {
       for (const a of commonAddrs) {
         try {
           await heliaNode.libp2p.dial(multiaddr(a));
-          connectStatus.textContent = `Connected to ${a}`;
-          inputMultiaddr.value = a;
+          if (!shareLinkConnectSettled) {
+            connectStatus.textContent = `Connected to ${a}`;
+            inputMultiaddr.value = a;
+          }
           return;
         } catch (e) {
           // try next
@@ -271,10 +276,12 @@ async function initHelia() {
           // ignore
         }
       }
-      if (connected > 0) {
-        connectStatus.textContent = `Connected to ${connected} bootstrap peer(s).`;
-      } else {
-        connectStatus.textContent = 'No common peer found. Enter a multiaddr manually.';
+      if (!shareLinkConnectSettled) {
+        if (connected > 0) {
+          connectStatus.textContent = `Connected to ${connected} bootstrap peer(s).`;
+        } else {
+          connectStatus.textContent = 'No common peer found. Enter a multiaddr manually.';
+        }
       }
     })();
 
@@ -643,6 +650,7 @@ window.__collectZipSize = async (cid) => {
   return z.length;
 };
 window.__getShareableMultiaddr = getShareableMultiaddr;
+window.__dialMultiaddr = (addr) => heliaNode.libp2p.dial(multiaddr(addr));
 
 function setConnectState(state) {
   connectBtn.classList.remove('disconnected', 'connecting', 'connected');
@@ -797,6 +805,7 @@ async function autoConnectFromUrl() {
   // mixed content, and the failed dial would otherwise hang until libp2p's
   // dial timeout on every retry. Fail fast with an actionable message.
   if (window.location.protocol === 'https:' && addr.includes('/ws') && !addr.includes('/wss')) {
+    shareLinkConnectSettled = true;
     setConnectState('disconnected');
     connectStatus.textContent = 'Auto-connect failed: plain ws:// addresses cannot be dialed from an https page (browser mixed-content block). Use a webrtc-direct or wss address instead.';
     shareStatus.textContent = 'Share-link connect failed — this link uses ws://, which browsers block on https pages. Ask the sender for a webrtc-direct or wss link.';
@@ -810,6 +819,7 @@ async function autoConnectFromUrl() {
         ? 'Connecting to peer from link...'
         : `Retrying connection from link (${attempt}/${MAX_ATTEMPTS})...`;
       await heliaNode.libp2p.dial(multiaddr(addr));
+      shareLinkConnectSettled = true;
       connectedPeerAddr = addr;
       setConnectState('connected');
       connectStatus.textContent = 'Connected to peer from link.';
@@ -820,6 +830,7 @@ async function autoConnectFromUrl() {
       return;
     } catch (err) {
       if (attempt === MAX_ATTEMPTS) {
+        shareLinkConnectSettled = true;
         setConnectState('disconnected');
         connectStatus.textContent = `Auto-connect failed: ${err.message}`;
         shareStatus.textContent = 'Share-link connect failed — the address may be stale. Ask the sender to copy a fresh share link.';

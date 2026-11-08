@@ -5,6 +5,7 @@ import { findChrome, isVerbose, vlog, testUrl } from './utils.mjs';
 const chrome = findChrome();
 const PORT_A = 9232; // sender node
 const PORT_B = 9233; // recipient node (opens the share link)
+const PORT_C = 9234; // fresh browser for the negative-path (unreachable link) test
 
 let failures = 0;
 function check(label, ok, detail = '') {
@@ -138,19 +139,32 @@ if (multiaddr) {
   check('node A sees node B in its peer list', aSeesB === true);
 
   // Negative path: a stale/unreachable share link must fail visibly (after retries), not hang silently.
+  // Use a fresh browser: re-navigating the tab that already runs a live libp2p node can
+  // leave the old document in place, and the poll would read the previous session's status.
   vlog('Checking failure path with an unreachable share link...');
+  const C = await launchNode(PORT_C);
   const badAddr = '/ip4/127.0.0.1/tcp/1/ws/p2p/12D3KooWRx1BxMZ7nYyeM8RLyGaWAKyqv8GhMCT7KNW7TMkTVTVB';
   const badLink = testUrl + (testUrl.includes('?') ? '&' : '?') + 'connect=' + encodeURIComponent(badAddr) + '&_cb=' + Date.now();
-  await B.send('Page.navigate', { url: badLink });
+  const nav = await C.send('Page.navigate', { url: badLink });
+  check('bad link navigation accepted', !nav?.errorText, nav?.errorText || '');
+  const badPageLoaded = await waitFor(
+    C.evalJson,
+    `new URLSearchParams(location.search).get('connect') === ${JSON.stringify(badAddr)}`,
+    30000,
+    1000
+  );
+  check('bad link page actually loaded', badPageLoaded === true);
   const failedVisibly = await waitFor(
-    B.evalJson,
+    C.evalJson,
     `document.getElementById('connect-status').textContent.startsWith('Auto-connect failed')`,
     90000,
     2000
   );
-  const csText = await B.evalJson(`document.getElementById('connect-status').textContent`);
-  const ssText = await B.evalJson(`document.getElementById('share-status').textContent`);
+  const csText = await C.evalJson(`document.getElementById('connect-status').textContent`);
+  const ssText = await C.evalJson(`document.getElementById('share-status').textContent`);
   check('unreachable share link fails visibly after retries', failedVisibly === true, `connect-status="${csText}" share-status="${ssText}"`);
+  C.ws.close();
+  C.proc.kill();
 }
 
 A.ws.close();
