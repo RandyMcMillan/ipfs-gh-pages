@@ -306,6 +306,7 @@ function highlightBlobLine(escapedLine, lang) {
 const blobView = document.getElementById('blob-view');
 const treeView = document.getElementById('tree-view');
 let blobCurrentBytes = null;
+let blobCurrentCid = null;
 
 function showFileBlob(path) {
   const b64 = repoFiles[path];
@@ -313,6 +314,7 @@ function showFileBlob(path) {
   const bytes = base64ToUint8Array(b64);
   const text = new TextDecoder().decode(bytes);
   blobCurrentBytes = bytes;
+  blobCurrentCid = repoTreeCids.get(path) || null;
 
   const repoLink = document.getElementById('blob-repo-link');
   repoLink.textContent = repoName;
@@ -357,6 +359,7 @@ function hideFileBlob() {
   if (blobView) blobView.hidden = true;
   if (treeView) treeView.hidden = false;
   blobCurrentBytes = null;
+  blobCurrentCid = null;
 }
 
 const blobRepoLink = document.getElementById('blob-repo-link');
@@ -370,8 +373,15 @@ const blobRawBtn = document.getElementById('btn-blob-raw');
 if (blobRawBtn) {
   blobRawBtn.addEventListener('click', () => {
     if (!blobCurrentBytes) return;
-    const url = URL.createObjectURL(new Blob([blobCurrentBytes]));
-    window.open(url, '_blank');
+    // Named download: browsers show/save bare blob URLs as "Unknown", so
+    // save under the file's CID instead.
+    const url = URL.createObjectURL(new Blob([blobCurrentBytes], { type: 'application/octet-stream' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = blobCurrentCid || 'raw';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 30000);
   });
 }
