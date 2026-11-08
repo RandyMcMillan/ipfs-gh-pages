@@ -30,6 +30,7 @@
     "@helia/unixfs": "^5.0.0",
     "@helia/verified-fetch": "^2.0.0",
     "@multiformats/multiaddr": "^12.0.0",
+    "@primer/css": "^22.3.3",
     "fflate": "^0.8.0",
     "helia": "^5.0.0"
   },

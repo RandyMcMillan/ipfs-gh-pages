@@ -1,3 +1,4 @@
+import '@primer/css/dist/primer.css';
 import { createHelia } from 'helia';
 import { strings } from '@helia/strings';
 import { unixfs } from '@helia/unixfs';
