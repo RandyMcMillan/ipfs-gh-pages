@@ -283,17 +283,6 @@
   <main>
     <section class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-files" id="tab-files">
       <div class="card">
-        <h3>Fetch Content from IPFS Network</h3>
-        <label for="input-cid">Enter IPFS Content ID (CID):</label>
-        <input type="text" id="input-cid" placeholder="bafkreic..." />
-        <button id="btn-fetch" disabled>Fetch via Helia Node</button>
-        <button id="btn-download" disabled>Download</button>
-
-        <h4>Retrieved Data:</h4>
-        <pre id="output-content">None</pre>
-      </div>
-
-      <div class="card">
         <h3>Repository File Tree</h3>
         <div id="file-tree">Loading repository tree...</div>
         <div id="file-actions" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #333;">
@@ -303,6 +292,17 @@
           <button id="btn-fetch-repo" disabled>Fetch Whole Repo</button>
           <button id="btn-download-repo" disabled>Download Whole Repo</button>
           <p id="file-action-status" style="margin-top: 0.75rem; color: #00ff88;"></p>
+        </div>
+
+        <div id="network-fetch" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #333;">
+          <h4 style="margin-top: 0;">Fetch Content from IPFS Network</h4>
+          <label for="input-cid">Enter IPFS Content ID (CID):</label>
+          <input type="text" id="input-cid" placeholder="bafkreic..." />
+          <button id="btn-fetch" disabled>Fetch via Helia Node</button>
+          <button id="btn-download" disabled>Download</button>
+
+          <h4>Retrieved Data:</h4>
+          <pre id="output-content">None</pre>
         </div>
       </div>
 
