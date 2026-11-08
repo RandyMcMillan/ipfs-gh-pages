@@ -74,7 +74,18 @@ function repoIdentityPlugin() {
           }
         } catch {}
       }
-      return `export default { owner: ${JSON.stringify(owner)}, name: ${JSON.stringify(name)}, version: ${JSON.stringify(version)} };`;
+      let lastCommitMsg = '';
+      let lastCommitTime = '';
+      let shortSha = '';
+      let commitCount = '';
+      try {
+        lastCommitMsg = execSync('git log -1 --pretty=%s', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+        lastCommitTime = execSync('git log -1 --pretty=%cI', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+        shortSha = execSync('git log -1 --pretty=%h', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+        const n = parseInt(execSync('git rev-list --count HEAD', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(), 10);
+        if (n > 1) commitCount = String(n);
+      } catch {}
+      return `export default { owner: ${JSON.stringify(owner)}, name: ${JSON.stringify(name)}, version: ${JSON.stringify(version)}, lastCommitMsg: ${JSON.stringify(lastCommitMsg)}, lastCommitTime: ${JSON.stringify(lastCommitTime)}, shortSha: ${JSON.stringify(shortSha)}, commitCount: ${JSON.stringify(commitCount)} };`;
     }
   };
 }

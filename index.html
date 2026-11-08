@@ -485,14 +485,15 @@
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: var(--color-avatar-bg, #0969da);
-      color: #fff;
-      font-size: 0.65rem;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
       flex-shrink: 0;
+      object-fit: cover;
+      display: inline-block;
+    }
+    .commit-author {
+      font-weight: 600;
+    }
+    .commit-time {
+      white-space: nowrap;
     }
     .commit-bar .commit-msg {
       font-weight: 600;
@@ -926,10 +927,14 @@
         <div class="card" style="padding: 0; border: none; background: transparent;">
           <div class="directory-content bgColor-muted p-1 border rounded-top-2">
           <div class="commit-bar">
-            <span class="avatar">RM</span>
-            <span class="commit-msg">Publish repository files to IPFS</span>
+            <img class="avatar gh-avatar" alt="" width="20" height="20" />
+            <a class="commit-author gh-owner-link" href="https://github.com/RandyMcMillan">RandyMcMillan</a>
+            <span class="commit-msg" id="commit-msg">Publish repository files to IPFS</span>
+            <span class="color-fg-muted">•</span>
+            <relative-time class="commit-time f6 color-fg-muted" id="commit-time"></relative-time>
             <span class="flex-auto"></span>
             <code id="clone-cid" class="commit-hash" title="root CID">…</code>
+            <a class="f6 color-fg-muted gh-link" id="commit-count" data-ghpath="/commits" href="#"></a>
           </div>
           <div id="file-tree">Loading repository tree...</div>
           </div>

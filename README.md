@@ -87,7 +87,7 @@ jobs:
 
       - name: Build and deploy IPFS site
         id: deploy
-        uses: RandyMcMillan/ipfs-gh-pages@v1.6.0
+        uses: RandyMcMillan/ipfs-gh-pages@v1.6.1
         with:
           node-version: '20'
           deploy: 'true'

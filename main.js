@@ -61,7 +61,49 @@ function applyRepoIdentity() {
     if (label) label.textContent = pagesUrl.replace(/^https:\/\//, '').replace(/\/$/, '');
   }
 }
+
+// GitHub-style relative time: "14 minutes ago", "yesterday", "3 weeks ago".
+function relativeTime(iso) {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return '';
+  const s = Math.max(1, Math.floor((Date.now() - then) / 1000));
+  if (s < 60) return `${s} seconds ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} minute${m === 1 ? '' : 's'} ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} hour${h === 1 ? '' : 's'} ago`;
+  const d = Math.floor(h / 24);
+  if (d === 1) return 'yesterday';
+  if (d < 7) return `${d} days ago`;
+  const w = Math.floor(d / 7);
+  if (w < 5) return `${w} week${w === 1 ? '' : 's'} ago`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return `${mo} month${mo === 1 ? '' : 's'} ago`;
+  const y = Math.floor(d / 365);
+  return `${y} year${y === 1 ? '' : 's'} ago`;
+}
+
+// Fill the commit bar with the real last-commit info captured at build time.
+function applyBuildInfo() {
+  const msg = document.getElementById('commit-msg');
+  if (msg && repoIdentity.lastCommitMsg) msg.textContent = repoIdentity.lastCommitMsg;
+  const time = document.getElementById('commit-time');
+  if (time) {
+    if (repoIdentity.lastCommitTime) {
+      time.textContent = relativeTime(repoIdentity.lastCommitTime);
+      time.title = repoIdentity.lastCommitTime;
+      time.setAttribute('datetime', repoIdentity.lastCommitTime);
+    } else {
+      time.textContent = '';
+    }
+  }
+  const count = document.getElementById('commit-count');
+  if (count) {
+    count.textContent = repoIdentity.commitCount ? `${repoIdentity.commitCount} Commits` : '';
+  }
+}
 applyRepoIdentity();
+applyBuildInfo();
 
 let heliaNode = null;
 let heliaStrings = null;
