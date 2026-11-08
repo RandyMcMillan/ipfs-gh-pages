@@ -336,7 +336,8 @@
             <option value="/ip4/127.0.0.1/tcp/4002/ws"></option>
             <option value="/dns4/example.com/tcp/443/wss/p2p/&lt;KUBO_PEER_ID&gt;"></option>
           </datalist>
-          <small>Browsers cannot open raw TCP or UDP sockets, but they can dial <code>/ws</code>, <code>/wss</code>, <code>webrtc-direct</code>, and WebTransport addresses. From https:// pages prefer <code>webrtc-direct</code> (plain <code>ws://</code> is blocked as mixed content) — see Connection Help below. Replace <code>&lt;KUBO_PEER_ID&gt;</code> with the peer ID from your Kubo node.</small>
+          <small>Browsers cannot open raw TCP or UDP sockets, but they can dial <code>/ws</code>, <code>/wss</code>, <code>webrtc-direct</code>, and WebTransport addresses. From https:// pages prefer <code>webrtc-direct</code> (plain <code>ws://</code> is blocked as mixed content) — see Connection Help below. Replace <code>&lt;KUBO_PEER_ID&gt;</code> with the peer ID from your Kubo node.
+          This field auto-fills when you open a share link or the node finds a local peer. If it shows an address like <code>/ip4/&lt;relay-ip&gt;/udp/4001/webrtc-direct/certhash/…/p2p/&lt;relay-peer&gt;/p2p-circuit/p2p/&lt;peer-id&gt;</code>, that is a browser node's shareable address: the <code>p2p-circuit</code> hop routes through a public relay because browsers can't accept inbound connections — normal, and dialable as-is.</small>
           <button id="btn-connect" disabled>Connect</button>
           <button id="btn-bootstrap" disabled>Connect to Bootstrap Peers</button>
           <p id="connect-status"></p>
