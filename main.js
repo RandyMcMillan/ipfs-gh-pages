@@ -105,6 +105,100 @@ function applyBuildInfo() {
 applyRepoIdentity();
 applyBuildInfo();
 
+// Live repo metadata from the public GitHub API (unauthenticated,
+// 60 req/h/IP): real Watch/Fork/Star counts, description, topics, release
+// info, and language breakdown. Cached in localStorage for 30 minutes;
+// failures silently keep the static build-time values.
+const GH_META_TTL_MS = 30 * 60 * 1000;
+const LINGUIST_COLORS = {
+  JavaScript: '#f1e05a', TypeScript: '#3178c6', HTML: '#e34c26', CSS: '#563d7c',
+  Rust: '#dea584', Python: '#3572A5', Shell: '#89e051', Go: '#00ADD8',
+  Ruby: '#701516', C: '#555555', 'C++': '#f34b7d', 'C#': '#178600',
+  Vue: '#41b883', Java: '#b07219', PHP: '#4F5D95', Kotlin: '#A97BFF'
+};
+
+async function refreshRepoMetadata() {
+  const cacheKey = `gh-meta-${repoFullName}`;
+  let cached = null;
+  try {
+    cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+  } catch (e) {}
+  if (cached && Date.now() - cached.fetchedAt < GH_META_TTL_MS) {
+    applyRepoMetadata(cached);
+    return;
+  }
+  try {
+    const headers = { accept: 'application/vnd.github+json' };
+    const [repoRes, langRes] = await Promise.all([
+      fetch(`https://api.github.com/repos/${repoFullName}`, { headers }),
+      fetch(`https://api.github.com/repos/${repoFullName}/languages`, { headers })
+    ]);
+    if (!repoRes.ok) return;
+    const repo = await repoRes.json();
+    const languages = langRes.ok ? await langRes.json() : null;
+    const meta = { fetchedAt: Date.now(), repo, languages };
+    try { localStorage.setItem(cacheKey, JSON.stringify(meta)); } catch (e) {}
+    applyRepoMetadata(meta);
+  } catch (e) {
+    // offline or rate-limited — keep static values
+  }
+}
+
+function applyRepoMetadata(meta) {
+  const { repo, languages } = meta;
+  const setCount = (id, n) => {
+    const el = document.getElementById(id);
+    if (el && typeof n === 'number') el.textContent = n.toLocaleString();
+  };
+  setCount('gh-watch-count', repo.subscribers_count);
+  setCount('gh-fork-count', repo.forks_count);
+  setCount('gh-star-count', repo.stargazers_count);
+
+  if (repo.description) {
+    const desc = document.getElementById('about-description');
+    if (desc) desc.textContent = repo.description;
+  }
+  if (Array.isArray(repo.topics) && repo.topics.length > 0) {
+    const box = document.getElementById('about-topics');
+    if (box) {
+      box.innerHTML = '';
+      for (const topic of repo.topics) {
+        const a = document.createElement('a');
+        a.className = 'topic-chip';
+        a.href = `https://github.com/topics/${topic}`;
+        a.textContent = topic;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        box.appendChild(a);
+      }
+      box.style.display = 'block';
+    }
+  }
+  if (languages && Object.keys(languages).length > 0) {
+    const total = Object.values(languages).reduce((a, b) => a + b, 0);
+    const entries = Object.entries(languages).sort((a, b) => b[1] - a[1]);
+    const bar = document.getElementById('lang-bar');
+    const legend = document.getElementById('lang-legend');
+    if (bar) {
+      bar.innerHTML = '';
+      for (const [lang] of entries) {
+        const span = document.createElement('span');
+        span.style.width = `${(languages[lang] / total) * 100}%`;
+        span.style.background = LINGUIST_COLORS[lang] || '#999999';
+        bar.appendChild(span);
+      }
+    }
+    if (legend) {
+      legend.innerHTML = entries.map(([lang, bytes]) => {
+        const pct = ((bytes / total) * 100).toFixed(1);
+        const color = LINGUIST_COLORS[lang] || '#999999';
+        return `<div class="mt-1"><span class="lang-dot" style="background:${color}"></span>${lang} ${pct}%</div>`;
+      }).join('');
+    }
+  }
+}
+refreshRepoMetadata();
+
 let heliaNode = null;
 let heliaStrings = null;
 let heliaUnixfs = null;
