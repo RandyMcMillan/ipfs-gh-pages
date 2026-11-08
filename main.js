@@ -83,7 +83,7 @@ function selectFile(cid, name, element) {
   }
   selectedFileEl = element;
   if (selectedFileEl) {
-    selectedFileEl.style.backgroundColor = '#2a2a2a';
+    selectedFileEl.style.backgroundColor = 'var(--color-accent-subtle)';
     selectedFileEl.style.borderRadius = '4px';
   }
   if (fileSelectedEl) {
