@@ -576,6 +576,72 @@
         display: none;
       }
     }
+    /* Repo layout: main column + About sidebar */
+    .repo-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (min-width: 1012px) {
+      .repo-layout {
+        grid-template-columns: minmax(0, 1fr) 296px;
+      }
+    }
+    .repo-sidebar h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0;
+    }
+    .repo-sidebar .sidebar-section {
+      margin-bottom: 1.25rem;
+    }
+    .repo-sidebar .sidebar-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .repo-sidebar .sidebar-heading a {
+      color: var(--color-fg-muted);
+    }
+    .repo-sidebar .website-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.6rem;
+      word-break: break-all;
+    }
+    .repo-sidebar .readme-btn {
+      margin-top: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      width: 100%;
+      justify-content: center;
+    }
+    .lang-bar {
+      display: flex;
+      height: 8px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--color-border-muted);
+      margin: 0.5rem 0;
+    }
+    .lang-bar span {
+      display: block;
+      height: 100%;
+    }
+    .lang-js { background: #f1e05a; width: 100%; }
+    .lang-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #f1e05a;
+      margin-right: 0.4rem;
+      vertical-align: -1px;
+    }
     /* README card */
     .readme-header {
       display: flex;
@@ -720,6 +786,8 @@
 
     <main>
       <section class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-files" id="tab-files">
+        <div class="repo-layout">
+        <div class="repo-main">
         <div class="d-flex flex-items-center flex-wrap mb-3" style="gap: 0.5rem;">
           <button class="btn btn-sm" type="button" disabled title="Default branch">
             <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V8.5a2.5 2.5 0 0 1 2-2.45V5.75a2.25 2.25 0 0 1 4-2.122V3.25ZM10 6.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm-5 5.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
@@ -806,6 +874,52 @@
             <strong>README.md</strong>
           </div>
           <article id="readme-content" class="readme-body"></article>
+        </div>
+        </div>
+        <aside class="repo-sidebar">
+          <div class="sidebar-section">
+            <div class="sidebar-heading">
+              <h2>About</h2>
+              <a href="https://github.com/RandyMcMillan/ipfs-gh-pages/settings" aria-label="About settings">
+                <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M10.325 1.937a1.75 1.75 0 0 1 2.987 1.243V3.5h1.75a.75.75 0 0 1 0 1.5h-.109a1.749 1.749 0 0 1-1.609 2.405 1.75 1.75 0 0 1 2.514 1.55c0 .457-.175.875-.462 1.19a.747.747 0 0 1-.513.22h-1.918c-.17 0-.337.03-.495.086a1.75 1.75 0 0 0-1.205 1.682c0 .209.036.41.102.598l.495 1.385a.748.748 0 0 1-.175.77.749.749 0 0 1-1.154-.2l-.495-1.386a1.75 1.75 0 0 0-2.354-1.053 1.75 1.75 0 0 0-.888 2.19l.495 1.385a.749.749 0 0 1-.812 1.033.747.747 0 0 1-.555-.273l-.495-1.385a1.75 1.75 0 0 0-2.35-1.048 1.75 1.75 0 0 0-.893 2.194l.495 1.386a.749.749 0 0 1-1.155.2.748.748 0 0 1-.174-.77l.495-1.385a1.75 1.75 0 0 0-.889-2.19 1.75 1.75 0 0 0-2.354 1.053l-.495 1.386a.749.749 0 0 1-1.154.2.748.748 0 0 1-.175-.77l.495-1.385a1.75 1.75 0 0 0-1.205-1.682 1.75 1.75 0 0 0-.495-.086H2.437a.75.75 0 0 1 0-1.5h1.75v-.32a1.75 1.75 0 0 1 2.987-1.243.749.749 0 0 1 .208.587v.32h1.5v-.32c0-.22.073-.432.208-.587Z"></path></svg>
+              </a>
+            </div>
+            <p class="f6 color-fg-muted">Publish repository files to IPFS &mdash; a browser-based IPFS node built with Helia that runs entirely on GitHub Pages.</p>
+            <a class="website-link f6" href="https://randymcmillan.github.io/ipfs-gh-pages/">
+              <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="m7.775 3.275 4.25 2.387a.25.25 0 0 1 0 .434l-4.25 2.387a.25.25 0 0 1-.28-.031L3.12 6.713a.25.25 0 0 1 0-.434l4.375-2.56a.25.25 0 0 1 .28 0ZM3 7.963V11c0 .75.345 1.429.886 1.845l2.916 2.147a.25.25 0 0 0 .42-.184V8.756a.25.25 0 0 0-.11-.208L3.5 7.69a.25.25 0 0 0-.5.273Zm9 5.803V8.756a.25.25 0 0 0-.11-.208l-2.75-1.53a.25.25 0 0 0-.39.212v5.132a.25.25 0 0 0 .118.212l2.75 1.5a.25.25 0 0 0 .372-.139Z"></path></svg>
+              <span>randymcmillan.github.io/ipfs-gh-pages</span>
+            </a>
+            <button class="btn btn-sm readme-btn" type="button" onclick="document.getElementById('readme-card').scrollIntoView({behavior:'smooth'});">
+              <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"></path></svg>
+              Readme
+            </button>
+          </div>
+          <div class="sidebar-section border-top pt-3">
+            <div class="sidebar-heading">
+              <h2>Releases</h2>
+              <a href="https://github.com/RandyMcMillan/ipfs-gh-pages/releases" class="f6">Tags</a>
+            </div>
+            <a class="f6 d-flex flex-items-center mt-1" href="https://github.com/RandyMcMillan/ipfs-gh-pages/releases/tag/v1.5.0">
+              <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" class="mr-1"><path d="M1 7.775V2.75C1 1.784 1.784 1 2.75 1h5.025c.464 0 .91.184 1.238.513l6.25 6.25a1.75 1.75 0 0 1 0 2.474l-5.026 5.026a1.75 1.75 0 0 1-2.474 0l-6.25-6.25A1.752 1.752 0 0 1 1 7.775Zm1.5 0c0 .066.026.13.073.177l6.25 6.25a.25.25 0 0 0 .354 0l5.025-5.025a.25.25 0 0 0 0-.354l-6.25-6.25a.25.25 0 0 0-.177-.073H2.75a.25.25 0 0 0-.25.25ZM6 5a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"></path></svg>
+              <span class="text-bold">v1.5.0</span>
+              <span class="Label Label--secondary ml-2">Latest</span>
+            </a>
+            <a class="f6 d-block mt-1" href="https://github.com/RandyMcMillan/ipfs-gh-pages/releases">+ 1 release</a>
+          </div>
+          <div class="sidebar-section border-top pt-3">
+            <div class="sidebar-heading">
+              <h2>Packages</h2>
+            </div>
+            <p class="f6 color-fg-muted">No packages published</p>
+          </div>
+          <div class="sidebar-section border-top pt-3">
+            <div class="sidebar-heading">
+              <h2>Languages</h2>
+            </div>
+            <div class="lang-bar"><span class="lang-js"></span></div>
+            <span class="f6"><span class="lang-dot"></span>JavaScript 100.0%</span>
+          </div>
+        </aside>
         </div>
       </section>
 
