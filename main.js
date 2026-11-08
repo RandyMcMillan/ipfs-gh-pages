@@ -304,7 +304,9 @@ async function initHelia() {
         }
       }
       // Fall back to public bootstrap peers, with live progress so the
-      // connect status is never silently blank.
+      // connect status is never silently blank. Each dial is raced against a
+      // timeout: an unresponsive peer must not stall the loop (or the final
+      // status) forever.
       let connected = 0;
       let completed = 0;
       if (!shareLinkConnectSettled) {
@@ -312,7 +314,10 @@ async function initHelia() {
       }
       for (const addr of bootstrapPeers) {
         try {
-          await heliaNode.libp2p.dial(multiaddr(addr));
+          await Promise.race([
+            heliaNode.libp2p.dial(multiaddr(addr)),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('dial timeout')), 20000))
+          ]);
           connected++;
         } catch (e) {
           // ignore
