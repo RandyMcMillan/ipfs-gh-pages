@@ -680,6 +680,16 @@ fetchBtn.addEventListener('click', async () => {
   await fetchContent(cidStr);
 });
 
+// "Go to file": focus the fetch box and bring it into view.
+const goToFileBtn = document.getElementById('btn-go-to-file');
+if (goToFileBtn) {
+  goToFileBtn.addEventListener('click', () => {
+    inputCid.focus();
+    inputCid.select();
+    inputCid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}
+
 async function collectIpfsDir(cidStr) {
   const cid = CID.parse(cidStr);
   const result = {};
