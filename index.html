@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-color-mode="light" data-light-theme="light" data-dark-theme="dark">
+<html lang="en" data-color-mode="light" data-light-theme="light" data-dark-theme="dark_dimmed">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -575,6 +575,79 @@
         display: none;
       }
     }
+    /* File detail (blob) view */
+    #blob-view[hidden] {
+      display: none;
+    }
+    .blob-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      font-size: 0.95rem;
+      margin-bottom: 0.75rem;
+    }
+    .blob-breadcrumb a {
+      font-weight: 600;
+    }
+    .blob-breadcrumb .sep {
+      color: var(--color-fg-muted);
+    }
+    .blob-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      border: 1px solid var(--color-border-default);
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+      background: var(--color-canvas-default);
+      padding: 0.5rem 0.75rem;
+    }
+    .blob-meta {
+      font-size: 0.8rem;
+      color: var(--color-fg-muted);
+    }
+    .blob-code {
+      border: 1px solid var(--color-border-default);
+      border-radius: 0 0 6px 6px;
+      background: var(--color-canvas-default);
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      margin: 0;
+    }
+    .blob-code .line {
+      display: flex;
+      white-space: pre;
+    }
+    .blob-code .ln {
+      width: 44px;
+      flex-shrink: 0;
+      text-align: right;
+      padding-right: 0.75rem;
+      color: var(--color-fg-muted);
+      user-select: none;
+      background: var(--color-canvas-subtle);
+    }
+    .blob-code .lc {
+      padding: 0 0.75rem;
+      white-space: pre;
+    }
+    .blob-code .line:hover .lc {
+      background: var(--color-canvas-subtle);
+    }
+    .tok-com { color: #59636e; font-style: italic; }
+    .tok-str { color: #0a3069; }
+    .tok-kw { color: #cf222e; }
+    .tok-num { color: #0550ae; }
+    .tok-tag { color: #116329; }
+    :root[data-color-mode="dark"] .tok-com { color: #8b949e; }
+    :root[data-color-mode="dark"] .tok-str { color: #a5d6ff; }
+    :root[data-color-mode="dark"] .tok-kw { color: #ff7b72; }
+    :root[data-color-mode="dark"] .tok-num { color: #79c0ff; }
+    :root[data-color-mode="dark"] .tok-tag { color: #7ee787; }
     /* Repo layout: main column + About sidebar */
     .repo-layout {
       display: grid;
@@ -787,6 +860,23 @@
       <section class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-files" id="tab-files">
         <div class="repo-layout">
         <div class="repo-main">
+        <div id="blob-view" hidden>
+          <div class="blob-breadcrumb">
+            <svg class="color-fg-muted" height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h6.5a.25.25 0 0 1 .25.25v1.5a.25.25 0 0 1-.25.25h-6.5a.25.25 0 0 1-.25-.25z"></path></svg>
+            <a href="#" id="blob-repo-link"></a>
+            <span class="sep" id="blob-path"></span>
+            <span class="Label Label--secondary">main</span>
+          </div>
+          <div class="blob-toolbar">
+            <button class="btn btn-sm" type="button" id="btn-blob-raw">Raw</button>
+            <button class="btn btn-sm" type="button" id="btn-blob-copy">Copy raw file</button>
+            <button class="btn btn-sm btn-primary" type="button" id="btn-blob-download">Download</button>
+            <span class="flex-auto"></span>
+            <span class="blob-meta" id="blob-meta"></span>
+          </div>
+          <div class="blob-code" id="blob-code"></div>
+        </div>
+        <div id="tree-view">
         <div class="d-flex flex-items-center flex-wrap mb-3" style="gap: 0.5rem;">
           <button class="btn btn-sm" type="button" disabled title="Default branch">
             <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V8.5a2.5 2.5 0 0 1 2-2.45V5.75a2.25 2.25 0 0 1 4-2.122V3.25ZM10 6.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm-5 5.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
@@ -873,6 +963,7 @@
             <strong>README.md</strong>
           </div>
           <article id="readme-content" class="readme-body"></article>
+        </div>
         </div>
         </div>
         <aside class="repo-sidebar">

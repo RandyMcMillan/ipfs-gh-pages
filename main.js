@@ -261,6 +261,140 @@ const FILE_SVG = '<svg height="16" width="16" viewBox="0 0 16 16" fill="currentC
 
 // GitHub-style repo file listing: rows of Name | CID | Size, directories
 // expand in place. Kept as ul/li so the CDP tests keep working.
+// GitHub-style file detail (blob) view for repo files. Name click in the
+// listing drills in; the repo breadcrumb goes back to the tree.
+const BLOB_KEYWORDS = {
+  js: '\\b(?:const|let|var|function|return|if|else|for|while|do|class|extends|new|import|from|export|default|async|await|try|catch|finally|throw|typeof|instanceof|in|of|this|true|false|null|undefined|void|delete|yield|switch|case|break|continue)\\b',
+  json: '\\b(?:true|false|null)\\b',
+  sh: '\\b(?:if|then|else|fi|for|in|do|done|case|esac|function|return|local|echo|cd|export|source)\\b'
+};
+const BLOB_LANG = (path) => {
+  const ext = path.split('.').pop().toLowerCase();
+  if (['js', 'mjs', 'cjs', 'jsx', 'ts', 'tsx'].includes(ext)) return 'js';
+  if (['json'].includes(ext)) return 'json';
+  if (['yml', 'yaml'].includes(ext)) return 'yml';
+  if (['toml'].includes(ext)) return 'ini';
+  if (['sh', 'bash'].includes(ext)) return 'sh';
+  if (['html', 'xml', 'svg'].includes(ext)) return 'html';
+  return 'plain';
+};
+
+function highlightBlobLine(escapedLine, lang) {
+  let out = escapedLine;
+  const comment = lang === 'sh' || lang === 'yml' || lang === 'ini' ? '(#[^&]*?$)' : null;
+  const patterns = [];
+  if (lang === 'js' || lang === 'sh') patterns.push(['(//[^&]*?$)', 'tok-com']);
+  if (comment) patterns.push([comment, 'tok-com']);
+  patterns.push([
+    lang === 'html'
+      ? '(&lt;!--[\\s\\S]*?--&gt;|&lt;\\/?[a-zA-Z][^&]*?&gt;)'
+      : '(&#39;(?:[^&]|&(?!#39;))*?&#39;|&quot;(?:[^&]|&(?!quot;))*?&quot;|\\\\`(?:[^&]|&(?!`))*?`)',
+    lang === 'html' ? 'tok-tag' : 'tok-str'
+  ]);
+  if (BLOB_KEYWORDS[lang]) patterns.push(['(' + BLOB_KEYWORDS[lang] + ')', 'tok-kw']);
+  patterns.push(['(\\b\\d+(?:\\.\\d+)?\\b)', 'tok-num']);
+  const combined = new RegExp(patterns.map(([re]) => re).join('|'), 'g');
+  out = out.replace(combined, (...args) => {
+    for (let i = 0; i < patterns.length; i++) {
+      if (args[i + 1] !== undefined) return `<span class="${patterns[i][1]}">${args[i + 1]}</span>`;
+    }
+    return args[0];
+  });
+  return out;
+}
+
+const blobView = document.getElementById('blob-view');
+const treeView = document.getElementById('tree-view');
+let blobCurrentBytes = null;
+
+function showFileBlob(path) {
+  const b64 = repoFiles[path];
+  if (!b64 || !blobView || !treeView) return;
+  const bytes = base64ToUint8Array(b64);
+  const text = new TextDecoder().decode(bytes);
+  blobCurrentBytes = bytes;
+
+  const repoLink = document.getElementById('blob-repo-link');
+  repoLink.textContent = repoName;
+  const pathEl = document.getElementById('blob-path');
+  const dir = path.split('/').slice(0, -1).join('/');
+  pathEl.textContent = dir ? ` / ${dir} / ${path.split('/').pop()}` : ` / ${path.split('/').pop()}`;
+  document.getElementById('blob-meta').textContent = `${formatSize(bytes.length)}`;
+
+  const codeEl = document.getElementById('blob-code');
+  codeEl.innerHTML = '';
+  const lang = BLOB_LANG(path);
+  if (lang === 'md') {
+    const article = document.createElement('article');
+    article.className = 'readme-body';
+    article.style.padding = '1rem';
+    article.innerHTML = miniMd(text);
+    codeEl.appendChild(article);
+  } else {
+    const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/`/g, '&#96;');
+    const lines = text.replace(/\n$/, '').split('\n');
+    lines.forEach((line, i) => {
+      const row = document.createElement('div');
+      row.className = 'line';
+      const ln = document.createElement('span');
+      ln.className = 'ln';
+      ln.textContent = i + 1;
+      const lc = document.createElement('span');
+      lc.className = 'lc';
+      lc.innerHTML = lang === 'plain' ? esc(line) || ' ' : highlightBlobLine(esc(line), lang) || ' ';
+      row.appendChild(ln);
+      row.appendChild(lc);
+      codeEl.appendChild(row);
+    });
+  }
+
+  treeView.hidden = true;
+  blobView.hidden = false;
+  blobView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function hideFileBlob() {
+  if (blobView) blobView.hidden = true;
+  if (treeView) treeView.hidden = false;
+  blobCurrentBytes = null;
+}
+
+const blobRepoLink = document.getElementById('blob-repo-link');
+if (blobRepoLink) {
+  blobRepoLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    hideFileBlob();
+  });
+}
+const blobRawBtn = document.getElementById('btn-blob-raw');
+if (blobRawBtn) {
+  blobRawBtn.addEventListener('click', () => {
+    if (!blobCurrentBytes) return;
+    const url = URL.createObjectURL(new Blob([blobCurrentBytes]));
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  });
+}
+const blobCopyBtn = document.getElementById('btn-blob-copy');
+if (blobCopyBtn) {
+  blobCopyBtn.addEventListener('click', async () => {
+    if (!blobCurrentBytes) return;
+    try {
+      await navigator.clipboard.writeText(new TextDecoder().decode(blobCurrentBytes));
+      blobCopyBtn.textContent = 'Copied!';
+      setTimeout(() => { blobCopyBtn.textContent = 'Copy raw file'; }, 1500);
+    } catch (e) {}
+  });
+}
+const blobDownloadBtn = document.getElementById('btn-blob-download');
+if (blobDownloadBtn) {
+  blobDownloadBtn.addEventListener('click', () => {
+    if (!blobCurrentBytes) return;
+    const path = document.getElementById('blob-path').textContent.replace(/\s*\/\s*/g, '/').replace(/^\//, '').trim();
+    downloadBytes(blobCurrentBytes, path.split('/').pop() || 'file');
+  });
+}
+
 function renderRepoTable(nodes, depth = 0) {
   const ul = document.createElement('ul');
   ul.className = 'repo-table' + (depth > 0 ? ' nested' : '');
@@ -305,6 +439,8 @@ function renderRepoTable(nodes, depth = 0) {
       nameCell.addEventListener('click', () => {
         childUl.hidden = !childUl.hidden;
       });
+    } else if (!node.isDir) {
+      nameCell.addEventListener('click', () => showFileBlob(node.path));
     }
     ul.appendChild(li);
   }
