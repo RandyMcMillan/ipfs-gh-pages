@@ -263,6 +263,68 @@ function renderRepoTree() {
   fileTreeEl.appendChild(renderRepoTable(repoTreeNodes(tree, '')));
 }
 
+// Minimal, safe markdown subset for the embedded README: headings, fenced
+// code, inline code, bold, images, links, lists, paragraphs.
+function miniMd(src) {
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const inline = (s) => esc(s)
+    .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img alt="$1" src="$2">')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  const out = [];
+  const lines = src.split('\n');
+  let inCode = false;
+  let codeBuf = [];
+  let inList = false;
+  for (const line of lines) {
+    if (line.trim().startsWith('```')) {
+      if (inCode) {
+        out.push('<pre><code>' + codeBuf.join('\n') + '</code></pre>');
+        codeBuf = [];
+        inCode = false;
+      } else {
+        if (inList) { out.push('</ul>'); inList = false; }
+        inCode = true;
+      }
+      continue;
+    }
+    if (inCode) { codeBuf.push(esc(line)); continue; }
+    const h = line.match(/^(#{1,4})\s+(.*)$/);
+    if (h) {
+      if (inList) { out.push('</ul>'); inList = false; }
+      const lvl = h[1].length;
+      out.push(`<h${lvl}>${inline(h[2])}</h${lvl}>`);
+      continue;
+    }
+    const li = line.match(/^\s*[-*]\s+(.*)$/);
+    if (li) {
+      if (!inList) { out.push('<ul>'); inList = true; }
+      out.push(`<li>${inline(li[1])}</li>`);
+      continue;
+    }
+    if (inList) { out.push('</ul>'); inList = false; }
+    if (line.trim() === '') continue;
+    out.push(`<p>${inline(line)}</p>`);
+  }
+  if (inCode) out.push('<pre><code>' + codeBuf.join('\n') + '</code></pre>');
+  if (inList) out.push('</ul>');
+  return out.join('\n');
+}
+
+function renderReadme() {
+  const card = document.getElementById('readme-card');
+  const body = document.getElementById('readme-content');
+  if (!card || !body || !repoFiles['README.md']) return;
+  try {
+    const text = new TextDecoder().decode(base64ToUint8Array(repoFiles['README.md']));
+    body.innerHTML = miniMd(text);
+    card.style.display = 'block';
+  } catch (e) {
+    // No README render — leave the card hidden.
+  }
+}
+
 async function addAllRepoFiles() {
   if (!heliaUnixfs) return;
   statusEl.textContent = 'Adding all repository files to IPFS...';
@@ -410,6 +472,9 @@ async function initHelia() {
 
     // Render the repository file tree immediately
     renderRepoTree();
+
+    // Render the embedded README
+    renderReadme();
 
     // Automatically add all files in the repo to IPFS
     addAllRepoFiles();

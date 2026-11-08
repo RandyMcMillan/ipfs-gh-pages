@@ -532,6 +532,40 @@
         display: none;
       }
     }
+    /* README card */
+    .readme-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--color-border-muted);
+      padding-bottom: 0.6rem;
+      margin-bottom: 0.9rem;
+      color: var(--color-fg-muted);
+    }
+    .readme-body h1, .readme-body h2 {
+      border-bottom: 1px solid var(--color-border-muted);
+      padding-bottom: 0.3rem;
+      margin: 1rem 0 0.75rem;
+      font-size: 1.25rem;
+    }
+    .readme-body h3 { font-size: 1.1rem; margin: 1rem 0 0.5rem; }
+    .readme-body h4 { font-size: 1rem; margin: 1rem 0 0.5rem; }
+    .readme-body p, .readme-body li { margin: 0.4rem 0; }
+    .readme-body ul { padding-left: 1.5rem; margin: 0.4rem 0; }
+    .readme-body code {
+      background: var(--color-canvas-subtle);
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
+      font-size: 0.85em;
+    }
+    .readme-body pre {
+      background: var(--color-canvas-subtle);
+      padding: 0.75rem;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    .readme-body pre code { background: none; padding: 0; }
+    .readme-body img { max-width: 100%; }
   </style>
 </head>
 <body>
@@ -663,6 +697,14 @@
             <h4>Retrieved Data:</h4>
             <pre id="output-content">None</pre>
           </div>
+        </div>
+
+        <div class="card" id="readme-card" style="display:none;">
+          <div class="readme-header">
+            <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"></path></svg>
+            <strong>README.md</strong>
+          </div>
+          <article id="readme-content" class="readme-body"></article>
         </div>
       </section>
 
