@@ -62,3 +62,16 @@ export function finish(testName) {
   console.log(`${testName}: all checks passed`);
   process.exit(0);
 }
+
+export async function waitForDebugger(port, timeoutMs = 45000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const targets = await fetch(`http://127.0.0.1:${port}/json`).then((r) => r.json());
+      const page = targets.find((t) => t.type === 'page');
+      if (page) return page;
+    } catch {}
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  throw new Error(`Chrome DevTools endpoint not reachable on port ${port}`);
+}

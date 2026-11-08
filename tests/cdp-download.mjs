@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import { spawn } from 'child_process';
 import fs from 'fs';
-import { tmpDir, findChrome, isVerbose, vlog, testUrl, check, finish } from './utils.mjs';
+import { tmpDir, findChrome, isVerbose, vlog, testUrl, check, finish, waitForDebugger } from './utils.mjs';
 
 const chrome = findChrome();
 vlog('Using Chrome:', chrome);
@@ -12,7 +12,7 @@ vlog('Download directory:', dlDir);
 const proc = spawn(chrome, ['--headless=new', '--disable-gpu', '--remote-debugging-port=9224'], { stdio: 'ignore' });
 
 vlog('Waiting for Chrome DevTools Protocol...');
-await new Promise(r => setTimeout(r, 6000));
+await waitForDebugger(9224);
 
 // Connect at the browser level and drive a CDP-created tab. Downloads only
 // honor Browser.setDownloadBehavior's downloadPath on CDP-created targets —

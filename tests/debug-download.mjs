@@ -4,7 +4,7 @@
 import WebSocket from 'ws';
 import { spawn } from 'child_process';
 import fs from 'node:fs';
-import { findChrome } from './utils.mjs';
+import { findChrome, waitForDebugger } from './utils.mjs';
 
 const chrome = findChrome();
 const dlDir = '/tmp/dltest-ctx';
@@ -12,7 +12,7 @@ fs.rmSync(dlDir, { recursive: true, force: true });
 fs.mkdirSync(dlDir, { recursive: true });
 
 const proc = spawn(chrome, ['--headless=new', '--disable-gpu', '--remote-debugging-port=9223'], { stdio: 'ignore' });
-await new Promise(r => setTimeout(r, 5000));
+await waitForDebugger(9223);
 
 const version = await fetch('http://127.0.0.1:9223/json/version').then(r => r.json());
 const bws = new WebSocket(version.webSocketDebuggerUrl);
