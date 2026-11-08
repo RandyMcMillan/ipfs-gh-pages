@@ -261,6 +261,96 @@
         margin-right: 0;
       }
     }
+    .help-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.35rem;
+      height: 1.35rem;
+      padding: 0;
+      margin: 0 0 0 0.35rem;
+      border-radius: 50%;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      color: #4da3ff;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      vertical-align: middle;
+    }
+    .help-btn:hover {
+      background: #333;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .modal-backdrop[hidden] {
+      display: none;
+    }
+    .modal-card {
+      background: #1e1e1e;
+      border: 1px solid #444;
+      border-radius: 8px;
+      max-width: 620px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 1.25rem 1.5rem;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 0.25rem;
+      margin: 0;
+    }
+    .modal-close:hover {
+      color: #fff;
+    }
+    .modal-body h4 {
+      margin: 1.1rem 0 0.35rem;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+    .modal-body p,
+    .modal-body li {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin: 0.35rem 0;
+    }
+    .modal-body code {
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 0.05rem 0.35rem;
+      font-size: 0.85rem;
+      color: #7ec8ff;
+      word-break: break-all;
+    }
+    .modal-body ul {
+      padding-left: 1.2rem;
+      margin: 0.35rem 0;
+    }
   </style>
 </head>
 <body>
@@ -329,15 +419,14 @@
 
         <div class="sub-tab-panel active" role="tabpanel" aria-labelledby="sub-tab-btn-connect" id="sub-tab-connect">
           <h4>Connect to Peer (e.g. Kubo Desktop)</h4>
-          <label for="input-multiaddr">Peer Multiaddr:</label>
+          <label for="input-multiaddr">Peer Multiaddr: <button type="button" id="btn-multiaddr-help" class="help-btn" title="What can I paste here?">?</button></label>
           <input type="text" id="input-multiaddr" placeholder="/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;" value="/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;" list="common-addrs" />
           <datalist id="common-addrs">
             <option value="/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;"></option>
             <option value="/ip4/127.0.0.1/tcp/4002/ws"></option>
             <option value="/dns4/example.com/tcp/443/wss/p2p/&lt;KUBO_PEER_ID&gt;"></option>
           </datalist>
-          <small>Browsers cannot open raw TCP or UDP sockets, but they can dial <code>/ws</code>, <code>/wss</code>, <code>webrtc-direct</code>, and WebTransport addresses. Kubo does not listen on <code>/ws</code> by default — run <code>npm run kubo:ws</code> and restart the daemon to add <code>/tcp/4002/ws</code> (from https:// pages use <code>npm run kubo:webrtc</code> instead, since plain <code>ws://</code> is blocked as mixed content) — see Connection Help below. Replace <code>&lt;KUBO_PEER_ID&gt;</code> with the peer ID from your Kubo node.
-          This field auto-fills when you open a share link or the node finds a local peer. If it shows an address like <code>/ip4/&lt;relay-ip&gt;/udp/4001/webrtc-direct/certhash/…/p2p/&lt;relay-peer&gt;/p2p-circuit/p2p/&lt;peer-id&gt;</code>, that is a browser node's shareable address: the <code>p2p-circuit</code> hop routes through a public relay because browsers can't accept inbound connections — normal, and dialable as-is.</small>
+          <small>Click <strong>?</strong> for what browsers can dial, how to configure Kubo, and what auto-filled relayed addresses mean.</small>
           <button id="btn-connect" disabled>Connect</button>
           <button id="btn-bootstrap" disabled>Connect to Bootstrap Peers</button>
           <p id="connect-status"></p>
@@ -543,6 +632,40 @@ ipfs daemon</pre>
     </section>
 
   </main>
+
+  <div id="multiaddr-help-modal" class="modal-backdrop" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="multiaddr-help-title">
+      <div class="modal-header">
+        <h3 id="multiaddr-help-title">Connecting to a peer</h3>
+        <button type="button" id="btn-close-multiaddr-help" class="modal-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h4>What browsers can dial</h4>
+        <p>Browsers cannot open raw TCP or UDP sockets. A browser node can dial:</p>
+        <ul>
+          <li><code>/ws</code> and <code>/wss</code> — WebSocket (works on http:// pages)</li>
+          <li><code>webrtc-direct</code> — WebRTC with a certificate hash (works on https:// pages)</li>
+          <li>WebTransport</li>
+        </ul>
+
+        <h4>Kubo does not listen on /ws by default</h4>
+        <p>Default Kubo swarm addresses are TCP/QUIC only. To connect from this page, either:</p>
+        <ul>
+          <li>run <code>npm run kubo:ws</code> and restart the daemon — adds <code>/tcp/4002/ws</code> — then use <code>/ip4/127.0.0.1/tcp/4002/ws/p2p/&lt;KUBO_PEER_ID&gt;</code>, or</li>
+          <li>from https:// pages, run <code>npm run kubo:webrtc</code> instead — plain <code>ws://</code> is blocked as mixed content there.</li>
+        </ul>
+        <p>Replace <code>&lt;KUBO_PEER_ID&gt;</code> with the peer ID from your Kubo node (Peer tab → Settings → <strong>Detect Kubo</strong> finds it for you).</p>
+
+        <h4>Auto-filled relayed addresses</h4>
+        <p>This field auto-fills when you open a share link or the node finds a local peer. If it shows an address like:</p>
+        <p><code>/ip4/&lt;relay-ip&gt;/udp/4001/webrtc-direct/certhash/…/p2p/&lt;relay-peer&gt;/p2p-circuit/p2p/&lt;peer-id&gt;</code></p>
+        <p>…that is a <strong>browser node's shareable address</strong>: the <code>p2p-circuit</code> hop routes through a public relay, because browsers cannot accept inbound connections. That is normal — dial it as-is.</p>
+
+        <h4>Still stuck?</h4>
+        <p>See the <strong>Connection Help</strong> section below this panel for full Kubo setup (CORS, ws/wss, WebRTC).</p>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="/main.js"></script>
 </body>

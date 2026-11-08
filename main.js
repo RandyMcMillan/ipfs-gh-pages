@@ -1111,4 +1111,25 @@ document.querySelectorAll('.sub-tab-button').forEach((button) => {
   });
 });
 
+// Multiaddr help modal (Peer → Connect "?")
+const multiaddrHelpModal = document.getElementById('multiaddr-help-modal');
+const multiaddrHelpBtn = document.getElementById('btn-multiaddr-help');
+if (multiaddrHelpModal && multiaddrHelpBtn) {
+  multiaddrHelpBtn.addEventListener('click', () => {
+    multiaddrHelpModal.hidden = false;
+  });
+  const closeBtn = document.getElementById('btn-close-multiaddr-help');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      multiaddrHelpModal.hidden = true;
+    });
+  }
+  multiaddrHelpModal.addEventListener('click', (e) => {
+    if (e.target === multiaddrHelpModal) multiaddrHelpModal.hidden = true;
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !multiaddrHelpModal.hidden) multiaddrHelpModal.hidden = true;
+  });
+}
+
 initHelia();
