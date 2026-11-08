@@ -543,7 +543,47 @@ function onFetchedCidClick(node) {
   fetchContent(node.cid, node.name);
 }
 
-async function fetchContent(cidStr, nameHint) {
+// Ask the delegated routing endpoint (IPNI-backed) who provides this CID,
+// then dial those providers. Lets a fetch succeed even when the original
+// publisher is offline — anyone who announced the content can serve it.
+// Returns the number of providers successfully dialed.
+const DELEGATED_ROUTING_URL = 'https://delegated-ipfs.dev';
+async function dialDelegatedProviders(cidStr, timeoutMs = 8000) {
+  if (!heliaNode) return 0;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let providers;
+  try {
+    const res = await fetch(`${DELEGATED_ROUTING_URL}/routing/v1/providers/${cidStr}`, {
+      headers: { accept: 'application/json' },
+      signal: controller.signal
+    });
+    if (!res.ok) return 0;
+    providers = (await res.json()).Providers || [];
+  } catch (e) {
+    return 0;
+  } finally {
+    clearTimeout(timer);
+  }
+  let dialed = 0;
+  for (const p of providers.slice(0, 5)) {
+    const addr = (p.Addrs || [])[0];
+    if (!addr || !p.ID) continue;
+    const full = addr.endsWith(`/p2p/${p.ID}`) ? addr : `${addr}/p2p/${p.ID}`;
+    try {
+      await Promise.race([
+        heliaNode.libp2p.dial(multiaddr(full)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('dial timeout')), 8000))
+      ]);
+      dialed++;
+    } catch (e) {
+      // try next provider
+    }
+  }
+  return dialed;
+}
+
+async function fetchContent(cidStr, nameHint, _retried = false) {
   if (!cidStr) return;
   inputCid.value = cidStr;
   fetchBtn.disabled = true;
@@ -602,6 +642,19 @@ async function fetchContent(cidStr, nameHint) {
       downloadBtn.disabled = false;
     }
   } catch (err) {
+    // First fallback: ask delegated routing who provides this CID, dial
+    // them, and retry the fetch once (publisher may be offline).
+    if (!_retried) {
+      try {
+        outputContent.textContent = 'Looking up providers via delegated routing...';
+        const dialed = await dialDelegatedProviders(cidStr);
+        if (dialed > 0) {
+          return fetchContent(cidStr, nameHint, true);
+        }
+      } catch (e) {
+        // fall through to the strings fallback
+      }
+    }
     // Fallback for string CIDs created via heliaStrings
     try {
       const cid = CID.parse(cidStr);
