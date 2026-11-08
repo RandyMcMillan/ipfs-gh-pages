@@ -67,6 +67,12 @@ const cloneCidEl = document.getElementById('clone-cid');
 const cloneZipBtn = document.getElementById('btn-clone-zip');
 const cloneCidCopyBtn = document.getElementById('btn-clone-cid-copy');
 const cloneStatus = document.getElementById('clone-status');
+const codeBtn = document.getElementById('btn-code');
+const codeDropdown = document.getElementById('code-dropdown');
+const codeShareField = document.getElementById('code-share-field');
+const codeMultiaddrField = document.getElementById('code-multiaddr-field');
+const codeCopyLinkBtn = document.getElementById('btn-code-copy-link');
+const codeCopyMultiaddrBtn = document.getElementById('btn-code-copy-multiaddr');
 
 function selectFile(cid, name, element) {
   selectedFileCid = cid;
@@ -662,6 +668,62 @@ if (downloadRepoBtn) {
   });
 }
 
+// Code dropdown: toggle, tabs, copy buttons.
+if (codeBtn && codeDropdown) {
+  codeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    codeDropdown.style.display = codeDropdown.style.display === 'none' ? 'block' : 'none';
+  });
+  document.addEventListener('click', (e) => {
+    if (codeDropdown.style.display !== 'none' && !codeDropdown.contains(e.target) && e.target !== codeBtn) {
+      codeDropdown.style.display = 'none';
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') codeDropdown.style.display = 'none';
+  });
+}
+
+document.querySelectorAll('[data-codetab]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const tab = button.dataset.codetab;
+    document.querySelectorAll('[data-codetab]').forEach((btn) => btn.classList.remove('active'));
+    button.classList.add('active');
+    document.getElementById('codetab-panel-link').style.display = tab === 'link' ? 'block' : 'none';
+    document.getElementById('codetab-panel-multiaddr').style.display = tab === 'multiaddr' ? 'block' : 'none';
+  });
+});
+
+async function copyToClipboard(text, okMsg) {
+  try {
+    await navigator.clipboard.writeText(text);
+    if (cloneStatus) cloneStatus.textContent = okMsg;
+  } catch (e) {
+    if (cloneStatus) cloneStatus.textContent = 'Copy failed — select the field and copy manually.';
+  }
+}
+
+if (codeCopyLinkBtn) {
+  codeCopyLinkBtn.addEventListener('click', () => {
+    const link = (codeShareField && codeShareField.value) || '';
+    if (link) copyToClipboard(link, 'Copied share link to clipboard.');
+  });
+}
+if (codeCopyMultiaddrBtn) {
+  codeCopyMultiaddrBtn.addEventListener('click', () => {
+    const ma = (codeMultiaddrField && codeMultiaddrField.value) || '';
+    if (ma) copyToClipboard(ma, 'Copied multiaddr to clipboard.');
+  });
+}
+if (codeShareField) {
+  codeShareField.addEventListener('click', () => codeShareField.select());
+  codeShareField.addEventListener('focus', () => codeShareField.select());
+}
+if (codeMultiaddrField) {
+  codeMultiaddrField.addEventListener('click', () => codeMultiaddrField.select());
+  codeMultiaddrField.addEventListener('focus', () => codeMultiaddrField.select());
+}
+
 // Clone bar: copy the root CID, or fetch the whole repo and download a zip.
 if (cloneCidCopyBtn) {
   cloneCidCopyBtn.addEventListener('click', async () => {
@@ -949,6 +1011,9 @@ setInterval(() => {
   if (ma) {
     if (copyMultiaddrBtn) copyMultiaddrBtn.disabled = false;
     if (copyLinkBtn) copyLinkBtn.disabled = false;
+    if (codeBtn) codeBtn.disabled = false;
+    if (codeMultiaddrField && !codeMultiaddrField.value) codeMultiaddrField.value = ma;
+    if (codeShareField && !codeShareField.value) codeShareField.value = buildShareLink() || '';
     if (shareLinkField && !shareLinkField.value) shareLinkField.value = buildShareLink() || '';
   }
 }, 2000);
