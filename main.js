@@ -1,5 +1,6 @@
 import '@primer/css/dist/primer.css';
 import { createHelia } from 'helia';
+import repoIdentity from 'virtual:repo-identity';
 import { strings } from '@helia/strings';
 import { unixfs } from '@helia/unixfs';
 import { CID } from 'multiformats/cid';
@@ -7,6 +8,60 @@ import repoFiles from 'virtual:repo-files';
 import { zipSync } from 'fflate';
 import { multiaddr } from '@multiformats/multiaddr';
 import { formatSize, base64ToUint8Array, buildRepoTree, isBrowserDialable, normalizeAddressForProxy } from './lib/shared.mjs';
+
+// Repo identity: prefer the Pages origin (<owner>.github.io/<repo>), then the
+// build-time identity baked by the action (GITHUB_REPOSITORY / git remote), so
+// the chrome is correct for whoever deploys this app.
+const { repoOwner, repoName } = (() => {
+  const host = window.location.hostname;
+  const m = host.match(/^([^.]+)\.github\.io$/);
+  if (m) {
+    const seg = window.location.pathname.split('/').filter(Boolean)[0];
+    return { repoOwner: m[1], repoName: seg || m[1] };
+  }
+  if (repoIdentity.owner && repoIdentity.name) {
+    return { repoOwner: repoIdentity.owner, repoName: repoIdentity.name };
+  }
+  return { repoOwner: 'RandyMcMillan', repoName: 'ipfs-gh-pages' };
+})();
+const repoFullName = `${repoOwner}/${repoName}`;
+const repoUrl = `https://github.com/${repoFullName}`;
+const pagesUrl = `https://${repoOwner}.github.io/${repoName}/`;
+const appVersion = repoIdentity.version || '';
+
+function applyRepoIdentity() {
+  document.title = repoFullName;
+  const search = document.getElementById('repo-search-input');
+  if (search) search.value = repoFullName;
+  if (appVersion) {
+    const rel = document.getElementById('latest-release-version');
+    if (rel) rel.textContent = `v${appVersion}`;
+    const relLink = document.getElementById('latest-release-link');
+    if (relLink) relLink.dataset.ghpath = `/releases/tag/v${appVersion}`;
+  }
+  document.querySelectorAll('a.gh-link').forEach((a) => {
+    a.href = repoUrl + (a.dataset.ghpath || '');
+  });
+  document.querySelectorAll('a.gh-owner-link').forEach((a) => {
+    a.href = `https://github.com/${repoOwner}`;
+    a.textContent = repoOwner;
+  });
+  document.querySelectorAll('a.gh-repo-link').forEach((a) => {
+    a.href = repoUrl;
+    a.textContent = repoName;
+  });
+  document.querySelectorAll('img.gh-avatar').forEach((img) => {
+    img.src = `https://github.com/${repoOwner}.png`;
+    img.alt = repoOwner;
+  });
+  const website = document.getElementById('pages-website-link');
+  if (website) {
+    website.href = pagesUrl;
+    const label = website.querySelector('span');
+    if (label) label.textContent = pagesUrl.replace(/^https:\/\//, '').replace(/\/$/, '');
+  }
+}
+applyRepoIdentity();
 
 let heliaNode = null;
 let heliaStrings = null;
