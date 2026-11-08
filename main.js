@@ -66,8 +66,6 @@ const cloneCidEl = document.getElementById('clone-cid');
 const cloneZipBtn = document.getElementById('btn-clone-zip');
 const cloneCidCopyBtn = document.getElementById('btn-clone-cid-copy');
 const cloneStatus = document.getElementById('clone-status');
-const pinCmdField = document.getElementById('pin-cmd-field');
-const pinCopyBtn = document.getElementById('btn-pin-copy');
 
 function selectFile(cid, name, element) {
   selectedFileCid = cid;
@@ -229,7 +227,6 @@ async function addAllRepoFiles() {
         cloneCidEl.title = rootCidStr;
       }
       if (cloneZipBtn) cloneZipBtn.disabled = false;
-      if (pinCmdField) pinCmdField.value = `ipfs pin add ${rootCidStr}`;
       if (fetchRepoBtn) fetchRepoBtn.disabled = false;
       if (downloadRepoBtn) downloadRepoBtn.disabled = false;
       statusEl.textContent = 'Online & All repository files added to IPFS';
@@ -685,24 +682,6 @@ if (cloneCidEl) {
     navigator.clipboard.writeText(cid).then(() => {
       if (cloneStatus) cloneStatus.textContent = 'Copied root CID to clipboard.';
     }).catch(() => {});
-  });
-}
-
-if (pinCmdField) {
-  pinCmdField.addEventListener('click', () => pinCmdField.select());
-  pinCmdField.addEventListener('focus', () => pinCmdField.select());
-}
-
-if (pinCopyBtn) {
-  pinCopyBtn.addEventListener('click', async () => {
-    const cmd = (pinCmdField && pinCmdField.value) || '';
-    if (!cmd) return;
-    try {
-      await navigator.clipboard.writeText(cmd);
-      if (cloneStatus) cloneStatus.textContent = 'Copied pin command to clipboard.';
-    } catch (e) {
-      if (cloneStatus) cloneStatus.textContent = cmd;
-    }
   });
 }
 
@@ -1267,6 +1246,27 @@ if (multiaddrHelpModal && multiaddrHelpBtn) {
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !multiaddrHelpModal.hidden) multiaddrHelpModal.hidden = true;
+  });
+}
+
+// Clone help modal (Files → Clone card "?" top right)
+const cloneHelpModal = document.getElementById('clone-help-modal');
+const cloneHelpBtn = document.getElementById('btn-clone-help');
+if (cloneHelpModal && cloneHelpBtn) {
+  cloneHelpBtn.addEventListener('click', () => {
+    cloneHelpModal.hidden = false;
+  });
+  const closeBtn = document.getElementById('btn-close-clone-help');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      cloneHelpModal.hidden = true;
+    });
+  }
+  cloneHelpModal.addEventListener('click', (e) => {
+    if (e.target === cloneHelpModal) cloneHelpModal.hidden = true;
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !cloneHelpModal.hidden) cloneHelpModal.hidden = true;
   });
 }
 

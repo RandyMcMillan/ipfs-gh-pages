@@ -306,22 +306,14 @@
     .btn-clone:disabled {
       background: #555;
     }
-    .pin-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
+    #clone-card {
+      position: relative;
     }
-    .pin-row label {
-      white-space: nowrap;
-      color: #aaa;
-      font-size: 0.85rem;
-    }
-    .pin-row input {
-      flex: 1;
+    .card-help-btn {
+      position: absolute;
+      top: 0.6rem;
+      right: 0.6rem;
       margin: 0;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.85rem;
     }
     @media (max-width: 600px) {
       body {
@@ -455,17 +447,13 @@
   <main>
     <section class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-files" id="tab-files">
       <div class="card" id="clone-card">
+        <button type="button" id="btn-clone-help" class="help-btn card-help-btn" title="How CIDs are used">?</button>
         <div class="clone-bar">
           <strong>Clone</strong>
           <code id="clone-cid" class="clone-cid" title="root CID">…</code>
           <button type="button" id="btn-clone-cid-copy" class="help-btn" title="Copy root CID">⧉</button>
           <span class="clone-spacer"></span>
           <button id="btn-clone-zip" class="btn-clone" disabled>Download ZIP</button>
-        </div>
-        <div class="pin-row">
-          <label for="pin-cmd-field"><strong>Pin:</strong></label>
-          <input type="text" id="pin-cmd-field" readonly placeholder="ipfs pin add <root CID>" title="Click to select, then copy" />
-          <button type="button" id="btn-pin-copy" class="help-btn" title="Copy pin command">⧉</button>
         </div>
         <p id="clone-status" style="margin: 0.5rem 0 0; color: #00ff88;"></p>
       </div>
@@ -757,6 +745,25 @@ ipfs daemon</pre>
 
         <h4>Still stuck?</h4>
         <p>See the <strong>Connection Help</strong> section below this panel for full Kubo setup (CORS, ws/wss, WebRTC).</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="clone-help-modal" class="modal-backdrop" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="clone-help-title">
+      <div class="modal-header">
+        <h3 id="clone-help-title">How CIDs are used</h3>
+        <button type="button" id="btn-close-clone-help" class="modal-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h4>Content addressing</h4>
+        <p>Every file on IPFS is identified by a <strong>CID</strong> — a hash of its content. The same content always has the same CID, on any node, forever. Change one byte and the CID changes.</p>
+        <h4>The root CID</h4>
+        <p>The chip in the Clone bar is the CID of the whole repository — a snapshot of every file and directory, content-addressed. It identifies this exact version of the repo; a new commit produces a new root CID.</p>
+        <h4>CIDs in the file tree</h4>
+        <p>Each file and folder in the Repository File Tree shows its own CID. Click any CID to copy it, then fetch that exact file or directory from the network with the Fetch box — or with <code>ipfs get &lt;CID&gt;</code> on the command line.</p>
+        <h4>Keeping content available</h4>
+        <p>IPFS keeps only what someone has pinned. Run <code>ipfs pin add &lt;CID&gt;</code> on your own node to keep a copy and re-seed it — the publisher going offline won't make a pinned repo disappear.</p>
       </div>
     </div>
   </div>
