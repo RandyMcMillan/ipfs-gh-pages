@@ -303,14 +303,24 @@ async function initHelia() {
           // try next
         }
       }
-      // Fall back to public bootstrap peers
+      // Fall back to public bootstrap peers, with live progress so the
+      // connect status is never silently blank.
       let connected = 0;
+      let completed = 0;
+      if (!shareLinkConnectSettled) {
+        connectStatus.textContent = `Connecting to bootstrap peers... (0/${bootstrapPeers.length})`;
+      }
       for (const addr of bootstrapPeers) {
         try {
           await heliaNode.libp2p.dial(multiaddr(addr));
           connected++;
         } catch (e) {
           // ignore
+        } finally {
+          completed++;
+          if (!shareLinkConnectSettled) {
+            connectStatus.textContent = `Connecting to bootstrap peers... (${completed}/${bootstrapPeers.length})`;
+          }
         }
       }
       if (!shareLinkConnectSettled) {
@@ -779,20 +789,34 @@ if (copyMultiaddrBtn) {
   });
 }
 
+const shareLinkField = document.getElementById('share-link-field');
+
+// Current share link for this node, or null if no relayed address yet.
+function buildShareLink() {
+  const ma = getShareableMultiaddr();
+  if (!ma) return null;
+  const url = new URL(window.location.href);
+  url.searchParams.set('connect', ma);
+  return url.toString();
+}
+
 if (copyLinkBtn) {
   copyLinkBtn.addEventListener('click', async () => {
-    const ma = getShareableMultiaddr();
-    if (!ma) { shareStatus.textContent = 'No shareable address yet. Wait for a relay reservation.'; return; }
-    const url = new URL(window.location.href);
-    url.searchParams.set('connect', ma);
-    const link = url.toString();
+    const link = buildShareLink();
+    if (!link) { shareStatus.textContent = 'No shareable address yet. Wait for a relay reservation.'; return; }
+    if (shareLinkField) shareLinkField.value = link;
     try {
       await navigator.clipboard.writeText(link);
       shareStatus.textContent = 'Copied share link to clipboard.';
     } catch (e) {
-      shareStatus.textContent = link;
+      shareStatus.textContent = 'Copy failed — select the link field and copy it manually.';
     }
   });
+}
+
+if (shareLinkField) {
+  shareLinkField.addEventListener('click', () => shareLinkField.select());
+  shareLinkField.addEventListener('focus', () => shareLinkField.select());
 }
 
 // Auto-connect to a peer provided via URL (?connect=...)
@@ -852,6 +876,7 @@ setInterval(() => {
   if (ma) {
     if (copyMultiaddrBtn) copyMultiaddrBtn.disabled = false;
     if (copyLinkBtn) copyLinkBtn.disabled = false;
+    if (shareLinkField && !shareLinkField.value) shareLinkField.value = buildShareLink() || '';
   }
 }, 2000);
 
@@ -968,7 +993,7 @@ async function tryKuboRpc(host, ports) {
 // Try dialing an address with a timeout; used to verify a detected Kubo
 // address actually works from this browser before it lands in the Connect
 // field. On success it applies the same UI state as a manual connect.
-async function probeDial(addr, timeoutMs = 15000) {
+async function probeDial(addr, timeoutMs = 8000) {
   if (!heliaNode) return false;
   try {
     await Promise.race([
@@ -1027,7 +1052,7 @@ async function detectKubo() {
         if (a.includes('/webrtc-direct')) return 2;
         return 3;
       };
-      const candidates = [...addresses].sort((a, b) => score(a) - score(b)).slice(0, 4);
+      const candidates = [...addresses].sort((a, b) => score(a) - score(b)).slice(0, 3);
 
       settingsKuboStatus.textContent += ` Probing ${candidates.length} address(es)...`;
       let connectedAddr = null;
@@ -1095,7 +1120,7 @@ const hasShareLinkParam = (() => {
 })();
 setTimeout(() => {
   if (detectKuboBtn && !hasShareLinkParam) detectKubo();
-}, 1000);
+}, 4000);
 
 // Tab navigation
 document.querySelectorAll('.tab-button').forEach((button) => {

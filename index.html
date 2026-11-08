@@ -277,6 +277,9 @@
       color: #ff4444;
       padding-left: 2ch;
     }
+    #share-status {
+      word-break: break-all;
+    }
     @media (max-width: 600px) {
       body {
         padding: 0.75rem;
@@ -467,6 +470,7 @@
             Copy a link to this node and open it in another browser/tab to connect them.
             The node exposes a relayed WebRTC address once it has reserved a slot on a relay.
           </p>
+          <input type="text" id="share-link-field" readonly placeholder="Share link appears once a relay reservation is ready..." title="Click to select, then copy" />
           <button id="btn-copy-multiaddr" disabled>Copy My Multiaddr</button>
           <button id="btn-copy-link" disabled>Copy Share Link</button>
           <p id="share-status"></p>
