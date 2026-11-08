@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import { spawn } from 'child_process';
-import { tmpDir, findChrome, isVerbose, vlog, testUrl } from './utils.mjs';
+import { tmpDir, findChrome, isVerbose, vlog, testUrl, check, finish } from './utils.mjs';
 
 const chrome = findChrome();
 vlog('Using Chrome:', chrome);
@@ -47,11 +47,15 @@ console.log('PEER ID:', peerId);
 const addrs = (await send('Runtime.evaluate', { expression: 'window.__heliaNode?.libp2p?.getMultiaddrs()?.map(a=>a.toString())', returnByValue: true }))?.result?.value;
 console.log('MULTIADDRS:', addrs);
 
+check('peer id generated', /^12D3KooW[A-Za-z0-9]+$/.test(peerId || ''), `peerId=${peerId}`);
+check('node has multiaddrs (relay reservation)', Array.isArray(addrs) && addrs.length > 0);
+
 vlog('Clicking bootstrap button');
 await send('Runtime.evaluate', { expression: 'document.getElementById("btn-bootstrap").click()' });
 await new Promise(r => setTimeout(r, 8000));
 const connectStatus = (await send('Runtime.evaluate', { expression: 'document.getElementById("connect-status").textContent', returnByValue: true }))?.result?.value;
 console.log('CONNECT STATUS:', connectStatus);
+check('bootstrap dialing produced a status', typeof connectStatus === 'string' && connectStatus.length > 0);
 
 // Optional: dial a Kubo multiaddr from env
 const kuboAddr = process.env.KUBO_MULTIADDR;
@@ -62,9 +66,7 @@ if (kuboAddr) {
   await new Promise(r => setTimeout(r, 8000));
   const cs = (await send('Runtime.evaluate', { expression: 'document.getElementById("connect-status").textContent', returnByValue: true }))?.result?.value;
   console.log('KUBO CONNECT STATUS:', cs);
+  check('connect to KUBO_MULTIADDR succeeded', typeof cs === 'string' && cs.startsWith('Connected'), `status=${cs}`);
 }
 
-vlog('Cleaning up Chrome process');
-ws.close();
-proc.kill();
-process.exit(0);
+finish('CONNECT TEST');

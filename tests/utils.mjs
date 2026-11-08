@@ -42,3 +42,23 @@ export function findChrome() {
   }
   return candidates[0];
 }
+
+let failures = 0;
+
+export function check(label, ok, detail = '') {
+  if (ok) {
+    console.log(`PASS: ${label}`);
+  } else {
+    failures++;
+    console.log(`FAIL: ${label}${detail ? ' — ' + detail : ''}`);
+  }
+}
+
+export function finish(testName) {
+  if (failures > 0) {
+    console.log(`${testName}: ${failures} failure(s)`);
+    process.exit(1);
+  }
+  console.log(`${testName}: all checks passed`);
+  process.exit(0);
+}

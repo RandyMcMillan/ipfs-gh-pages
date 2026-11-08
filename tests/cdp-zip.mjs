@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import { spawn } from 'child_process';
-import { tmpDir, findChrome, isVerbose, vlog, testUrl } from './utils.mjs';
+import { tmpDir, findChrome, isVerbose, vlog, testUrl, check, finish } from './utils.mjs';
 
 const chrome = findChrome();
 vlog('Using Chrome:', chrome);
@@ -47,7 +47,6 @@ vlog('Collecting ZIP size for', rootCid);
 const size = (await send('Runtime.evaluate', { expression: `window.__collectZipSize(${JSON.stringify(rootCid)})`, awaitPromise: true, returnByValue: true }))?.result?.value;
 console.log('ZIP SIZE:', size);
 
-vlog('Cleaning up Chrome process');
-ws.close();
-proc.kill();
-process.exit(0);
+check('root CID is a CIDv1 string', /^baf[a-z0-9]+$/.test(rootCid || ''), `rootCid=${rootCid}`);
+check('repo zip is non-trivial (> 500 bytes)', typeof size === 'number' && size > 500, `size=${size}`);
+finish('ZIP TEST');

@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import { spawn } from 'child_process';
-import { tmpDir, findChrome, isVerbose, vlog, testUrl } from './utils.mjs';
+import { tmpDir, findChrome, isVerbose, vlog, testUrl, check, finish } from './utils.mjs';
 
 const chrome = findChrome();
 vlog('Using Chrome:', chrome);
@@ -56,7 +56,8 @@ await new Promise(r => setTimeout(r, 2000));
 const info = (await send('Runtime.evaluate', { expression: 'window.__getLastFetched()', returnByValue: true }))?.result?.value;
 console.log('Fetched:', info);
 
-vlog('Cleaning up Chrome process');
-ws.close();
-proc.kill();
-process.exit(0);
+check('index.html CID extracted from tree', /^baf[a-z0-9]+$/.test(cid || ''), `cid=${cid}`);
+check('fetched content is non-empty', Boolean(info && info.len > 0), JSON.stringify(info));
+check('fetched name is index.html', info?.name === 'index.html', `name=${info?.name}`);
+check('fetched content is a file, not a directory', info?.isDir === false);
+finish('FETCH TEST');

@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import { spawn } from 'child_process';
-import { tmpDir, findChrome, isVerbose, vlog, testUrl } from './utils.mjs';
+import { tmpDir, findChrome, isVerbose, vlog, testUrl, check, finish } from './utils.mjs';
 
 const chrome = findChrome();
 vlog('Using Chrome:', chrome);
@@ -61,7 +61,8 @@ const r = await send('Runtime.evaluate', {
 });
 console.log('LAST FETCHED:', r?.result?.value);
 
-vlog('Cleaning up Chrome process');
-ws.close();
-proc.kill();
-process.exit(0);
+const info = JSON.parse(r?.result?.value || 'null');
+check('index.html CID extracted from tree', /^baf[a-z0-9]+$/.test(cid || ''), `cid=${cid}`);
+check('fetched bytes look like the app shell (len > 5000)', info?.len > 5000, `len=${info?.len}`);
+check('fetched name is index.html', info?.name === 'index.html', `name=${info?.name}`);
+finish('EVAL TEST');

@@ -5,6 +5,7 @@ import { CID } from 'multiformats/cid';
 import repoFiles from 'virtual:repo-files';
 import { zipSync } from 'fflate';
 import { multiaddr } from '@multiformats/multiaddr';
+import { formatSize, base64ToUint8Array, buildRepoTree, isBrowserDialable, normalizeAddressForProxy } from './lib/shared.mjs';
 
 let heliaNode = null;
 let heliaStrings = null;
@@ -20,15 +21,6 @@ let selectedFileName = null;
 let selectedFileEl = null;
 let connectedPeerAddr = null;
 const repoTreeSizes = new Map();
-
-function formatSize(bytes) {
-  if (bytes == null) return '';
-  const n = typeof bytes === 'bigint' ? Number(bytes) : bytes;
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} kB`;
-  if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(n / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-}
 
 const statusEl = document.getElementById('node-status');
 const peerIdEl = document.getElementById('peer-id');
@@ -69,33 +61,6 @@ const downloadRepoBtn = document.getElementById('btn-download-repo');
 const fileActionStatus = document.getElementById('file-action-status');
 const fetchedRepoCard = document.getElementById('fetched-repo-card');
 const fetchedRepoTree = document.getElementById('fetched-repo-tree');
-
-function base64ToUint8Array(b64) {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
-}
-
-function buildRepoTree(paths) {
-  const root = { name: '', children: {}, isDir: true };
-  for (const p of paths) {
-    const parts = p.split('/');
-    let cur = root;
-    for (let i = 0; i < parts.length; i++) {
-      const name = parts[i];
-      if (!cur.children[name]) {
-        cur.children[name] = { name, children: {}, isDir: i < parts.length - 1 };
-      } else if (i < parts.length - 1) {
-        cur.children[name].isDir = true;
-      }
-      cur = cur.children[name];
-    }
-  }
-  return root;
-}
 
 function selectFile(cid, name, element) {
   selectedFileCid = cid;
@@ -394,12 +359,6 @@ async function renderFetchedTree(entries) {
     rootUl.appendChild(li);
   });
   return rootUl;
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }
 
 async function fetchContent(cidStr, nameHint) {
@@ -872,15 +831,6 @@ setInterval(() => {
 }, 2000);
 
 // Kubo RPC detection in Settings tab
-function isBrowserDialable(addr) {
-  return addr.includes('/ws') || addr.includes('/wss') || addr.includes('/webrtc') || addr.includes('/webtransport');
-}
-
-function normalizeAddressForProxy(addr, proxyPort) {
-  // Replace /tcp/4002/ws with /tcp/<proxyPort>/wss for LAN use behind the local TLS proxy
-  return addr.replace(/\/tcp\/\d+\/ws$/, `/tcp/${proxyPort}/wss`);
-}
-
 const currentOrigin = window.location.origin;
 const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
 
