@@ -124,6 +124,28 @@ if (multiaddr) {
   );
   check('node B auto-connected from share link', bConnected === true);
 
+  // Make B pull fresh content from A: proves the link carries data and keeps
+  // the inbound relayed connection live on A's side (idle inbound relayed
+  // connections can be connection-pruned, which made the A-sees-B poll flaky).
+  const cidBefore = await A.evalJson(`document.getElementById('output-cid').textContent.trim()`);
+  await A.evalJson(`(() => {
+    document.getElementById('input-content').value = 'share-link-e2e-${Date.now()}';
+    document.getElementById('btn-publish').click();
+    return true;
+  })()`);
+  const freshCid = await waitFor(
+    A.evalJson,
+    `(() => { const c = document.getElementById('output-cid').textContent.trim(); return c && c !== ${JSON.stringify(cidBefore)} ? c : null; })()`,
+    30000,
+    500
+  );
+  let e2eLen = 0;
+  if (freshCid) {
+    await B.evalJson(`window.__runFetch(${JSON.stringify(freshCid)}, 'e2e.txt')`, true);
+    e2eLen = (await B.evalJson(`window.__getLastFetched().len`)) || 0;
+  }
+  check('node B fetched fresh content from node A over the link', e2eLen > 0, `len=${e2eLen} freshCid=${freshCid}`);
+
   // B dialed A, so A must now see B among its peers. On slow links A-side
   // identify can lag well behind B's dial success, so allow a long window
   // and accept either the connection manager or the UI peers list.

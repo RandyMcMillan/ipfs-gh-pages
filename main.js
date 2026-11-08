@@ -965,8 +965,30 @@ async function tryKuboRpc(host, ports) {
   throw new Error(results.map(result => result.error).join('; '));
 }
 
+// Try dialing an address with a timeout; used to verify a detected Kubo
+// address actually works from this browser before it lands in the Connect
+// field. On success it applies the same UI state as a manual connect.
+async function probeDial(addr, timeoutMs = 15000) {
+  if (!heliaNode) return false;
+  try {
+    await Promise.race([
+      heliaNode.libp2p.dial(multiaddr(addr)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('probe timeout')), timeoutMs))
+    ]);
+    connectedPeerAddr = addr;
+    setConnectState('connected');
+    connectStatus.textContent = `Connected to ${addr}`;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // A pinned port in Settings is probed first, then the full 5001-5010 range.
-async function detectKubo(autoConnect = false) {
+// Candidate addresses are then probe-dialed (best first) until one connects,
+// so the Connect field ends up with an address verified to work from this
+// browser — not just the first one that looks dialable.
+async function detectKubo() {
   const host = settingsRpcHost.value.trim() || '127.0.0.1';
   const userPort = settingsRpcPort.value.trim();
   const proxyPort = settingsRpcProxyPort.value.trim() || '4003';
@@ -988,27 +1010,39 @@ async function detectKubo(autoConnect = false) {
       ? `Found ${addresses.length} browser-dialable address(es) via RPC port ${port}.`
       : `Kubo found on port ${port}, but no browser-dialable /ws or /wss addresses. Run npm run kubo:ws first.`;
 
-    // Update Connect input with the best detected address.
-    // Plain ws:// dials are blocked as mixed content from https (non-localhost) pages,
-    // so from GitHub Pages prefer a webrtc-direct address over ws://.
+    // Update Connect input by probe-dialing candidates (best first).
+    // Plain ws:// dials are blocked as mixed content from https (non-localhost)
+    // pages, so from GitHub Pages webrtc-direct ranks above ws there.
     if (addresses.length && inputMultiaddr) {
       const isPlainWs = (a) => a.includes('/ws') && !a.includes('/wss');
-      const webrtcAddr = addresses.find(a => a.includes('/webrtc-direct'));
-      const wsChain =
-        addresses.find(a => a.includes('/ip4/127.0.0.1/') && isPlainWs(a)) ||
-        addresses.find(isPlainWs) ||
-        addresses.find(a => a.includes('/wss')) ||
-        addresses[0];
       const pageIsSecureNonLocal = window.location.protocol === 'https:' && !isLocalDev;
-      const best = (pageIsSecureNonLocal && webrtcAddr) ? webrtcAddr : wsChain;
-      inputMultiaddr.value = best;
-      if (pageIsSecureNonLocal && isPlainWs(best)) {
-        settingsKuboStatus.textContent += ' Note: ws:// dials are blocked from https pages (mixed content). Prefer the webrtc-direct address above.';
-      }
+      const score = (a) => {
+        if (pageIsSecureNonLocal) {
+          if (a.includes('/webrtc-direct')) return 0;
+          if (a.includes('/wss')) return 1;
+          return 2; // plain ws:// is mixed content here
+        }
+        if (a.includes('/ip4/127.0.0.1/') && isPlainWs(a)) return 0;
+        if (isPlainWs(a)) return 1;
+        if (a.includes('/webrtc-direct')) return 2;
+        return 3;
+      };
+      const candidates = [...addresses].sort((a, b) => score(a) - score(b)).slice(0, 4);
 
-      // Auto-connect if requested and Helia is ready
-      if (autoConnect && connectBtn && !connectBtn.disabled) {
-        setTimeout(() => connectBtn.click(), 100);
+      settingsKuboStatus.textContent += ` Probing ${candidates.length} address(es)...`;
+      let connectedAddr = null;
+      for (const addr of candidates) {
+        settingsKuboStatus.textContent = `Probing ${addr}...`;
+        if (await probeDial(addr)) {
+          connectedAddr = addr;
+          break;
+        }
+      }
+      if (connectedAddr) {
+        inputMultiaddr.value = connectedAddr;
+        settingsKuboStatus.textContent = `Connected via ${connectedAddr} (RPC port ${port}).`;
+      } else {
+        settingsKuboStatus.textContent = `Kubo found on port ${port}, but none of the ${candidates.length} probed address(es) connected. Pick one from the list below.`;
       }
     }
 
@@ -1049,7 +1083,7 @@ async function detectKubo(autoConnect = false) {
 }
 
 if (detectKuboBtn) {
-  detectKuboBtn.addEventListener('click', () => detectKubo(true));
+  detectKuboBtn.addEventListener('click', () => detectKubo());
 }
 
 // Auto-detect Kubo shortly after page load and auto-connect if found — but
@@ -1060,7 +1094,7 @@ const hasShareLinkParam = (() => {
   return p.has('connect') || p.has('peer');
 })();
 setTimeout(() => {
-  if (detectKuboBtn && !hasShareLinkParam) detectKubo(true);
+  if (detectKuboBtn && !hasShareLinkParam) detectKubo();
 }, 1000);
 
 // Tab navigation
