@@ -429,6 +429,109 @@
         font-size: 0.9rem;
       }
     }
+    /* GitHub repo file listing */
+    .commit-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      border: 1px solid var(--color-border-default);
+      border-bottom: 1px solid var(--color-border-muted);
+      border-radius: 6px 6px 0 0;
+      background: var(--color-canvas-default);
+      padding: 0.5rem 0.75rem;
+    }
+    .commit-bar .avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-avatar-bg, #0969da);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .commit-bar .commit-msg {
+      font-weight: 600;
+      color: var(--color-fg-default);
+    }
+    .commit-bar .commit-hash {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.8rem;
+      color: var(--color-fg-muted);
+      word-break: break-all;
+    }
+    .repo-table {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--color-border-default);
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      font-size: 0.9rem;
+    }
+    .repo-table.nested {
+      border: none;
+      border-radius: 0;
+    }
+    .repo-table li.row {
+      display: block;
+    }
+    .repo-table li.row > .cells {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 90px;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.4rem 0.75rem;
+      border-bottom: 1px solid var(--color-border-muted);
+    }
+    .repo-table li.row > .cells:hover {
+      background: var(--color-canvas-subtle);
+    }
+    .repo-table li.row:last-child > .cells {
+      border-bottom: none;
+    }
+    .repo-table .cell-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 0;
+      color: var(--color-accent-fg);
+      cursor: pointer;
+      overflow-wrap: anywhere;
+    }
+    .repo-table .cell-name svg {
+      color: var(--color-fg-muted);
+      flex-shrink: 0;
+    }
+    .repo-table .cell-cid {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.8rem;
+      color: var(--color-fg-muted);
+      cursor: pointer;
+      overflow-wrap: anywhere;
+    }
+    .repo-table .cell-cid:hover {
+      color: var(--color-accent-fg);
+      text-decoration: underline;
+    }
+    .repo-table .cell-size {
+      text-align: right;
+      color: var(--color-fg-muted);
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+    @media (max-width: 768px) {
+      .repo-table li.row > .cells {
+        grid-template-columns: minmax(0, 1fr) 80px;
+      }
+      .repo-table .cell-cid {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -534,7 +637,12 @@
         </div>
 
         <div class="card">
-          <h3>Repository File Tree</h3>
+          <div class="commit-bar">
+            <span class="avatar">RM</span>
+            <span class="commit-msg">Publish repository files to IPFS</span>
+            <span class="flex-auto"></span>
+            <code id="clone-cid" class="commit-hash" title="root CID">…</code>
+          </div>
           <div id="file-tree">Loading repository tree...</div>
           <div id="file-actions" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border-muted);">
             <p id="file-selected" style="margin: 0 0 0.75rem 0; color: var(--color-fg-muted);">No file selected. Click a CID in the tree above.</p>

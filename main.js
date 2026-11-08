@@ -192,6 +192,7 @@ function repoTreeNodes(tree, parentPath) {
     const childPath = parentPath ? parentPath + '/' + name : name;
     return {
       name,
+      path: childPath,
       isDir: child.isDir,
       cid: repoTreeCids.get(childPath) || null,
       size: repoTreeSizes.get(childPath) ?? null,
@@ -200,13 +201,66 @@ function repoTreeNodes(tree, parentPath) {
   });
 }
 
+const FOLDER_SVG = '<svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h8.5A1.75 1.75 0 0 0 12 13.25v-8.5A1.75 1.75 0 0 0 10.25 3H7.547a.25.25 0 0 1-.186-.083l-.667-.77A1.75 1.75 0 0 0 5.279 1.5H1.75Z"></path></svg>';
+const FILE_SVG = '<svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914Z"></path></svg>';
+
+// GitHub-style repo file listing: rows of Name | CID | Size, directories
+// expand in place. Kept as ul/li so the CDP tests keep working.
+function renderRepoTable(nodes, depth = 0) {
+  const ul = document.createElement('ul');
+  ul.className = 'repo-table' + (depth > 0 ? ' nested' : '');
+  const sorted = [...nodes].sort((a, b) => {
+    if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+  for (const node of sorted) {
+    const li = document.createElement('li');
+    li.className = 'row';
+
+    const cells = document.createElement('div');
+    cells.className = 'cells';
+
+    const nameCell = document.createElement('span');
+    nameCell.className = 'cell-name';
+    nameCell.innerHTML = (node.isDir ? FOLDER_SVG : FILE_SVG) + '<span></span>';
+    nameCell.querySelector('span').textContent = node.name;
+
+    const cidCell = document.createElement('span');
+    cidCell.className = 'cell-cid';
+    cidCell.textContent = node.cid || '';
+    cidCell.title = 'Click to select this CID';
+    cidCell.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (node.cid) selectFile(node.cid, node.name, cidCell);
+    });
+
+    const sizeCell = document.createElement('span');
+    sizeCell.className = 'cell-size';
+    sizeCell.textContent = !node.isDir && node.size != null && Number(node.size) > 0 ? formatSize(node.size) : '';
+
+    cells.appendChild(nameCell);
+    cells.appendChild(cidCell);
+    cells.appendChild(sizeCell);
+    li.appendChild(cells);
+
+    if (node.isDir && node.children && node.children.length > 0) {
+      const childUl = renderRepoTable(node.children, depth + 1);
+      childUl.hidden = true;
+      li.appendChild(childUl);
+      nameCell.addEventListener('click', () => {
+        childUl.hidden = !childUl.hidden;
+      });
+    }
+    ul.appendChild(li);
+  }
+  return ul;
+}
+
 function renderRepoTree() {
   if (!fileTreeEl) return;
   fileTreeEl.innerHTML = '';
   const tree = buildRepoTree(Object.keys(repoFiles));
-  fileTreeEl.appendChild(renderFileTree(repoTreeNodes(tree, ''), (node, el) => {
-    selectFile(node.cid, node.name, el);
-  }));
+  fileTreeEl.appendChild(renderRepoTable(repoTreeNodes(tree, '')));
 }
 
 async function addAllRepoFiles() {
