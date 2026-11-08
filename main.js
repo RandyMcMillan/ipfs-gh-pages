@@ -1052,9 +1052,15 @@ if (detectKuboBtn) {
   detectKuboBtn.addEventListener('click', () => detectKubo(true));
 }
 
-// Auto-detect Kubo shortly after page load and auto-connect if found
+// Auto-detect Kubo shortly after page load and auto-connect if found — but
+// never on share-link pages (?connect=/?peer=): the shared address owns the
+// field there, and Kubo detection must not overwrite or dial over it.
+const hasShareLinkParam = (() => {
+  const p = new URLSearchParams(window.location.search);
+  return p.has('connect') || p.has('peer');
+})();
 setTimeout(() => {
-  if (detectKuboBtn) detectKubo(true);
+  if (detectKuboBtn && !hasShareLinkParam) detectKubo(true);
 }, 1000);
 
 // Tab navigation
