@@ -86,79 +86,121 @@ function selectFile(cid, name, element) {
   if (fileActionStatus) fileActionStatus.textContent = '';
 }
 
+// Single file/folder tree renderer shared by the Repository File Tree and the
+// fetched-content view. A node is { name, isDir, cid, size, children }, where
+// children is an array (rendered eagerly), a zero-arg async function (loaded
+// on first expand), or null for files and empty directories.
+function renderFileTree(nodes, onCidClick) {
+  const ul = document.createElement('ul');
+  ul.style.listStyle = 'none';
+  ul.style.paddingLeft = '0';
+
+  const sorted = [...nodes].sort((a, b) => {
+    if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  for (const node of sorted) {
+    const li = document.createElement('li');
+    li.style.marginBottom = '0.25rem';
+
+    const makeCidEl = () => {
+      const cidEl = document.createElement('span');
+      cidEl.textContent = node.cid || '';
+      cidEl.style.color = '#4da3ff';
+      cidEl.style.cursor = 'pointer';
+      cidEl.title = node.isDir ? 'Click to select this directory CID' : 'Click to select this CID';
+      cidEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (node.cid) onCidClick(node, cidEl);
+      });
+      return cidEl;
+    };
+
+    const makeSizeEl = () => {
+      const sizeEl = document.createElement('span');
+      sizeEl.textContent = ` (${formatSize(node.size)})`;
+      sizeEl.style.color = '#888';
+      sizeEl.style.fontSize = '0.85rem';
+      return sizeEl;
+    };
+
+    const hasSize = node.size != null && Number(node.size) > 0;
+
+    if (node.isDir) {
+      const details = document.createElement('details');
+      const summary = document.createElement('summary');
+      summary.textContent = `📁 ${node.name} `;
+      if (node.cid) summary.appendChild(makeCidEl());
+      if (hasSize) summary.appendChild(makeSizeEl());
+      details.appendChild(summary);
+
+      if (typeof node.children === 'function') {
+        let loaded = false;
+        details.addEventListener('toggle', async () => {
+          if (!details.open || loaded) return;
+          loaded = true;
+          const childUl = document.createElement('ul');
+          childUl.style.listStyle = 'none';
+          const placeholder = document.createElement('li');
+          placeholder.textContent = 'Loading...';
+          placeholder.style.color = '#888';
+          childUl.appendChild(placeholder);
+          details.appendChild(childUl);
+          try {
+            const children = await node.children();
+            childUl.removeChild(placeholder);
+            if (children.length === 0) {
+              const empty = document.createElement('li');
+              empty.textContent = '(empty directory)';
+              empty.style.color = '#888';
+              childUl.appendChild(empty);
+            } else {
+              childUl.appendChild(renderFileTree(children, onCidClick));
+            }
+          } catch (e) {
+            placeholder.textContent = `Failed to load: ${e.message}`;
+            placeholder.style.color = '#ff4444';
+          }
+        });
+      } else if (Array.isArray(node.children) && node.children.length > 0) {
+        details.appendChild(renderFileTree(node.children, onCidClick));
+      }
+
+      li.appendChild(details);
+    } else {
+      const nameEl = document.createElement('span');
+      nameEl.textContent = `📄 ${node.name} `;
+      li.appendChild(nameEl);
+      if (node.cid) li.appendChild(makeCidEl());
+      if (hasSize) li.appendChild(makeSizeEl());
+    }
+    ul.appendChild(li);
+  }
+  return ul;
+}
+
+function repoTreeNodes(tree, parentPath) {
+  return Object.entries(tree.children).map(([name, child]) => {
+    const childPath = parentPath ? parentPath + '/' + name : name;
+    return {
+      name,
+      isDir: child.isDir,
+      cid: repoTreeCids.get(childPath) || null,
+      size: repoTreeSizes.get(childPath) ?? null,
+      children: child.isDir ? repoTreeNodes(child, childPath) : null
+    };
+  });
+}
+
 function renderRepoTree() {
   if (!fileTreeEl) return;
   fileTreeEl.innerHTML = '';
-  const paths = Object.keys(repoFiles);
-  const tree = buildRepoTree(paths);
-  const rootUl = document.createElement('ul');
-
-  function renderNode(node, parentPath) {
-    const ul = document.createElement('ul');
-    const names = Object.keys(node.children).sort((a, b) => {
-      const aDir = node.children[a].isDir;
-      const bDir = node.children[b].isDir;
-      if (aDir !== bDir) return aDir ? -1 : 1;
-      return a.localeCompare(b);
-    });
-    for (const name of names) {
-      const child = node.children[name];
-      const childPath = parentPath ? parentPath + '/' + name : name;
-      const li = document.createElement('li');
-
-      const cid = repoTreeCids.get(childPath);
-
-      function appendCidAndSize(container, cid, path) {
-        if (!cid) return;
-        const cidEl = document.createElement('span');
-        cidEl.textContent = '  ' + cid;
-        cidEl.style.cursor = 'pointer';
-        cidEl.style.color = '#4da3ff';
-        cidEl.title = 'Click to select this CID';
-        cidEl.addEventListener('click', (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          selectFile(cid, name, cidEl);
-        });
-        container.appendChild(cidEl);
-        const size = repoTreeSizes.get(path);
-        if (size != null && Number(size) > 0) {
-          const sizeEl = document.createElement('span');
-          sizeEl.textContent = ` (${formatSize(size)})`;
-          sizeEl.style.color = '#888';
-          sizeEl.style.fontSize = '0.85rem';
-          container.appendChild(sizeEl);
-        }
-      }
-
-      if (child.isDir) {
-        const details = document.createElement('details');
-        details.open = false;
-        const summary = document.createElement('summary');
-        summary.textContent = '📁 ' + name;
-        appendCidAndSize(summary, cid, childPath);
-        details.appendChild(summary);
-        if (Object.keys(child.children).length > 0) {
-          details.appendChild(renderNode(child, childPath));
-        }
-        li.appendChild(details);
-      } else {
-        const span = document.createElement('span');
-        span.textContent = '📄 ' + name;
-        appendCidAndSize(span, cid, childPath);
-        li.appendChild(span);
-      }
-      ul.appendChild(li);
-    }
-    return ul;
-  }
-
-  const rendered = renderNode(tree, '');
-  // promote children of root into the top-level list
-  while (rendered.firstChild) {
-    rootUl.appendChild(rendered.firstChild);
-  }
-  fileTreeEl.appendChild(rootUl);
+  const tree = buildRepoTree(Object.keys(repoFiles));
+  fileTreeEl.appendChild(renderFileTree(repoTreeNodes(tree, ''), (node, el) => {
+    selectFile(node.cid, node.name, el);
+  }));
 }
 
 async function addAllRepoFiles() {
