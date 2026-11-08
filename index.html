@@ -278,11 +278,21 @@
     <button class="tab-button active" role="tab" aria-selected="true" data-tab="files" id="tab-btn-files">Files</button>
     <button class="tab-button" role="tab" aria-selected="false" data-tab="peer" id="tab-btn-peer">Peer</button>
     <button class="tab-button" role="tab" aria-selected="false" data-tab="publish" id="tab-btn-publish">Publish</button>
-    <button class="tab-button" role="tab" aria-selected="false" data-tab="fetch" id="tab-btn-fetch">Fetch</button>
   </nav>
 
   <main>
     <section class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-files" id="tab-files">
+      <div class="card">
+        <h3>Fetch Content from IPFS Network</h3>
+        <label for="input-cid">Enter IPFS Content ID (CID):</label>
+        <input type="text" id="input-cid" placeholder="bafkreic..." />
+        <button id="btn-fetch" disabled>Fetch via Helia Node</button>
+        <button id="btn-download" disabled>Download</button>
+
+        <h4>Retrieved Data:</h4>
+        <pre id="output-content">None</pre>
+      </div>
+
       <div class="card">
         <h3>Repository File Tree</h3>
         <div id="file-tree">Loading repository tree...</div>
@@ -528,19 +538,6 @@ ipfs daemon</pre>
 
         <h4>Result CID:</h4>
         <pre id="output-cid">None</pre>
-      </div>
-    </section>
-
-    <section class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-fetch" id="tab-fetch">
-      <div class="card">
-        <h3>Fetch Content from IPFS Network</h3>
-        <label for="input-cid">Enter IPFS Content ID (CID):</label>
-        <input type="text" id="input-cid" placeholder="bafkreic..." />
-        <button id="btn-fetch" disabled>Fetch via Helia Node</button>
-        <button id="btn-download" disabled>Download</button>
-
-        <h4>Retrieved Data:</h4>
-        <pre id="output-content">None</pre>
       </div>
     </section>
 
