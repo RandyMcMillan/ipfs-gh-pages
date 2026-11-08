@@ -360,115 +360,37 @@ publishBtn.addEventListener('click', async () => {
   }
 });
 
-// Render a fetched UnixFS directory as a real file/folder tree, like the
-// Repository File Tree. Subdirectory contents load lazily on first expand
-// (one network ls per expand), so large repos don't block the initial view.
-async function renderFetchedTree(entries) {
-  const rootUl = document.createElement('ul');
-  rootUl.style.listStyle = 'none';
-  rootUl.style.paddingLeft = '0';
-  await appendFetchedEntries(rootUl, entries);
-  return rootUl;
+// Convert a fetched UnixFS directory into renderFileTree nodes. Subdirectory
+// contents load lazily on first expand (one network ls per expand), so large
+// repos don't block the initial view.
+async function fetchedDirNodes(cid) {
+  const entries = [];
+  for await (const entry of heliaUnixfs.ls(cid)) {
+    entries.push(entry);
+  }
+  const sizes = await Promise.all(entries.map(async (entry) => {
+    try {
+      const st = await heliaUnixfs.stat(entry.cid);
+      return st.size;
+    } catch (e) {
+      return null;
+    }
+  }));
+  return entries.map((entry, i) => {
+    const isDir = entry.type === 'directory';
+    return {
+      name: entry.name,
+      isDir,
+      cid: entry.cid.toString(),
+      size: sizes[i],
+      children: isDir ? () => fetchedDirNodes(entry.cid) : null
+    };
+  });
 }
 
-async function appendFetchedEntries(ul, entries) {
-  const sorted = [...entries].sort((a, b) => {
-    const aDir = a.type === 'directory';
-    const bDir = b.type === 'directory';
-    if (aDir !== bDir) return aDir ? -1 : 1;
-    return a.name.localeCompare(b.name);
-  });
-
-  const sizes = await Promise.all(
-    sorted.map(async (entry) => {
-      try {
-        const st = await heliaUnixfs.stat(entry.cid);
-        return st.size;
-      } catch (e) {
-        return null;
-      }
-    })
-  );
-
-  function makeCidEl(entry, cidStr) {
-    const cidEl = document.createElement('span');
-    cidEl.textContent = cidStr;
-    cidEl.style.color = '#4da3ff';
-    cidEl.style.cursor = 'pointer';
-    cidEl.title = 'Fetch this ' + (entry.type === 'directory' ? 'directory' : 'file');
-    cidEl.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      inputCid.value = cidStr;
-      fetchContent(cidStr, entry.name);
-    });
-    return cidEl;
-  }
-
-  function makeSizeEl(size) {
-    const sizeEl = document.createElement('span');
-    sizeEl.textContent = ` (${formatSize(size)})`;
-    sizeEl.style.color = '#888';
-    sizeEl.style.fontSize = '0.85rem';
-    return sizeEl;
-  }
-
-  sorted.forEach((entry, i) => {
-    const li = document.createElement('li');
-    li.style.marginBottom = '0.25rem';
-    const isDir = entry.type === 'directory';
-    const icon = isDir ? '📁' : '📄';
-    const cidStr = entry.cid.toString();
-
-    if (isDir) {
-      const details = document.createElement('details');
-      const summary = document.createElement('summary');
-      summary.textContent = `${icon} ${entry.name} `;
-      summary.appendChild(makeCidEl(entry, cidStr));
-      if (sizes[i] != null && sizes[i] > 0) summary.appendChild(makeSizeEl(sizes[i]));
-      details.appendChild(summary);
-
-      let loaded = false;
-      details.addEventListener('toggle', async () => {
-        if (!details.open || loaded) return;
-        loaded = true;
-        const childUl = document.createElement('ul');
-        childUl.style.listStyle = 'none';
-        const placeholder = document.createElement('li');
-        placeholder.textContent = 'Loading...';
-        placeholder.style.color = '#888';
-        childUl.appendChild(placeholder);
-        details.appendChild(childUl);
-        try {
-          const children = [];
-          for await (const child of heliaUnixfs.ls(entry.cid)) {
-            children.push(child);
-          }
-          childUl.removeChild(placeholder);
-          if (children.length === 0) {
-            const empty = document.createElement('li');
-            empty.textContent = '(empty directory)';
-            empty.style.color = '#888';
-            childUl.appendChild(empty);
-          } else {
-            await appendFetchedEntries(childUl, children);
-          }
-        } catch (e) {
-          placeholder.textContent = `Failed to load: ${e.message}`;
-          placeholder.style.color = '#ff4444';
-        }
-      });
-
-      li.appendChild(details);
-    } else {
-      const nameEl = document.createElement('span');
-      nameEl.textContent = `${icon} ${entry.name} `;
-      li.appendChild(nameEl);
-      li.appendChild(makeCidEl(entry, cidStr));
-      if (sizes[i] != null && sizes[i] > 0) li.appendChild(makeSizeEl(sizes[i]));
-    }
-    ul.appendChild(li);
-  });
+function onFetchedCidClick(node) {
+  inputCid.value = node.cid;
+  fetchContent(node.cid, node.name);
 }
 
 async function fetchContent(cidStr, nameHint) {
@@ -495,7 +417,7 @@ async function fetchContent(cidStr, nameHint) {
         heading.textContent = `Directory with ${entries.length} item(s):`;
         heading.style.marginTop = '0';
         outputContent.appendChild(heading);
-        outputContent.appendChild(await renderFetchedTree(entries));
+        outputContent.appendChild(renderFileTree(await fetchedDirNodes(cid), onFetchedCidClick));
         const dirText = entries.map(e => (e.type === 'directory' ? '📁 ' : '📄 ') + e.name).join('\\n');
         lastFetchedBytes = new TextEncoder().encode(dirText);
       } else {
@@ -688,13 +610,9 @@ if (fetchRepoBtn) {
       const stat = await heliaUnixfs.stat(cid);
       await fetchContent(rootCid, 'repo');
       if (stat.type === 'directory') {
-        const entries = [];
-        for await (const entry of heliaUnixfs.ls(cid)) {
-          entries.push(entry);
-        }
         if (fetchedRepoCard && fetchedRepoTree) {
           fetchedRepoTree.innerHTML = '';
-          fetchedRepoTree.appendChild(await renderFetchedTree(entries));
+          fetchedRepoTree.appendChild(renderFileTree(await fetchedDirNodes(cid), onFetchedCidClick));
           fetchedRepoCard.style.display = 'block';
         }
         fileActionStatus.textContent = '';
