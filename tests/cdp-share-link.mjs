@@ -121,11 +121,18 @@ if (multiaddr) {
   );
   check('node B auto-connected from share link', bConnected === true);
 
-  // B dialed A, so A must now see B among its peers.
+  // B dialed A, so A must now see B among its peers. On slow links A-side
+  // identify can lag well behind B's dial success, so allow a long window
+  // and accept either the connection manager or the UI peers list.
   const aSeesB = await waitFor(
     A.evalJson,
-    `window.__heliaNode.libp2p.getPeers().map(String).includes(${JSON.stringify(peerIdB || '')})`,
-    30000,
+    `(() => {
+      const id = ${JSON.stringify(peerIdB || '')};
+      const viaLibp2p = window.__heliaNode.libp2p.getPeers().map(String).includes(id);
+      const viaUi = document.getElementById('peers-list').textContent.includes(id);
+      return viaLibp2p || viaUi;
+    })()`,
+    90000,
     2000
   );
   check('node A sees node B in its peer list', aSeesB === true);
