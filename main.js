@@ -345,6 +345,10 @@ async function initHelia() {
 
     // Auto-connect to a peer provided via URL (?connect=...)
     autoConnectFromUrl();
+
+    // Detect a local Kubo immediately (probes RPC, then test-dials
+    // candidates). Share-link pages own the field instead.
+    if (!hasShareLinkParam) detectKubo();
   } catch (error) {
     statusEl.textContent = `Initialization Error: ${error.message}`;
     statusEl.style.color = '#ff4444';
@@ -1116,16 +1120,13 @@ if (detectKuboBtn) {
   detectKuboBtn.addEventListener('click', () => detectKubo());
 }
 
-// Auto-detect Kubo shortly after page load and auto-connect if found — but
-// never on share-link pages (?connect=/?peer=): the shared address owns the
-// field there, and Kubo detection must not overwrite or dial over it.
+// Share-link pages (?connect=/?peer=) own the multiaddr field: Kubo detection
+// must not overwrite or dial over it. Non-share-link pages run detection
+// immediately from initHelia once the node exists.
 const hasShareLinkParam = (() => {
   const p = new URLSearchParams(window.location.search);
   return p.has('connect') || p.has('peer');
 })();
-setTimeout(() => {
-  if (detectKuboBtn && !hasShareLinkParam) detectKubo();
-}, 4000);
 
 // Tab navigation
 document.querySelectorAll('.tab-button').forEach((button) => {
