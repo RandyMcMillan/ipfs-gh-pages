@@ -62,8 +62,9 @@ const status = (await pageSend('Runtime.evaluate', { expression: 'document.getEl
 console.log('STATUS:', status);
 
 const expr = `(() => {
-  const li = Array.from(document.querySelectorAll('#file-tree li')).find(x => x.textContent.includes('index.html'));
-  const m = li && li.textContent.match(/(baf[a-z0-9]+)/);
+  const li = Array.from(document.querySelectorAll('#file-tree li.row')).find(x => x.textContent.includes('index.html'));
+  const cidEl = li && li.querySelector('.cell-cid');
+  const m = cidEl && cidEl.textContent.trim().match(/^(baf[a-z0-9]+)/);
   return m ? m[1] : null;
 })()`;
 const cid = (await pageSend('Runtime.evaluate', { expression: expr, returnByValue: true }))?.result?.value;
