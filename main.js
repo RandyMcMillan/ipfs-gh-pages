@@ -223,7 +223,7 @@ async function addAllRepoFiles() {
       rootCidForProvide = rootCid;
       const rootCidStr = rootCid.toString();
       if (cloneCidEl) {
-        cloneCidEl.textContent = `${rootCidStr.slice(0, 12)}…${rootCidStr.slice(-4)}`;
+        cloneCidEl.textContent = rootCidStr;
         cloneCidEl.title = rootCidStr;
       }
       if (cloneZipBtn) cloneZipBtn.disabled = false;
