@@ -37,9 +37,8 @@ for (let i = 0; i < 60; i++) {
 }
 
 const expr = `(() => {
-  const spans = Array.from(document.querySelectorAll('#file-tree span'));
-  const s = spans.find(x => x.textContent.includes('index.html'));
-  const m = s.textContent.match(/(baf[a-z0-9]+)/);
+  const li = Array.from(document.querySelectorAll('#file-tree li')).find(x => x.textContent.includes('index.html'));
+  const m = li && li.textContent.match(/(baf[a-z0-9]+)/);
   return m ? m[1] : null;
 })()`;
 const cid = (await send('Runtime.evaluate', { expression: expr, returnByValue: true }))?.result?.value;
