@@ -280,6 +280,31 @@
     #share-status {
       word-break: break-all;
     }
+    .clone-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .clone-cid {
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 0.2rem 0.5rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.85rem;
+      color: #7ec8ff;
+      cursor: pointer;
+    }
+    .clone-spacer {
+      flex: 1;
+    }
+    .btn-clone {
+      background: #238636;
+    }
+    .btn-clone:disabled {
+      background: #555;
+    }
     @media (max-width: 600px) {
       body {
         padding: 0.75rem;
@@ -411,6 +436,18 @@
 
   <main>
     <section class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-files" id="tab-files">
+      <div class="card" id="clone-card">
+        <div class="clone-bar">
+          <strong>Clone this repo over IPFS</strong>
+          <code id="clone-cid" class="clone-cid" title="root CID">…</code>
+          <button type="button" id="btn-clone-cid-copy" class="help-btn" title="Copy root CID">⧉</button>
+          <span class="clone-spacer"></span>
+          <button id="btn-clone-zip" class="btn-clone" disabled>Download ZIP</button>
+        </div>
+        <small>Anyone can fetch the whole repo from the network and download it as a zip. Keep it cloneable while you're away: <code>ipfs pin add &lt;root CID&gt;</code></small>
+        <p id="clone-status" style="margin: 0.5rem 0 0; color: #00ff88;"></p>
+      </div>
+
       <div class="card">
         <h3>Repository File Tree</h3>
         <div id="file-tree">Loading repository tree...</div>

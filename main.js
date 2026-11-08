@@ -62,6 +62,10 @@ const downloadSelectedBtn = document.getElementById('btn-download-selected');
 const fetchRepoBtn = document.getElementById('btn-fetch-repo');
 const downloadRepoBtn = document.getElementById('btn-download-repo');
 const fileActionStatus = document.getElementById('file-action-status');
+const cloneCidEl = document.getElementById('clone-cid');
+const cloneZipBtn = document.getElementById('btn-clone-zip');
+const cloneCidCopyBtn = document.getElementById('btn-clone-cid-copy');
+const cloneStatus = document.getElementById('clone-status');
 
 function selectFile(cid, name, element) {
   selectedFileCid = cid;
@@ -217,6 +221,12 @@ async function addAllRepoFiles() {
       outputCid.textContent = rootCid.toString();
       inputCid.value = rootCid.toString();
       rootCidForProvide = rootCid;
+      const rootCidStr = rootCid.toString();
+      if (cloneCidEl) {
+        cloneCidEl.textContent = `${rootCidStr.slice(0, 12)}…${rootCidStr.slice(-4)}`;
+        cloneCidEl.title = rootCidStr;
+      }
+      if (cloneZipBtn) cloneZipBtn.disabled = false;
       if (fetchRepoBtn) fetchRepoBtn.disabled = false;
       if (downloadRepoBtn) downloadRepoBtn.disabled = false;
       statusEl.textContent = 'Online & All repository files added to IPFS';
@@ -647,6 +657,59 @@ if (downloadRepoBtn) {
       fileActionStatus.style.color = '#ff4444';
     } finally {
       downloadRepoBtn.disabled = false;
+    }
+  });
+}
+
+// Clone bar: copy the root CID, or fetch the whole repo and download a zip.
+if (cloneCidCopyBtn) {
+  cloneCidCopyBtn.addEventListener('click', async () => {
+    const cid = (cloneCidEl && cloneCidEl.title) || '';
+    if (!cid) return;
+    try {
+      await navigator.clipboard.writeText(cid);
+      if (cloneStatus) cloneStatus.textContent = 'Copied root CID to clipboard.';
+    } catch (e) {
+      if (cloneStatus) cloneStatus.textContent = cid;
+    }
+  });
+}
+
+if (cloneCidEl) {
+  cloneCidEl.addEventListener('click', () => {
+    const cid = cloneCidEl.title || '';
+    if (!cid || !navigator.clipboard) return;
+    navigator.clipboard.writeText(cid).then(() => {
+      if (cloneStatus) cloneStatus.textContent = 'Copied root CID to clipboard.';
+    }).catch(() => {});
+  });
+}
+
+if (cloneZipBtn) {
+  cloneZipBtn.addEventListener('click', async () => {
+    const rootCid = outputCid.textContent.trim();
+    if (!rootCid || rootCid === 'None') return;
+    cloneZipBtn.disabled = true;
+    if (cloneStatus) {
+      cloneStatus.style.color = '#00ff88';
+      cloneStatus.textContent = 'Fetching repo from IPFS network...';
+    }
+    try {
+      // Fetch into Retrieved Data as the clone preview, then package the zip.
+      await fetchContent(rootCid, 'repo');
+      if (cloneStatus) cloneStatus.textContent = 'Packaging zip...';
+      const tree = await collectIpfsDir(rootCid);
+      const zipped = zipSync(tree);
+      const filename = `${rootCid.slice(0, 12)}.zip`;
+      downloadBytes(zipped, filename);
+      if (cloneStatus) cloneStatus.textContent = `Downloaded ${filename}`;
+    } catch (err) {
+      if (cloneStatus) {
+        cloneStatus.style.color = '#ff4444';
+        cloneStatus.textContent = `Clone failed: ${err.message}`;
+      }
+    } finally {
+      cloneZipBtn.disabled = false;
     }
   });
 }
