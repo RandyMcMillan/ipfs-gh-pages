@@ -1,5 +1,7 @@
 import WebSocket from 'ws';
 import { spawn } from 'child_process';
+import { generateKeyPair } from '@libp2p/crypto/keys';
+import { peerIdFromPrivateKey } from '@libp2p/peer-id';
 import { findChrome, isVerbose, vlog, testUrl } from './utils.mjs';
 
 const chrome = findChrome();
@@ -141,9 +143,13 @@ if (multiaddr) {
   // Negative path: a stale/unreachable share link must fail visibly (after retries), not hang silently.
   // Use a fresh browser: re-navigating the tab that already runs a live libp2p node can
   // leave the old document in place, and the poll would read the previous session's status.
+  // The peer id must come from a freshly generated key: dial() reuses an existing
+  // connection when the peer id is already connected, and a previously hardcoded id
+  // turned out to be a live network peer — which made this spuriously "succeed".
   vlog('Checking failure path with an unreachable share link...');
   const C = await launchNode(PORT_C);
-  const badAddr = '/ip4/127.0.0.1/tcp/1/ws/p2p/12D3KooWRx1BxMZ7nYyeM8RLyGaWAKyqv8GhMCT7KNW7TMkTVTVB';
+  const deadKey = await generateKeyPair('Ed25519');
+  const badAddr = `/ip4/127.0.0.1/tcp/1/ws/p2p/${peerIdFromPrivateKey(deadKey)}`;
   const badLink = testUrl + (testUrl.includes('?') ? '&' : '?') + 'connect=' + encodeURIComponent(badAddr) + '&_cb=' + Date.now();
   const nav = await C.send('Page.navigate', { url: badLink });
   check('bad link navigation accepted', !nav?.errorText, nav?.errorText || '');
