@@ -74,6 +74,14 @@ check('branch key persisted in localStorage', typeof storedKey === 'string' && s
 const again = await evalJson(`document.getElementById('ipns-branch-chip').dataset.ipns`);
 check('IPNS name stable', again === (chip && chip.ipns), `${chip?.ipns} vs ${again}`);
 
+// The click-to-copy handler is bound on the next 2s interval tick after the
+// chip appears — wait for the binding before clicking, or the click no-ops.
+for (let i = 0; i < 30; i++) {
+  if (await evalJson(`document.getElementById('ipns-branch-chip').dataset.bound === '1'`)) break;
+  await new Promise((r) => setTimeout(r, 500));
+}
+check('copy handler bound', await evalJson(`document.getElementById('ipns-branch-chip').dataset.bound === '1'`));
+
 // Click-to-copy flashes confirmation text.
 await evalJson(`document.getElementById('ipns-branch-chip').click(); true`);
 await new Promise((r) => setTimeout(r, 300));
