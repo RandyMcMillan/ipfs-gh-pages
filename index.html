@@ -1004,9 +1004,6 @@
             <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V8.5a2.5 2.5 0 0 1 2-2.45V5.75a2.25 2.25 0 0 1 4-2.122V3.25ZM10 6.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm-5 5.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
             <span class="mx-1">main</span>
           </button>
-          <button class="btn btn-sm" type="button" id="ipns-branch-chip" disabled title="IPNS branch pointer — appears once the repo root is published" style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">
-            /ipns/…
-          </button>
           <span class="color-fg-muted f6">IPFS-hosted</span>
           <a class="Link--secondary f6 ml-3 gh-link" data-ghpath="/branches" href="https://github.com/RandyMcMillan/ipfs-gh-pages/branches">1 Branch</a>
           <a class="Link--secondary f6 ml-2 gh-link" data-ghpath="/tags" href="https://github.com/RandyMcMillan/ipfs-gh-pages/tags">12 Tags</a>
@@ -1022,6 +1019,16 @@
               <div class="tab-bar" style="margin-bottom: 0.75rem; border-bottom: 1px solid var(--color-border-muted);">
                 <button class="tab-button active" type="button" data-codetab="link" id="codetab-btn-link">Share Link</button>
                 <button class="tab-button" type="button" data-codetab="multiaddr" id="codetab-btn-multiaddr">Multiaddr</button>
+                <button class="tab-button" type="button" data-codetab="ipns" id="codetab-btn-ipns">IPNS</button>
+              </div>
+              <div id="codetab-panel-ipns" style="display: none;">
+                <div class="input-group">
+                  <input id="code-ipns-field" readonly type="text" class="form-control input-monospace" placeholder="/ipns/… appears once the repo root is published" title="IPNS branch pointer — tracks the repo root CID while this page is open" />
+                  <span class="input-group-button">
+                    <button id="btn-code-copy-ipns" class="btn" type="button">Copy</button>
+                  </span>
+                </div>
+                <small style="margin-top: 0.5rem;">Branch pointer: resolves to the current repo root CID while this page is open and republishing.</small>
               </div>
               <div id="codetab-panel-link">
                 <div class="input-group">

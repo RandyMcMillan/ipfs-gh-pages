@@ -764,6 +764,7 @@ function renderReadme() {
 let ipnsBranchKeyPromise = null;
 let ipnsBranchCid = null;
 let ipnsBranchLastPublish = 0;
+let ipnsBranchName = '';
 
 function getIpnsBranchKey() {
   if (!ipnsBranchKeyPromise) {
@@ -786,24 +787,24 @@ function getIpnsBranchKey() {
 }
 
 async function publishBranchPointer(rootCid) {
-  const chip = document.getElementById('ipns-branch-chip');
+  const field = document.getElementById('code-ipns-field');
   try {
     if (!heliaNode || !rootCid) return;
     const key = await getIpnsBranchKey();
     const peerId = peerIdFromPrivateKey(key);
     const ipnsName = `/ipns/${peerId}`;
     ipnsBranchCid = rootCid;
-    if (chip) {
-      chip.disabled = false;
-      chip.textContent = ipnsName;
-      chip.dataset.ipns = ipnsName;
-      chip.title = 'IPNS branch pointer — tracks the repo root CID while this page is open. Click to copy.';
+    ipnsBranchName = ipnsName;
+    if (field) {
+      field.value = ipnsName;
+      field.dataset.ipns = ipnsName;
+      field.title = 'IPNS branch pointer — tracks the repo root CID while this page is open. Click to select, then copy.';
     }
     await ipns(heliaNode).publish(key, rootCid);
     ipnsBranchLastPublish = Date.now();
-    if (chip) chip.title = 'IPNS branch pointer published — click to copy';
+    if (field) field.title = 'IPNS branch pointer published';
   } catch (err) {
-    if (chip) chip.title = `IPNS publish failed: ${err.message} — click to copy the name anyway`;
+    if (field) field.title = `IPNS publish failed: ${err.message} — the name above is still valid once a publisher is online`;
   }
 }
 
@@ -1397,6 +1398,7 @@ document.querySelectorAll('[data-codetab]').forEach((button) => {
     button.classList.add('active');
     document.getElementById('codetab-panel-link').style.display = tab === 'link' ? 'block' : 'none';
     document.getElementById('codetab-panel-multiaddr').style.display = tab === 'multiaddr' ? 'block' : 'none';
+    document.getElementById('codetab-panel-ipns').style.display = tab === 'ipns' ? 'block' : 'none';
   });
 });
 
@@ -2016,18 +2018,19 @@ setInterval(() => {
     } catch {}
   }
   const ma = getShareableMultiaddr();
-  // Branch pointer: one click-to-copy binding, plus a republish every 10 min
+  // Branch pointer: one Copy-button binding, plus a republish every 10 min
   // while the page is open so /ipns/<peerId> keeps resolving to the latest root.
-  const ipnsChip = document.getElementById('ipns-branch-chip');
-  if (ipnsChip && !ipnsChip.dataset.bound) {
-    ipnsChip.dataset.bound = '1';
-    ipnsChip.addEventListener('click', () => {
-      const v = ipnsChip.dataset.ipns || '';
+  const ipnsCopyBtn = document.getElementById('btn-code-copy-ipns');
+  if (ipnsCopyBtn && !ipnsCopyBtn.dataset.bound) {
+    ipnsCopyBtn.dataset.bound = '1';
+    ipnsCopyBtn.addEventListener('click', () => {
+      const fieldEl = document.getElementById('code-ipns-field');
+      const v = (fieldEl && (fieldEl.dataset.ipns || fieldEl.value)) || '';
       if (!v) return;
       const done = () => {
-        const orig = ipnsChip.textContent;
-        ipnsChip.textContent = 'Copied to clipboard';
-        setTimeout(() => { ipnsChip.textContent = orig; }, 900);
+        const orig = ipnsCopyBtn.textContent;
+        ipnsCopyBtn.textContent = 'Copied to clipboard';
+        setTimeout(() => { ipnsCopyBtn.textContent = orig; }, 900);
       };
       if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
         navigator.clipboard.writeText(v).then(done).catch(done);
@@ -2039,10 +2042,10 @@ setInterval(() => {
   if (ipnsBranchCid && Date.now() - ipnsBranchLastPublish > 10 * 60 * 1000) {
     publishBranchPointer(ipnsBranchCid).catch(() => {});
   }
+  if (codeBtn && (ma || ipnsBranchName)) codeBtn.disabled = false;
   if (ma) {
     if (copyMultiaddrBtn) copyMultiaddrBtn.disabled = false;
     if (copyLinkBtn) copyLinkBtn.disabled = false;
-    if (codeBtn) codeBtn.disabled = false;
     if (codeMultiaddrField && !codeMultiaddrField.value) codeMultiaddrField.value = ma;
     if (codeShareField && !codeShareField.value) codeShareField.value = buildShareLink() || '';
     if (shareLinkField && !shareLinkField.value) shareLinkField.value = buildShareLink() || '';
