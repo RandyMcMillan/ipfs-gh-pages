@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Build via packaged action
         uses: ./
@@ -29,3 +31,5 @@ jobs:
         run: |
           test -f "${{ github.workspace }}/action-dist/index.html"
           echo "Bundle OK"
+          test -f "${{ github.workspace }}/actions-test/actions-test.car"
+          echo "Submodule CAR OK"

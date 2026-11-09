@@ -21,7 +21,7 @@ if (typeof Promise.withResolvers !== 'function') {
 }
 
 const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
-const outDir = path.resolve(process.argv[2] || path.join(root, 'dist'));
+const outDir = path.resolve(process.env.OUT_DIR || process.argv[2] || path.join(root, 'dist'));
 
 function listFiles(dir) {
   let files = [];

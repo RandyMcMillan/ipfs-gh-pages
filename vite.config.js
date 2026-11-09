@@ -95,7 +95,10 @@ export default defineConfig({
   base: './',
   plugins: [repoFilesPlugin(), repoIdentityPlugin()],
   build: {
-    target: 'esnext'
+    target: 'esnext',
+    // The GitHub Action sets OUT_DIR so the bundle lands where the caller asked.
+    outDir: process.env.OUT_DIR,
+    emptyOutDir: Boolean(process.env.OUT_DIR)
   },
   optimizeDeps: {
     esbuildOptions: {

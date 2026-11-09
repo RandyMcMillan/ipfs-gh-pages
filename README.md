@@ -70,6 +70,10 @@ Release procedure with submodules:
    tracked files change.
 3. CI checkouts that don't initialize submodules skip the submodule
    CARs gracefully; the main `dist/ipfs-gh-pages.car` is unaffected.
+
+Releases are cut with `npm run release <version>` — it bumps,
+commits, tags, and pushes this repo AND tags the actions-test
+submodule at the gitlink's commit, keeping its tags in lockstep.
 node tests/cdp-ui.mjs # UI chrome regression tests (dropdown, tabs, blob view, theme)
 ```
 

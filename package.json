@@ -24,7 +24,8 @@
     "kubo:id": "node scripts/kubo-rpc-id.mjs",
     "cert:generate": "node scripts/cert-generate.mjs",
     "proxy:wss": "node scripts/wss-proxy.mjs",
-    "test:gateway": "node --test tests/gateway.test.mjs"
+    "test:gateway": "node --test tests/gateway.test.mjs",
+    "release": "node scripts/release.mjs"
   },
   "dependencies": {
     "@helia/strings": "^4.0.0",

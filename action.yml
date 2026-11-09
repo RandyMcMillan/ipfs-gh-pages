@@ -72,9 +72,10 @@ runs:
       working-directory: ${{ github.action_path }}
       env:
         REPO_ROOT: ${{ inputs.repo-root }}
+        OUT_DIR: ${{ inputs.out-dir }}
       run: |
         mkdir -p "${{ inputs.out-dir }}"
-        npm run build -- --outDir "${{ inputs.out-dir }}" --emptyOutDir
+        npm run build
         echo "dist_path=${{ inputs.out-dir }}" >> "$GITHUB_OUTPUT"
 
     - name: Configure Pages
