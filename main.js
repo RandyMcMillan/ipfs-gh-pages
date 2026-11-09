@@ -3,6 +3,9 @@ import { createHelia, libp2pDefaults } from 'helia';
 import { createLibp2p } from 'libp2p';
 import { gossipsub } from '@chainsafe/libp2p-gossipsub';
 import { pubsubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
+import { ipns } from '@helia/ipns';
+import { generateKeyPair, privateKeyFromRaw } from '@libp2p/crypto/keys';
+import { peerIdFromPrivateKey } from '@libp2p/peer-id';
 import { car } from '@helia/car';
 import { CarWriter } from '@ipld/car/writer';
 import repoIdentity from 'virtual:repo-identity';
@@ -12,7 +15,7 @@ import { CID } from 'multiformats/cid';
 import repoFiles from 'virtual:repo-files';
 import { zipSync } from 'fflate';
 import { multiaddr } from '@multiformats/multiaddr';
-import { formatSize, base64ToUint8Array, buildRepoTree, isBrowserDialable, normalizeAddressForProxy } from './lib/shared.mjs';
+import { formatSize, base64ToUint8Array, uint8ArrayToBase64, buildRepoTree, isBrowserDialable, normalizeAddressForProxy } from './lib/shared.mjs';
 
 // Repo identity: prefer the Pages origin (<owner>.github.io/<repo>), then the
 // build-time identity baked by the action (GITHUB_REPOSITORY / git remote), so
@@ -754,6 +757,56 @@ function renderReadme() {
   }
 }
 
+// IPNS branch pointer: publish the current repo root CID under a
+// browser-held Ed25519 key, so `/ipns/<peerId>` tracks HEAD like a branch
+// ref while the page is open. The key's raw bytes persist in localStorage
+// per repo, so refreshes keep the same name.
+let ipnsBranchKeyPromise = null;
+let ipnsBranchCid = null;
+let ipnsBranchLastPublish = 0;
+
+function getIpnsBranchKey() {
+  if (!ipnsBranchKeyPromise) {
+    ipnsBranchKeyPromise = (async () => {
+      const storageKey = `ipns-branch-key:${repoFullName}`;
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        try {
+          return privateKeyFromRaw(base64ToUint8Array(stored));
+        } catch {
+          // corrupted entry — regenerate below
+        }
+      }
+      const key = await generateKeyPair('Ed25519');
+      localStorage.setItem(storageKey, uint8ArrayToBase64(key.raw));
+      return key;
+    })();
+  }
+  return ipnsBranchKeyPromise;
+}
+
+async function publishBranchPointer(rootCid) {
+  const chip = document.getElementById('ipns-branch-chip');
+  try {
+    if (!heliaNode || !rootCid) return;
+    const key = await getIpnsBranchKey();
+    const peerId = peerIdFromPrivateKey(key);
+    const ipnsName = `/ipns/${peerId}`;
+    ipnsBranchCid = rootCid;
+    if (chip) {
+      chip.disabled = false;
+      chip.textContent = ipnsName;
+      chip.dataset.ipns = ipnsName;
+      chip.title = 'IPNS branch pointer — tracks the repo root CID while this page is open. Click to copy.';
+    }
+    await ipns(heliaNode).publish(key, rootCid);
+    ipnsBranchLastPublish = Date.now();
+    if (chip) chip.title = 'IPNS branch pointer published — click to copy';
+  } catch (err) {
+    if (chip) chip.title = `IPNS publish failed: ${err.message} — click to copy the name anyway`;
+  }
+}
+
 async function addAllRepoFiles() {
   if (!heliaUnixfs) return;
   statusEl.textContent = 'Adding all repository files to IPFS...';
@@ -782,6 +835,7 @@ async function addAllRepoFiles() {
       if (carDownloadBtn) carDownloadBtn.disabled = false;
       if (fetchRepoBtn) fetchRepoBtn.disabled = false;
       if (downloadRepoBtn) downloadRepoBtn.disabled = false;
+      publishBranchPointer(rootCid).catch(() => {});
       statusEl.textContent = 'Online & All repository files added to IPFS';
 
       // Announce the root CID to the IPFS network so other peers
@@ -1962,6 +2016,29 @@ setInterval(() => {
     } catch {}
   }
   const ma = getShareableMultiaddr();
+  // Branch pointer: one click-to-copy binding, plus a republish every 10 min
+  // while the page is open so /ipns/<peerId> keeps resolving to the latest root.
+  const ipnsChip = document.getElementById('ipns-branch-chip');
+  if (ipnsChip && !ipnsChip.dataset.bound) {
+    ipnsChip.dataset.bound = '1';
+    ipnsChip.addEventListener('click', () => {
+      const v = ipnsChip.dataset.ipns || '';
+      if (!v) return;
+      const done = () => {
+        const orig = ipnsChip.textContent;
+        ipnsChip.textContent = 'Copied to clipboard';
+        setTimeout(() => { ipnsChip.textContent = orig; }, 900);
+      };
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(v).then(done).catch(done);
+      } else {
+        done();
+      }
+    });
+  }
+  if (ipnsBranchCid && Date.now() - ipnsBranchLastPublish > 10 * 60 * 1000) {
+    publishBranchPointer(ipnsBranchCid).catch(() => {});
+  }
   if (ma) {
     if (copyMultiaddrBtn) copyMultiaddrBtn.disabled = false;
     if (copyLinkBtn) copyLinkBtn.disabled = false;
