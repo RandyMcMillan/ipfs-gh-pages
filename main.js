@@ -1564,6 +1564,14 @@ setInterval(() => {
       const cmd = `ipfs swarm connect '${ma}'\nipfs pin add ${root}`;
       if (docSwarm.textContent !== cmd) docSwarm.textContent = cmd;
     }
+    const docGet = document.getElementById('doc-get-cmd');
+    if (docGet) {
+      const root = cloneCidEl?.textContent.trim();
+      if (root && root.startsWith('baf')) {
+        const cmd = `ipfs get ${root}`;
+        if (docGet.textContent !== cmd) docGet.textContent = cmd;
+      }
+    }
   }
 }, 2000);
 
