@@ -1,5 +1,7 @@
 import '@primer/css/dist/primer.css';
 import { createHelia } from 'helia';
+import { car } from '@helia/car';
+import { CarWriter } from '@ipld/car/writer';
 import repoIdentity from 'virtual:repo-identity';
 import { strings } from '@helia/strings';
 import { unixfs } from '@helia/unixfs';
@@ -202,6 +204,7 @@ refreshRepoMetadata();
 let heliaNode = null;
 let heliaStrings = null;
 let heliaUnixfs = null;
+let heliaCar = null;
 const repoTreeCids = new Map();
 let lastFetchedBytes = null;
 let lastFetchedName = 'ipfs-content';
@@ -256,6 +259,7 @@ const downloadRepoBtn = document.getElementById('btn-download-repo');
 const fileActionStatus = document.getElementById('file-action-status');
 const cloneCidEl = document.getElementById('clone-cid');
 const cloneZipBtn = document.getElementById('btn-clone-zip');
+const carDownloadBtn = document.getElementById('btn-clone-car');
 const cloneCidCopyBtn = document.getElementById('btn-clone-cid-copy');
 const cloneStatus = document.getElementById('clone-status');
 const codeBtn = document.getElementById('btn-code');
@@ -541,6 +545,51 @@ if (blobDownloadBtn) {
   });
 }
 
+// Export a CID (and its full DAG) as CAR bytes. CarWriter streams block
+// chunks through an async iterable; collect them into one buffer.
+async function exportCarBytes(rootCid) {
+  const { writer, out } = await CarWriter.create([rootCid]);
+  const chunks = [];
+  const collect = (async () => {
+    for await (const chunk of out) chunks.push(chunk);
+  })();
+  await heliaCar.export(rootCid, writer);
+  await collect;
+  const total = chunks.reduce((n, c) => n + c.length, 0);
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return bytes;
+}
+
+// Download CAR: export the whole repo (exact root CID) as a CAR archive.
+if (carDownloadBtn) {
+  carDownloadBtn.addEventListener('click', async () => {
+    const rootCid = outputCid.textContent.trim();
+    if (!rootCid || rootCid === 'None' || !heliaCar) return;
+    carDownloadBtn.disabled = true;
+    if (cloneStatus) {
+      cloneStatus.style.color = 'var(--color-success-fg)';
+      cloneStatus.textContent = 'Building CAR...';
+    }
+    try {
+      const bytes = await exportCarBytes(CID.parse(rootCid));
+      downloadBytes(bytes, `${rootCid}.car`);
+      if (cloneStatus) cloneStatus.textContent = `Downloaded ${rootCid}.car (${formatSize(bytes.length)})`;
+    } catch (err) {
+      if (cloneStatus) {
+        cloneStatus.style.color = 'var(--color-danger-fg)';
+        cloneStatus.textContent = `CAR export failed: ${err.message}`;
+      }
+    } finally {
+      carDownloadBtn.disabled = false;
+    }
+  });
+}
+
 function renderRepoTable(nodes, depth = 0) {
   const ul = document.createElement('ul');
   ul.className = 'repo-table' + (depth > 0 ? ' nested' : '');
@@ -709,6 +758,7 @@ async function addAllRepoFiles() {
         cloneCidEl.title = rootCidStr;
       }
       if (cloneZipBtn) cloneZipBtn.disabled = false;
+      if (carDownloadBtn) carDownloadBtn.disabled = false;
       if (fetchRepoBtn) fetchRepoBtn.disabled = false;
       if (downloadRepoBtn) downloadRepoBtn.disabled = false;
       statusEl.textContent = 'Online & All repository files added to IPFS';
@@ -759,6 +809,7 @@ async function initHelia() {
     heliaNode = await createHelia();
     heliaStrings = strings(heliaNode);
     heliaUnixfs = unixfs(heliaNode);
+    heliaCar = car(heliaNode);
     window.__heliaNode = heliaNode;
 
     const peerId = heliaNode.libp2p.peerId.toString();
