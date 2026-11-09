@@ -1,5 +1,6 @@
 // Release procedure: version bump, commit, tag, and keep the actions-test
-// submodule's tags in lockstep with ours.
+// submodule's tags in lockstep with ours — including the action SHA its
+// deploy.yml pins, so the fixture always consumes the release being cut.
 // Usage: npm run release <version>   (e.g. npm run release 1.6.38)
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -25,6 +26,26 @@ fs.writeFileSync('README.md', readme.replace(/ipfs-gh-pages@v[\d.]+/g, `ipfs-gh-
 run('git add -A');
 run(`git commit -m "Release ${tag}"`);
 run(`git tag ${tag}`);
+
+// The fixture's deploy.yml must consume THIS release: pin it to the release
+// commit's full SHA before the lockstep flow below commits the submodule.
+try {
+  const releaseSha = run('git rev-parse HEAD');
+  const deployYml = 'actions-test/.github/workflows/deploy.yml';
+  if (fs.existsSync(deployYml)) {
+    const yml = fs.readFileSync(deployYml, 'utf8');
+    const bumped = yml.replace(
+      /uses: RandyMcMillan\/ipfs-gh-pages@\S+/,
+      `uses: RandyMcMillan/ipfs-gh-pages@${releaseSha} # ${tag}`
+    );
+    if (bumped !== yml) {
+      fs.writeFileSync(deployYml, bumped);
+      console.log(`${deployYml} pinned to ${releaseSha} (${tag})`);
+    }
+  }
+} catch (e) {
+  console.warn(`deploy.yml pin skipped: ${e.message}`);
+}
 
 // Lockstep: commit any pending changes inside the actions-test submodule,
 // push its branch, then tag it at the exact commit the superproject's
