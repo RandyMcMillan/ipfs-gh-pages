@@ -1810,6 +1810,7 @@ updateBootstrapBtnState();
 
 // Periodically refresh peers + enable share buttons once a circuit address exists
 let lastCloneAnnounce = 0;
+const cloneRedialAttempts = new Map();
 setInterval(() => {
   refreshPeers();
   updateBootstrapBtnState();
@@ -1886,6 +1887,21 @@ setInterval(() => {
         lastCloneAnnounce = Date.now();
         try { pubsub.unsubscribe(topic); } catch {}
         try { pubsub.subscribe(topic); } catch {}
+      }
+      // libp2p 2.x removed connection tagging, so protect clone peers
+      // app-side: redial any known subscriber we are no longer connected
+      // to (bounded: one attempt per peer per 20s).
+      for (const sub of subs) {
+        try {
+          const pid = sub;
+          if (heliaNode.libp2p.getConnections(pid).length === 0) {
+            const last = cloneRedialAttempts.get(pid) || 0;
+            if (Date.now() - last > 20000) {
+              cloneRedialAttempts.set(pid, Date.now());
+              heliaNode.libp2p.dial(pid).catch(() => {});
+            }
+          }
+        } catch {}
       }
     } catch {}
   }
