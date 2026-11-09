@@ -2,7 +2,9 @@
 // ensure Chrome (CHROME_PATH), start the dev server unless TEST_URL points
 // elsewhere, run the full suite, tear down. A global timeout turns a wedged
 // suite into a failure instead of a hung job. A server already answering on
-// the port is reused, not replaced.
+// the port is reused, not replaced. The global timeout is a backstop above
+// the sum of every suite's bounded waits (~18 min worst case): healthy cold
+// CI runs take well under it, and a true hang (previously 55+ min) is caught.
 import { spawn } from 'node:child_process';
 import { ensureChrome } from './ci-chrome.mjs';
 
@@ -10,7 +12,7 @@ const HOST = process.env.E2E_HOST || '127.0.0.1';
 const PORT = Number(process.env.E2E_PORT || 5173);
 const BASE = `http://${HOST}:${PORT}`;
 const READY_TIMEOUT_MS = Number(process.env.E2E_READY_TIMEOUT_MS || 60000);
-const GLOBAL_TIMEOUT_MS = Number(process.env.E2E_TIMEOUT_MS || 15 * 60 * 1000);
+const GLOBAL_TIMEOUT_MS = Number(process.env.E2E_TIMEOUT_MS || 20 * 60 * 1000);
 
 function killTree(pid) {
   try { process.kill(-pid, 'SIGKILL'); } catch {}
