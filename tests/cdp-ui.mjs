@@ -136,6 +136,21 @@ await new Promise((r) => setTimeout(r, 3000));
 check('star counter wired', (await evalJson(`document.getElementById('gh-star-count')?.textContent`)) !== undefined);
 check('language bar wired', (await evalJson(`document.querySelectorAll('#lang-bar span').length`)) >= 1);
 
+// Objective-2 mapping: reference table and Kubo chips render with live values.
+vlog('Checking IPFS ↔ Kubo mapping...');
+check('reference table rendered', await evalJson(`document.querySelectorAll('#clone-help-modal .ref-table tbody tr').length`) >= 10);
+check('car chip shows live root CID', await evalJson(`document.getElementById('chip-car-export').textContent.startsWith('ipfs dag export baf')`));
+check('fetch chip tracks input', await evalJson(`(() => {
+  const i = document.getElementById('input-cid');
+  i.value = 'bafybeicj3t4gsdyf2rw7l3ljfl6vhpftvu3be3n6mrqhygqlt4bq5xpotq';
+  return true;
+})()`) === true);
+await new Promise((r) => setTimeout(r, 2500));
+check('fetch chip updated', await evalJson(`document.getElementById('chip-fetch-get').textContent`) === 'ipfs get bafybeicj3t4gsdyf2rw7l3ljfl6vhpftvu3be3n6mrqhygqlt4bq5xpotq');
+await evalJson(`document.getElementById('tab-btn-peer').click(); true`);
+await new Promise((r) => setTimeout(r, 400));
+check('peer reference chips rendered', await evalJson(`document.querySelectorAll('#sub-tab-connect .kubo-chip').length`) >= 4);
+
 ws.close();
 proc.kill();
 finish('UI CHROME TEST');
