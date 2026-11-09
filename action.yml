@@ -52,19 +52,7 @@ runs:
       working-directory: ${{ github.action_path }}
       env:
         REPO_ROOT: ${{ inputs.repo-root }}
-      run: |
-        npx --yes @puppeteer/browsers install chrome@stable >/dev/null
-        CHROME_BIN=$(find "$HOME/.cache/puppeteer/chrome" -path '*chrome-linux64/chrome' -type f | head -1)
-        echo "Installed: $CHROME_BIN"
-        npm run dev -- --host 127.0.0.1 --port 5173 &
-        for i in $(seq 1 60); do
-          if curl -s http://127.0.0.1:5173 >/dev/null; then
-            echo "Dev server ready"
-            break
-          fi
-          sleep 1
-        done
-        CHROME_PATH="$CHROME_BIN" npm test
+      run: npm run test:ci
 
     - name: Build bundle
       id: build

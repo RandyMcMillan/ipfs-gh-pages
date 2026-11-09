@@ -1,0 +1,31 @@
+name: 'Setup test environment'
+description: 'Node with npm cache, install dependencies, and a cached Chrome for Testing for the CDP suite.'
+inputs:
+  node-version:
+    description: 'Node.js version to use.'
+    required: false
+    default: '20'
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+
+    - name: Cache Chrome for Testing
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/puppeteer
+        key: ${{ runner.os }}-puppeteer-chrome-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-puppeteer-chrome-
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Ensure Chrome
+      shell: bash
+      run: npm run ci:chrome
