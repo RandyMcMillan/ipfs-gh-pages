@@ -1396,9 +1396,12 @@ ipfs pin add &lt;root CID from the Clone bar&gt;</code></pre>
         <ol>
           <li>Kubo needs a browser-dialable transport. From this repo on the Kubo machine:</li>
         </ol>
-        <pre><code>npm run kubo:webrtc   # enables WebRTC Direct; then: ipfs daemon
-# local dev pages only: npm run kubo:ws (plain ws:// is
-# blocked as mixed content from https:// Pages)</code></pre>
+        <pre><code>npm run kubo:webrtc
+# enables WebRTC Direct; then:
+ipfs daemon
+# local dev pages only (plain ws:// is blocked as
+# mixed content from https:// Pages):
+npm run kubo:ws</code></pre>
         <ol start="2">
           <li>Allow this page's origin in Kubo (CORS):</li>
         </ol>
