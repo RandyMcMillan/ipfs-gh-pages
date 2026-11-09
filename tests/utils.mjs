@@ -1,6 +1,7 @@
 import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs';
+import { spawn } from 'node:child_process';
 
 export const isVerbose = process.env.VERBOSE === '1' || process.env.VERBOSE === 'true';
 export const testUrl = process.env.TEST_URL || 'http://127.0.0.1:5173';
@@ -74,4 +75,33 @@ export async function waitForDebugger(port, timeoutMs = 45000) {
     await new Promise((r) => setTimeout(r, 1000));
   }
   throw new Error(`Chrome DevTools endpoint not reachable on port ${port}`);
+}
+
+// Launch Chrome for a CDP test with stderr captured, so a launch failure
+// (missing shared libraries, arch mismatch, sandbox errors) prints the
+// actual error instead of surfacing as a silent endpoint timeout.
+export async function launchChrome(port, extraArgs = []) {
+  const chrome = findChrome();
+  vlog('Using Chrome:', chrome);
+  let errBuf = '';
+  const proc = spawn(chrome, ['--headless=new', '--disable-gpu', `--remote-debugging-port=${port}`, ...extraArgs], {
+    stdio: ['ignore', 'ignore', 'pipe']
+  });
+  proc.stderr.on('data', (d) => {
+    errBuf += d;
+    if (errBuf.length > 4000) errBuf = errBuf.slice(-4000);
+  });
+  proc.on('exit', (code) => {
+    if (code !== 0 && code !== null) {
+      console.error(`[chrome:${port}] exited early (code ${code}): ${errBuf.trim()}`);
+    }
+  });
+  try {
+    const page = await waitForDebugger(port);
+    return { proc, page, chrome };
+  } catch (err) {
+    console.error(`[chrome:${port}] ${err.message}\nchrome stderr:\n${errBuf.trim() || '(none)'}`);
+    try { proc.kill('SIGKILL'); } catch {}
+    throw err;
+  }
 }
