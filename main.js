@@ -224,7 +224,7 @@ const repoTreeSizes = new Map();
 
 const statusEl = document.getElementById('node-status');
 const peerIdEl = document.getElementById('peer-id');
-const multiaddrsEl = document.getElementById('multiaddrs');
+const multiaddrsListEl = document.getElementById('multiaddrs-list');
 const connectBtn = document.getElementById('btn-connect');
 const bootstrapBtn = document.getElementById('btn-bootstrap');
 const copyMultiaddrBtn = document.getElementById('btn-copy-multiaddr');
@@ -868,9 +868,9 @@ async function initHelia() {
 
     try {
       const addrs = heliaNode.libp2p.getMultiaddrs().map((a) => a.toString());
-      multiaddrsEl.textContent = addrs.length ? addrs.join(', ') : '(none - browser node)';
+      multiaddrsListEl.textContent = addrs.length ? addrs.join(', ') : '(none - browser node)';
     } catch (e) {
-      multiaddrsEl.textContent = '(unavailable)';
+      multiaddrsListEl.textContent = '(unavailable)';
     }
 
     publishBtn.disabled = false;
@@ -1813,13 +1813,48 @@ let lastCloneAnnounce = 0;
 setInterval(() => {
   refreshPeers();
   updateBootstrapBtnState();
-  // Keep the Node Status multiaddr line in sync: listen addrs appear once
-  // a relay reservation exists (the shareable multiaddr may already work).
+  // Keep the Node Status multiaddr list in sync: one foldable, copyable row
+  // per address. Rows appear once a relay reservation exists.
   try {
-    if (multiaddrsEl && heliaNode) {
+    if (multiaddrsListEl && heliaNode) {
       const addrs = heliaNode.libp2p.getMultiaddrs().map((a) => a.toString());
-      const next = addrs.length ? addrs.join(', ') : '(none yet — waiting for a relay reservation)';
-      if (multiaddrsEl.textContent !== next) multiaddrsEl.textContent = next;
+      const key = addrs.join('\n');
+      if (key !== multiaddrsListEl.dataset.key) {
+        multiaddrsListEl.dataset.key = key;
+        multiaddrsListEl.innerHTML = '';
+        if (addrs.length === 0) {
+          multiaddrsListEl.textContent = '(none yet — waiting for a relay reservation)';
+        } else {
+          for (const addr of addrs) {
+            const det = document.createElement('details');
+            det.style.marginBottom = '0.15rem';
+            const sum = document.createElement('summary');
+            sum.style.cssText = 'cursor:pointer;word-break:break-all;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.8rem;';
+            sum.textContent = addr;
+            sum.title = 'Click to copy';
+            const flash = () => {
+              const orig = addr;
+              sum.textContent = 'Copied to clipboard';
+              setTimeout(() => { sum.textContent = orig; }, 900);
+            };
+            sum.addEventListener('click', (e) => {
+              e.preventDefault();
+              navigator.clipboard?.writeText(addr).then(flash).catch(flash);
+            });
+            det.appendChild(sum);
+            const field = document.createElement('input');
+            field.type = 'text';
+            field.readOnly = true;
+            field.value = addr;
+            field.style.cssText = 'width:100%;margin:0.25rem 0 0.35rem 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.78rem;';
+            field.title = 'Click to select, then copy';
+            field.addEventListener('click', () => field.select());
+            field.addEventListener('focus', () => field.select());
+            det.appendChild(field);
+            multiaddrsListEl.appendChild(det);
+          }
+        }
+      }
     }
   } catch {}
   const pubsub = heliaNode?.libp2p?.services?.pubsub;
