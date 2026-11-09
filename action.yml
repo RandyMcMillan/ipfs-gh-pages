@@ -32,6 +32,9 @@ outputs:
   dist-path:
     description: 'Absolute path to the built bundle directory.'
     value: ${{ steps.build.outputs.dist_path }}
+  page-url:
+    description: 'URL of the deployed GitHub Pages site (present when deploy is true).'
+    value: ${{ steps.deployment.outputs.page_url }}
 
 runs:
   using: 'composite'
