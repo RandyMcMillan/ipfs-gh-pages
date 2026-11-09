@@ -1191,6 +1191,15 @@
             <ul id="peers-list"><li>(none)</li></ul>
 
             <div class="help" style="margin-top:1rem;">
+              <h4 style="margin-top:0;">Reference — Peer actions ↔ Kubo</h4>
+              <code class="kubo-chip" id="chip-swarm-connect">ipfs swarm connect '&lt;multiaddr&gt;'</code>
+              <code class="kubo-chip">ipfs swarm peers</code>
+              <code class="kubo-chip">ipfs routing findprovs &lt;CID&gt;</code>
+              <code class="kubo-chip">ipfs bootstrap add &lt;multiaddr&gt;</code>
+              <p style="margin-top:0.5rem;"><code>bootstrap add</code> persists a peer across restarts; the Connect button dials once.</p>
+            </div>
+
+            <div class="help" style="margin-top:1rem;">
               <h4>Connection Help</h4>
               <p>
                 Browsers cannot open raw TCP or UDP sockets. This Helia node can only dial peers over

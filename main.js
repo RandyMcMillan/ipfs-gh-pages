@@ -1694,6 +1694,12 @@ setInterval(() => {
       const cmd = `ipfs get ${cid && /^[a-z0-9]+$/i.test(cid) ? cid : '<CID>'}`;
       if (chipFetch.textContent !== cmd) chipFetch.textContent = cmd;
     }
+    const chipSwarm = document.getElementById('chip-swarm-connect');
+    if (chipSwarm && inputMultiaddr) {
+      const ma = inputMultiaddr.value.trim();
+      const cmd = ma ? `ipfs swarm connect '${ma}'` : "ipfs swarm connect '<multiaddr>'";
+      if (chipSwarm.textContent !== cmd) chipSwarm.textContent = cmd;
+    }
     // Publish tab help: pin command + full gateway URL once something is published.
     const publishHelp = document.getElementById('publish-help');
     if (publishHelp && publishHelp.style.display !== 'none') {
