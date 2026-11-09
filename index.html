@@ -1335,6 +1335,15 @@ ipfs daemon</pre>
 
           <h4>Result CID:</h4>
           <pre id="output-cid">None</pre>
+
+          <div id="publish-help" class="help" style="display: none; margin-top: 1rem; border-top: 1px solid var(--color-border-muted); padding-top: 0.75rem;">
+            <h4 style="margin-top: 0;">Make it durable &amp; shareable</h4>
+            <p>Published content lives in this tab only. With the tab open, pin it on your Kubo:</p>
+            <pre style="margin: 0.4rem 0;"><code id="publish-pin-cmd"></code></pre>
+            <p>Then your Kubo serves it from its gateway — locally or on your LAN:</p>
+            <pre style="margin: 0.4rem 0;"><code id="publish-gateway-url"></code></pre>
+            <p style="margin-bottom: 0;">Adjust the port if your gateway isn't the default (check <code>ipfs config Addresses.Gateway</code>).</p>
+          </div>
         </div>
       </section>
 

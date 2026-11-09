@@ -863,6 +863,9 @@ publishBtn.addEventListener('click', async () => {
     outputCid.textContent = cid.toString();
     outputCid.dataset.published = '1';
     inputCid.value = cid.toString();
+    window.__lastPublishedSlug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'published';
+    const help = document.getElementById('publish-help');
+    if (help) help.style.display = 'block';
   } catch (err) {
     outputCid.textContent = `Error publishing: ${err.message}`;
   } finally {
@@ -1588,6 +1591,26 @@ setInterval(() => {
       if (published && published.startsWith('baf')) {
         const cmd = `ipfs swarm connect '${ma}'\nipfs pin add ${published}`;
         if (docPublish.textContent !== cmd) docPublish.textContent = cmd;
+      }
+    }
+    // Publish tab help: pin command + full gateway URL once something is published.
+    const publishHelp = document.getElementById('publish-help');
+    if (publishHelp && publishHelp.style.display !== 'none') {
+      const publishedEl = document.getElementById('output-cid');
+      const published = publishedEl?.dataset.published ? publishedEl.textContent.trim() : null;
+      if (published) {
+        const slug = (window.__lastPublishedSlug || 'published');
+        const host = (document.getElementById('settings-rpc-host')?.value.trim()) || '127.0.0.1';
+        const pinCmd = document.getElementById('publish-pin-cmd');
+        if (pinCmd) {
+          const cmd = `ipfs swarm connect '${ma}'\nipfs pin add ${published}`;
+          if (pinCmd.textContent !== cmd) pinCmd.textContent = cmd;
+        }
+        const gw = document.getElementById('publish-gateway-url');
+        if (gw) {
+          const url = `http://${host}:8080/ipfs/${published}?filename=${slug}`;
+          if (gw.textContent !== url) gw.textContent = url;
+        }
       }
     }
   }
