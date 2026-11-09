@@ -1467,11 +1467,13 @@ if (copyMultiaddrBtn) {
 
 const shareLinkField = document.getElementById('share-link-field');
 
-// Current share link for this node, or null if no relayed address yet.
+// Current share link for this node: always the full public Pages URL
+// (https://<owner>.github.io/<repo>/?connect=...), even in local dev, so the
+// link works for anyone opening it.
 function buildShareLink() {
   const ma = getShareableMultiaddr();
   if (!ma) return null;
-  const url = new URL(window.location.href);
+  const url = new URL(pagesUrl);
   url.searchParams.set('connect', ma);
   return url.toString();
 }
