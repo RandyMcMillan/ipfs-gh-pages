@@ -1821,10 +1821,10 @@ const hasShareLinkParam = (() => {
 })();
 
 // Tab navigation
-document.querySelectorAll('.tab-button').forEach((button) => {
+document.querySelectorAll('.tab-button[data-tab]').forEach((button) => {
   button.addEventListener('click', () => {
     const tab = button.dataset.tab;
-    document.querySelectorAll('.tab-button').forEach((btn) => {
+    document.querySelectorAll('.tab-button[data-tab]').forEach((btn) => {
       btn.classList.remove('active');
       btn.setAttribute('aria-selected', 'false');
     });
