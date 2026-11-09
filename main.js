@@ -1706,6 +1706,26 @@ function renderBlockedPeers() {
 
 if (copyMultiaddrBtn) {
   copyMultiaddrBtn.addEventListener('click', async () => {
+    // Contributors (design objective 2): peers providing the repo root,
+    // from the delegated routing provider records. Cached 5 min.
+    const root = cloneCidEl?.textContent.trim();
+    if (root && root.startsWith('baf')) {
+      const cacheKey = `gh-contributors-${root}`;
+      let cached = null;
+      try { cached = JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch {}
+      if (cached && Date.now() - cached.fetchedAt < 5 * 60 * 1000) {
+        renderContributors(cached.providers);
+      } else {
+        fetch(`https://delegated-ipfs.dev/routing/v1/providers/${root}`, { headers: { accept: 'application/json' } })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((data) => {
+            const providers = (data?.Providers || []).map((p) => p.ID).filter(Boolean);
+            try { localStorage.setItem(cacheKey, JSON.stringify({ fetchedAt: Date.now(), providers })); } catch {}
+            renderContributors(providers);
+          })
+          .catch(() => {});
+      }
+    }
     const ma = getShareableMultiaddr();
     if (!ma) { shareStatus.textContent = 'No shareable address yet. Wait for a relay reservation.'; return; }
     try {
@@ -1796,6 +1816,35 @@ async function autoConnectFromUrl() {
         await new Promise((r) => setTimeout(r, 4000));
       }
     }
+  }
+}
+
+function renderContributors(providers) {
+  const el = document.getElementById('contributors-list');
+  if (!el) return;
+  el.innerHTML = '';
+  if (!providers || providers.length === 0) {
+    el.textContent = '(none yet — pin the repo on a Kubo to appear here)';
+    return;
+  }
+  for (const id of providers.slice(0, 8)) {
+    const div = document.createElement('div');
+    div.textContent = id;
+    div.title = 'Click to copy peer ID';
+    div.style.cssText = 'cursor:pointer;word-break:break-all;margin-bottom:0.25rem;';
+    div.addEventListener('click', () => {
+      navigator.clipboard?.writeText(id);
+      const orig = id;
+      div.textContent = 'Copied to clipboard';
+      setTimeout(() => { div.textContent = orig; }, 900);
+    });
+    el.appendChild(div);
+  }
+  if (providers.length > 8) {
+    const more = document.createElement('div');
+    more.style.color = 'var(--color-fg-muted)';
+    more.textContent = `+ ${providers.length - 8} more`;
+    el.appendChild(more);
   }
 }
 
