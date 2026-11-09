@@ -51,6 +51,25 @@ npm run test:zip      # zip a directory
 npm run test:download # download flow
 npm run test:share    # share link: two headless browsers, auto-connect via ?connect=
 node tests/cdp-ui.mjs # UI chrome regression tests (dropdown, tabs, blob view, theme)
+node tests/car.test.mjs  # CAR round-trip: export/import with locked deps only
+
+## Submodules & releases
+
+`actions-test` is a small submodule kept as the fixture for the
+per-submodule CAR build (`build-car` writes `<submodule>/<name>.car`).
+Its `.car` artifacts are ignored (`ignore = untracked` in `.gitmodules`)
+so the superproject stays clean.
+
+Release procedure with submodules:
+
+1. To update the fixture's content: commit and push inside the
+   submodule, then bump the gitlink here (the normal two-step).
+2. `npm run build` rebuilds every submodule CAR from the checked-out
+   commit — the CAR's root CID changes only when the submodule's
+   tracked files change.
+3. CI checkouts that don't initialize submodules skip the submodule
+   CARs gracefully; the main `dist/ipfs-gh-pages.car` is unaffected.
+node tests/cdp-ui.mjs # UI chrome regression tests (dropdown, tabs, blob view, theme)
 ```
 
 Set `CHROME_PATH` to point at your browser binary if it is not auto-detected.
