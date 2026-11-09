@@ -1395,22 +1395,22 @@ ipfs pin add &lt;root CID from the Clone bar&gt;</code></pre>
         <p><strong>Don't</strong> <code>ipfs add -r</code> a checkout to reproduce the CID: Kubo's UnixFS layout can differ from the browser's and produce a different CID. Import via <code>swarm connect</code> + <code>pin add</code> so the Clone-bar CID stays the authoritative one.</p>
 
         <h4>Connect your Kubo to this page (Kubo → page)</h4>
-        <ol>
-          <li>Kubo needs a browser-dialable transport. From this repo on the Kubo machine:</li>
-        </ol>
-        <pre><code>npm run kubo:webrtc
-# enables WebRTC Direct; then:
+        <p>Kubo needs a browser-dialable transport. From this repo on the Kubo machine, pick ONE:</p>
+        <pre><code># Option A (recommended — works from https:// Pages):
+npm run kubo:webrtc
 ipfs daemon
-# local dev pages only (plain ws:// is blocked as
-# mixed content from https:// Pages):
-npm run kubo:ws</code></pre>
-        <ol start="2">
+
+# Option B (local dev pages only — plain ws:// is blocked
+# as mixed content from https:// Pages):
+npm run kubo:ws
+ipfs daemon</code></pre>
+        <ol>
           <li>Allow this page's origin in Kubo (CORS):</li>
         </ol>
         <pre><code>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["&lt;this page's origin&gt;"]'
 ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
 ipfs daemon</code></pre>
-        <ol start="3">
+        <ol start="2">
           <li>Peer → Settings → <strong>Detect Kubo</strong>: probes the RPC API on ports 5001–5010, probe-dials the advertised addresses until one connects, and fills the Connect field.</li>
         </ol>
 
