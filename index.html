@@ -1387,7 +1387,7 @@ ipfs daemon</pre>
           <li>Open the green <strong>Code</strong> dropdown, switch to the <strong>Multiaddr</strong> tab, and copy the address.</li>
           <li>On the machine running Kubo:</li>
         </ol>
-        <pre><code>ipfs swarm connect '&lt;multiaddr&gt;'
+        <pre><code id="doc-swarm-cmd">ipfs swarm connect '&lt;multiaddr&gt;'
 ipfs pin add &lt;root CID from the Clone bar&gt;</code></pre>
         <p>Done — your Kubo now seeds the repo to the whole network (DHT), so anyone can run <code>ipfs get &lt;root CID&gt;</code>.</p>
         <p><strong>Don't</strong> <code>ipfs add -r</code> a checkout to reproduce the CID: Kubo's UnixFS layout can differ from the browser's and produce a different CID. Import via <code>swarm connect</code> + <code>pin add</code> so the Clone-bar CID stays the authoritative one.</p>

@@ -1558,6 +1558,12 @@ setInterval(() => {
     if (codeMultiaddrField && !codeMultiaddrField.value) codeMultiaddrField.value = ma;
     if (codeShareField && !codeShareField.value) codeShareField.value = buildShareLink() || '';
     if (shareLinkField && !shareLinkField.value) shareLinkField.value = buildShareLink() || '';
+    const docSwarm = document.getElementById('doc-swarm-cmd');
+    if (docSwarm) {
+      const root = (cloneCidEl && cloneCidEl.textContent.trim()) || '<root CID from the Clone bar>';
+      const cmd = `ipfs swarm connect '${ma}'\nipfs pin add ${root}`;
+      if (docSwarm.textContent !== cmd) docSwarm.textContent = cmd;
+    }
   }
 }, 2000);
 
