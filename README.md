@@ -52,6 +52,7 @@ npm run test:download # download flow
 npm run test:share    # share link: two headless browsers, auto-connect via ?connect=
 node tests/cdp-ui.mjs # UI chrome regression tests (dropdown, tabs, blob view, theme)
 node tests/car.test.mjs  # CAR round-trip: export/import with locked deps only
+npm run test:gateway  # public gateway reachability for the repo root (needs a provider)
 
 ## Submodules & releases
 
@@ -107,7 +108,7 @@ jobs:
 
       - name: Build and deploy IPFS site
         id: deploy
-        uses: RandyMcMillan/ipfs-gh-pages@v1.6.35
+        uses: RandyMcMillan/ipfs-gh-pages@v1.6.36
         with:
           node-version: '20'
           deploy: 'true'

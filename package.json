@@ -1,7 +1,7 @@
 {
   "name": "helio-ipfs-github-pages",
   "private": true,
-  "version": "1.6.35",
+  "version": "1.6.36",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -23,7 +23,8 @@
     "kubo:webrtc": "node scripts/kubo-config-webrtc.mjs",
     "kubo:id": "node scripts/kubo-rpc-id.mjs",
     "cert:generate": "node scripts/cert-generate.mjs",
-    "proxy:wss": "node scripts/wss-proxy.mjs"
+    "proxy:wss": "node scripts/wss-proxy.mjs",
+    "test:gateway": "node --test tests/gateway.test.mjs"
   },
   "dependencies": {
     "@helia/strings": "^4.0.0",
