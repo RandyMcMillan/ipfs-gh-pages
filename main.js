@@ -1572,6 +1572,14 @@ setInterval(() => {
         if (docGet.textContent !== cmd) docGet.textContent = cmd;
       }
     }
+    const docPin = document.getElementById('doc-pin-cmd');
+    if (docPin) {
+      const root = cloneCidEl?.textContent.trim();
+      if (root && root.startsWith('baf')) {
+        const cmd = `ipfs pin add ${root}`;
+        if (docPin.textContent !== cmd) docPin.textContent = cmd;
+      }
+    }
   }
 }, 2000);
 
