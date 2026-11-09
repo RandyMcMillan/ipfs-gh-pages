@@ -28,6 +28,7 @@
     "release": "node scripts/release.mjs"
   },
   "dependencies": {
+    "@chainsafe/libp2p-gossipsub": "^14.1.2",
     "@helia/strings": "^4.0.0",
     "@helia/unixfs": "^5.0.0",
     "@helia/verified-fetch": "^2.0.0",

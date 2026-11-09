@@ -1187,8 +1187,18 @@
             <button id="btn-copy-link" disabled>Copy Share Link</button>
             <p id="share-status"></p>
 
-            <h4 style="margin-top:1rem;">Connected Peers</h4>
-            <ul id="peers-list"><li>(none)</li></ul>
+            <details style="margin-top:1rem;">
+              <summary style="cursor: pointer; font-weight: 600;">Connected Peers (<span id="peer-count">0</span>)</summary>
+              <ul id="peers-list"><li>(none)</li></ul>
+            </details>
+            <details style="margin-top:0.5rem;">
+              <summary style="cursor: pointer; font-weight: 600;">Clones (<span id="clones-count">0</span>)</summary>
+              <ul id="clones-list"><li>(none yet — open the page in another browser)</li></ul>
+            </details>
+            <details style="margin-top:0.5rem;">
+              <summary style="cursor: pointer; font-weight: 600;">Blocked (<span id="blocked-count">0</span>)</summary>
+              <ul id="blocked-peers-list"><li>(none)</li></ul>
+            </details>
 
             <div class="help" style="margin-top:1rem;">
               <h4 style="margin-top:0;">Reference — Peer actions ↔ Kubo</h4>

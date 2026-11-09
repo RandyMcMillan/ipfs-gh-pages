@@ -1,5 +1,7 @@
 import '@primer/css/dist/primer.css';
-import { createHelia } from 'helia';
+import { createHelia, libp2pDefaults } from 'helia';
+import { createLibp2p } from 'libp2p';
+import { gossipsub } from '@chainsafe/libp2p-gossipsub';
 import { car } from '@helia/car';
 import { CarWriter } from '@ipld/car/writer';
 import repoIdentity from 'virtual:repo-identity';
@@ -24,7 +26,7 @@ const { repoOwner, repoName } = (() => {
   if (repoIdentity.owner && repoIdentity.name) {
     return { repoOwner: repoIdentity.owner, repoName: repoIdentity.name };
   }
-  return { repoOwner: 'RandyMcMillan', repoName: 'ipfs-gh-pages' };
+  return { repoOwner: 'gnostr', repoName: 'gnostr-repo' };
 })();
 const repoFullName = `${repoOwner}/${repoName}`;
 const repoUrl = `https://github.com/${repoFullName}`;
@@ -823,12 +825,41 @@ async function addAllRepoFiles() {
 
 async function initHelia() {
   try {
-    // Spawn an in-browser IPFS node
-    heliaNode = await createHelia();
+    // Spawn an in-browser IPFS node. Extend helia's own libp2p defaults
+    // with gossipsub for clone detection (a bare services key would
+    // clobber the defaults — identify, dht, ping, etc.).
+    const lpDefaults = libp2pDefaults();
+    const libp2p = await createLibp2p({
+      ...lpDefaults,
+      services: {
+        ...lpDefaults.services,
+        pubsub: gossipsub({ emitSelf: false })
+      }
+    });
+    heliaNode = await createHelia({ libp2p });
     heliaStrings = strings(heliaNode);
     heliaUnixfs = unixfs(heliaNode);
     heliaCar = car(heliaNode);
     window.__heliaNode = heliaNode;
+
+    // Enforce the persisted peer blocklist on every new connection,
+    // inbound included: blocked peers are closed on sight.
+    heliaNode.libp2p.addEventListener('connection:open', (evt) => {
+      const id = evt.detail.remotePeer.toString();
+      if (isBlockedPeer(id)) {
+        evt.detail.close().catch(() => {});
+      }
+    });
+
+    // Clone detection: every instance of this app subscribes to a gossip
+    // topic named after the repo, so subscribers ARE clones (peers running
+    // the same published app). Unknown deployments share the gnostr default.
+    const pubsub = heliaNode.libp2p.services?.pubsub;
+    if (pubsub) {
+      try {
+        pubsub.subscribe(`repo-gossip:${repoFullName}`);
+      } catch {}
+    }
 
     const peerId = heliaNode.libp2p.peerId.toString();
 
@@ -1504,24 +1535,165 @@ function getShareableMultiaddr() {
   return addrs[0] || null;
 }
 
+// Blocked peers: persisted denylist. Blocked peers are hung up on sight
+// (including inbound connections) and hidden from the connected list.
+const BLOCKED_KEY = 'blocked-peers';
+function getBlockedPeers() {
+  try { return JSON.parse(localStorage.getItem(BLOCKED_KEY) || '[]'); } catch { return []; }
+}
+function setBlockedPeers(list) {
+  try { localStorage.setItem(BLOCKED_KEY, JSON.stringify(list)); } catch {}
+}
+function isBlockedPeer(id) {
+  return getBlockedPeers().includes(id);
+}
+function blockPeer(id) {
+  if (!isBlockedPeer(id)) setBlockedPeers([...getBlockedPeers(), id]);
+  const pid = id;
+  heliaNode?.libp2p.hangUp(pid).catch(() => {});
+  refreshPeers();
+}
+function unblockPeer(id) {
+  setBlockedPeers(getBlockedPeers().filter((x) => x !== id));
+  refreshPeers();
+}
+
 function refreshPeers() {
   if (!heliaNode || !peersListEl) return;
   try {
     const peers = heliaNode.libp2p.getPeers();
+    const countEl = document.getElementById('peer-count');
+    if (countEl) countEl.textContent = String(peers.length);
+    peersListEl.innerHTML = '';
     if (!peers || peers.length === 0) {
       peersListEl.innerHTML = '<li>(none)</li>';
-      return;
     }
-    peersListEl.innerHTML = '';
+    const pingService = heliaNode.libp2p.services?.ping;
     for (const p of peers) {
+      const id = p.toString();
       const li = document.createElement('li');
-      li.textContent = p.toString();
-      li.style.fontSize = '0.85rem';
+      li.style.marginBottom = '0.4rem';
       li.style.wordBreak = 'break-all';
+      const fold = document.createElement('details');
+      const summary = document.createElement('summary');
+      summary.style.cursor = 'pointer';
+      summary.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, monospace';
+      summary.style.fontSize = '0.8rem';
+      const idSpan = document.createElement('span');
+      idSpan.textContent = id;
+      idSpan.title = 'Click to copy peer ID';
+      idSpan.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        navigator.clipboard?.writeText(id);
+        idSpan.textContent = 'Copied to clipboard';
+        setTimeout(() => { idSpan.textContent = id; }, 900);
+      });
+      summary.appendChild(idSpan);
+      fold.appendChild(summary);
+
+      const body = document.createElement('div');
+      body.style.marginTop = '0.3rem';
+      body.style.paddingLeft = '1rem';
+
+      const btns = document.createElement('div');
+      btns.style.marginBottom = '0.3rem';
+      btns.style.whiteSpace = 'nowrap';
+      const mkBtn = (label, title, onClick) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'btn btn-sm';
+        b.textContent = label;
+        b.title = title;
+        b.style.marginRight = '0.35rem';
+        b.style.marginBottom = '0.1rem';
+        b.style.padding = '0.1rem 0.5rem';
+        b.style.fontSize = '0.75rem';
+        b.addEventListener('click', onClick);
+        return b;
+      };
+
+      const pingBtn = mkBtn('Ping', 'Measure round-trip latency', async () => {
+        if (!pingService) return;
+        pingBtn.disabled = true;
+        pingResult.textContent = 'pinging…';
+        try {
+          const latency = await pingService.ping(p);
+          pingResult.textContent = `ping: ${latency}ms`;
+        } catch (e) {
+          pingResult.textContent = `ping failed: ${(e?.message || e).slice(0, 40)}`;
+        } finally {
+          pingBtn.disabled = false;
+        }
+      });
+      if (!pingService) pingBtn.disabled = true;
+      const pingResult = document.createElement('span');
+      pingResult.style.marginLeft = '0.4rem';
+      pingResult.style.color = 'var(--color-fg-muted)';
+      pingResult.style.fontSize = '0.75rem';
+
+      btns.appendChild(pingBtn);
+      btns.appendChild(mkBtn('Disconnect', 'Drop all connections to this peer', () => {
+        heliaNode.libp2p.hangUp(p).catch(() => {});
+      }));
+      btns.appendChild(mkBtn('Block', 'Disconnect and refuse future connections (persisted)', () => {
+        blockPeer(id);
+      }));
+      body.appendChild(btns);
+      body.appendChild(pingResult);
+
+      try {
+        const conns = heliaNode.libp2p.getConnections(p);
+        const streams = conns.reduce((n, c) => n + (c.streams?.length || 0), 0);
+        const meta = document.createElement('div');
+        meta.style.color = 'var(--color-fg-muted)';
+        meta.style.fontSize = '0.75rem';
+        meta.textContent = `${conns.map((c) => c.direction).join(', ')} · ${conns.length} connection(s) · ${streams} stream(s)`;
+        body.appendChild(meta);
+        if (conns[0]) {
+          const addr = document.createElement('div');
+          addr.textContent = conns[0].remoteAddr.toString();
+          addr.style.cssText = 'color:var(--color-fg-muted);font-size:0.72rem;word-break:break-all;';
+          body.appendChild(addr);
+        }
+      } catch {}
+      fold.appendChild(body);
+      li.appendChild(fold);
       peersListEl.appendChild(li);
     }
+    renderBlockedPeers();
   } catch (e) {
     // ignore
+  }
+}
+
+function renderBlockedPeers() {
+  const listEl = document.getElementById('blocked-peers-list');
+  const countEl = document.getElementById('blocked-count');
+  if (!listEl) return;
+  const blocked = getBlockedPeers();
+  if (countEl) countEl.textContent = String(blocked.length);
+  listEl.innerHTML = '';
+  if (blocked.length === 0) {
+    listEl.innerHTML = '<li>(none)</li>';
+    return;
+  }
+  for (const id of blocked) {
+    const li = document.createElement('li');
+    li.style.wordBreak = 'break-all';
+    li.style.marginBottom = '0.4rem';
+    const span = document.createElement('span');
+    span.textContent = id + ' ';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-sm';
+    btn.textContent = 'Unblock';
+    btn.style.padding = '0.1rem 0.5rem';
+    btn.style.fontSize = '0.75rem';
+    btn.addEventListener('click', () => unblockPeer(id));
+    li.appendChild(span);
+    li.appendChild(btn);
+    listEl.appendChild(li);
   }
 }
 
@@ -1640,6 +1812,29 @@ updateBootstrapBtnState();
 setInterval(() => {
   refreshPeers();
   updateBootstrapBtnState();
+  const pubsub = heliaNode?.libp2p?.services?.pubsub;
+  if (pubsub) {
+    try {
+      const subs = pubsub.getSubscribers(`repo-gossip:${repoFullName}`).map(String);
+      const countEl = document.getElementById('clones-count');
+      const listEl = document.getElementById('clones-list');
+      if (countEl) countEl.textContent = String(subs.length);
+      if (listEl) {
+        listEl.innerHTML = '';
+        if (subs.length === 0) {
+          listEl.innerHTML = '<li>(none yet — open the page in another browser)</li>';
+        } else {
+          for (const id of subs) {
+            const li = document.createElement('li');
+            li.textContent = id;
+            li.style.wordBreak = 'break-all';
+            li.style.fontSize = '0.85rem';
+            listEl.appendChild(li);
+          }
+        }
+      }
+    } catch {}
+  }
   const ma = getShareableMultiaddr();
   if (ma) {
     if (copyMultiaddrBtn) copyMultiaddrBtn.disabled = false;

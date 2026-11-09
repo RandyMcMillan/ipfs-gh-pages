@@ -26,12 +26,22 @@ run('git add -A');
 run(`git commit -m "Release ${tag}"`);
 run(`git tag ${tag}`);
 
-// Lockstep: tag the actions-test submodule at the exact commit the
-// superproject's gitlink records, and push that tag to its own origin.
+// Lockstep: commit any pending changes inside the actions-test submodule,
+// push its branch, then tag it at the exact commit the superproject's
+// gitlink records and push that tag — on every release.
 try {
   const sub = 'actions-test';
   if (fs.existsSync(`${sub}/.git`)) {
+    const dirty = run(`git -C ${sub} status --porcelain`);
+    if (dirty) {
+      run(`git -C ${sub} add -A`);
+      run(`git -C ${sub} commit -m "release ${tag} (lockstep)"`);
+    }
+    const branch = run(`git -C ${sub} rev-parse --abbrev-ref HEAD`);
     const sha = run(`git -C ${sub} rev-parse HEAD`);
+    if (dirty || run(`git -C ${sub} rev-parse HEAD`) !== (() => { try { return run(`git -C ${sub} rev-parse origin/${branch}`); } catch { return ''; } })()) {
+      run(`git -C ${sub} push origin ${branch}`);
+    }
     const remoteHas = (() => {
       try {
         return run(`git -C ${sub} ls-remote --tags origin ${tag}`).length > 0;
@@ -43,7 +53,12 @@ try {
     if (!remoteHas) {
       run(`git -C ${sub} push origin ${tag}`);
     }
-    console.log(`${sub} @ ${sha.slice(0, 10)} is tagged ${tag} (lockstep)`);
+    // If the submodule moved, bump the superproject gitlink.
+    if (dirty) {
+      run(`git add ${sub}`);
+      run(`git commit -m "${sub}: lockstep bump for ${tag}"`);
+    }
+    console.log(`${sub} @ ${sha.slice(0, 10)} committed+pushed, tagged ${tag} (lockstep)`);
   }
 } catch (e) {
   console.warn(`submodule lockstep skipped: ${e.message}`);
