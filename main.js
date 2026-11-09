@@ -1620,9 +1620,26 @@ async function autoConnectFromUrl() {
   }
 }
 
+// Color the "Connect to Bootstrap Peers" button from the live connect status:
+// green when connected, yellow while connecting/retrying, red otherwise.
+function updateBootstrapBtnState() {
+  if (!bootstrapBtn) return;
+  const s = connectStatus.textContent || '';
+  bootstrapBtn.classList.remove('connected', 'connecting', 'disconnected');
+  if (s.startsWith('Connected to')) {
+    bootstrapBtn.classList.add('connected');
+  } else if (/Connecting|Retrying|Probing|Resolving/.test(s)) {
+    bootstrapBtn.classList.add('connecting');
+  } else {
+    bootstrapBtn.classList.add('disconnected');
+  }
+}
+updateBootstrapBtnState();
+
 // Periodically refresh peers + enable share buttons once a circuit address exists
 setInterval(() => {
   refreshPeers();
+  updateBootstrapBtnState();
   const ma = getShareableMultiaddr();
   if (ma) {
     if (copyMultiaddrBtn) copyMultiaddrBtn.disabled = false;
