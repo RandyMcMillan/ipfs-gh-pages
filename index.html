@@ -1426,6 +1426,14 @@ ipfs daemon</code></pre>
         <pre><code id="doc-get-cmd">ipfs get &lt;CID&gt;</code></pre>
         <p>If a fetch stalls, the page asks <code>delegated-ipfs.dev</code> who provides the CID, dials those providers, and retries — so content can come from any pin or clone, even when the original publisher is offline.</p>
 
+        <h4>Publish durably</h4>
+        <p>Text published on the Publish tab lives only in your browser tab — it serves the content <strong>while the tab is open</strong>.</p>
+        <p>The durable pattern, same as the repo root: with the publishing tab open, connect your Kubo:</p>
+        <pre><code id="doc-publish-cmd">ipfs swarm connect '&lt;multiaddr&gt;'
+ipfs pin add &lt;CID from the Publish tab&gt;</code></pre>
+        <p>Anything you pin or copy into MFS on your Kubo then becomes network-durable for everyone:</p>
+        <pre><code>ipfs files cp /ipfs/&lt;CID&gt; /&lt;name&gt;</code></pre>
+
         <h4>Keeping content available</h4>
         <p><span style="color: var(--fgColor-attention);"><strong>IPFS keeps only what someone pins.</strong></span> The browser announces the repo to the delegated index <strong>while the page is open</strong>.<br><strong>A closed tab stops serving.</strong><br>For durable availability, pin the root CID on your Kubo:</p>
         <pre><code id="doc-pin-cmd">ipfs pin add &lt;root CID&gt;</code></pre>

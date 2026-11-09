@@ -861,6 +861,7 @@ publishBtn.addEventListener('click', async () => {
   try {
     const cid = await heliaStrings.add(text);
     outputCid.textContent = cid.toString();
+    outputCid.dataset.published = '1';
     inputCid.value = cid.toString();
   } catch (err) {
     outputCid.textContent = `Error publishing: ${err.message}`;
@@ -1578,6 +1579,15 @@ setInterval(() => {
       if (root && root.startsWith('baf')) {
         const cmd = `ipfs pin add ${root}`;
         if (docPin.textContent !== cmd) docPin.textContent = cmd;
+      }
+    }
+    const docPublish = document.getElementById('doc-publish-cmd');
+    if (docPublish) {
+      const publishedEl = document.getElementById('output-cid');
+      const published = publishedEl?.dataset.published ? publishedEl.textContent.trim() : null;
+      if (published && published.startsWith('baf')) {
+        const cmd = `ipfs swarm connect '${ma}'\nipfs pin add ${published}`;
+        if (docPublish.textContent !== cmd) docPublish.textContent = cmd;
       }
     }
   }
