@@ -565,6 +565,24 @@ async function exportCarBytes(rootCid) {
   return bytes;
 }
 
+// Publish tab: download the published content as a CAR.
+const publishCarBtn = document.getElementById('btn-publish-car');
+if (publishCarBtn) {
+  publishCarBtn.addEventListener('click', async () => {
+    const published = document.getElementById('output-cid')?.dataset.published
+      ? document.getElementById('output-cid').textContent.trim()
+      : null;
+    if (!published || !heliaCar) return;
+    publishCarBtn.disabled = true;
+    try {
+      const bytes = await exportCarBytes(CID.parse(published));
+      downloadBytes(bytes, `${published}.car`);
+    } finally {
+      publishCarBtn.disabled = false;
+    }
+  });
+}
+
 // Download CAR: export the whole repo (exact root CID) as a CAR archive.
 if (carDownloadBtn) {
   carDownloadBtn.addEventListener('click', async () => {
@@ -1671,6 +1689,11 @@ setInterval(() => {
         if (pubSub) {
           const url = `https://${published}.ipfs.dweb.link?filename=${slug}`;
           if (pubSub.textContent !== url) pubSub.textContent = url;
+        }
+        const carImport = document.getElementById('publish-car-import-cmd');
+        if (carImport) {
+          const cmd = `ipfs dag import ${published}.car`;
+          if (carImport.textContent !== cmd) carImport.textContent = cmd;
         }
       }
     }
