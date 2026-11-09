@@ -56,7 +56,7 @@ try {
     // If the submodule moved, bump the superproject gitlink.
     if (dirty) {
       run(`git add ${sub}`);
-      run(`git commit -m "${sub}: lockstep bump for ${tag}"`);
+      run(`git commit -m "${sub}: update ${sub}@${sha}"`);
     }
     console.log(`${sub} @ ${sha.slice(0, 10)} committed+pushed, tagged ${tag} (lockstep)`);
   }

@@ -1809,13 +1809,24 @@ function updateBootstrapBtnState() {
 updateBootstrapBtnState();
 
 // Periodically refresh peers + enable share buttons once a circuit address exists
+let lastCloneAnnounce = 0;
 setInterval(() => {
   refreshPeers();
   updateBootstrapBtnState();
+  // Keep the Node Status multiaddr line in sync: listen addrs appear once
+  // a relay reservation exists (the shareable multiaddr may already work).
+  try {
+    if (multiaddrsEl && heliaNode) {
+      const addrs = heliaNode.libp2p.getMultiaddrs().map((a) => a.toString());
+      const next = addrs.length ? addrs.join(', ') : '(none yet — waiting for a relay reservation)';
+      if (multiaddrsEl.textContent !== next) multiaddrsEl.textContent = next;
+    }
+  } catch {}
   const pubsub = heliaNode?.libp2p?.services?.pubsub;
   if (pubsub) {
     try {
-      const subs = pubsub.getSubscribers(`repo-gossip:${repoFullName}`).map(String);
+      const topic = `repo-gossip:${repoFullName}`;
+      const subs = pubsub.getSubscribers(topic).map(String);
       const countEl = document.getElementById('clones-count');
       const listEl = document.getElementById('clones-list');
       if (countEl) countEl.textContent = String(subs.length);
@@ -1832,6 +1843,14 @@ setInterval(() => {
             listEl.appendChild(li);
           }
         }
+      }
+      // If nobody is known on the topic, re-announce: gossipsub only
+      // propagates subscriptions from subscribe events, so peers that
+      // connected after we subscribed never heard about us.
+      if (subs.length === 0 && Date.now() - lastCloneAnnounce > 15000) {
+        lastCloneAnnounce = Date.now();
+        try { pubsub.unsubscribe(topic); } catch {}
+        try { pubsub.subscribe(topic); } catch {}
       }
     } catch {}
   }
