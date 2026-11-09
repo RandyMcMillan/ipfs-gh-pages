@@ -1460,7 +1460,7 @@ if (copyMultiaddrBtn) {
       await navigator.clipboard.writeText(ma);
       shareStatus.textContent = 'Copied multiaddr to clipboard.';
     } catch (e) {
-      shareStatus.textContent = ma;
+      shareStatus.textContent = 'Copy failed — open the Code dropdown and copy the multiaddr from the Multiaddr tab.';
     }
   });
 }
