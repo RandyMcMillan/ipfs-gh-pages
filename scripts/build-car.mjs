@@ -10,6 +10,15 @@ import { unixfs } from '@helia/unixfs';
 import { car } from '@helia/car';
 import { CarWriter } from '@ipld/car/writer';
 
+// helia/@ipld/car use Promise.withResolvers (Node 22+); CI builds on Node 20.
+if (typeof Promise.withResolvers !== 'function') {
+  Promise.withResolvers = function () {
+    let resolve, reject;
+    const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+    return { promise, resolve, reject };
+  };
+}
+
 const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
 const outDir = path.resolve(process.argv[2] || path.join(root, 'dist'));
 
