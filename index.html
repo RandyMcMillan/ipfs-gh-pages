@@ -452,6 +452,34 @@
       overflow-y: auto;
       padding: 1.25rem 1.5rem;
     }
+    #clone-help-modal .modal-card {
+      max-width: 880px;
+      max-height: 90vh;
+    }
+    #clone-help-modal .modal-body h4 {
+      border-bottom: 1px solid var(--color-border-muted);
+      padding-bottom: 0.3rem;
+      margin-top: 1.4rem;
+    }
+    #clone-help-modal .modal-body ol,
+    #clone-help-modal .modal-body ul {
+      padding-left: 1.4rem;
+      margin: 0.4rem 0;
+    }
+    #clone-help-modal .modal-body pre {
+      background: var(--color-canvas-subtle);
+      border: 1px solid var(--color-border-muted);
+      border-radius: 6px;
+      padding: 0.6rem 0.8rem;
+      overflow-x: auto;
+      font-size: 0.82rem;
+      margin: 0.5rem 0;
+    }
+    #clone-help-modal .modal-body pre code {
+      background: none;
+      border: none;
+      padding: 0;
+    }
     .modal-header {
       display: flex;
       align-items: center;
@@ -980,7 +1008,7 @@
               <p id="clone-status" class="f6 status" style="margin: 0.5rem 0 0; word-break: break-all;"></p>
             </div>
           </div>
-          <button type="button" id="btn-clone-help" class="help-btn" title="How CIDs are used">?</button>
+          <button type="button" id="btn-clone-help" class="help-btn" title="Docs — this page, IPFS, and Kubo">?</button>
         </div>
 
         <div class="card" style="padding: 0; border: none; background: transparent;">
@@ -1346,18 +1374,58 @@ ipfs daemon</pre>
   <div id="clone-help-modal" class="modal-backdrop" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="clone-help-title">
       <div class="modal-header">
-        <h3 id="clone-help-title">How CIDs are used</h3>
+        <h3 id="clone-help-title">Docs — this page, IPFS, and your Kubo node</h3>
         <button type="button" id="btn-close-clone-help" class="modal-close" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body">
-        <h4>Content addressing</h4>
-        <p>Every file on IPFS is identified by a <strong>CID</strong> — a hash of its content. The same content always has the same CID, on any node, forever. Change one byte and the CID changes.</p>
-        <h4>The root CID</h4>
-        <p>The chip in the Clone bar is the CID of the whole repository — a snapshot of every file and directory, content-addressed. It identifies this exact version of the repo; a new commit produces a new root CID.</p>
-        <h4>CIDs in the file tree</h4>
-        <p>Each file and folder in the Repository File Tree shows its own CID. Click any CID to copy it, then fetch that exact file or directory from the network with the Fetch box — or with <code>ipfs get &lt;CID&gt;</code> on the command line.</p>
+        <h4>What this page is</h4>
+        <p>A full IPFS node (Helia) running in your browser. On load it adds every file of this repository to IPFS and shows the <strong>root CID</strong> in the Clone bar. Anyone can fetch the repo by that CID — from this page, from another browser, or from any Kubo node that knows it.</p>
+
+        <h4>Clone the repo into your Kubo (page → Kubo)</h4>
+        <ol>
+          <li>Keep this page open — the browser node is the source of the files.</li>
+          <li>Open the green <strong>Code</strong> dropdown, switch to the <strong>Multiaddr</strong> tab, and copy the address.</li>
+          <li>On the machine running Kubo:</li>
+        </ol>
+        <pre><code>ipfs swarm connect '&lt;multiaddr&gt;'
+ipfs pin add &lt;root CID from the Clone bar&gt;</code></pre>
+        <p>Done — your Kubo now seeds the repo to the whole network (DHT), so anyone can run <code>ipfs get &lt;root CID&gt;</code>.</p>
+        <p><strong>Don't</strong> <code>ipfs add -r</code> a checkout to reproduce the CID: Kubo's UnixFS layout can differ from the browser's and produce a different CID. Import via <code>swarm connect</code> + <code>pin add</code> so the Clone-bar CID stays the authoritative one.</p>
+
+        <h4>Connect your Kubo to this page (Kubo → page)</h4>
+        <ol>
+          <li>Kubo needs a browser-dialable transport. From this repo on the Kubo machine:</li>
+        </ol>
+        <pre><code>npm run kubo:webrtc   # enables WebRTC Direct; then: ipfs daemon
+# local dev pages only: npm run kubo:ws (plain ws:// is
+# blocked as mixed content from https:// Pages)</code></pre>
+        <ol start="2">
+          <li>Allow this page's origin in Kubo (CORS):</li>
+        </ol>
+        <pre><code>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["&lt;this page's origin&gt;"]'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
+ipfs daemon</code></pre>
+        <ol start="3">
+          <li>Peer → Settings → <strong>Detect Kubo</strong>: probes the RPC API on ports 5001–5010, probe-dials the advertised addresses until one connects, and fills the Connect field.</li>
+        </ol>
+
+        <h4>Share this node with another browser</h4>
+        <p>The Code dropdown's <strong>Share Link</strong> is a full URL with <code>?connect=&lt;address&gt;</code>. Opening it in another browser auto-connects the two nodes through a public relay (<code>p2p-circuit</code>), because browsers cannot accept inbound connections.</p>
+
+        <h4>Fetch any CID</h4>
+        <p>Use the Fetch box in the Files tab, or <code>ipfs get &lt;CID&gt;</code> on Kubo. If a fetch stalls, the page asks <code>delegated-ipfs.dev</code> who provides the CID, dials those providers, and retries — so content can come from any pin or clone, even when the original publisher is offline.</p>
+
         <h4>Keeping content available</h4>
-        <p>IPFS keeps only what someone has pinned. Run <code>ipfs pin add &lt;CID&gt;</code> on your own node to keep a copy and re-seed it — the publisher going offline won't make a pinned repo disappear.</p>
+        <p>IPFS keeps only what someone pins. The browser announces the repo to the delegated index while the page is open, but a closed tab stops serving. For durable availability, pin the root CID on your Kubo (steps above) — the Pin row and this section are the same command.</p>
+
+        <h4>Troubleshooting</h4>
+        <ul>
+          <li><strong>403 from the RPC API</strong> → CORS: allow the page origin (commands above). Browsers treat <code>127.0.0.1</code> and <code>localhost</code> as different origins — allow both if you use both.</li>
+          <li><strong>"Connection gater denied" dialing webrtc-direct</strong> → use the LAN or public address from <code>ipfs id</code>, not a loopback one.</li>
+          <li><strong>Kubo can't find a browser-provided CID</strong> → browsers announce to the delegated index only, which stock Kubo doesn't read. Connect directly (<code>ipfs swarm connect</code>) or pin via the page→Kubo steps.</li>
+          <li><strong>A CID has no providers</strong> → it wasn't pinned anywhere durable. Old root CIDs change every commit; use the current root CID from the Clone bar.</li>
+          <li><strong>ws:// dials fail from the Pages URL</strong> → mixed-content block; use <code>webrtc-direct</code> (works from https).</li>
+        </ul>
       </div>
     </div>
   </div>
