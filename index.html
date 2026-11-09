@@ -1340,9 +1340,15 @@ ipfs daemon</pre>
             <h4 style="margin-top: 0;">Make it durable &amp; shareable</h4>
             <p>Published content lives in this tab only. With the tab open, pin it on your Kubo:</p>
             <pre style="margin: 0.4rem 0;"><code id="publish-pin-cmd"></code></pre>
-            <p>Then your Kubo serves it from its gateway — locally or on your LAN:</p>
+
+            <h4>Links</h4>
+            <p><strong>Local gateway</strong> — served by your Kubo, fast and private (needs the pin above):</p>
             <pre style="margin: 0.4rem 0;"><code id="publish-gateway-url"></code></pre>
-            <p style="margin-bottom: 0;">Adjust the port if your gateway isn't the default (check <code>ipfs config Addresses.Gateway</code>).</p>
+            <p><strong>Public gateway, path link</strong> — anyone on the internet can open it through a public gateway:</p>
+            <pre style="margin: 0.4rem 0;"><code id="publish-public-path-url"></code></pre>
+            <p><strong>Public gateway, subdomain link</strong> — origin-isolated; prefer this for web-app content:</p>
+            <pre style="margin: 0.4rem 0;"><code id="publish-public-subdomain-url"></code></pre>
+            <p style="margin-bottom: 0;">Adjust the local port if your gateway isn't the default (check <code>ipfs config Addresses.Gateway</code>). Public gateways only work while the content is pinned somewhere reachable.</p>
           </div>
         </div>
       </section>

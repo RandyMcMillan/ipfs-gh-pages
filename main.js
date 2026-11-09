@@ -1611,6 +1611,16 @@ setInterval(() => {
           const url = `http://${host}:8080/ipfs/${published}?filename=${slug}`;
           if (gw.textContent !== url) gw.textContent = url;
         }
+        const pubPath = document.getElementById('publish-public-path-url');
+        if (pubPath) {
+          const url = `https://ipfs.io/ipfs/${published}?filename=${slug}`;
+          if (pubPath.textContent !== url) pubPath.textContent = url;
+        }
+        const pubSub = document.getElementById('publish-public-subdomain-url');
+        if (pubSub) {
+          const url = `https://${published}.ipfs.dweb.link?filename=${slug}`;
+          if (pubSub.textContent !== url) pubSub.textContent = url;
+        }
       }
     }
   }
