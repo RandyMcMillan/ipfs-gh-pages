@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/build-car.mjs",
     "preview": "vite preview",
     "test": "npm run test:all",
     "test:all": "node --test tests/unit.test.mjs && node tests/cdp-test.mjs && node tests/cdp-eval.mjs && node tests/cdp-zip.mjs && node tests/cdp-download.mjs && node tests/cdp-connect.mjs && node tests/cdp-share-link.mjs && node tests/cdp-ui.mjs",
