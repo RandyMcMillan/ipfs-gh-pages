@@ -1395,7 +1395,7 @@ ipfs pin add &lt;root CID from the Clone bar&gt;</code></pre>
         <p><strong>Don't</strong> <code>ipfs add -r</code> a checkout to reproduce the CID: Kubo's UnixFS layout can differ from the browser's and produce a different CID. Import via <code>swarm connect</code> + <code>pin add</code> so the Clone-bar CID stays the authoritative one.</p>
 
         <h4>Connect your Kubo to this page (Kubo → page)</h4>
-        <p>Kubo needs a browser-dialable transport. From this repo on the Kubo machine, pick ONE:</p>
+        <p style="color: var(--fgColor-attention);"><strong>Kubo needs a browser-dialable transport.</strong> From this repo on the Kubo machine, pick ONE:</p>
         <pre><code># Option A (recommended — works from https:// Pages):
 npm run kubo:webrtc
 ipfs daemon
