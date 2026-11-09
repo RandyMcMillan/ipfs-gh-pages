@@ -487,6 +487,27 @@
       padding: 0;
       color: var(--color-fg-default);
     }
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin: 0.5rem 0;
+    }
+    .ref-table th {
+      text-align: left;
+      padding: 0.35rem 0.5rem;
+      border-bottom: 1px solid var(--color-border-default);
+      color: var(--color-fg-muted);
+      font-weight: 600;
+    }
+    .ref-table td {
+      padding: 0.35rem 0.5rem;
+      border-bottom: 1px solid var(--color-border-muted);
+      vertical-align: top;
+    }
+    .ref-table td code {
+      word-break: break-all;
+    }
     .modal-header {
       display: flex;
       align-items: center;
@@ -1463,6 +1484,29 @@ ipfs pin add &lt;CID from the Publish tab&gt;</code></pre>
         <p><span style="color: var(--fgColor-attention);"><strong>IPFS keeps only what someone pins.</strong></span> The browser announces the repo to the delegated index <strong>while the page is open</strong>.<br><strong>A closed tab stops serving.</strong><br>For durable availability, pin the root CID on your Kubo:</p>
         <pre><code id="doc-pin-cmd">ipfs pin add &lt;root CID&gt;</code></pre>
         <p>The Pin row in the Clone bar and this section are the same command.</p>
+
+        <h4>Reference — this page ↔ IPFS ↔ Kubo</h4>
+        <p>Every feature here has a canonical counterpart in the IPFS ecosystem:</p>
+        <table class="ref-table">
+          <thead>
+            <tr><th>App feature</th><th>Under the hood</th><th>Kubo equivalent</th><th>Spec</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Add repo on load</td><td>UnixFS DAG built in the browser</td><td><code>ipfs add -r</code> (layout differs)</td><td><a href="https://specs.ipfs.tech/unixfs/" target="_blank" rel="noopener">UnixFS</a></td></tr>
+            <tr><td>Clone bar root CID</td><td>content-addressed root</td><td><code>ipfs files stat</code></td><td><a href="https://specs.ipfs.tech/architecture/content-addressing/" target="_blank" rel="noopener">CID</a></td></tr>
+            <tr><td>Download ZIP</td><td>DAG traversal, zipped</td><td><code>ipfs get &lt;cid&gt;</code></td><td><a href="https://specs.ipfs.tech/unixfs/" target="_blank" rel="noopener">UnixFS</a></td></tr>
+            <tr><td>Download CAR</td><td><code>@helia/car</code> export of the DAG</td><td><code>ipfs dag export &lt;cid&gt;</code></td><td><a href="https://ipld.io/specs/transport/car/" target="_blank" rel="noopener">CAR</a></td></tr>
+            <tr><td>Fetch by CID</td><td>Bitswap wantlist + delegated-routing fallback</td><td><code>ipfs get</code> · <code>ipfs routing findprovs</code></td><td><a href="https://specs.ipfs.tech/bitswap-protocol/" target="_blank" rel="noopener">Bitswap</a> · <a href="https://specs.ipfs.tech/routing/http-routing-v1/" target="_blank" rel="noopener">Routing v1</a></td></tr>
+            <tr><td>Publish text</td><td>raw IPLD block</td><td><code>echo … | ipfs add</code></td><td><a href="https://ipld.io/" target="_blank" rel="noopener">IPLD</a></td></tr>
+            <tr><td>Pin / MFS copy</td><td>provider records + local pin</td><td><code>ipfs pin add</code> · <code>ipfs files cp</code></td><td><a href="https://specs.ipfs.tech/pinning/" target="_blank" rel="noopener">Pinning</a></td></tr>
+            <tr><td>Share link / multiaddr</td><td>relay reservation, circuit-relay v2, WebRTC-direct</td><td><code>ipfs swarm connect</code></td><td><a href="https://github.com/libp2p/specs/blob/master/relay/circuit-v2.md" target="_blank" rel="noopener">Relay v2</a></td></tr>
+            <tr><td>Gateway links</td><td>trustless gateway URLs</td><td><code>Addresses.Gateway</code></td><td><a href="https://specs.ipfs.tech/http-gateways/" target="_blank" rel="noopener">Gateway</a></td></tr>
+            <tr><td>Auto bootstrap</td><td><code>@libp2p/bootstrap</code> dials</td><td><code>Bootstrap</code> config</td><td>—</td></tr>
+            <tr><td>Detect Kubo</td><td>HTTP RPC probe + test dials</td><td><code>ipfs id</code> · <code>ipfs swarm connect</code></td><td><a href="https://docs.ipfs.tech/reference/kubo/rpc/" target="_blank" rel="noopener">Kubo RPC</a></td></tr>
+            <tr><td>Connected Peers list</td><td>connection manager</td><td><code>ipfs swarm peers</code></td><td>—</td></tr>
+            <tr><td>Delegated fallback</td><td>routing v1 HTTP API</td><td>routing with HTTP routers</td><td><a href="https://specs.ipfs.tech/routing/http-routing-v1/" target="_blank" rel="noopener">Routing v1</a></td></tr>
+          </tbody>
+        </table>
 
         <h4>Troubleshooting</h4>
         <ul>
