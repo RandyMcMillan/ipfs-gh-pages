@@ -1379,7 +1379,29 @@ if (downloadRepoBtn) {
 if (codeBtn && codeDropdown) {
   codeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    codeDropdown.style.display = codeDropdown.style.display === 'none' ? 'block' : 'none';
+    const opening = codeDropdown.style.display === 'none';
+    codeDropdown.style.display = opening ? 'block' : 'none';
+    if (!opening) return;
+    if (window.innerWidth <= 544) {
+      // Narrow screens: pin below the button, spanning the viewport, so the
+      // options are always on screen wherever the toolbar wrapped the button.
+      const r = codeBtn.getBoundingClientRect();
+      codeDropdown.style.position = 'fixed';
+      codeDropdown.style.left = '0.5rem';
+      codeDropdown.style.right = '0.5rem';
+      codeDropdown.style.width = 'auto';
+      codeDropdown.style.top = `${Math.round(r.bottom) + 4}px`;
+      codeDropdown.style.maxHeight = `${Math.max(200, window.innerHeight - r.bottom - 12)}px`;
+      codeDropdown.style.overflowY = 'auto';
+    } else {
+      codeDropdown.style.position = 'absolute';
+      codeDropdown.style.left = 'auto';
+      codeDropdown.style.right = '0';
+      codeDropdown.style.width = 'min(380px, calc(100vw - 1rem))';
+      codeDropdown.style.top = 'calc(100% + 4px)';
+      codeDropdown.style.maxHeight = '';
+      codeDropdown.style.overflowY = '';
+    }
   });
   document.addEventListener('click', (e) => {
     if (codeDropdown.style.display !== 'none' && !codeDropdown.contains(e.target) && e.target !== codeBtn) {
