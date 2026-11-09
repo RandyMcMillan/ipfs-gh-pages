@@ -2,6 +2,7 @@ import '@primer/css/dist/primer.css';
 import { createHelia, libp2pDefaults } from 'helia';
 import { createLibp2p } from 'libp2p';
 import { gossipsub } from '@chainsafe/libp2p-gossipsub';
+import { pubsubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
 import { car } from '@helia/car';
 import { CarWriter } from '@ipld/car/writer';
 import repoIdentity from 'virtual:repo-identity';
@@ -827,10 +828,16 @@ async function initHelia() {
   try {
     // Spawn an in-browser IPFS node. Extend helia's own libp2p defaults
     // with gossipsub for clone detection (a bare services key would
-    // clobber the defaults — identify, dht, ping, etc.).
+    // clobber the defaults — identify, dht, ping, etc.), and announce
+    // ourselves on the repo topic so clones discover each other without
+    // a share link.
     const lpDefaults = libp2pDefaults();
     const libp2p = await createLibp2p({
       ...lpDefaults,
+      peerDiscovery: [
+        ...lpDefaults.peerDiscovery,
+        pubsubPeerDiscovery({ topics: [`repo-gossip:${repoFullName}`] })
+      ],
       services: {
         ...lpDefaults.services,
         pubsub: gossipsub({ emitSelf: false })
