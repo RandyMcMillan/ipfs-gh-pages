@@ -1,22 +1,16 @@
 import WebSocket from 'ws';
-import { spawn } from 'child_process';
 import fs from 'fs';
-import { tmpDir, findChrome, isVerbose, vlog, testUrl, check, finish, waitForDebugger } from './utils.mjs';
+import { tmpDir, isVerbose, vlog, testUrl, check, finish, launchChrome } from './utils.mjs';
 
-const chrome = findChrome();
-vlog('Using Chrome:', chrome);
 const dlDir = tmpDir('dltest');
 fs.rmSync(dlDir, { recursive: true, force: true });
 fs.mkdirSync(dlDir, { recursive: true });
 vlog('Download directory:', dlDir);
-const proc = spawn(chrome, ['--headless=new', '--disable-gpu', '--remote-debugging-port=9224'], { stdio: 'ignore' });
-
-vlog('Waiting for Chrome DevTools Protocol...');
-await waitForDebugger(9224);
 
 // Connect at the browser level and drive a CDP-created tab. Downloads only
 // honor Browser.setDownloadBehavior's downloadPath on CDP-created targets —
 // the browser's initial startup tab ignores it (see tests/debug-download.mjs).
+const { proc } = await launchChrome(9224);
 const version = await fetch('http://127.0.0.1:9224/json/version').then(r => r.json());
 const ws = new WebSocket(version.webSocketDebuggerUrl);
 await new Promise((res, rej) => { ws.on('open', res); ws.on('error', rej); });

@@ -1,10 +1,8 @@
 import WebSocket from 'ws';
-import { spawn } from 'child_process';
 import { generateKeyPair } from '@libp2p/crypto/keys';
 import { peerIdFromPrivateKey } from '@libp2p/peer-id';
-import { findChrome, isVerbose, vlog, testUrl } from './utils.mjs';
+import { isVerbose, vlog, testUrl, launchChrome } from './utils.mjs';
 
-const chrome = findChrome();
 const PORT_A = 9232; // sender node
 const PORT_B = 9233; // recipient node (opens the share link)
 const PORT_C = 9234; // fresh browser for the negative-path (unreachable link) test
@@ -20,16 +18,7 @@ function check(label, ok, detail = '') {
 }
 
 async function launchNode(port) {
-  const proc = spawn(chrome, ['--headless=new', '--disable-gpu', `--remote-debugging-port=${port}`], { stdio: 'ignore' });
-  let targets = null;
-  for (let i = 0; i < 30; i++) {
-    try {
-      targets = await fetch(`http://127.0.0.1:${port}/json`).then((r) => r.json());
-      if (targets.find((t) => t.type === 'page')) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 1000));
-  }
-  const page = targets.find((t) => t.type === 'page');
+  const { proc, page } = await launchChrome(port);
   const ws = new WebSocket(page.webSocketDebuggerUrl);
   await new Promise((res, rej) => { ws.on('open', res); ws.on('error', rej); });
 

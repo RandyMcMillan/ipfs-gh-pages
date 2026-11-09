@@ -1,13 +1,8 @@
 import WebSocket from 'ws';
-import { spawn } from 'child_process';
-import { tmpDir, findChrome, isVerbose, vlog, testUrl, check, finish, waitForDebugger } from './utils.mjs';
-
-const chrome = findChrome();
-vlog('Using Chrome:', chrome);
-const proc = spawn(chrome, ['--headless=new', '--disable-gpu', '--remote-debugging-port=9227'], { stdio: 'ignore' });
+import { tmpDir, isVerbose, vlog, testUrl, check, finish, launchChrome } from './utils.mjs';
 
 vlog('Waiting for Chrome DevTools Protocol...');
-const page = await waitForDebugger(9227);
+const { proc, page } = await launchChrome(9227);
 const ws = new WebSocket(page.webSocketDebuggerUrl);
 await new Promise((res, rej) => { ws.on('open', res); ws.on('error', rej); });
 vlog('CDP WebSocket connected');

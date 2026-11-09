@@ -2,17 +2,14 @@
 // blob downloads to a chosen directory, and print download progress events.
 // Usage: npm run dev (in another terminal), then: node tests/debug-download.mjs
 import WebSocket from 'ws';
-import { spawn } from 'child_process';
 import fs from 'node:fs';
-import { findChrome, waitForDebugger } from './utils.mjs';
+import { launchChrome } from './utils.mjs';
 
-const chrome = findChrome();
 const dlDir = '/tmp/dltest-ctx';
 fs.rmSync(dlDir, { recursive: true, force: true });
 fs.mkdirSync(dlDir, { recursive: true });
 
-const proc = spawn(chrome, ['--headless=new', '--disable-gpu', '--remote-debugging-port=9223'], { stdio: 'ignore' });
-await waitForDebugger(9223);
+const { proc } = await launchChrome(9223);
 
 const version = await fetch('http://127.0.0.1:9223/json/version').then(r => r.json());
 const bws = new WebSocket(version.webSocketDebuggerUrl);

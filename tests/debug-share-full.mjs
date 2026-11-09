@@ -1,27 +1,16 @@
 import WebSocket from 'ws';
-import { spawn } from 'child_process';
-import { findChrome, testUrl } from './utils.mjs';
+import { testUrl, launchChrome } from './utils.mjs';
 
 // Replicate the full share-link test scenario (nodes A, B, then C on a bad
 // link) and dump node C's libp2p state transitions to catch how a dial to an
 // unreachable address can report success.
-const chrome = findChrome();
 const PORT_A = 9232;
 const PORT_B = 9233;
 const PORT_C = 9234;
 const badAddr = '/ip4/127.0.0.1/tcp/1/ws/p2p/12D3KooWRx1BxMZ7nYyeM8RLyGaWAKyqv8GhMCT7KNW7TMkTVTVB';
 
 async function launchNode(port) {
-  const proc = spawn(chrome, ['--headless=new', '--disable-gpu', `--remote-debugging-port=${port}`], { stdio: 'ignore' });
-  let targets = null;
-  for (let i = 0; i < 30; i++) {
-    try {
-      targets = await fetch(`http://127.0.0.1:${port}/json`).then((r) => r.json());
-      if (targets.find((t) => t.type === 'page')) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 1000));
-  }
-  const page = targets.find((t) => t.type === 'page');
+  const { proc, page } = await launchChrome(port);
   const ws = new WebSocket(page.webSocketDebuggerUrl);
   await new Promise((res, rej) => { ws.on('open', res); ws.on('error', rej); });
   let msgId = 1;

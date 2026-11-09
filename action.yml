@@ -10,7 +10,7 @@ inputs:
   node-version:
     description: 'Node.js version to use for the build.'
     required: false
-    default: '20'
+    default: '26'
   repo-root:
     description: 'Directory whose tracked files are embedded into the IPFS bundle. Defaults to the checked-out repository root.'
     required: false

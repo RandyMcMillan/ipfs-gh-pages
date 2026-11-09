@@ -1,13 +1,7 @@
 import WebSocket from 'ws';
-import { spawn } from 'child_process';
-import { tmpDir, findChrome } from './utils.mjs';
+import { tmpDir, launchChrome } from './utils.mjs';
 
-const chrome = findChrome();
-const proc = spawn(chrome, ['--headless=new', '--disable-gpu', '--remote-debugging-port=9227'], { stdio: 'ignore' });
-
-console.log('waiting for chrome...'); await new Promise(r => setTimeout(r, 6000)); console.log('chrome ready');
-console.log('fetching targets'); const targets = await fetch('http://127.0.0.1:9227/json').then(r => r.json()); console.log('targets', targets.length);
-const page = targets.find(t => t.type === 'page');
+const { proc, page } = await launchChrome(9227);
 const ws = new WebSocket(page.webSocketDebuggerUrl);
 await new Promise((res, rej) => { ws.on('open', ()=>{console.log('ws open'); res();}); ws.on('error', rej); });
 

@@ -1,24 +1,12 @@
 import WebSocket from 'ws';
-import { spawn } from 'child_process';
-import { findChrome, isVerbose, vlog, check, finish, testUrl } from './utils.mjs';
+import { isVerbose, vlog, check, finish, testUrl, launchChrome } from './utils.mjs';
 
 // UI chrome regression tests: GitHub-replica behaviors (theme toggle, Code
 // dropdown, tab switching, tree interactions, blob view, commit bar) that
 // have broken during the parity work. Runs against the dev server.
-const chrome = findChrome();
 const PORT = 9235;
 
-const proc = spawn(chrome, ['--headless=new', '--disable-gpu', `--remote-debugging-port=${PORT}`], { stdio: 'ignore' });
-
-let targets = null;
-for (let i = 0; i < 30; i++) {
-  try {
-    targets = await fetch(`http://127.0.0.1:${PORT}/json`).then((r) => r.json());
-    if (targets.find((t) => t.type === 'page')) break;
-  } catch {}
-  await new Promise((r) => setTimeout(r, 1000));
-}
-const page = targets.find((t) => t.type === 'page');
+const { proc, page } = await launchChrome(PORT);
 const ws = new WebSocket(page.webSocketDebuggerUrl);
 await new Promise((res, rej) => { ws.on('open', res); ws.on('error', rej); });
 
