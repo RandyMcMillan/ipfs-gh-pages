@@ -1389,7 +1389,8 @@ ipfs daemon</pre>
         </ol>
         <pre><code id="doc-swarm-cmd">ipfs swarm connect '&lt;multiaddr&gt;'
 ipfs pin add &lt;root CID from the Clone bar&gt;</code></pre>
-        <p>Done — your Kubo now seeds the repo to the whole network (DHT), so anyone can run <code>ipfs get &lt;root CID&gt;</code>.</p>
+        <p>Done — your Kubo now seeds the repo to the whole network (DHT), so anyone can fetch it:</p>
+        <pre><code>ipfs get &lt;root CID&gt;</code></pre>
         <p><strong>Don't</strong> <code>ipfs add -r</code> a checkout to reproduce the CID: Kubo's UnixFS layout can differ from the browser's and produce a different CID. Import via <code>swarm connect</code> + <code>pin add</code> so the Clone-bar CID stays the authoritative one.</p>
 
         <h4>Connect your Kubo to this page (Kubo → page)</h4>
@@ -1416,10 +1417,14 @@ ipfs daemon</code></pre>
         <p>The Code dropdown's <strong>Share Link</strong> is a full URL with <code>?connect=&lt;address&gt;</code>. Opening it in another browser auto-connects the two nodes through a public relay (<code>p2p-circuit</code>), because browsers cannot accept inbound connections.</p>
 
         <h4>Fetch any CID</h4>
-        <p>Use the Fetch box in the Files tab, or <code>ipfs get &lt;CID&gt;</code> on Kubo. If a fetch stalls, the page asks <code>delegated-ipfs.dev</code> who provides the CID, dials those providers, and retries — so content can come from any pin or clone, even when the original publisher is offline.</p>
+        <p>Use the Fetch box in the Files tab, or on Kubo:</p>
+        <pre><code>ipfs get &lt;CID&gt;</code></pre>
+        <p>If a fetch stalls, the page asks <code>delegated-ipfs.dev</code> who provides the CID, dials those providers, and retries — so content can come from any pin or clone, even when the original publisher is offline.</p>
 
         <h4>Keeping content available</h4>
-        <p>IPFS keeps only what someone pins. The browser announces the repo to the delegated index while the page is open, but a closed tab stops serving. For durable availability, pin the root CID on your Kubo (steps above) — the Pin row and this section are the same command.</p>
+        <p>IPFS keeps only what someone pins. The browser announces the repo to the delegated index while the page is open, but a closed tab stops serving. For durable availability, pin the root CID on your Kubo:</p>
+        <pre><code>ipfs pin add &lt;root CID&gt;</code></pre>
+        <p>The Pin row in the Clone bar and this section are the same command.</p>
 
         <h4>Troubleshooting</h4>
         <ul>
