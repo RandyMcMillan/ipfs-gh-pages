@@ -84,7 +84,7 @@ export async function launchChrome(port, extraArgs = []) {
   const chrome = findChrome();
   vlog('Using Chrome:', chrome);
   let errBuf = '';
-  const proc = spawn(chrome, ['--headless=new', '--disable-gpu', `--remote-debugging-port=${port}`, ...extraArgs], {
+  const proc = spawn(chrome, ['--headless=new', '--disable-gpu', '--no-sandbox', `--remote-debugging-port=${port}`, ...extraArgs], {
     stdio: ['ignore', 'ignore', 'pipe']
   });
   proc.stderr.on('data', (d) => {
