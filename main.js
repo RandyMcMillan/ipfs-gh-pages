@@ -1679,6 +1679,21 @@ setInterval(() => {
         if (docPublish.textContent !== cmd) docPublish.textContent = cmd;
       }
     }
+    // Mapping chips (design objective 2): Kubo equivalent at the control.
+    const chipCar = document.getElementById('chip-car-export');
+    if (chipCar) {
+      const root = cloneCidEl?.textContent.trim();
+      if (root && root.startsWith('baf')) {
+        const cmd = `ipfs dag export ${root}`;
+        if (chipCar.textContent !== cmd) chipCar.textContent = cmd;
+      }
+    }
+    const chipFetch = document.getElementById('chip-fetch-get');
+    if (chipFetch && inputCid) {
+      const cid = inputCid.value.trim();
+      const cmd = `ipfs get ${cid && /^[a-z0-9]+$/i.test(cid) ? cid : '<CID>'}`;
+      if (chipFetch.textContent !== cmd) chipFetch.textContent = cmd;
+    }
     // Publish tab help: pin command + full gateway URL once something is published.
     const publishHelp = document.getElementById('publish-help');
     if (publishHelp && publishHelp.style.display !== 'none') {

@@ -487,6 +487,17 @@
       padding: 0;
       color: var(--color-fg-default);
     }
+    .kubo-chip {
+      display: block;
+      margin-top: 0.5rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.75rem;
+      color: var(--color-fg-muted);
+    }
+    .kubo-chip::before {
+      content: '≡ Kubo: ';
+      font-weight: 600;
+    }
     .ref-table {
       width: 100%;
       border-collapse: collapse;
@@ -1037,6 +1048,7 @@
                   Download CAR
                 </button>
               </div>
+              <code class="kubo-chip" id="chip-car-export">ipfs dag export &lt;root CID&gt;</code>
               <p id="clone-status" class="f6 status" style="margin: 0.5rem 0 0; word-break: break-all;"></p>
             </div>
           </div>
@@ -1075,6 +1087,7 @@
 
             <h4>Retrieved Data:</h4>
             <pre id="output-content">None</pre>
+            <code class="kubo-chip" id="chip-fetch-get">ipfs get &lt;CID&gt;</code>
           </div>
         </div>
 
