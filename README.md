@@ -50,6 +50,7 @@ npm run test:eval     # inspect fetched bytes
 npm run test:zip      # zip a directory
 npm run test:download # download flow
 npm run test:share    # share link: two headless browsers, auto-connect via ?connect=
+node tests/cdp-ui.mjs # UI chrome regression tests (dropdown, tabs, blob view, theme)
 ```
 
 Set `CHROME_PATH` to point at your browser binary if it is not auto-detected.
