@@ -63,7 +63,10 @@ build_bundle() {
   ensure_cargo_bundle
   ensure_trunk
 
-  trunk build --release --dist dist
+  trunk build --release --dist dist --html-output index-rust.html
+  # cargo-bundle does not refresh Resources/ inside an existing .app —
+  # wipe it so dist/ (and the icon) are copied fresh every build.
+  rm -rf "${bundle_root:?}"
   cargo bundle --bin ipfs-gh-pages --release --features bundle-wry
 }
 
@@ -88,7 +91,9 @@ test_bundle() {
   local app_path
   local html
   local app_pid=""
-  local url="http://127.0.0.1:8080"
+  local binary
+  local log_file
+  local url=""
 
   app_path="$(bundle_app_path)"
   if [[ -z "$app_path" ]]; then
@@ -96,32 +101,40 @@ test_bundle() {
     exit 1
   fi
 
-  if lsof -nP -iTCP:8080 -sTCP:LISTEN >/dev/null 2>&1; then
-    echo "Port 8080 is already in use; stop the existing listener first." >&2
-    exit 1
-  fi
+  binary="$app_path/Contents/MacOS/${bundle_name}"
+  log_file="$(mktemp)"
 
   cleanup() {
     if [[ -n "$app_pid" ]] && kill -0 "$app_pid" >/dev/null 2>&1; then
       kill "$app_pid" >/dev/null 2>&1 || true
       wait "$app_pid" >/dev/null 2>&1 || true
     fi
+    rm -f "$log_file"
   }
 
   trap cleanup EXIT
 
-  open "$app_path"
+  # Run the binary directly so its stdout reaches us; the app binds an
+  # ephemeral port and prints "Serving web UI at http://127.0.0.1:<port>".
+  "$binary" >"$log_file" 2>&1 &
+  app_pid=$!
 
   for _ in $(seq 1 60); do
-    app_pid="$(pgrep -n -f "${bundle_name}.app/Contents/MacOS/${bundle_name}" || true)"
-    if [[ -n "$app_pid" ]]; then
+    url="$(grep -oE 'http://127\.0\.0\.1:[0-9]+' "$log_file" | head -n 1 || true)"
+    if [[ -n "$url" ]]; then
       break
+    fi
+    if ! kill -0 "$app_pid" 2>/dev/null; then
+      echo "Bundled app exited early; output:" >&2
+      cat "$log_file" >&2
+      exit 1
     fi
     sleep 1
   done
 
-  if [[ -z "$app_pid" ]]; then
-    echo "Timed out waiting for bundled app process to start." >&2
+  if [[ -z "$url" ]]; then
+    echo "Timed out waiting for the app's serving URL; output:" >&2
+    cat "$log_file" >&2
     exit 1
   fi
 

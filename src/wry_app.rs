@@ -48,6 +48,7 @@ enum UserEvent {
 
 pub fn run() -> Result<(), Box<dyn Error>> {
     let app_source = app_source()?;
+    println!("Serving web UI at {}", app_source.url);
 
     let mut event_loop_builder = EventLoopBuilder::<UserEvent>::with_user_event();
 
@@ -195,9 +196,9 @@ struct AppSource {
 
 fn app_source() -> Result<AppSource, Box<dyn Error>> {
     if let Some(index) = bundled_index_path()? {
-        let server = spawn_bundled_server(index.parent().unwrap().to_path_buf())?;
+        let (server, port) = spawn_bundled_server(index.parent().unwrap().to_path_buf())?;
         return Ok(AppSource {
-            url: format!("http://{HOST}:{PORT}"),
+            url: format!("http://{HOST}:{port}"),
             server: Arc::new(Mutex::new(Some(ServerHandle::Bundled(server)))),
         });
     }
@@ -223,8 +224,11 @@ fn bundled_index_path() -> Result<Option<PathBuf>, io::Error> {
     Ok(index.exists().then_some(index))
 }
 
-fn spawn_bundled_server(dist_root: PathBuf) -> Result<BundledServer, io::Error> {
-    let listener = std::net::TcpListener::bind((HOST, PORT))?;
+fn spawn_bundled_server(dist_root: PathBuf) -> Result<(BundledServer, u16), io::Error> {
+    // Port 0: let the OS pick a free port so the desktop app never fights
+    // trunk serve, vite, or anything else for 8080.
+    let listener = std::net::TcpListener::bind((HOST, 0))?;
+    let port = listener.local_addr()?.port();
     listener.set_nonblocking(true)?;
 
     let shutdown = Arc::new(AtomicBool::new(false));
@@ -243,10 +247,13 @@ fn spawn_bundled_server(dist_root: PathBuf) -> Result<BundledServer, io::Error> 
         }
     });
 
-    Ok(BundledServer {
-        shutdown,
-        join: Mutex::new(Some(join)),
-    })
+    Ok((
+        BundledServer {
+            shutdown,
+            join: Mutex::new(Some(join)),
+        },
+        port,
+    ))
 }
 
 fn handle_http_request(
@@ -264,7 +271,7 @@ fn handle_http_request(
         .unwrap_or("/");
 
     let file_path = match path.split('?').next().unwrap_or("/") {
-        "/" => dist_root.join("index-rust.html"),
+        "/" | "/index.html" | "/index-rust.html" => dist_root.join("index-rust.html"),
         other => safe_dist_path(dist_root, other),
     };
 

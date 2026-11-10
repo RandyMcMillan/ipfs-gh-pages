@@ -1,6 +1,6 @@
 [build]
 # The index HTML file to drive the bundling process.
-target = "index.html"
+target = "index-rust.html"
 # Build in release mode (equivalent to --release).
 release = false
 # The output directory for all final assets.
