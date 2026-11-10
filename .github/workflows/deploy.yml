@@ -22,7 +22,9 @@ permissions:
   id-token: write
 
 concurrency:
-  group: 'pages'
+  # Only main deploys share the serial 'pages' group; branch test runs get
+  # their own per-ref group so they never cancel a main deployment.
+  group: ${{ github.ref == 'refs/heads/main' && 'pages' || format('pages-{0}', github.ref) }}
   cancel-in-progress: true
 
 jobs:
