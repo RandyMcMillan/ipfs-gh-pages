@@ -95,6 +95,12 @@ Every op mirrors proven code in main.js (cited per op):
    (parity with vite's virtual:repo-files plugin) copied by trunk → root
    CID + CAR export from the TUI.
 
+Related design note: `docs/git-over-ipfs.md` — an embedded git server
+backed by IPFS so `git clone` works through the app (isomorphic-git is a
+smart-HTTP client; static IPFS content can't answer it, so a real server
+is required — options: shell out to `git http-backend`, thin upload-pack
+over our blockstore, libp2p transport last).
+
 ## Explicitly out of scope (for now)
 
 Issues/comments CAR (docs/issues-car.md phases 5+), IPNS branch pointer
