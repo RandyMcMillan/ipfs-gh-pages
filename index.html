@@ -1452,6 +1452,17 @@ ipfs daemon</pre>
             <pre style="margin: 0.4rem 0;"><code id="publish-trustless-subdomain-url"></code></pre>
             <p>Fetch and import it on any Kubo (the gateway never has to be trusted):</p>
             <pre style="margin: 0.4rem 0;"><code id="publish-trustless-curl-cmd"></code></pre>
+
+            <h4>Attest it (signed metadata)</h4>
+            <p>Like a signed commit: a dag-json record of who published what, Ed25519-signed by this browser's key — anyone can verify it without trusting you:</p>
+            <p style="margin-bottom: 0;"><button id="btn-sign-publish" class="btn btn-sm" type="button">Sign &amp; attest</button></p>
+            <pre style="margin: 0.4rem 0;"><code id="signed-metadata-cid">(metadata CID appears here)</code></pre>
+            <label class="f6 d-block" style="margin-top: 0.6rem;">Verify a metadata CID:</label>
+            <div class="d-flex flex-wrap" style="gap: 0.5rem;">
+              <input id="verify-metadata-cid" type="text" class="form-control input-monospace" style="flex: 1; min-width: 12rem;" placeholder="baguq..." />
+              <button id="btn-verify-metadata" class="btn btn-sm" type="button">Verify</button>
+            </div>
+            <pre style="margin: 0.4rem 0;"><code id="verify-metadata-result"></code></pre>
             <p style="margin-bottom: 0;">Adjust the local port if your gateway isn't the default (check <code>ipfs config Addresses.Gateway</code>). Public gateways only work while the content is pinned somewhere reachable.</p>
             <p style="margin-bottom: 0;">Tip: install the <a href="https://docs.ipfs.tech/install/ipfs-companion/" target="_blank" rel="noopener">IPFS Companion</a> browser extension and these gateway links open through your local Kubo instead of the public gateway.</p>
           </div>
@@ -1580,6 +1591,8 @@ ipfs pin add &lt;CID from the Publish tab&gt;</code></pre>
             <tr><td>Download CAR</td><td><code>@helia/car</code> export of the DAG</td><td><code>ipfs dag export &lt;cid&gt;</code></td><td><a href="https://ipld.io/specs/transport/car/" target="_blank" rel="noopener">CAR</a></td></tr>
             <tr><td>Fetch by CID</td><td>Bitswap wantlist + delegated-routing fallback</td><td><code>ipfs get</code> · <code>ipfs routing findprovs</code></td><td><a href="https://specs.ipfs.tech/bitswap-protocol/" target="_blank" rel="noopener">Bitswap</a> · <a href="https://specs.ipfs.tech/routing/http-routing-v1/" target="_blank" rel="noopener">Routing v1</a></td></tr>
             <tr><td>Publish text</td><td>raw IPLD block</td><td><code>echo … | ipfs add</code></td><td><a href="https://ipld.io/" target="_blank" rel="noopener">IPLD</a></td></tr>
+            <tr><td>Signed metadata</td><td>Ed25519 signature over dag-json</td><td><code>git commit -S</code> (signed commits)</td><td><a href="https://ipld.io/docs/codecs/known/dag-json/" target="_blank" rel="noopener">dag-json</a></td></tr>
+            <tr><td>Remote pin</td><td>Pinning Services API <code>POST /pins</code></td><td>the "star" — durable availability</td><td><a href="https://ipfs.github.io/pinning-services-api-spec/" target="_blank" rel="noopener">PSA spec</a></td></tr>
             <tr><td>Pin / MFS copy</td><td>provider records + local pin</td><td><code>ipfs pin add</code> · <code>ipfs files cp</code></td><td><a href="https://specs.ipfs.tech/pinning/" target="_blank" rel="noopener">Pinning</a></td></tr>
             <tr><td>Share link / multiaddr</td><td>relay reservation, circuit-relay v2, WebRTC-direct</td><td><code>ipfs swarm connect</code></td><td><a href="https://github.com/libp2p/specs/blob/master/relay/circuit-v2.md" target="_blank" rel="noopener">Relay v2</a></td></tr>
             <tr><td>Gateway links</td><td>trustless gateway URLs</td><td><code>Addresses.Gateway</code></td><td><a href="https://specs.ipfs.tech/http-gateways/" target="_blank" rel="noopener">Gateway</a></td></tr>

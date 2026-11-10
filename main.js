@@ -4,8 +4,10 @@ import { createLibp2p } from 'libp2p';
 import { gossipsub } from '@chainsafe/libp2p-gossipsub';
 import { pubsubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
 import { ipns } from '@helia/ipns';
-import { generateKeyPair, privateKeyFromRaw } from '@libp2p/crypto/keys';
-import { peerIdFromPrivateKey } from '@libp2p/peer-id';
+import { generateKeyPair, privateKeyFromRaw, publicKeyFromProtobuf, publicKeyToProtobuf } from '@libp2p/crypto/keys';
+import { peerIdFromPrivateKey, peerIdFromPublicKey } from '@libp2p/peer-id';
+import * as dagJson from '@ipld/dag-json';
+import { sha256 } from 'multiformats/hashes/sha2';
 import { car } from '@helia/car';
 import { CarWriter } from '@ipld/car/writer';
 import repoIdentity from 'virtual:repo-identity';
@@ -781,6 +783,76 @@ let ipnsBranchCid = null;
 let ipnsBranchLastPublish = 0;
 let ipnsBranchName = '';
 
+// Signed dag-json metadata (the GitHub "signed commit" equivalent): an
+// envelope {cid, name, timestamp, signer, signature, publicKey} stored as a
+// dag-json block. The signature covers the dag-json encoding of the first
+// five fields; verification re-encodes and checks with the embedded key.
+async function addDagJson(obj) {
+  const bytes = dagJson.encode(obj);
+  const cid = CID.create(1, dagJson.code, await sha256.digest(bytes));
+  await heliaNode.blockstore.put(cid, bytes);
+  return cid;
+}
+
+async function getDagJson(cid) {
+  const bytes = await heliaNode.blockstore.get(cid);
+  return dagJson.decode(bytes);
+}
+
+async function signPublished() {
+  const publishedEl = document.getElementById('output-cid');
+  const cid = publishedEl?.dataset.published ? publishedEl.textContent.trim() : null;
+  const resultEl = document.getElementById('signed-metadata-cid');
+  if (!cid) return;
+  if (resultEl) resultEl.textContent = 'Signing…';
+  try {
+    const key = await getIpnsBranchKey();
+    const signer = peerIdFromPrivateKey(key).toString();
+    const signed = {
+      cid,
+      name: window.__lastPublishedSlug || 'published',
+      timestamp: new Date().toISOString(),
+      signer
+    };
+    const signature = await key.sign(dagJson.encode(signed));
+    const envelope = {
+      ...signed,
+      signature: uint8ArrayToBase64(signature),
+      publicKey: uint8ArrayToBase64(publicKeyToProtobuf(key.publicKey))
+    };
+    const metaCid = await addDagJson(envelope);
+    heliaNode.routing?.provide?.(metaCid).catch(() => {});
+    if (resultEl) resultEl.textContent = metaCid.toString();
+  } catch (err) {
+    if (resultEl) resultEl.textContent = `Sign failed: ${err.message}`;
+  }
+}
+
+async function verifyMetadata() {
+  const input = document.getElementById('verify-metadata-cid');
+  const resultEl = document.getElementById('verify-metadata-result');
+  const raw = (input?.value || '').trim();
+  if (!resultEl) return;
+  if (!raw) {
+    resultEl.textContent = 'Paste a metadata CID first.';
+    return;
+  }
+  resultEl.textContent = 'Fetching…';
+  try {
+    const envelope = await getDagJson(CID.parse(raw));
+    const { signature, publicKey, ...signed } = envelope;
+    const payload = dagJson.encode(signed);
+    const pub = publicKeyFromProtobuf(base64ToUint8Array(publicKey));
+    const signer = peerIdFromPublicKey(pub).toString();
+    const ok = await pub.verify(payload, base64ToUint8Array(signature));
+    resultEl.textContent = ok
+      ? `✓ signed by ${signer}\n  payload ${signed.cid}\n  name ${signed.name}\n  at ${signed.timestamp}`
+      : `✗ signature INVALID (claims signer ${signer})`;
+  } catch (err) {
+    resultEl.textContent = `Verify failed: ${err.message}`;
+  }
+}
+
 function getIpnsBranchKey() {
   if (!ipnsBranchKeyPromise) {
     ipnsBranchKeyPromise = (async () => {
@@ -802,6 +874,7 @@ function getIpnsBranchKey() {
 }
 
 async function publishBranchPointer(rootCid) {
+
   const field = document.getElementById('code-ipns-field');
   try {
     if (!heliaNode || !rootCid) return;
@@ -1542,6 +1615,10 @@ if (remotePinSaveBtn) {
 if (remotePinBtn) {
   remotePinBtn.addEventListener('click', remotePinRoot);
 }
+const signPublishBtn = document.getElementById('btn-sign-publish');
+if (signPublishBtn) signPublishBtn.addEventListener('click', signPublished);
+const verifyMetadataBtn = document.getElementById('btn-verify-metadata');
+if (verifyMetadataBtn) verifyMetadataBtn.addEventListener('click', verifyMetadata);
 
 // Clone bar: copy the root CID, or fetch the whole repo and download a zip.
 if (cloneCidCopyBtn) {
