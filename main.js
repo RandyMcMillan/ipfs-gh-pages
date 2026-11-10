@@ -2151,6 +2151,21 @@ setInterval(() => {
           const url = `https://${published}.ipfs.dweb.link?filename=${slug}`;
           if (pubSub.textContent !== url) pubSub.textContent = url;
         }
+        const tlPath = document.getElementById('publish-trustless-path-url');
+        if (tlPath) {
+          const url = `https://ipfs.io/ipfs/${published}?format=car`;
+          if (tlPath.textContent !== url) tlPath.textContent = url;
+        }
+        const tlSub = document.getElementById('publish-trustless-subdomain-url');
+        if (tlSub) {
+          const url = `https://${published}.ipfs.dweb.link?format=car`;
+          if (tlSub.textContent !== url) tlSub.textContent = url;
+        }
+        const tlCurl = document.getElementById('publish-trustless-curl-cmd');
+        if (tlCurl) {
+          const cmd = `curl -s "https://ipfs.io/ipfs/${published}?format=car" -o ${published}.car\nipfs dag import ${published}.car`;
+          if (tlCurl.textContent !== cmd) tlCurl.textContent = cmd;
+        }
         const carImport = document.getElementById('publish-car-import-cmd');
         if (carImport) {
           const cmd = `ipfs dag import ${published}.car`;
