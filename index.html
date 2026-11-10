@@ -1578,6 +1578,18 @@ ipfs pin add &lt;CID from the Publish tab&gt;</code></pre>
   -d '{"cid":"&lt;root CID&gt;","name":"&lt;repo&gt;"}'</code></pre>
         <p>Pinning services fetch the CID from your browser node while this page is open — include a <code>?connect=</code> share link when you want them to find it, or pin again once it is on your Kubo.</p>
 
+        <h4>Custom domain (DNSLink)</h4>
+        <p>The GitHub Pages custom-domain equivalent: publish a TXT record and any IPFS-aware gateway serves this repo under your name at <code>https://ipfs.io/ipns/yourdomain</code>. The record goes on the <code>_dnslink</code> subdomain so your normal DNS (website, mail) is untouched.</p>
+        <p>Track the branch pointer (live while a page is open and republishing):</p>
+        <pre><code id="doc-dnslink-ipns">dnslink=/ipns/&lt;branch pointer from the Code dropdown's IPNS tab — publish first&gt;</code></pre>
+        <p>Pin a snapshot instead — durable with every browser closed, but it stops tracking new commits:</p>
+        <pre><code id="doc-dnslink-cid">dnslink=/ipfs/&lt;root CID from the Clone bar&gt;</code></pre>
+        <p>Durable <em>and</em> tracking, from your own Kubo (online independently of this tab):</p>
+        <pre><code>ipfs key gen repo-domain</code></pre>
+        <pre><code>ipfs name publish --key=repo-domain &lt;root CID&gt;</code></pre>
+        <pre><code>dnslink=/ipns/&lt;ipns name from the publish output&gt;</code></pre>
+        <p>Every new commit changes the root CID — with the snapshot record, update the TXT; with either IPNS record, whoever holds the key republishes and DNSLink follows automatically.</p>
+
         <h4>Reference — this page ↔ IPFS ↔ Kubo</h4>
         <p>Every feature here has a canonical counterpart in the IPFS ecosystem:</p>
         <table class="ref-table">
@@ -1592,6 +1604,7 @@ ipfs pin add &lt;CID from the Publish tab&gt;</code></pre>
             <tr><td>Fetch by CID</td><td>Bitswap wantlist + delegated-routing fallback</td><td><code>ipfs get</code> · <code>ipfs routing findprovs</code></td><td><a href="https://specs.ipfs.tech/bitswap-protocol/" target="_blank" rel="noopener">Bitswap</a> · <a href="https://specs.ipfs.tech/routing/http-routing-v1/" target="_blank" rel="noopener">Routing v1</a></td></tr>
             <tr><td>Publish text</td><td>raw IPLD block</td><td><code>echo … | ipfs add</code></td><td><a href="https://ipld.io/" target="_blank" rel="noopener">IPLD</a></td></tr>
             <tr><td>Signed metadata</td><td>Ed25519 signature over dag-json</td><td><code>git commit -S</code> (signed commits)</td><td><a href="https://ipld.io/docs/codecs/known/dag-json/" target="_blank" rel="noopener">dag-json</a></td></tr>
+            <tr><td>Custom domain</td><td>DNSLink <code>_dnslink</code> TXT record</td><td>GitHub Pages custom domain</td><td><a href="https://dnslink.dev/" target="_blank" rel="noopener">DNSLink</a></td></tr>
             <tr><td>Remote pin</td><td>Pinning Services API <code>POST /pins</code></td><td>the "star" — durable availability</td><td><a href="https://ipfs.github.io/pinning-services-api-spec/" target="_blank" rel="noopener">PSA spec</a></td></tr>
             <tr><td>Pin / MFS copy</td><td>provider records + local pin</td><td><code>ipfs pin add</code> · <code>ipfs files cp</code></td><td><a href="https://specs.ipfs.tech/pinning/" target="_blank" rel="noopener">Pinning</a></td></tr>
             <tr><td>Share link / multiaddr</td><td>relay reservation, circuit-relay v2, WebRTC-direct</td><td><code>ipfs swarm connect</code></td><td><a href="https://github.com/libp2p/specs/blob/master/relay/circuit-v2.md" target="_blank" rel="noopener">Relay v2</a></td></tr>

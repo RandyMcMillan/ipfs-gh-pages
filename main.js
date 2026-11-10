@@ -2263,6 +2263,19 @@ setInterval(() => {
         if (docPin.textContent !== cmd) docPin.textContent = cmd;
       }
     }
+    const docDnslinkIpns = document.getElementById('doc-dnslink-ipns');
+    if (docDnslinkIpns && ipnsBranchName) {
+      const rec = `dnslink=${ipnsBranchName}`;
+      if (docDnslinkIpns.textContent !== rec) docDnslinkIpns.textContent = rec;
+    }
+    const docDnslinkCid = document.getElementById('doc-dnslink-cid');
+    if (docDnslinkCid) {
+      const root = cloneCidEl?.textContent.trim();
+      if (root && root.startsWith('baf')) {
+        const rec = `dnslink=/ipfs/${root}`;
+        if (docDnslinkCid.textContent !== rec) docDnslinkCid.textContent = rec;
+      }
+    }
     const docPublish = document.getElementById('doc-publish-cmd');
     if (docPublish) {
       const publishedEl = document.getElementById('output-cid');
