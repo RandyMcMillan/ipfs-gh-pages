@@ -28,12 +28,13 @@ use tao::platform::unix::WindowExtUnix;
 #[cfg(target_os = "windows")]
 use tao::platform::windows::{EventLoopBuilderExtWindows, WindowExtWindows};
 use tao::{
+    dpi::LogicalSize,
     event::{ElementState, Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoopBuilder},
+    event_loop::{ControlFlow, EventLoopBuilder, EventLoopWindowTarget},
     keyboard::{Key, ModifiersState},
     window::{Window, WindowBuilder},
 };
-use wry::WebViewBuilder;
+use wry::{WebView, WebViewBuilder};
 #[cfg(any(
     target_os = "linux",
     target_os = "dragonfly",
@@ -109,8 +110,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         .build(&window)?;
 
     let mut modifiers = ModifiersState::default();
+    let mut about_window: Option<(Window, WebView)> = None;
 
-    event_loop.run(move |event, _, control_flow| {
+    event_loop.run(move |event, window_target, control_flow| {
         *control_flow = ControlFlow::Wait;
 
         match event {
@@ -130,11 +132,26 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             }
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
+                window_id,
                 ..
-            } => stop_server(&app_source.server, control_flow),
+            } => {
+                if about_window
+                    .as_ref()
+                    .is_some_and(|(window, _)| window.id() == window_id)
+                {
+                    about_window = None; // dropping the webview+window closes it
+                } else {
+                    stop_server(&app_source.server, control_flow);
+                }
+            }
             Event::UserEvent(UserEvent::MenuEvent(event)) => {
                 if event.id() == about_item.id() {
-                    println!("ipfs-gh-pages: native About menu selected");
+                    if about_window.is_none() {
+                        match create_about_window(window_target) {
+                            Ok(pair) => about_window = Some(pair),
+                            Err(err) => eprintln!("failed to open About window: {err}"),
+                        }
+                    }
                 } else if event.id() == quit_item.id() {
                     stop_server(&app_source.server, control_flow);
                 }
@@ -142,6 +159,90 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             _ => {}
         }
     });
+}
+
+// macOS-style About panel: small fixed window, wry webview rendering
+// centered icon + name + version + credits. The icon ships in the repo
+// (icons/icon.png, also the .icns source) and is embedded as a data URI so
+// the panel needs no server route. One instance at a time; closing it drops
+// the Option, which closes the window.
+fn create_about_window(
+    target: &EventLoopWindowTarget<UserEvent>,
+) -> Result<(Window, WebView), Box<dyn Error>> {
+    let window = WindowBuilder::new()
+        .with_title(format!("About {}", env!("CARGO_PKG_NAME")))
+        .with_inner_size(LogicalSize::new(420.0, 360.0))
+        .with_resizable(false)
+        .with_maximizable(false)
+        .with_minimizable(false)
+        .build(target)?;
+    let webview = WebViewBuilder::new()
+        .with_html(about_html())
+        .build(&window)?;
+    Ok((window, webview))
+}
+
+fn about_html() -> String {
+    let version = env!("CARGO_PKG_VERSION");
+    format!(
+        r#"<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body {{
+    margin: 0; height: 100vh; box-sizing: border-box; padding: 24px 16px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: #f5f5f7; color: #1d1d1f; text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }}
+  img {{ width: 96px; height: 96px; border-radius: 22%;
+         box-shadow: 0 4px 16px rgba(0,0,0,.18); margin-bottom: 14px; }}
+  h1 {{ font-size: 22px; font-weight: 600; margin: 2px 0; }}
+  .version {{ font-size: 13px; color: #6e6e73; margin-bottom: 10px; }}
+  .credits {{ font-size: 12px; color: #48484a; line-height: 1.5; max-width: 340px; }}
+  .copy {{ font-size: 11px; color: #86868b; margin-top: 18px; }}
+</style>
+</head>
+<body>
+  <img src="data:image/png;base64,{icon}" alt="app icon">
+  <h1>ipfs-gh-pages</h1>
+  <div class="version">Version {version}</div>
+  <div class="credits">
+    A <b>Ratzilla</b> (ratatui-in-the-browser) TUI bundled as a native app by
+    <b>wry</b>, with a <b>Helia</b> IPFS node running in the page.
+  </div>
+  <div class="copy">Copyright © 2026 the ipfs-gh-pages contributors. MIT License.</div>
+</body>
+</html>"#,
+        icon = base64_encode(include_bytes!("../icons/icon.png")),
+    )
+}
+
+/// Minimal RFC 4648 base64 (with padding) — just enough to data-URI the
+/// About icon without pulling in a dependency.
+fn base64_encode(bytes: &[u8]) -> String {
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::with_capacity((bytes.len() + 2) / 3 * 4);
+    for chunk in bytes.chunks(3) {
+        let b0 = chunk[0] as u32;
+        let b1 = *chunk.get(1).unwrap_or(&0) as u32;
+        let b2 = *chunk.get(2).unwrap_or(&0) as u32;
+        let n = (b0 << 16) | (b1 << 8) | b2;
+        out.push(ALPHABET[(n >> 18) as usize & 63] as char);
+        out.push(ALPHABET[(n >> 12) as usize & 63] as char);
+        out.push(if chunk.len() > 1 {
+            ALPHABET[(n >> 6) as usize & 63] as char
+        } else {
+            '='
+        });
+        out.push(if chunk.len() > 2 {
+            ALPHABET[n as usize & 63] as char
+        } else {
+            '='
+        });
+    }
+    out
 }
 
 fn stop_server(server: &Arc<Mutex<Option<ServerHandle>>>, control_flow: &mut ControlFlow) {
