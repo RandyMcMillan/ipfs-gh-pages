@@ -6,6 +6,125 @@ construction) and on `git notes` (non-invasive annotation of immutable
 objects). Precedent: Google's git-appraise ran distributed code review
 entirely on notes namespaces; git-bug stores full issue trackers in refs.
 
+## Chronology protocol
+
+The notes set is append-only and CID-keyed, which alone guarantees
+*set* convergence (an OR-Set: add-wins, same CID = same object
+everywhere). The hard part is the *index*: a chronology that any two
+replicas, holding the same entries, render identically — and that
+absorbs appends and competing rewrites deterministically. No PoW, no
+global admission: repo-scoped trust, git-remote style.
+
+### Index entries (hash-chained)
+
+```json
+{
+  "type": "index-entry",
+  "added": ["<note CIDs first seen by this entry>"],
+  "prev": "<previous entry CID, or null at genesis>",
+  "height": 42,
+  "lamport": 1337,
+  "signer": "<peerId>",
+  "timestamp": "ISO-8601 (advisory only)",
+  "signature": "<base64>", "publicKey": "<base64>"
+}
+```
+
+Validity rules:
+1. **Prefix closure** — every `prev` must resolve locally (fetch the DAG
+   like `git fetch`; an entry whose parents are absent is held, not
+   accepted). Nothing can precede what it references.
+2. **Height = prev.height + 1**; genesis (`prev: null`) is unique per
+   chain — if two genesis entries appear, the lower-CID one is canonical
+   (deterministic, content-derived), the other persists as an orphan
+   branch whose notes remain valid set members.
+3. **Signature valid**; `lamport > max(parents' lamport)` (Lamport rule;
+   violations are dropped as malformed — cheap to check).
+4. **No double-add** — a note already in the chain prefix is ignored as
+   a no-op; the same signer publishing *different* children of the same
+   parent is **equivocation** (see below).
+
+### Fork-choice — the deterministic chronology
+
+Among all known tips, the canonical chain is:
+
+1. **highest height** wins;
+2. ties — **lower tip CID** wins;
+3. nothing is ever deleted: a competing chain persists as an orphan and
+   its notes stay in the set. "Rewriting history" is therefore
+   *impossible to do destructively* — it can only mean publishing a
+   longer chain, and the old view remains content-addressed and
+   inspectable. A view swap (re-org) replaces order, never data.
+
+Determinism proof: height and CID are functions of content only, so any
+replica holding the same entry set computes the same canonical chain and
+the same note order (first-inclusion order along the chain). Partial
+knowledge is monotone: new entries only extend or re-view, never
+invalidate a verified signature. UI may mark **finality depth**
+(entries deeper than K below the tip) as unlikely to re-org — K is a
+local display parameter, not consensus.
+
+### Total order over notes
+
+1. Notes ordered by first inclusion in the canonical chain.
+2. Valid-but-unchained notes (withheld, orphaned, or not yet absorbed):
+   ordered by `(lamport, cid)` — deterministic, and since wallclock is
+   advisory, clock abuse and backdating are harmless to convergence.
+
+### Merge protocol (on fetch of a remote's entries)
+
+1. Verify signatures and prefix closure; pull missing ancestors.
+2. Union the note set (OR-Set semantics — notes are data, the chain is
+   only an ordering device; a valid signed note displays even if never
+   chained, marked unordered).
+3. Detect equivocation: same signer + same parent + different children.
+   Both children are retained; fork-choice keeps the lower CID; the
+   detector publishes a fraud proof — a note in namespace `audit`
+   carrying both signatures, self-certifying the equivocation. Consumers
+   downweight the signer by local policy; the protocol itself needs no
+   blacklist.
+4. Recompute the canonical chain and re-render order.
+
+### Fork-awareness without a shared genesis
+
+Forks start their own genesis and their own chain. Absorbing a fork's
+notes into our chronology is a **merge entry** on our chain:
+
+```json
+{ "type": "index-entry", "added": [], "parents": ["<our prev>", "<their tip>"] }
+```
+
+Multi-parent entries generalize `prev` to a list (git merge commits);
+height = max(parents)+1. Our chain thereby absorbs their tip by
+reference, their notes enter our set and our ordering, and both repos
+converge to the same canonical view without either being authoritative.
+
+### Transport + discovery (reuses shipped machinery)
+
+- **Tip announcements**: each new index entry CID is published on
+  `repo-gossip:<repo>:index` (gossipsub, same pattern as clone detection
+  and chat) — replicas learn tips within the gossip horizon; fetch
+  carries the full entries.
+- **Durable pointer**: the repo's IPNS name (the branch-pointer key)
+  resolves to the current canonical tip CID — strangers bootstrap
+  without gossip.
+- **Checkpoint/sync**: the issues CAR is a snapshot of the entry set;
+  `ipfs dag import` = load, recompute canonical chain. No
+  replay-from-genesis beyond the CAR's contents.
+
+### Attacks and resolutions
+
+| attack | resolution |
+|---|---|
+| timestamp backdating / clock skew | wallclock advisory only; order from chain inclusion, then `(lamport, cid)` |
+| equivocation (double-sign) | detectable fraud proof, both retained, lower CID canonical, signer reputation is a local view |
+| competing-chain spam | bounded by fork-choice — losing chains cost the spammer storage, not us consensus |
+| Sybil flooding the index | trust follows configured remotes + the genesis key (the repo owner's key), not global admission |
+| entry withholding to some replicas | gossip spreads tips; eventual consistency, same convergence |
+| history rewrite attempt | content addressing preserves all entries; only the canonical VIEW changes, and only by extension |
+| deletion demands | no deletion in protocol; local pruning of unordered notes is storage policy, doesn't affect convergence |
+
+
 ## The git mapping
 
 | git | this layer |
@@ -136,15 +255,11 @@ Release commit (the history link blame walks):
 { "type": "release", "root": "<root CID>", "prev": "<previous release CID or null>", "timestamp": "ISO-8601" }
 ```
 
-Index:
-```json
-{
-  "type": "index",
-  "issues": [{ "cid": "…", "title": "…", "anchor": "…", "timestamp": "…" }],
-  "parents": ["<previous index CIDs — empty on first>"],
-  "remotes": { "<name>": "/ipns/<key-or-pointer>" }
-}
-```
+The index is not a flat object — it is the **hash-chained entry set**
+defined by the Chronology protocol above. The per-entry `added` lists
+play the role the flat `issues` array played in the original sketch:
+they are the packed-refs, now with deterministic ordering, merge
+semantics, and fraud accountability.
 
 Signature rule (unchanged from the attestation scheme): sign the dag-json
 encoding of everything except `signature` and `publicKey`; verify with
@@ -160,12 +275,14 @@ encoding of everything except `signature` and `publicKey`; verify with
 3. **"File issue on this CID".** `selectFile` already knows CIDs — the
    file actions and blob view gain the button; the issue form prefills
    `anchors` and stays editable.
-4. **Index chain.** Every create appends to the index; a new index names
-   its parent. Local per browser first; durable publish path = ☆ Remote
-   pin under a fixed name (`repo-issues`) or Kubo RPC `files write`.
-5. **Remotes.** `index.remotes` + an "Add remote" control (paste a fork's
-   index pointer). Fetch-and-merge = fetch their index, union `issues`,
-   write a merge index with both parents.
+4. **Index entries.** Every create extends the canonical chain with a new
+   hash-chained entry (Chronology protocol). Local per browser first;
+   durable tip publishing = IPNS pointer on the branch key, plus gossip on
+   `repo-gossip:<repo>:index`.
+5. **Remotes.** Configured remote pointers (git remote analog) + "Add
+   remote" control; fetch-and-merge = pull their entries, prefix-closure,
+   union the note set, absorb their tip via a multi-parent merge entry,
+   recompute the canonical chain.
 6. **build-car.mjs walk-and-bundle.** From the index tips (own + remotes),
    walk every reachable note/comment object and merge those DAGs into
    `ipfs-gh-pages.car` (block-union rewrite, dedup by CID — CARs never
@@ -187,11 +304,8 @@ encoding of everything except `signature` and `publicKey`; verify with
 
 ## Open questions
 
-- Durable index publishing: pinning-service named listing vs Kubo MFS vs
-  DNSLink-on-Kubo. Decide at phase 4; the index object is identical either
-  way.
-- Ordering: timestamps suffice for MVP; git-bug-style Lamport clocks only
-  if comment ordering becomes a real problem.
+- Durable tip publishing: IPNS on the branch key (chosen in the protocol)
+  vs pinning-service named listing vs Kubo MFS as backup mirrors.
 - Namespace governance: `review` and `ci` ride the same pipe but are not
   built until issues prove the model.
 - Blame correlation: exact line-text match is the MVP heuristic; git-style
@@ -200,3 +314,7 @@ encoding of everything except `signature` and `publicKey`; verify with
 - Root chain bootstrapping: the first release-commit has `prev: null`;
   history before the chain exists is unattributable (same as `git blame`
   hitting a root commit).
+- Re-org UX: how loudly to surface a canonical-chain swap (compare git's
+  forced-update messaging). Protocol is silent; UI decides.
+- Finality depth K: default display threshold for "settled" entries —
+  a local policy knob, not consensus.
