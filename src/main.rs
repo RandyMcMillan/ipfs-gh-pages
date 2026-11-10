@@ -26,9 +26,10 @@
 //!   `t` toggles the chart.
 //! - Backend selection: `MultiBackendBuilder::with_fallback(WebGl2)` in
 //!   src/backend.rs, overridable with `?backend=dom|canvas|webgl2`. The
-//!   builder INJECTS A FIXED FOOTER into <body> (backend links + FPS,
-//!   z-index 1000, ~33px tall, bottom: 0) — index-rust.html's #ipfs-status
-//!   bar stacks above it; never collide with bottom: 0.
+//!   builder INJECTS A FIXED FOOTER into <body> (src/utils.rs): IPFS
+//!   connection status on the left (#ratzilla-ipfs-status, written by
+//!   js/ipfs-node.js), backend links + FPS on the right, z-index 1000,
+//!   bottom: 0. index-rust.html carries no status bar of its own.
 //! - Canvas sizing: `disable_auto_css_resize()` means the CSS in
 //!   index-rust.html owns the canvas size (`canvas { width: calc(100vw -
 //!   40px); height: 100% }`, 20px body margins).

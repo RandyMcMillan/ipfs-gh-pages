@@ -106083,10 +106083,39 @@ var BOOTSTRAP_PEERS = [
   "/dnsaddr/va1.bootstrap.libp2p.io/p2p/12D3KooWKnDdG3iXw9eTFijk3EWSunZcFi54Zka4wmtqtt6rPxc8"
 ];
 var TOPIC2 = "repo-gossip:ipfs-gh-pages";
+var statusEl = null;
+var pendingStatus = null;
 function statusLine(text) {
-  const el = document.getElementById("ipfs-status");
-  if (el) el.textContent = text;
+  const value2 = `IPFS: ${text}`;
+  const el = statusEl ?? document.getElementById("ratzilla-ipfs-status");
+  if (el) {
+    statusEl = el;
+    el.textContent = value2;
+  } else {
+    pendingStatus = value2;
+  }
 }
+new MutationObserver((mutations, observer) => {
+  if (statusEl) {
+    observer.disconnect();
+    return;
+  }
+  for (const mutation of mutations) {
+    for (const node of mutation.addedNodes) {
+      if (node.nodeType !== 1) continue;
+      if (node.id === "ratzilla-ipfs-status") statusEl = node;
+      else if (node.querySelector) {
+        statusEl = node.querySelector("#ratzilla-ipfs-status") ?? statusEl;
+      }
+      if (statusEl) break;
+    }
+    if (statusEl) break;
+  }
+  if (statusEl && pendingStatus) {
+    statusEl.textContent = pendingStatus;
+    pendingStatus = null;
+  }
+}).observe(document.documentElement, { childList: true, subtree: true });
 async function main() {
   statusLine("Starting IPFS node...");
   const lpDefaults = libp2pDefaults();
@@ -106104,10 +106133,10 @@ async function main() {
   const helia = await createHelia({ libp2p });
   window.__heliaNode = helia;
   libp2p.addEventListener("connection:open", () => {
-    statusLine(`IPFS online \u2014 peer ${libp2p.peerId} \u2014 ${libp2p.getConnections().length} connection(s)`);
+    statusLine(`peer ${libp2p.peerId} \u2014 ${libp2p.getConnections().length} connection(s)`);
   });
   libp2p.addEventListener("connection:close", () => {
-    statusLine(`IPFS online \u2014 peer ${libp2p.peerId} \u2014 ${libp2p.getConnections().length} connection(s)`);
+    statusLine(`peer ${libp2p.peerId} \u2014 ${libp2p.getConnections().length} connection(s)`);
   });
   const pubsub = libp2p.services?.pubsub;
   if (pubsub) {
@@ -106116,7 +106145,7 @@ async function main() {
     } catch {
     }
   }
-  statusLine(`IPFS online \u2014 peer ${libp2p.peerId} \u2014 dialing bootstrap peers...`);
+  statusLine(`peer ${libp2p.peerId} \u2014 dialing bootstrap peers...`);
   await Promise.allSettled(BOOTSTRAP_PEERS.map((addr) => libp2p.dial(addr)));
 }
 main().catch((err) => {

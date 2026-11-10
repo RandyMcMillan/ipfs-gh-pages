@@ -1,9 +1,11 @@
 // Helia node for the ratzilla shell (index-rust.html).
 //
 // Runs alongside the ratzilla wasm app — it does NOT own the page. Ratzilla
-// injects the TUI canvas and its own fixed footer into <body>; this module
-// only writes to #ipfs-status (fixed bar stacked above the ratzilla footer,
-// see the CSS comment in index-rust.html) and exposes window.__heliaNode.
+// injects the TUI canvas and the fixed footer; this module writes IPFS
+// connection status into the LEFT side of that footer
+// (#ratzilla-ipfs-status, created by inject_backend_footer in src/utils.rs).
+// The footer is injected by wasm asynchronously, so status writes go through
+// a MutationObserver-backed buffer rather than getElementById at call time.
 //
 // Bundled to a single ESM file by scripts/build-ipfs-js.mjs (esbuild) and
 // copied into dist/assets by trunk's copy-file link. Mirrors the proven
@@ -24,10 +26,44 @@ const BOOTSTRAP_PEERS = [
 
 const TOPIC = 'repo-gossip:ipfs-gh-pages';
 
+// The ratzilla footer (with our target span) is injected by wasm at runtime;
+// load order vs this module is a race. Buffer the latest message and flush
+// it via a MutationObserver once the span exists.
+let statusEl = null;
+let pendingStatus = null;
+
 function statusLine(text) {
-  const el = document.getElementById('ipfs-status');
-  if (el) el.textContent = text;
+  const value = `IPFS: ${text}`;
+  const el = statusEl ?? document.getElementById('ratzilla-ipfs-status');
+  if (el) {
+    statusEl = el;
+    el.textContent = value;
+  } else {
+    pendingStatus = value;
+  }
 }
+
+new MutationObserver((mutations, observer) => {
+  if (statusEl) {
+    observer.disconnect();
+    return;
+  }
+  for (const mutation of mutations) {
+    for (const node of mutation.addedNodes) {
+      if (node.nodeType !== 1) continue;
+      if (node.id === 'ratzilla-ipfs-status') statusEl = node;
+      else if (node.querySelector) {
+        statusEl = node.querySelector('#ratzilla-ipfs-status') ?? statusEl;
+      }
+      if (statusEl) break;
+    }
+    if (statusEl) break;
+  }
+  if (statusEl && pendingStatus) {
+    statusEl.textContent = pendingStatus;
+    pendingStatus = null;
+  }
+}).observe(document.documentElement, { childList: true, subtree: true });
 
 async function main() {
   statusLine('Starting IPFS node...');
@@ -48,10 +84,10 @@ async function main() {
   window.__heliaNode = helia;
 
   libp2p.addEventListener('connection:open', () => {
-    statusLine(`IPFS online — peer ${libp2p.peerId} — ${libp2p.getConnections().length} connection(s)`);
+    statusLine(`peer ${libp2p.peerId} — ${libp2p.getConnections().length} connection(s)`);
   });
   libp2p.addEventListener('connection:close', () => {
-    statusLine(`IPFS online — peer ${libp2p.peerId} — ${libp2p.getConnections().length} connection(s)`);
+    statusLine(`peer ${libp2p.peerId} — ${libp2p.getConnections().length} connection(s)`);
   });
 
   const pubsub = libp2p.services?.pubsub;
@@ -59,7 +95,7 @@ async function main() {
     try { pubsub.subscribe(TOPIC); } catch {}
   }
 
-  statusLine(`IPFS online — peer ${libp2p.peerId} — dialing bootstrap peers...`);
+  statusLine(`peer ${libp2p.peerId} — dialing bootstrap peers...`);
 
   await Promise.allSettled(BOOTSTRAP_PEERS.map((addr) => libp2p.dial(addr)));
 }
