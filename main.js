@@ -2826,14 +2826,48 @@ if (openNodeSettingsBtn) {
 const actionsVersionEl = document.getElementById('actions-app-version');
 if (actionsVersionEl && appVersion) actionsVersionEl.textContent = `v${appVersion}`;
 
-// Issues: a signed dag-json envelope per issue, anchored by its CID. The
-// envelope reuses the P7 attestation scheme; the CID list lives in
-// localStorage so this browser can re-open and re-verify its issues.
+// Issues and comments: signed dag-json note objects (docs/issues-car.md
+// phase 1 — the full note schema: ns/type/anchors, comments reply via
+// parent CID). signNote/verifyNote are shared by every note type.
 const ISSUES_KEY = 'repo-issues';
+const COMMENTS_KEY = 'repo-comments';
 
 function loadIssues() {
   try { return JSON.parse(localStorage.getItem(ISSUES_KEY) || '[]'); } catch { return []; }
 }
+
+function loadCommentIndex() {
+  try { return JSON.parse(localStorage.getItem(COMMENTS_KEY) || '{}'); } catch { return {}; }
+}
+
+// Build the signed envelope for any note payload; signer identity is the
+// browser's Ed25519 key (same as IPNS/chat/attestation).
+async function signNote(fields) {
+  const key = await getIpnsBranchKey();
+  const signer = peerIdFromPrivateKey(key).toString();
+  const signed = { ...fields, signer };
+  const signature = await key.sign(dagJson.encode(signed));
+  return {
+    envelope: {
+      ...signed,
+      signature: uint8ArrayToBase64(signature),
+      publicKey: uint8ArrayToBase64(publicKeyToProtobuf(key.publicKey))
+    },
+    signer
+  };
+}
+
+// Verify a fetched note; returns { ok, signed, signer } without throwing on
+// a bad signature (that's data, not an error).
+async function verifyNote(envelope) {
+  const { signature, publicKey, ...signed } = envelope;
+  const pub = publicKeyFromProtobuf(base64ToUint8Array(publicKey));
+  const signer = peerIdFromPublicKey(pub).toString();
+  const ok = await pub.verify(dagJson.encode(signed), base64ToUint8Array(signature));
+  return { ok, signed, signer };
+}
+
+let currentIssueCid = null;
 
 function renderIssues() {
   const listEl = document.getElementById('issues-list');
@@ -2875,6 +2909,12 @@ function renderIssues() {
   }
 }
 
+async function publishNote(envelope) {
+  const cid = await addDagJson(envelope);
+  heliaNode.routing?.provide?.(cid).catch(() => {});
+  return cid.toString();
+}
+
 async function createIssue() {
   const titleEl = document.getElementById('issue-title');
   const bodyEl = document.getElementById('issue-body');
@@ -2891,19 +2931,17 @@ async function createIssue() {
   }
   if (statusEl) statusEl.textContent = 'Signing and publishing…';
   try {
-    const key = await getIpnsBranchKey();
-    const signer = peerIdFromPrivateKey(key).toString();
-    const signed = { title, body, timestamp: new Date().toISOString(), signer };
-    const signature = await key.sign(dagJson.encode(signed));
-    const envelope = {
-      ...signed,
-      signature: uint8ArrayToBase64(signature),
-      publicKey: uint8ArrayToBase64(publicKeyToProtobuf(key.publicKey))
-    };
-    const cid = (await addDagJson(envelope)).toString();
-    heliaNode.routing?.provide?.(CID.parse(cid)).catch(() => {});
+    const { envelope, signer } = await signNote({
+      ns: 'issues',
+      type: 'issue',
+      anchors: [],
+      title,
+      body,
+      timestamp: new Date().toISOString()
+    });
+    const cid = await publishNote(envelope);
     const issues = loadIssues();
-    issues.unshift({ cid, title, timestamp: signed.timestamp });
+    issues.unshift({ cid, title, timestamp: envelope.timestamp, signer });
     try { localStorage.setItem(ISSUES_KEY, JSON.stringify(issues)); } catch {}
     if (titleEl) titleEl.value = '';
     if (bodyEl) bodyEl.value = '';
@@ -2923,24 +2961,103 @@ async function createIssue() {
   }
 }
 
+// A comment is a note whose parent is the issue (or another comment) —
+// the git-commit-parent analog; threads are chains, nothing is mutated.
+async function createComment(issueCid, body) {
+  const statusEl = document.getElementById('issue-reply-status');
+  if (!heliaNode) {
+    if (statusEl) statusEl.textContent = 'Wait for the node to come online.';
+    return;
+  }
+  if (statusEl) statusEl.textContent = 'Signing…';
+  try {
+    const { envelope } = await signNote({
+      ns: 'issues',
+      type: 'comment',
+      parent: issueCid,
+      body,
+      timestamp: new Date().toISOString()
+    });
+    const cid = await publishNote(envelope);
+    const index = loadCommentIndex();
+    (index[issueCid] = index[issueCid] || []).push(cid);
+    try { localStorage.setItem(COMMENTS_KEY, JSON.stringify(index)); } catch {}
+    const replyEl = document.getElementById('issue-reply');
+    if (replyEl) replyEl.value = '';
+    if (statusEl) statusEl.textContent = `Commented — ${cid}`;
+    openIssue(issueCid);
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Failed: ${err.message}`;
+  }
+}
+
 // Re-fetch by CID (bitswap if a stranger's node serves it) and verify the
 // signature before showing anything — the issue equivalent of "verify then
-// trust".
+// trust". Renders the thread into the detail panel.
 async function openIssue(cid) {
   const statusEl = document.getElementById('issue-status');
+  const detailEl = document.getElementById('issue-detail');
+  const bodyEl = document.getElementById('issue-detail-body');
   if (!statusEl || !heliaNode) return;
+  currentIssueCid = cid;
   const pinCmd = document.getElementById('issue-pin-cmd');
   if (pinCmd) pinCmd.textContent = `ipfs pin add ${cid}`;
   statusEl.textContent = `Fetching ${cid}…`;
+  if (detailEl) detailEl.style.display = 'block';
+  if (bodyEl) bodyEl.innerHTML = '';
   try {
-    const envelope = await getDagJson(CID.parse(cid));
-    const { signature, publicKey, ...signed } = envelope;
-    const pub = publicKeyFromProtobuf(base64ToUint8Array(publicKey));
-    const signer = peerIdFromPublicKey(pub).toString();
-    const ok = await pub.verify(dagJson.encode(signed), base64ToUint8Array(signature));
-    statusEl.textContent = ok
-      ? `✓ ${signed.title} — ${signer} · ${signed.timestamp}${signed.body ? ' — ' + signed.body : ''}`
-      : `✗ signature INVALID for ${cid}`;
+    const { ok, signed, signer } = await verifyNote(await getDagJson(CID.parse(cid)));
+    if (!ok) {
+      statusEl.textContent = `✗ signature INVALID for ${cid}`;
+      return;
+    }
+    statusEl.textContent = '';
+    if (bodyEl) {
+      const h = document.createElement('h4');
+      h.style.marginTop = '0';
+      h.textContent = signed.title || '(untitled)';
+      const meta = document.createElement('div');
+      meta.className = 'f6 color-fg-muted';
+      meta.style.wordBreak = 'break-all';
+      meta.textContent = `✓ ${signer} · ${signed.timestamp} · ${cid}`;
+      const body = document.createElement('p');
+      body.textContent = signed.body || '';
+      bodyEl.appendChild(h);
+      bodyEl.appendChild(meta);
+      if (signed.body) bodyEl.appendChild(body);
+    }
+    // Comment chain: fetch each locally-known comment CID, verify, render.
+    const commentCids = (loadCommentIndex()[cid] || []).slice().reverse();
+    for (const ccid of commentCids) {
+      try {
+        const c = await verifyNote(await getDagJson(CID.parse(ccid)));
+        const div = document.createElement('div');
+        div.style.cssText = 'margin-top: 0.5rem; padding-left: 0.75rem; border-left: 2px solid var(--color-border-muted);';
+        const cmeta = document.createElement('div');
+        cmeta.className = 'f6';
+        cmeta.style.color = c.ok ? 'var(--color-fg-muted)' : 'var(--fgColor-danger, #cf222e)';
+        cmeta.style.wordBreak = 'break-all';
+        cmeta.textContent = `${c.ok ? '✓' : '✗ invalid'} ${c.signer} · ${c.signed.timestamp}`;
+        const cbody = document.createElement('div');
+        cbody.textContent = c.signed.body || '';
+        div.appendChild(cmeta);
+        div.appendChild(cbody);
+        if (bodyEl) bodyEl.appendChild(div);
+      } catch {
+        const div = document.createElement('div');
+        div.className = 'f6 color-fg-muted';
+        div.textContent = `${ccid} — unavailable (no provider)`;
+        if (bodyEl) bodyEl.appendChild(div);
+      }
+    }
+    const index = loadCommentIndex();
+    if (bodyEl && (index[cid] || []).length === 0) {
+      const none = document.createElement('div');
+      none.className = 'f6 color-fg-muted';
+      none.style.marginTop = '0.5rem';
+      none.textContent = '(no comments yet — comments from other browsers arrive with the index, phase 4)';
+      bodyEl.appendChild(none);
+    }
   } catch (err) {
     statusEl.textContent = `Fetch failed: ${err.message} — no provider online? Pin the CID or keep a tab open.`;
   }
@@ -2948,6 +3065,15 @@ async function openIssue(cid) {
 
 const issueCreateBtn = document.getElementById('btn-issue-create');
 if (issueCreateBtn) issueCreateBtn.addEventListener('click', createIssue);
+const issueReplyBtn = document.getElementById('btn-issue-reply');
+if (issueReplyBtn) {
+  issueReplyBtn.addEventListener('click', () => {
+    const replyEl = document.getElementById('issue-reply');
+    const body = (replyEl?.value || '').trim();
+    if (!body || !currentIssueCid) return;
+    createComment(currentIssueCid, body);
+  });
+}
 renderIssues();
 
 // DESIGN IDIOM — single-click copy (keep this pattern; see the matching
