@@ -2931,21 +2931,23 @@ async function createIssue() {
   }
   if (statusEl) statusEl.textContent = 'Signing and publishing…';
   try {
+    const anchors = pendingIssueAnchor ? [pendingIssueAnchor.cid] : [];
     const { envelope, signer } = await signNote({
       ns: 'issues',
       type: 'issue',
-      anchors: [],
+      anchors,
       title,
       body,
       timestamp: new Date().toISOString()
     });
     const cid = await publishNote(envelope);
     const issues = loadIssues();
-    issues.unshift({ cid, title, timestamp: envelope.timestamp, signer });
+    issues.unshift({ cid, title, timestamp: envelope.timestamp, signer, anchors });
     try { localStorage.setItem(ISSUES_KEY, JSON.stringify(issues)); } catch {}
     if (titleEl) titleEl.value = '';
     if (bodyEl) bodyEl.value = '';
-    if (statusEl) statusEl.textContent = `Created — ${cid}`;
+    if (statusEl) statusEl.textContent = `Created — ${cid}${pendingIssueAnchor ? ` — anchored to ${pendingIssueAnchor.name}` : ''}`;
+    pendingIssueAnchor = null;
     // Hand the user the real command at the moment of creation, on its own
     // line (yellow by the global command rule).
     const resultPre = document.getElementById('issue-result');
@@ -3025,6 +3027,19 @@ async function openIssue(cid) {
       bodyEl.appendChild(h);
       bodyEl.appendChild(meta);
       if (signed.body) bodyEl.appendChild(body);
+      if (Array.isArray(signed.anchors) && signed.anchors.length > 0) {
+        const anchLabel = document.createElement('div');
+        anchLabel.className = 'f6 color-fg-muted';
+        anchLabel.style.marginTop = '0.4rem';
+        anchLabel.textContent = 'Anchored to (the note does not change this CID):';
+        const anch = document.createElement('pre');
+        anch.style.margin = '0.2rem 0 0 0';
+        const anchCode = document.createElement('code');
+        anchCode.textContent = `ipfs pin add ${signed.anchors[0]}`;
+        anch.appendChild(anchCode);
+        bodyEl.appendChild(anchLabel);
+        bodyEl.appendChild(anch);
+      }
     }
     // Comment chain: fetch each locally-known comment CID, verify, render.
     const commentCids = (loadCommentIndex()[cid] || []).slice().reverse();
@@ -3065,6 +3080,23 @@ async function openIssue(cid) {
 
 const issueCreateBtn = document.getElementById('btn-issue-create');
 if (issueCreateBtn) issueCreateBtn.addEventListener('click', createIssue);
+// Phase 3: from the file tree, route to the issues view with the anchor
+// prefilled — the note is attached to that exact CID, non-invasively.
+const issueOnFileBtn = document.getElementById('btn-issue-on-file');
+if (issueOnFileBtn) {
+  issueOnFileBtn.addEventListener('click', () => {
+    if (!selectedFileCid) return;
+    pendingIssueAnchor = { cid: selectedFileCid, name: selectedFileName };
+    const statusEl = document.getElementById('issue-status');
+    if (statusEl) {
+      statusEl.textContent = `Anchored to ${selectedFileName} (${selectedFileCid}) — describe the issue`;
+    }
+    window.location.hash = '/issues';
+    activateTab('issues');
+    const titleEl = document.getElementById('issue-title');
+    if (titleEl) titleEl.focus();
+  });
+}
 const issueReplyBtn = document.getElementById('btn-issue-reply');
 if (issueReplyBtn) {
   issueReplyBtn.addEventListener('click', () => {
