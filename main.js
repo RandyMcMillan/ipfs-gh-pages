@@ -11,6 +11,7 @@ import { sha256 } from 'multiformats/hashes/sha2';
 import { car } from '@helia/car';
 import { CarWriter } from '@ipld/car/writer';
 import repoIdentity from 'virtual:repo-identity';
+import repoSubmodules from 'virtual:repo-submodules';
 import { strings } from '@helia/strings';
 import { unixfs } from '@helia/unixfs';
 import { CID } from 'multiformats/cid';
@@ -426,6 +427,7 @@ function repoTreeNodes(tree, parentPath) {
 }
 
 const FOLDER_SVG = '<svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h8.5A1.75 1.75 0 0 0 12 13.25v-8.5A1.75 1.75 0 0 0 10.25 3H7.547a.25.25 0 0 1-.186-.083l-.667-.77A1.75 1.75 0 0 0 5.279 1.5H1.75Z"></path></svg>';
+const SUBMODULE_SVG = '<svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h8.5A1.75 1.75 0 0 0 12 13.25v-8.5A1.75 1.75 0 0 0 10.25 3H7.547a.25.25 0 0 1-.186-.083l-.667-.77A1.75 1.75 0 0 0 5.279 1.5H1.75Zm.75 3.5v7h7v-7h-7Z"></path></svg>';
 const FILE_SVG = '<svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914Z"></path></svg>';
 
 // GitHub-style repo file listing: rows of Name | CID | Size, directories
@@ -653,8 +655,21 @@ function renderRepoTable(nodes, depth = 0) {
 
     const nameCell = document.createElement('span');
     nameCell.className = 'cell-name';
-    nameCell.innerHTML = (node.isDir ? FOLDER_SVG : FILE_SVG) + '<span></span>';
+    const sub = repoSubmodules[node.path];
+    nameCell.innerHTML = (sub ? SUBMODULE_SVG : node.isDir ? FOLDER_SVG : FILE_SVG) + '<span></span>';
     nameCell.querySelector('span').textContent = node.name;
+    if (sub) {
+      nameCell.title = 'Submodule — click to expand the contents embedded from this checkout';
+      // GitHub marks submodules with @<short gitlink> right after the name.
+      const ref = document.createElement('a');
+      ref.className = 'submodule-ref';
+      ref.href = sub.url || '#';
+      ref.target = '_blank';
+      ref.rel = 'noopener';
+      ref.textContent = '@' + sub.sha.slice(0, 7);
+      ref.title = `Submodule at ${sub.sha}${sub.url ? ' — ' + sub.url : ''}`;
+      nameCell.appendChild(ref);
+    }
 
     const cidCell = document.createElement('span');
     cidCell.className = 'cell-cid';
@@ -699,7 +714,9 @@ function renderRepoTable(nodes, depth = 0) {
 // ".github/workflows" row. Applied at every level.
 function foldRepoNodes(nodes) {
   return nodes.map((node) => {
-    if (node.isDir && node.children && node.children.length === 1 && node.children[0].isDir) {
+    // A submodule root must stay its own row — folding it into a chained
+    // path would hide the gitlink marker GitHub shows.
+    if (node.isDir && !repoSubmodules[node.path] && node.children && node.children.length === 1 && node.children[0].isDir) {
       const child = node.children[0];
       const merged = { ...node, name: `${node.name}/${child.name}`, path: child.path, children: child.children };
       return foldRepoNodes([merged])[0];

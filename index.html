@@ -623,6 +623,7 @@
     .repo-table.nested {
       border: none;
       border-radius: 0;
+      padding-left: 1.5rem;
     }
     .repo-table li.row {
       display: block;
@@ -654,6 +655,16 @@
     .repo-table .cell-name svg {
       color: var(--color-fg-muted);
       flex-shrink: 0;
+    }
+    .repo-table .cell-name .submodule-ref {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.75rem;
+      color: var(--color-fg-muted);
+      text-decoration: none;
+    }
+    .repo-table .cell-name .submodule-ref:hover {
+      color: var(--color-accent-fg);
+      text-decoration: underline;
     }
     .repo-table .cell-cid {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;

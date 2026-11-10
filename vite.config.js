@@ -152,10 +152,50 @@ function repoIdentityPlugin() {
   };
 }
 
+function repoSubmodulesPlugin() {
+  // Bakes which paths are submodules, at which commit, from which remote —
+  // the file tree renders these like GitHub: a submodule row with its
+  // gitlink commit, distinct from a plain directory. Contents are still
+  // embedded by repoFilesPlugin (see its "virtual submodule support" block);
+  // this module only carries the presentation metadata that working-tree
+  // files alone can't tell the app (the gitlink SHA is not on disk).
+  const virtualId = 'virtual:repo-submodules';
+  const resolvedId = '\0' + virtualId;
+  return {
+    name: 'repo-submodules',
+    resolveId(id) {
+      if (id === virtualId) return resolvedId;
+    },
+    load(id) {
+      if (id !== resolvedId) return;
+      const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
+      const subs = {};
+      let paths = [];
+      try {
+        const out = execSync('git config --file .gitmodules --get-regexp submodule\\..*\\.path', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+        paths = out.split('\n').filter(Boolean).map((l) => l.split(' ').pop().trim())
+          .filter((p) => fs.existsSync(path.join(root, p, '.git')));
+      } catch {}
+      for (const p of paths) {
+        try {
+          const sha = execSync('git rev-parse HEAD', { cwd: path.join(root, p), stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+          let url = '';
+          try {
+            url = execSync('git config --get remote.origin.url', { cwd: path.join(root, p), stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+          } catch {}
+          url = url.replace(/^git@github\.com:/, 'https://github.com/').replace(/\.git$/, '');
+          subs[p] = { sha, url };
+        } catch {}
+      }
+      return `export default ${JSON.stringify(subs)};`;
+    }
+  };
+}
+
 export default defineConfig({
   // Base relative path ensures assets resolve correctly on GitHub Pages
   base: './',
-  plugins: [repoFilesPlugin(), repoIdentityPlugin()],
+  plugins: [repoFilesPlugin(), repoSubmodulesPlugin(), repoIdentityPlugin()],
   build: {
     target: 'esnext',
     // The GitHub Action sets OUT_DIR so the bundle lands where the caller asked.
