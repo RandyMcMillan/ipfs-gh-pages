@@ -35,6 +35,7 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
         4 => draw_ipfs_tab(frame, app, chunks[1]),
         5 => draw_peers_tab(frame, app, chunks[1]),
         6 => draw_fetch_tab(frame, app, chunks[1]),
+        7 => draw_publish_tab(frame, app, chunks[1]),
         _ => {}
     };
     // let big_text = BigText::builder()
@@ -95,6 +96,35 @@ fn draw_peers_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         )
     } else if app.last_result.is_empty() {
         "c = connect".to_string()
+    } else {
+        app.last_result.clone()
+    };
+    frame.render_widget(
+        Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),
+        chunks[1],
+    );
+}
+
+fn draw_publish_tab(frame: &mut Frame, app: &mut App, area: Rect) {
+    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
+    let body = if app.publish_output.is_empty() {
+        "(nothing published — press p and enter text)"
+    } else {
+        app.publish_output.as_str()
+    };
+    frame.render_widget(
+        Paragraph::new(body)
+            .block(Block::bordered().title("Publish"))
+            .wrap(Wrap { trim: false }),
+        chunks[0],
+    );
+    let footer = if app.input_active {
+        format!(
+            "publish text: > {}_   (Enter publishes, Esc cancels)",
+            app.input_buffer
+        )
+    } else if app.last_result.is_empty() {
+        "p = publish text".to_string()
     } else {
         app.last_result.clone()
     };

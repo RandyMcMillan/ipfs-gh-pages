@@ -264,6 +264,8 @@ pub struct App<'a> {
     pub last_result: String,
     /// Fetched content for the Fetch tab (text or directory listing).
     pub fetch_output: String,
+    /// Publish result lines (CID, gateway URL, pin command).
+    pub publish_output: String,
 }
 
 #[derive(Clone, Copy, Debug, Default, Ord, PartialOrd, Eq, PartialEq)]
@@ -288,7 +290,7 @@ impl<'a> App<'a> {
             title,
             should_quit: false,
             tabs: TabsState::new(vec![
-                "Home", "About", "Status", "Theme", "IPFS", "Peers", "Fetch",
+                "Home", "About", "Status", "Theme", "IPFS", "Peers", "Fetch", "Publish",
             ]),
             show_chart: true,
             progress: 0.0,
@@ -350,6 +352,7 @@ impl<'a> App<'a> {
             pending: None,
             last_result: String::new(),
             fetch_output: String::new(),
+            publish_output: String::new(),
         }
     }
 
@@ -381,6 +384,7 @@ impl<'a> App<'a> {
             }
             'c' if self.tabs.index == 5 => self.start_input(InputTarget::Connect),
             'f' if self.tabs.index == 6 => self.start_input(InputTarget::Fetch),
+            'p' if self.tabs.index == 7 => self.start_input(InputTarget::Publish),
             _ => {}
         }
     }
@@ -464,7 +468,15 @@ impl<'a> App<'a> {
                         self.fetch_output = body.clone();
                         format!("fetched ({} bytes)", body.len())
                     }
-                    InputTarget::Publish => format!("published: {value}"),
+                    InputTarget::Publish => {
+                        // One fact per line, full values (working agreement).
+                        let cid = ipfs::json_field(&value, "cid").unwrap_or_default();
+                        let url = ipfs::json_field(&value, "gatewayUrl").unwrap_or_default();
+                        let pin = ipfs::json_field(&value, "pinCmd").unwrap_or_default();
+                        let summary = format!("published {cid}");
+                        self.publish_output = format!("CID: {cid}\nGateway: {url}\n{pin}");
+                        summary
+                    }
                     InputTarget::Chat => "sent".to_string(),
                     InputTarget::Connect => "connected".to_string(),
                     InputTarget::KuboPin => format!("pinned: {value}"),
