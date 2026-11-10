@@ -853,6 +853,76 @@ async function verifyMetadata() {
   }
 }
 
+// Repo chat (P9): signed dag-json envelopes over the repo gossip channel's
+// :chat subtopic — the GitHub discussions/watch-activity equivalent. Every
+// message is verified with the P7 envelope scheme; forgeries render marked.
+const chatSeen = new Set();
+
+async function renderChatMessage(data) {
+  const listEl = document.getElementById('chat-list');
+  if (!listEl) return;
+  let envelope;
+  try { envelope = dagJson.decode(data); } catch { return; }
+  const { signature, publicKey, ...signed } = envelope;
+  if (!signature || !publicKey || typeof signed.text !== 'string') return;
+  const key = `${signed.signer}:${signed.timestamp}:${signed.text.slice(0, 32)}`;
+  if (chatSeen.has(key)) return;
+  chatSeen.add(key);
+  let ok = false;
+  let signer = signed.signer;
+  try {
+    const pub = publicKeyFromProtobuf(base64ToUint8Array(publicKey));
+    signer = peerIdFromPublicKey(pub).toString();
+    ok = await pub.verify(dagJson.encode(signed), base64ToUint8Array(signature));
+  } catch {}
+  const li = document.createElement('li');
+  li.style.cssText = 'padding: 0.3rem 0; border-bottom: 1px solid var(--color-border-muted); word-break: break-word;';
+  const meta = document.createElement('div');
+  meta.className = 'f6';
+  meta.style.color = ok ? 'var(--color-fg-muted)' : 'var(--fgColor-danger, #cf222e)';
+  meta.textContent = `${ok ? '✓' : '✗ invalid signature'} ${signer} · ${signed.timestamp}`;
+  const body = document.createElement('div');
+  body.textContent = signed.text;
+  li.appendChild(meta);
+  li.appendChild(body);
+  if (listEl.querySelector('.color-fg-muted')) listEl.innerHTML = '';
+  listEl.prepend(li);
+  while (listEl.children.length > 50) listEl.removeChild(listEl.lastChild);
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const text = (input?.value || '').trim();
+  if (!text) return;
+  const pubsub = heliaNode?.libp2p?.services?.pubsub;
+  if (!pubsub) return;
+  try {
+    const key = await getIpnsBranchKey();
+    const signer = peerIdFromPrivateKey(key).toString();
+    const signed = { text, timestamp: new Date().toISOString(), signer };
+    const signature = await key.sign(dagJson.encode(signed));
+    const envelope = {
+      ...signed,
+      signature: uint8ArrayToBase64(signature),
+      publicKey: uint8ArrayToBase64(publicKeyToProtobuf(key.publicKey))
+    };
+    const data = dagJson.encode(envelope);
+    await pubsub.publish(`repo-gossip:${repoFullName}:chat`, data);
+    if (input) input.value = '';
+    // emitSelf is off — render our own post so the sender sees it immediately.
+    await renderChatMessage(data);
+  } catch {}
+}
+
+const chatSendBtn = document.getElementById('btn-chat-send');
+if (chatSendBtn) chatSendBtn.addEventListener('click', sendChatMessage);
+const chatInput = document.getElementById('chat-input');
+if (chatInput) {
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendChatMessage();
+  });
+}
+
 function getIpnsBranchKey() {
   if (!ipnsBranchKeyPromise) {
     ipnsBranchKeyPromise = (async () => {
@@ -1004,10 +1074,19 @@ async function initHelia() {
     // Clone detection: every instance of this app subscribes to a gossip
     // topic named after the repo, so subscribers ARE clones (peers running
     // the same published app). Unknown deployments share the gnostr default.
+    // The :chat subtopic carries signed repo chat between those same clones.
     const pubsub = heliaNode.libp2p.services?.pubsub;
     if (pubsub) {
       try {
         pubsub.subscribe(`repo-gossip:${repoFullName}`);
+      } catch {}
+      try {
+        const chatTopic = `repo-gossip:${repoFullName}:chat`;
+        pubsub.subscribe(chatTopic);
+        pubsub.addEventListener('message', (evt) => {
+          if (evt.detail.topic !== chatTopic) return;
+          renderChatMessage(evt.detail.data).catch(() => {});
+        });
       } catch {}
     }
 
@@ -2187,6 +2266,9 @@ setInterval(() => {
         lastCloneAnnounce = Date.now();
         try { pubsub.unsubscribe(topic); } catch {}
         try { pubsub.subscribe(topic); } catch {}
+        // Same propagation problem on the chat subtopic.
+        try { pubsub.unsubscribe(`${topic}:chat`); } catch {}
+        try { pubsub.subscribe(`${topic}:chat`); } catch {}
       }
       // libp2p 2.x removed connection tagging, so protect clone peers
       // app-side: redial any known subscriber we are no longer connected

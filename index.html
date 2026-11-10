@@ -1231,6 +1231,14 @@
               <summary style="cursor: pointer; font-weight: 600;">Clones (<span id="clones-count">0</span>)</summary>
               <ul id="clones-list"><li>(none yet — open the page in another browser)</li></ul>
             </details>
+            <details style="margin-top:0.5rem;" open>
+              <summary style="cursor: pointer; font-weight: 600;">Repo chat (pubsub)</summary>
+              <div class="d-flex" style="gap: 0.5rem; margin: 0.5rem 0;">
+                <input id="chat-input" type="text" class="form-control" style="flex: 1;" placeholder="Message the repo channel…" />
+                <button id="btn-chat-send" class="btn btn-sm" type="button">Send</button>
+              </div>
+              <ul id="chat-list" style="list-style: none; padding-left: 0; margin: 0;"><li class="f6 color-fg-muted">(no messages yet — posts propagate to every open clone of this repo)</li></ul>
+            </details>
             <details style="margin-top:0.5rem;">
               <summary style="cursor: pointer; font-weight: 600;">Blocked (<span id="blocked-count">0</span>)</summary>
               <ul id="blocked-peers-list"><li>(none)</li></ul>
@@ -1605,6 +1613,7 @@ ipfs pin add &lt;CID from the Publish tab&gt;</code></pre>
             <tr><td>Publish text</td><td>raw IPLD block</td><td><code>echo … | ipfs add</code></td><td><a href="https://ipld.io/" target="_blank" rel="noopener">IPLD</a></td></tr>
             <tr><td>Signed metadata</td><td>Ed25519 signature over dag-json</td><td><code>git commit -S</code> (signed commits)</td><td><a href="https://ipld.io/docs/codecs/known/dag-json/" target="_blank" rel="noopener">dag-json</a></td></tr>
             <tr><td>Custom domain</td><td>DNSLink <code>_dnslink</code> TXT record</td><td>GitHub Pages custom domain</td><td><a href="https://dnslink.dev/" target="_blank" rel="noopener">DNSLink</a></td></tr>
+            <tr><td>Repo chat</td><td>gossipsub subtopic + signed dag-json</td><td>Discussions / watch activity</td><td><a href="https://github.com/libp2p/specs/blob/master/pubsub/gossipsub/gossipsub-v1.0.md" target="_blank" rel="noopener">gossipsub</a></td></tr>
             <tr><td>Remote pin</td><td>Pinning Services API <code>POST /pins</code></td><td>the "star" — durable availability</td><td><a href="https://ipfs.github.io/pinning-services-api-spec/" target="_blank" rel="noopener">PSA spec</a></td></tr>
             <tr><td>Pin / MFS copy</td><td>provider records + local pin</td><td><code>ipfs pin add</code> · <code>ipfs files cp</code></td><td><a href="https://specs.ipfs.tech/pinning/" target="_blank" rel="noopener">Pinning</a></td></tr>
             <tr><td>Share link / multiaddr</td><td>relay reservation, circuit-relay v2, WebRTC-direct</td><td><code>ipfs swarm connect</code></td><td><a href="https://github.com/libp2p/specs/blob/master/relay/circuit-v2.md" target="_blank" rel="noopener">Relay v2</a></td></tr>
