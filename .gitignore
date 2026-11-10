@@ -6,3 +6,4 @@ certs/
 
 # fallback if @puppeteer/browsers ever installs into the CWD (act containers)
 chrome/
+/target
