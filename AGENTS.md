@@ -45,6 +45,24 @@ and never bury a command inside a sentence.
    still a gap. The page is both a tool and a map of the decentralized
    GitHub.
 
+# Design Idioms
+
+Page-wide patterns. Keep them; new UI gets them for free or not at all.
+
+- **Commands**: every runnable command displayed on the page (a) gets its
+  own line — its own `<pre>`, never prose-inline, (b) renders yellow (the
+  attention token), (c) copies with one click — and the whole surrounding
+  box is the click target, not just the text. Implemented once: the CSS
+  block marked `DESIGN IDIOM — commands` in index.html and the delegated
+  listener marked `DESIGN IDIOM — single-click copy` in main.js. Any plain
+  `<pre><code>` in any panel inherits all three.
+- **Live values**: if the page knows the real CID/hash/address, print it —
+  never a placeholder when the data exists (pattern: `doc-pin-cmd`,
+  `chip-car-export`, `issue-pin-cmd`).
+- **Full values**: never truncate CIDs, hashes, peer IDs, URLs for display;
+  let the UI wrap (user override: gitlink markers in the file tree use
+  GitHub's `@<short>` convention next to the folder name).
+
 # Release Procedure
 
 Releases are cut with:

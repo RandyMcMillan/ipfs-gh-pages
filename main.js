@@ -2950,10 +2950,12 @@ const issueCreateBtn = document.getElementById('btn-issue-create');
 if (issueCreateBtn) issueCreateBtn.addEventListener('click', createIssue);
 renderIssues();
 
-// Design pattern: EVERY command displayed is single-click copy — any
-// command <pre> block or kubo chip anywhere on the page (help modal,
-// publish tab, issues, settings, clone bar). The WHOLE surrounding box is
-// the click target, not just the text; the inner code flashes confirmation.
+// DESIGN IDIOM — single-click copy (keep this pattern; see the matching
+// block in index.html's CSS): EVERY command displayed anywhere on the page
+// copies with one click, and the WHOLE surrounding box is the target — any
+// <pre><code> block or kubo chip, current or added later, is covered by
+// this one delegated listener. The inner code element flashes confirmation
+// so styling and live updates (real CIDs, never placeholders) survive.
 document.addEventListener('click', (e) => {
   const el = e.target.closest('pre:has(> code), code.kubo-chip');
   if (!el) return;

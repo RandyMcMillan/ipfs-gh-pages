@@ -498,10 +498,15 @@
       content: '≡ Kubo: ';
       font-weight: 600;
     }
-    /* Global design pattern: runnable commands always get their own line
-       (their own <pre>) AND yellow emphasis — same token as the manual
-       callouts, in both color modes. Every one is single-click copy, and
-       the whole box is the click target. */
+    /* DESIGN IDIOM — commands (keep this pattern, do not regress it):
+       every runnable command displayed on the page
+         1. gets its OWN line — its own <pre>, never buried in prose,
+         2. renders YELLOW — the attention token, mode-aware,
+         3. copies with ONE click — and the WHOLE surrounding box is the
+            click target, not just the text (cursor: pointer everywhere).
+       New command displays: plain <pre><code>…</code></pre> inside any
+       panel gets all three automatically. Live values only — if the page
+       knows the real CID/hash, print it, never a placeholder. */
     pre:has(> code),
     code.kubo-chip,
     pre code {
