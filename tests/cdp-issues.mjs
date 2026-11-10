@@ -124,6 +124,16 @@ check('comment index persisted in localStorage', await evalJson(`(() => {
   return Object.values(idx).some((list) => list.length > 0);
 })()`));
 
+// Phase 4: creates extended the hash-chained index (issue + comment).
+check('index chain persisted with height', await evalJson(`(() => {
+  const tip = JSON.parse(localStorage.getItem('repo-index-chain') || 'null');
+  return Boolean(tip) && tip.height >= 2 && /^baguq[a-z0-9]{20,}$/.test(tip.cid);
+})()`));
+check('chain status rendered with pin command', await evalJson(`(() => {
+  const el = document.getElementById('index-chain-status');
+  return el && el.textContent.includes('Index chain: height') && el.textContent.includes('ipfs pin add baguq');
+})()`));
+
 ws.close();
 proc.kill();
 finish('ISSUES PHASE 1 TEST');

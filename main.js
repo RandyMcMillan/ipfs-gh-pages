@@ -2868,6 +2868,87 @@ async function verifyNote(envelope) {
 }
 
 let currentIssueCid = null;
+// Phase 3: an issue filed from the file tree anchors to that file's CID —
+// the git-notes model (annotate without mutating the annotated object).
+let pendingIssueAnchor = null;
+
+// Phase 4: the local index chain (Chronology protocol, docs/issues-car.md).
+// Every create extends the chain with a hash-chained, signed index entry:
+// {type, added, prev, height, lamport, signer, timestamp, signature,
+// publicKey}. Prev links give the DAG its history; height/lamport feed the
+// fork-choice rule when remote chains merge (phase 5).
+const CHAIN_KEY = 'repo-index-chain';
+const LAMPORT_KEY = 'repo-index-lamport';
+
+function loadChainTip() {
+  try { return JSON.parse(localStorage.getItem(CHAIN_KEY) || 'null'); } catch { return null; }
+}
+
+function nextLamport(parentLamports = []) {
+  let l = 0;
+  try { l = parseInt(localStorage.getItem(LAMPORT_KEY) || '0', 10) || 0; } catch {}
+  const next = Math.max(l, ...parentLamports) + 1;
+  try { localStorage.setItem(LAMPORT_KEY, String(next)); } catch {}
+  return next;
+}
+
+// Extend the chain with a new signed entry naming the notes just created.
+// The chain is its own content-addressed DAG; the tip CID is what a
+// stranger fetches to replay our chronology.
+async function extendChain(addedCids) {
+  if (!heliaNode || addedCids.length === 0) return null;
+  const prevTip = loadChainTip();
+  const parentCids = prevTip ? [prevTip.cid] : [];
+  let parentHeight = 0;
+  let parentLamport = 0;
+  if (prevTip) {
+    try {
+      const prevEntry = await getDagJson(CID.parse(prevTip.cid));
+      parentHeight = Number(prevEntry.height) || 0;
+      parentLamport = Number(prevEntry.lamport) || 0;
+    } catch { /* prev unavailable — treat as genesis */ }
+  }
+  const lamport = nextLamport([parentLamport]);
+  const height = parentHeight + 1;
+  const { envelope } = await signNote({
+    type: 'index-entry',
+    added: addedCids,
+    prev: parentCids,
+    height,
+    lamport,
+    timestamp: new Date().toISOString()
+  });
+  const cid = await publishNote(envelope);
+  try {
+    localStorage.setItem(CHAIN_KEY, JSON.stringify({ cid, height, lamport, added: addedCids.length }));
+  } catch {}
+  renderChainStatus();
+  return cid;
+}
+
+// Display the local chain tip — height, CID, and its pin command (the
+// design-idiom pre block inherits yellow + single-click copy).
+function renderChainStatus() {
+  const el = document.getElementById('index-chain-status');
+  if (!el) return;
+  const tip = loadChainTip();
+  if (!tip) {
+    el.innerHTML = '<span class="f6 color-fg-muted">Index chain: genesis pending — create the first issue.</span>';
+    return;
+  }
+  el.innerHTML = '';
+  const meta = document.createElement('div');
+  meta.className = 'f6 color-fg-muted';
+  meta.style.wordBreak = 'break-all';
+  meta.textContent = `Index chain: height ${tip.height} · tip ${tip.cid}`;
+  const pre = document.createElement('pre');
+  pre.style.margin = '0.2rem 0 0 0';
+  const code = document.createElement('code');
+  code.textContent = `ipfs pin add ${tip.cid}`;
+  pre.appendChild(code);
+  el.appendChild(meta);
+  el.appendChild(pre);
+}
 
 function renderIssues() {
   const listEl = document.getElementById('issues-list');
@@ -2944,6 +3025,7 @@ async function createIssue() {
     const issues = loadIssues();
     issues.unshift({ cid, title, timestamp: envelope.timestamp, signer, anchors });
     try { localStorage.setItem(ISSUES_KEY, JSON.stringify(issues)); } catch {}
+    await extendChain([cid]);
     if (titleEl) titleEl.value = '';
     if (bodyEl) bodyEl.value = '';
     if (statusEl) statusEl.textContent = `Created — ${cid}${pendingIssueAnchor ? ` — anchored to ${pendingIssueAnchor.name}` : ''}`;
@@ -2984,6 +3066,7 @@ async function createComment(issueCid, body) {
     const index = loadCommentIndex();
     (index[issueCid] = index[issueCid] || []).push(cid);
     try { localStorage.setItem(COMMENTS_KEY, JSON.stringify(index)); } catch {}
+    await extendChain([cid]);
     const replyEl = document.getElementById('issue-reply');
     if (replyEl) replyEl.value = '';
     if (statusEl) statusEl.textContent = `Commented — ${cid}`;
@@ -3107,6 +3190,7 @@ if (issueReplyBtn) {
   });
 }
 renderIssues();
+renderChainStatus();
 
 // DESIGN IDIOM — single-click copy (keep this pattern; see the matching
 // block in index.html's CSS): EVERY command displayed anywhere on the page
