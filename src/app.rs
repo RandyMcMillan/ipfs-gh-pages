@@ -290,7 +290,7 @@ impl<'a> App<'a> {
             title,
             should_quit: false,
             tabs: TabsState::new(vec![
-                "Home", "About", "Status", "Theme", "IPFS", "Peers", "Fetch", "Publish",
+                "Home", "About", "Status", "Theme", "IPFS", "Peers", "Fetch", "Publish", "Chat",
             ]),
             show_chart: true,
             progress: 0.0,
@@ -385,6 +385,7 @@ impl<'a> App<'a> {
             'c' if self.tabs.index == 5 => self.start_input(InputTarget::Connect),
             'f' if self.tabs.index == 6 => self.start_input(InputTarget::Fetch),
             'p' if self.tabs.index == 7 => self.start_input(InputTarget::Publish),
+            'm' if self.tabs.index == 8 => self.start_input(InputTarget::Chat),
             _ => {}
         }
     }
