@@ -34,7 +34,6 @@ use tao::{
     keyboard::{Key, ModifiersState},
     window::{Window, WindowBuilder},
 };
-use wry::{WebView, WebViewBuilder};
 #[cfg(any(
     target_os = "linux",
     target_os = "dragonfly",
@@ -43,6 +42,7 @@ use wry::{WebView, WebViewBuilder};
     target_os = "netbsd"
 ))]
 use wry::WebViewBuilderExtUnix;
+use wry::{WebView, WebViewBuilder};
 
 const HOST: &str = "127.0.0.1";
 const PORT: u16 = 8080;

@@ -68,7 +68,9 @@ fn draw_about_tab(frame: &mut Frame, area: Rect) {
         text::Line::from("ipfs-gh-pages — a Ratzilla (ratatui in the browser) TUI bundled as a"),
         text::Line::from("native desktop app by wry, alongside a Helia IPFS node."),
         text::Line::from(""),
-        text::Line::from("The IPFS node (Helia, in the page) dials bootstrap.libp2p.io on start and"),
+        text::Line::from(
+            "The IPFS node (Helia, in the page) dials bootstrap.libp2p.io on start and",
+        ),
         text::Line::from("joins the repo-gossip:ipfs-gh-pages gossipsub topic so clones discover"),
         text::Line::from("each other. Its live status is the footer bar on the left:"),
         text::Line::from("IPFS: peer <id> — N connection(s)."),
