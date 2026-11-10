@@ -2847,6 +2847,8 @@ function renderIssues() {
   for (const issue of issues) {
     const li = document.createElement('li');
     li.style.cssText = 'padding: 0.3rem 0; border-bottom: 1px solid var(--color-border-muted);';
+    const head = document.createElement('div');
+    head.style.cssText = 'display:flex; flex-wrap:wrap; gap: 0.5rem; align-items: baseline;';
     const a = document.createElement('a');
     a.href = '#';
     a.textContent = issue.title || '(untitled)';
@@ -2855,12 +2857,20 @@ function renderIssues() {
       e.preventDefault();
       openIssue(issue.cid);
     });
-    const meta = document.createElement('div');
-    meta.className = 'f6 color-fg-muted';
-    meta.style.wordBreak = 'break-all';
-    meta.textContent = `${issue.cid} · ${issue.timestamp}`;
-    li.appendChild(a);
-    li.appendChild(meta);
+    const when = document.createElement('span');
+    when.className = 'f6 color-fg-muted';
+    when.textContent = issue.timestamp;
+    head.appendChild(a);
+    head.appendChild(when);
+    // Per-issue command, own line, yellow — the delegated design-pattern
+    // listener makes it single-click copy automatically.
+    const cmd = document.createElement('pre');
+    cmd.style.margin = '0.2rem 0 0.1rem 0';
+    const codeEl = document.createElement('code');
+    codeEl.textContent = `ipfs pin add ${issue.cid}`;
+    cmd.appendChild(codeEl);
+    li.appendChild(head);
+    li.appendChild(cmd);
     listEl.appendChild(li);
   }
 }
