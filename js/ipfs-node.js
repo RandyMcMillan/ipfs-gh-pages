@@ -1,10 +1,14 @@
 // Helia node for the ratzilla shell (index-rust.html).
 //
+// Runs alongside the ratzilla wasm app — it does NOT own the page. Ratzilla
+// injects the TUI canvas and its own fixed footer into <body>; this module
+// only writes to #ipfs-status (fixed bar stacked above the ratzilla footer,
+// see the CSS comment in index-rust.html) and exposes window.__heliaNode.
+//
 // Bundled to a single ESM file by scripts/build-ipfs-js.mjs (esbuild) and
-// copied into dist by trunk's copy-file link. Mirrors the proven browser
-// config from main.js: helia's libp2p defaults + gossipsub +
-// pubsubPeerDiscovery on the repo topic, bootstrap dialing, and the node
-// exposed on window.__heliaNode.
+// copied into dist/assets by trunk's copy-file link. Mirrors the proven
+// browser config from main.js: helia's libp2p defaults + gossipsub +
+// pubsubPeerDiscovery on the repo topic, bootstrap dialing.
 
 import { createHelia, libp2pDefaults } from 'helia';
 import { createLibp2p } from 'libp2p';

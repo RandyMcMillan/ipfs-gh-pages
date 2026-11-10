@@ -2,6 +2,36 @@
 
 //! # [Ratatui] Ratzilla Bundle Wry Example
 //!
+//! Three cfg-gated build modes from ONE crate:
+//!
+//! 1. `wasm32, no bundle-wry` (trunk/`trunk serve`): the ratzilla browser
+//!    TUI in `browser_main` below. This is what `index-rust.html` loads.
+//! 2. `bundle-wry` feature (any host): the desktop app — `wry_app::run()`
+//!    opens a native webview pointed at a local server; in the bundled .app
+//!    that server serves `Resources/dist` (see src/wry_app.rs). Without
+//!    Resources/dist it falls back to spawning `trunk serve`.
+//! 3. native, no feature: stub — prints a hint. Nothing to run.
+//!
+//! ## Ratzilla draw-loop contract (do not break)
+//!
+//! - `terminal.draw_web(closure)` drives the closure EVERY animation frame
+//!   (requestAnimationFrame). The closure borrows `App` mutably, calls
+//!   `on_tick()` (which advances demo data per frame — progress, sparkline,
+//!   sine signals, rotating log/event lists — and returns elapsed ms), then
+//!   `ui::draw(elapsed, frame, app)` renders, then tachyonfx effects are
+//!   processed with the same elapsed. State advances at DISPLAY REFRESH
+//!   RATE, not on a fixed timer.
+//! - `terminal.on_key_event(...)`: arrows = tab/task navigation, `q` sets
+//!   `should_quit` (unreachable in the browser loop — kept for parity),
+//!   `t` toggles the chart.
+//! - Backend selection: `MultiBackendBuilder::with_fallback(WebGl2)` in
+//!   src/backend.rs, overridable with `?backend=dom|canvas|webgl2`. The
+//!   builder INJECTS A FIXED FOOTER into <body> (backend links + FPS,
+//!   z-index 1000, ~33px tall, bottom: 0) — index-rust.html's #ipfs-status
+//!   bar stacks above it; never collide with bottom: 0.
+//! - Canvas sizing: `disable_auto_css_resize()` means the CSS in
+//!   index-rust.html owns the canvas size (`canvas { width: calc(100vw -
+//!   40px); height: 100% }`, 20px body margins).
 
 #[cfg(feature = "bundle-wry")]
 mod wry_app;

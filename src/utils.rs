@@ -3,6 +3,11 @@ use ratzilla::web_sys;
 use wasm_bindgen::JsValue;
 
 /// Inject HTML footer with backend switching links
+///
+/// NOTE (page-layout contract): this footer is `position: fixed; bottom: 0;
+/// z-index: 1000` and ~33px tall. index-rust.html stacks its #ipfs-status
+/// bar directly above it (bottom: 33px). If this footer's height or z-index
+/// changes, update #ipfs-status there to match.
 pub(crate) fn inject_backend_footer(current_backend: BackendType) -> Result<(), JsValue> {
     let window = web_sys::window().ok_or("No window")?;
     let document = window.document().ok_or("No document")?;
