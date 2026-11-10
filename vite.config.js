@@ -16,8 +16,27 @@ function repoFilesPlugin() {
       const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
       let files = [];
       try {
-        const out = execSync('git ls-files -z', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] });
-        files = out.toString('utf8').split('\0').filter(Boolean);
+        // --stage exposes gitlinks (mode 160000): checked-out submodules.
+        // Their contents are embedded under their path so the IPFS clone is
+        // complete — "virtual" submodule support resolved at build time.
+        const stage = execSync('git ls-files --stage -z', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] })
+          .toString('utf8').split('\0').filter(Boolean);
+        for (const rec of stage) {
+          const tab = rec.indexOf('\t');
+          const mode = rec.slice(0, tab).split(' ')[0];
+          const p = rec.slice(tab + 1);
+          if (mode === '160000') {
+            try {
+              const sub = execSync('git ls-files -z', { cwd: path.join(root, p), stdio: ['ignore', 'pipe', 'ignore'] })
+                .toString('utf8').split('\0').filter(Boolean);
+              for (const sf of sub) files.push(`${p}/${sf}`);
+            } catch {
+              // Uninitialized submodule — nothing on disk to embed.
+            }
+          } else {
+            files.push(p);
+          }
+        }
       } catch (e) {
         const walk = (dir) => {
           for (const name of fs.readdirSync(dir)) {
