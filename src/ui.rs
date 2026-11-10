@@ -32,6 +32,7 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
         1 => draw_about_tab(frame, chunks[1]),
         2 => draw_second_tab(frame, app, chunks[1]),
         3 => draw_third_tab(frame, app, chunks[1]),
+        4 => draw_ipfs_tab(frame, app, chunks[1]),
         _ => {}
     };
     // let big_text = BigText::builder()
@@ -60,6 +61,43 @@ fn draw_first_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     draw_gauges(frame, app, chunks[0]);
     draw_charts(frame, app, chunks[1]);
     draw_text(frame, chunks[2]);
+}
+
+fn draw_ipfs_tab(frame: &mut Frame, app: &mut App, area: Rect) {
+    let snap = &app.ipfs;
+    let mut lines = vec![
+        text::Line::from(format!("Status: {}", snap.node_status)),
+        text::Line::from(format!("Peer ID: {}", snap.peer_id)),
+        text::Line::from(format!("Connections: {}", snap.connections.len())),
+        text::Line::from(format!(
+            "Kubo: {}{}",
+            snap.kubo_status,
+            if snap.kubo_endpoint.is_empty() {
+                String::new()
+            } else {
+                format!(" ({})", snap.kubo_endpoint)
+            }
+        )),
+        text::Line::from(format!(
+            "Git serve adverts seen: {}{}",
+            snap.git_seen,
+            if snap.serving { " (serving)" } else { "" }
+        )),
+        text::Line::from(""),
+        text::Line::from("Multiaddrs:"),
+    ];
+    if snap.multiaddrs.is_empty() {
+        lines.push(text::Line::from("(none - browser node)"));
+    } else {
+        for addr in &snap.multiaddrs {
+            lines.push(text::Line::from(addr.as_str()));
+        }
+    }
+    let block = Block::bordered().title("IPFS");
+    let paragraph = Paragraph::new(lines)
+        .block(block)
+        .wrap(Wrap { trim: false });
+    frame.render_widget(paragraph, area);
 }
 
 fn draw_about_tab(frame: &mut Frame, area: Rect) {

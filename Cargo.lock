@@ -1242,6 +1242,7 @@ name = "ipfs-gh-pages"
 version = "0.1.0"
 dependencies = [
  "critical-section",
+ "js-sys",
  "muda",
  "rand",
  "ratzilla",

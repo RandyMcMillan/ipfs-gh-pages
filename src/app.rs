@@ -1,4 +1,5 @@
 use crate::effects;
+use crate::ipfs;
 use rand::{
     distr::{Distribution, Uniform},
     rngs::SmallRng,
@@ -237,6 +238,11 @@ pub struct App<'a> {
     pub enhanced_graphics: bool,
     pub effects: EffectManager<EffectKey>,
     pub last_frame: web_time::Instant,
+    /// Latest snapshot of the JS IPFS backend (js/ipfs-node.js), refreshed
+    /// from `window.__ipfsState` — see src/ipfs.rs and
+    /// docs/rust-js-bridge.md.
+    pub ipfs: ipfs::Snapshot,
+    ipfs_poll_counter: u32,
 }
 
 #[derive(Clone, Copy, Debug, Default, Ord, PartialOrd, Eq, PartialEq)]
@@ -260,7 +266,7 @@ impl<'a> App<'a> {
         App {
             title,
             should_quit: false,
-            tabs: TabsState::new(vec!["Home", "About", "Status", "Theme"]),
+            tabs: TabsState::new(vec!["Home", "About", "Status", "Theme", "IPFS"]),
             show_chart: true,
             progress: 0.0,
             sparkline: Signal {
@@ -313,6 +319,8 @@ impl<'a> App<'a> {
             enhanced_graphics,
             effects,
             last_frame: web_time::Instant::now(),
+            ipfs: ipfs::Snapshot::default(),
+            ipfs_poll_counter: 0,
         }
     }
 
@@ -347,6 +355,14 @@ impl<'a> App<'a> {
     }
 
     pub fn on_tick(&mut self) -> Duration {
+        // Refresh the IPFS backend snapshot ~every half second (the draw
+        // loop runs at display refresh rate; Reflect reads are cheap but
+        // not free).
+        self.ipfs_poll_counter = self.ipfs_poll_counter.wrapping_add(1);
+        if self.ipfs_poll_counter % 30 == 0 {
+            self.ipfs = ipfs::poll();
+        }
+
         // Update progress
         self.progress += 0.001;
         if self.progress > 1.0 {
