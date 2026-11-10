@@ -500,11 +500,16 @@
     }
     /* Global design pattern: runnable commands always get their own line
        (their own <pre>) AND yellow emphasis — same token as the manual
-       callouts, in both color modes. Every one is single-click copy. */
+       callouts, in both color modes. Every one is single-click copy, and
+       the whole box is the click target. */
+    pre:has(> code),
+    code.kubo-chip,
+    pre code {
+      cursor: pointer;
+    }
     pre code,
     code.kubo-chip {
       color: var(--fgColor-attention);
-      cursor: pointer;
     }
     .ref-table {
       width: 100%;

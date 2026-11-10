@@ -2951,18 +2951,20 @@ if (issueCreateBtn) issueCreateBtn.addEventListener('click', createIssue);
 renderIssues();
 
 // Design pattern: EVERY command displayed is single-click copy — any
-// <pre><code> block or kubo chip anywhere on the page (help modal, publish
-// tab, issues, settings, clone bar). The block flashes confirmation.
+// command <pre> block or kubo chip anywhere on the page (help modal,
+// publish tab, issues, settings, clone bar). The WHOLE surrounding box is
+// the click target, not just the text; the inner code flashes confirmation.
 document.addEventListener('click', (e) => {
-  const el = e.target.closest('pre code, code.kubo-chip');
+  const el = e.target.closest('pre:has(> code), code.kubo-chip');
   if (!el) return;
   const v = el.textContent.trim();
   if (!v || v.includes('Copied to clipboard')) return;
+  const flashTarget = el.tagName === 'PRE' ? (el.querySelector('code') || el) : el;
   if (!el.title) el.title = 'Click to copy';
   const done = () => {
-    const orig = el.textContent;
-    el.textContent = 'Copied to clipboard';
-    setTimeout(() => { if (el.textContent === 'Copied to clipboard') el.textContent = orig; }, 900);
+    const orig = flashTarget.textContent;
+    flashTarget.textContent = 'Copied to clipboard';
+    setTimeout(() => { if (flashTarget.textContent === 'Copied to clipboard') flashTarget.textContent = orig; }, 900);
   };
   if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
     navigator.clipboard.writeText(v).then(done).catch(done);
