@@ -38,6 +38,7 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
         7 => draw_publish_tab(frame, app, chunks[1]),
         8 => draw_chat_tab(frame, app, chunks[1]),
         9 => draw_kubo_tab(frame, app, chunks[1]),
+        10 => draw_services_tab(frame, app, chunks[1]),
         _ => {}
     };
     // let big_text = BigText::builder()
@@ -100,6 +101,49 @@ fn draw_peers_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         "c = connect".to_string()
     } else {
         app.last_result.clone()
+    };
+    frame.render_widget(
+        Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),
+        chunks[1],
+    );
+}
+
+fn draw_services_tab(frame: &mut Frame, app: &mut App, area: Rect) {
+    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
+    let names = &app.ipfs.service_names;
+    let mut lines = vec![
+        text::Line::from(
+            "Optional service endpoints (docs/optional-services.md) — the p2p path works with none configured.",
+        ),
+        text::Line::from(""),
+    ];
+    if names.is_empty() {
+        lines.push(text::Line::from(
+            "(none configured — public defaults in use)",
+        ));
+    } else {
+        for name in names {
+            lines.push(text::Line::from(format!("• {name}")));
+        }
+    }
+    if !app.last_result.is_empty() {
+        lines.push(text::Line::from(""));
+        lines.push(text::Line::from(app.last_result.as_str()));
+    }
+    frame.render_widget(
+        Paragraph::new(lines)
+            .block(Block::bordered().title("Services"))
+            .wrap(Wrap { trim: false }),
+        chunks[0],
+    );
+    let footer = if app.input_active {
+        format!(
+            "set services JSON array: > {}_   (Enter applies, Esc cancels)",
+            app.input_buffer
+        )
+    } else {
+        "s = set services (paste a JSON array, e.g. [{\"name\":\"gnostr.org\",\"gateways\":[...]}])"
+            .to_string()
     };
     frame.render_widget(
         Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),

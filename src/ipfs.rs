@@ -43,6 +43,7 @@ mod imp {
         pub kubo_status: String,
         pub kubo_endpoint: String,
         pub kubo_peer_id: String,
+        pub service_names: Vec<String>,
         pub git_seen: usize,
         pub serving: bool,
     }
@@ -125,6 +126,13 @@ mod imp {
             snap.kubo_status = get_string(&kubo, "status");
             snap.kubo_endpoint = get_string(&kubo, "endpoint");
             snap.kubo_peer_id = get_string(&kubo, "peerId");
+        }
+
+        if let Ok(services) = Reflect::get(&state, &JsValue::from_str("services")) {
+            snap.service_names = get_array(&services, "configured")
+                .into_iter()
+                .filter_map(|v| v.as_string())
+                .collect();
         }
 
         if let Ok(git) = Reflect::get(&state, &JsValue::from_str("git")) {
@@ -241,6 +249,7 @@ mod imp {
         pub kubo_status: String,
         pub kubo_endpoint: String,
         pub kubo_peer_id: String,
+        pub service_names: Vec<String>,
         pub git_seen: usize,
         pub serving: bool,
     }

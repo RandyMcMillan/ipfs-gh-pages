@@ -231,6 +231,7 @@ pub enum InputTarget {
     Chat,
     KuboDetect,
     KuboPin,
+    ServicesSet,
 }
 
 pub struct App<'a> {
@@ -292,7 +293,7 @@ impl<'a> App<'a> {
             should_quit: false,
             tabs: TabsState::new(vec![
                 "Home", "About", "Status", "Theme", "IPFS", "Peers", "Fetch", "Publish", "Chat",
-                "Kubo",
+                "Kubo", "Services",
             ]),
             show_chart: true,
             progress: 0.0,
@@ -395,6 +396,7 @@ impl<'a> App<'a> {
                 }
             }
             'p' if self.tabs.index == 9 => self.start_input(InputTarget::KuboPin),
+            's' if self.tabs.index == 10 => self.start_input(InputTarget::ServicesSet),
             _ => {}
         }
     }
@@ -437,11 +439,13 @@ impl<'a> App<'a> {
 
     /// Submit the input buffer as a bridge command and arm result pickup.
     pub fn submit_input(&mut self) {
+        // arg carries every field the ops understand; each op reads what it
+        // needs. `services` is the raw buffer (must be a JSON array) and is
+        // only meaningful for the services.set target.
         let arg = format!(
-            "{{\"addr\":\"{}\",\"cid\":\"{}\",\"text\":\"{}\"}}",
+            "{{\"addr\":\"{0}\",\"cid\":\"{0}\",\"text\":\"{0}\",\"services\":{1}}}",
             Self::json_escape(&self.input_buffer),
-            Self::json_escape(&self.input_buffer),
-            Self::json_escape(&self.input_buffer)
+            self.input_buffer.trim()
         );
         let op = match self.input_target {
             InputTarget::Connect => "connect",
@@ -450,6 +454,7 @@ impl<'a> App<'a> {
             InputTarget::Chat => "chatSend",
             InputTarget::KuboDetect => "kuboDetect",
             InputTarget::KuboPin => "kuboPin",
+            InputTarget::ServicesSet => "services.set",
         };
         if let Some(id) = ipfs::cmd(op, &arg) {
             self.pending = Some((id, self.input_target));
@@ -492,6 +497,7 @@ impl<'a> App<'a> {
                     InputTarget::Connect => "connected".to_string(),
                     InputTarget::KuboDetect => format!("kubo: {value}"),
                     InputTarget::KuboPin => format!("pinned: {value}"),
+                    InputTarget::ServicesSet => format!("services: {value}"),
                 };
             }
             Err(error) => {
