@@ -1943,6 +1943,8 @@ function refreshPeers() {
     const peers = heliaNode.libp2p.getPeers();
     const countEl = document.getElementById('peer-count');
     if (countEl) countEl.textContent = String(peers.length);
+    const insightsPeers = document.getElementById('insights-peers');
+    if (insightsPeers) insightsPeers.textContent = String(peers.length);
     peersListEl.innerHTML = '';
     if (!peers || peers.length === 0) {
       peersListEl.innerHTML = '<li>(none)</li>';
@@ -2294,6 +2296,8 @@ setInterval(() => {
       const countEl = document.getElementById('clones-count');
       const listEl = document.getElementById('clones-list');
       if (countEl) countEl.textContent = String(subs.length);
+      const insightsClones = document.getElementById('insights-clones');
+      if (insightsClones) insightsClones.textContent = String(subs.length);
       if (listEl) {
         listEl.innerHTML = '';
         if (subs.length === 0) {
@@ -2749,23 +2753,59 @@ const hasShareLinkParam = (() => {
   return p.has('connect') || p.has('peer');
 })();
 
-// Tab navigation
+// Tab navigation — every named view has its own endpoint (#/code, #/issues,
+// #/peer, …) so a refresh or a shared link lands back on the same view.
+// Buttons set the hash; anchors in the nav carry href="#/…" and ride the
+// same hashchange path (back button works for both).
+const TAB_ROUTE_ALIAS = { code: 'files' };
+const VALID_TABS = ['files', 'issues', 'pulls', 'actions', 'projects', 'wiki', 'security', 'insights', 'settings', 'peer', 'publish'];
+
+function activateTab(tab) {
+  const target = TAB_ROUTE_ALIAS[tab] || tab;
+  if (!VALID_TABS.includes(target)) return false;
+  document.querySelectorAll('.tab-button[data-tab]').forEach((btn) => {
+    const on = btn.dataset.tab === target;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-selected', String(on));
+  });
+  document.querySelectorAll('.tab-panel').forEach((panel) => panel.classList.remove('active'));
+  const panel = document.getElementById(`tab-${target}`);
+  if (panel) panel.classList.add('active');
+  return true;
+}
+
+function routeFromHash() {
+  const tab = window.location.hash.replace(/^#\/?/, '');
+  if (tab) activateTab(tab);
+}
+
 document.querySelectorAll('.tab-button[data-tab]').forEach((button) => {
   button.addEventListener('click', () => {
-    const tab = button.dataset.tab;
-    document.querySelectorAll('.tab-button[data-tab]').forEach((btn) => {
-      btn.classList.remove('active');
-      btn.setAttribute('aria-selected', 'false');
-    });
-    document.querySelectorAll('.tab-panel').forEach((panel) => {
-      panel.classList.remove('active');
-    });
-    button.classList.add('active');
-    button.setAttribute('aria-selected', 'true');
-    const panel = document.getElementById(`tab-${tab}`);
-    if (panel) panel.classList.add('active');
+    const route = button.dataset.tab === 'files' ? 'code' : button.dataset.tab;
+    if (`#/${route}` === window.location.hash) {
+      activateTab(route);
+    } else {
+      window.location.hash = `/${route}`;
+    }
   });
 });
+window.addEventListener('hashchange', routeFromHash);
+routeFromHash();
+
+// Settings endpoint deep-link: open the Peer tab's Settings sub-tab.
+const openNodeSettingsBtn = document.getElementById('btn-open-node-settings');
+if (openNodeSettingsBtn) {
+  openNodeSettingsBtn.addEventListener('click', () => {
+    window.location.hash = '/peer';
+    activateTab('peer');
+    const sub = document.getElementById('sub-tab-btn-settings');
+    if (sub) sub.click();
+  });
+}
+
+// Actions endpoint: show which build this page is.
+const actionsVersionEl = document.getElementById('actions-app-version');
+if (actionsVersionEl && appVersion) actionsVersionEl.textContent = `v${appVersion}`;
 
 // Sub-tab navigation (inside Peer tab)
 document.querySelectorAll('.sub-tab-button').forEach((button) => {
