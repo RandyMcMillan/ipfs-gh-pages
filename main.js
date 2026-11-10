@@ -1705,6 +1705,29 @@ if (signPublishBtn) signPublishBtn.addEventListener('click', signPublished);
 const verifyMetadataBtn = document.getElementById('btn-verify-metadata');
 if (verifyMetadataBtn) verifyMetadataBtn.addEventListener('click', verifyMetadata);
 
+// Resolve the branch pointer the way a stranger would: through the IPNS
+// routers (local record, delegated routing, DHT) rather than our own state.
+async function checkIpnsResolution() {
+  const statusEl = document.getElementById('ipns-resolve-status');
+  if (!statusEl) return;
+  if (!heliaNode || !ipnsBranchName) {
+    statusEl.textContent = 'Publish the branch pointer first.';
+    return;
+  }
+  statusEl.textContent = 'Resolving…';
+  try {
+    const key = await getIpnsBranchKey();
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('no answer within 30s')), 30000));
+    const res = await Promise.race([ipns(heliaNode).resolve(peerIdFromPrivateKey(key)), timeout]);
+    const path = res?.path?.toString?.() || res?.value?.toString?.() || String(res?.path ?? res?.value ?? '');
+    statusEl.textContent = `Resolves to ${path}`;
+  } catch (err) {
+    statusEl.textContent = `Not resolvable yet: ${err.message} — the record may still be propagating, or no router has it yet.`;
+  }
+}
+const ipnsResolveBtn = document.getElementById('btn-ipns-resolve');
+if (ipnsResolveBtn) ipnsResolveBtn.addEventListener('click', checkIpnsResolution);
+
 // Clone bar: copy the root CID, or fetch the whole repo and download a zip.
 if (cloneCidCopyBtn) {
   cloneCidCopyBtn.addEventListener('click', async () => {
