@@ -112,4 +112,16 @@ try {
   console.warn('Submodule scan skipped:', e.message);
 }
 
+// GitHub Pages has no SPA fallback for unknown paths, so a deep path link
+// like /ipfs-gh-pages/issues would 404 on refresh. Pages serves 404.html
+// for those — ship a copy of the app; its router reads the path, activates
+// the matching view, and normalizes to the canonical hash URL. Relative
+// asset base ('./') keeps the copy working from the 404 response.
+try {
+  fs.copyFileSync(path.join(outDir, 'index.html'), path.join(outDir, '404.html'));
+  console.log('SPA fallback: 404.html written');
+} catch (e) {
+  console.warn('404.html skipped:', e.message);
+}
+
 await helia.stop();

@@ -2755,9 +2755,13 @@ const hasShareLinkParam = (() => {
 
 // Tab navigation — every named view has its own endpoint (#/code, #/issues,
 // #/peer, …) so a refresh or a shared link lands back on the same view.
-// Buttons set the hash; anchors in the nav carry href="#/…" and ride the
-// same hashchange path (back button works for both).
+// GitHub-style PATH routes are accepted too: /code, /issues, /peer load the
+// right view and normalize to the canonical hash form. When both are given
+// (/code#/issues) the hash wins. Canonical form is the hash because GitHub
+// Pages has no SPA fallback for unknown paths — dist ships a 404.html copy
+// of index.html so deep path links on Pages still boot the app.
 const TAB_ROUTE_ALIAS = { code: 'files' };
+const ROUTE_NAMES = ['code', 'issues', 'pulls', 'actions', 'projects', 'wiki', 'security', 'insights', 'settings', 'peer', 'publish'];
 const VALID_TABS = ['files', 'issues', 'pulls', 'actions', 'projects', 'wiki', 'security', 'insights', 'settings', 'peer', 'publish'];
 
 function activateTab(tab) {
@@ -2774,9 +2778,24 @@ function activateTab(tab) {
   return true;
 }
 
-function routeFromHash() {
-  const tab = window.location.hash.replace(/^#\/?/, '');
-  if (tab) activateTab(tab);
+// The directory part of the current path with any route segment removed —
+// the shareable base (on Pages: /ipfs-gh-pages, locally: '' or '/').
+function basePath() {
+  const segs = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+  if (segs.length && ROUTE_NAMES.includes(segs[segs.length - 1])) segs.pop();
+  return segs.length ? '/' + segs.join('/') : '';
+}
+
+function applyRoute() {
+  const hashTab = window.location.hash.replace(/^#\/?/, '');
+  const lastSeg = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean).pop() || '';
+  const tab = (hashTab && ROUTE_NAMES.includes(hashTab) && hashTab) || (ROUTE_NAMES.includes(lastSeg) && lastSeg) || '';
+  if (!tab) return;
+  activateTab(tab);
+  const canonical = `${basePath()}/#/${tab}`;
+  if (window.location.pathname + window.location.hash !== canonical) {
+    history.replaceState(null, '', canonical);
+  }
 }
 
 document.querySelectorAll('.tab-button[data-tab]').forEach((button) => {
@@ -2789,8 +2808,8 @@ document.querySelectorAll('.tab-button[data-tab]').forEach((button) => {
     }
   });
 });
-window.addEventListener('hashchange', routeFromHash);
-routeFromHash();
+window.addEventListener('hashchange', applyRoute);
+applyRoute();
 
 // Settings endpoint deep-link: open the Peer tab's Settings sub-tab.
 const openNodeSettingsBtn = document.getElementById('btn-open-node-settings');
