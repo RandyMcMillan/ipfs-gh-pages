@@ -2826,6 +2826,109 @@ if (openNodeSettingsBtn) {
 const actionsVersionEl = document.getElementById('actions-app-version');
 if (actionsVersionEl && appVersion) actionsVersionEl.textContent = `v${appVersion}`;
 
+// Issues: a signed dag-json envelope per issue, anchored by its CID. The
+// envelope reuses the P7 attestation scheme; the CID list lives in
+// localStorage so this browser can re-open and re-verify its issues.
+const ISSUES_KEY = 'repo-issues';
+
+function loadIssues() {
+  try { return JSON.parse(localStorage.getItem(ISSUES_KEY) || '[]'); } catch { return []; }
+}
+
+function renderIssues() {
+  const listEl = document.getElementById('issues-list');
+  if (!listEl) return;
+  const issues = loadIssues();
+  listEl.innerHTML = '';
+  if (issues.length === 0) {
+    listEl.innerHTML = '<li class="f6 color-fg-muted">(none yet)</li>';
+    return;
+  }
+  for (const issue of issues) {
+    const li = document.createElement('li');
+    li.style.cssText = 'padding: 0.3rem 0; border-bottom: 1px solid var(--color-border-muted);';
+    const a = document.createElement('a');
+    a.href = '#';
+    a.textContent = issue.title || '(untitled)';
+    a.title = `Open and verify ${issue.cid}`;
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      openIssue(issue.cid);
+    });
+    const meta = document.createElement('div');
+    meta.className = 'f6 color-fg-muted';
+    meta.style.wordBreak = 'break-all';
+    meta.textContent = `${issue.cid} · ${issue.timestamp}`;
+    li.appendChild(a);
+    li.appendChild(meta);
+    listEl.appendChild(li);
+  }
+}
+
+async function createIssue() {
+  const titleEl = document.getElementById('issue-title');
+  const bodyEl = document.getElementById('issue-body');
+  const statusEl = document.getElementById('issue-status');
+  const title = (titleEl?.value || '').trim();
+  const body = (bodyEl?.value || '').trim();
+  if (!title) {
+    if (statusEl) statusEl.textContent = 'Give the issue a title first.';
+    return;
+  }
+  if (!heliaNode) {
+    if (statusEl) statusEl.textContent = 'Wait for the node to come online.';
+    return;
+  }
+  if (statusEl) statusEl.textContent = 'Signing and publishing…';
+  try {
+    const key = await getIpnsBranchKey();
+    const signer = peerIdFromPrivateKey(key).toString();
+    const signed = { title, body, timestamp: new Date().toISOString(), signer };
+    const signature = await key.sign(dagJson.encode(signed));
+    const envelope = {
+      ...signed,
+      signature: uint8ArrayToBase64(signature),
+      publicKey: uint8ArrayToBase64(publicKeyToProtobuf(key.publicKey))
+    };
+    const cid = (await addDagJson(envelope)).toString();
+    heliaNode.routing?.provide?.(CID.parse(cid)).catch(() => {});
+    const issues = loadIssues();
+    issues.unshift({ cid, title, timestamp: signed.timestamp });
+    try { localStorage.setItem(ISSUES_KEY, JSON.stringify(issues)); } catch {}
+    if (titleEl) titleEl.value = '';
+    if (bodyEl) bodyEl.value = '';
+    if (statusEl) statusEl.textContent = `Created — ${cid}`;
+    renderIssues();
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Failed: ${err.message}`;
+  }
+}
+
+// Re-fetch by CID (bitswap if a stranger's node serves it) and verify the
+// signature before showing anything — the issue equivalent of "verify then
+// trust".
+async function openIssue(cid) {
+  const statusEl = document.getElementById('issue-status');
+  if (!statusEl || !heliaNode) return;
+  statusEl.textContent = `Fetching ${cid}…`;
+  try {
+    const envelope = await getDagJson(CID.parse(cid));
+    const { signature, publicKey, ...signed } = envelope;
+    const pub = publicKeyFromProtobuf(base64ToUint8Array(publicKey));
+    const signer = peerIdFromPublicKey(pub).toString();
+    const ok = await pub.verify(dagJson.encode(signed), base64ToUint8Array(signature));
+    statusEl.textContent = ok
+      ? `✓ ${signed.title} — ${signer} · ${signed.timestamp}${signed.body ? ' — ' + signed.body : ''}`
+      : `✗ signature INVALID for ${cid}`;
+  } catch (err) {
+    statusEl.textContent = `Fetch failed: ${err.message} — no provider online? Pin the CID or keep a tab open.`;
+  }
+}
+
+const issueCreateBtn = document.getElementById('btn-issue-create');
+if (issueCreateBtn) issueCreateBtn.addEventListener('click', createIssue);
+renderIssues();
+
 // Sub-tab navigation (inside Peer tab)
 document.querySelectorAll('.sub-tab-button').forEach((button) => {
   button.addEventListener('click', () => {

@@ -1199,9 +1199,18 @@
       <section class="tab-panel" role="tabpanel" id="tab-issues">
         <div class="card">
           <h3>Issues</h3>
-          <p>GitHub issues ↔ <strong>attested threads</strong>. Every message is a signed dag-json envelope; an issue is a thread of them anchored by CIDs.</p>
-          <p>Today: live discussion runs on <strong>Peer → Repo chat</strong> (signed gossipsub, verifies before render). Persistent, addressable issues — one CID per issue, resolvable after the tab closes — are the next increment on that same envelope scheme.</p>
-          <p class="f6" style="margin-bottom: 0;">Vulnerability reports and the real tracker: <a class="gh-link" data-ghpath="/issues" href="https://github.com/__REPO_OWNER__/__REPO_NAME__/issues">Issues on GitHub ↗</a></p>
+          <p>GitHub issues ↔ <strong>attested threads</strong>. An issue here is a signed dag-json envelope anchored by its CID — verifiable by anyone, addressable forever, carried by whoever pins it.</p>
+          <label class="f6 d-block" style="margin-top: 0.6rem;">Title</label>
+          <input id="issue-title" type="text" class="form-control" style="width: 100%;" placeholder="Short summary" />
+          <label class="f6 d-block" style="margin-top: 0.5rem;">Body</label>
+          <textarea id="issue-body" rows="3" class="form-control" style="width: 100%;" placeholder="What happens, what you expected, how to reproduce…"></textarea>
+          <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem; margin-top: 0.5rem;">
+            <button id="btn-issue-create" class="btn btn-sm" type="button">Create issue</button>
+            <span id="issue-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
+          </div>
+          <h4 style="margin-top: 1rem;">Issues filed from this browser</h4>
+          <ul id="issues-list" style="list-style: none; padding-left: 0; margin: 0;"><li class="f6 color-fg-muted">(none yet)</li></ul>
+          <p class="f6 color-fg-muted" style="margin-top: 0.75rem; margin-bottom: 0;">Availability is the usual IPFS rule: the issue resolves while someone provides it — keep this tab open, pin it on your Kubo (<code>ipfs pin add &lt;issue CID&gt;</code>), or use ☆ Remote pin. Vulnerability reports: <a class="gh-link" data-ghpath="/issues" href="https://github.com/__REPO_OWNER__/__REPO_NAME__/issues">GitHub ↗</a></p>
         </div>
       </section>
 
