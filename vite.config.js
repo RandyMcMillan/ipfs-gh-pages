@@ -4,6 +4,35 @@ import path from 'node:path';
 import { execSync } from 'node:child_process';
 
 function repoFilesPlugin() {
+  // Virtual submodule support
+  // -------------------------
+  // `git ls-files` lists a checked-out submodule as a single gitlink (a bare
+  // path with no content), which is why the app historically embedded nothing
+  // under e.g. actions-test/. This plugin instead runs `git ls-files --stage
+  // -z`, where gitlinks appear with mode 160000, and recurses into each with
+  // `git -C <path> ls-files -z` against the submodule's working tree. Every
+  // file found is emitted as "<submodule path>/<file>", so:
+  //
+  //   - the Files tab renders the submodule folder like any other tree,
+  //   - main.js feeds these entries to heliaUnixfs.addAll(), so the Clone
+  //     bar root CID — and Download CAR / `ipfs dag import` on Kubo — covers
+  //     the whole repository including submodule contents, and
+  //   - a consumer fork's build embeds whatever ITS submodule checkout
+  //     contains at that moment.
+  //
+  // Nothing is read from git object databases — only working-tree files.
+  // That is what makes the support "virtual": the IPFS tree mirrors the
+  // checkout, not the git history (no submodule SHA pinning in the DAG; a
+  // rebuild embeds whatever is currently checked out). An uninitialized
+  // submodule contributes zero entries instead of failing the build.
+  //
+  // Relationship to scripts/build-car.mjs: that script separately writes one
+  // <name>.car per submodule next to the main CAR. Those files are a
+  // transport convenience for `ipfs dag import`; they are NOT what the app
+  // embeds — the bundle's file set comes only from this plugin. Because
+  // `npm run build` runs vite before build-car, the bundle may carry the
+  // previous build's submodule .car file; the freshly written ones on disk
+  // (and in the Pages-deployed dist) are always current.
   const virtualId = 'virtual:repo-files';
   const resolvedId = '\0' + virtualId;
   return {
@@ -16,9 +45,6 @@ function repoFilesPlugin() {
       const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
       let files = [];
       try {
-        // --stage exposes gitlinks (mode 160000): checked-out submodules.
-        // Their contents are embedded under their path so the IPFS clone is
-        // complete — "virtual" submodule support resolved at build time.
         const stage = execSync('git ls-files --stage -z', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] })
           .toString('utf8').split('\0').filter(Boolean);
         for (const rec of stage) {
@@ -26,6 +52,8 @@ function repoFilesPlugin() {
           const mode = rec.slice(0, tab).split(' ')[0];
           const p = rec.slice(tab + 1);
           if (mode === '160000') {
+            // Gitlink — a checked-out submodule. See the block comment above
+            // for how virtual submodule support works.
             try {
               const sub = execSync('git ls-files -z', { cwd: path.join(root, p), stdio: ['ignore', 'pipe', 'ignore'] })
                 .toString('utf8').split('\0').filter(Boolean);

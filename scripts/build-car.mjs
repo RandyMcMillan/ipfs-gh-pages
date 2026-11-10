@@ -2,6 +2,11 @@
 //   - dist/ipfs-gh-pages.car            (main repo, exact app root CID)
 //   - <submodule-path>/<basename>.car   (one per submodule, checked out)
 // Root CIDs match what an in-browser addAll of the same files produces.
+//
+// Note: the in-browser addAll itself embeds submodule contents too (see the
+// "Virtual submodule support" block in vite.config.js's repoFilesPlugin).
+// This script's per-submodule CARs are a transport convenience for
+// `ipfs dag import` on Kubo; the app's file set comes only from the plugin.
 // Usage: node scripts/build-car.mjs [outDir]   (default: <repo>/dist)
 import fs from 'node:fs';
 import path from 'node:path';
