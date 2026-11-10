@@ -66,7 +66,7 @@ pub(crate) fn inject_backend_footer(current_backend: BackendType) -> Result<(), 
     let footer_html = format!(
         "<span id=\"ratzilla-ipfs-status\" style=\"color: #9e9e9e;\">IPFS: starting...</span>\
          <span style=\"display: flex; gap: 16px; align-items: center;\">\
-         <span><span style=\"color: #64748b;\">Backend:</span> {}</span>\
+         <span style=\"display: none;\"><span style=\"color: #64748b;\">Backend:</span> {}</span>\
          <span><span style=\"color: #64748b;\">FPS:</span> \
          <span id=\"ratzilla-fps\" style=\"color: #4ade80; font-weight: bold;\">--</span></span>\
          </span>",
