@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ratzilla Demo</title>
     <link data-trunk rel="rust" data-bin="ipfs-gh-pages" data-cargo-no-default-features />
+    <link data-trunk rel="copy-file" href="assets/ipfs-node.js" data-target-path="assets" />
+    <script type="module" src="./assets/ipfs-node.js"></script>
     <style>
       html {
         height: 100%;
@@ -36,8 +38,23 @@
         justify-content: space-between;
         align-items: center;
       }
+      #ipfs-status {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 4px 12px;
+        font-family: "Fira Code", monospace;
+        font-size: 12px;
+        color: #9e9e9e;
+        background: #1a1a1a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     </style>
   </head>
   <body>
+    <div id="ipfs-status">IPFS node not started</div>
   </body>
 </html>

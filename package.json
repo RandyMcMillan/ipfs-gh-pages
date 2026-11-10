@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "build:ipfs-js": "node scripts/build-ipfs-js.mjs",
     "build": "vite build && node scripts/build-car.mjs",
     "preview": "vite preview",
     "test": "npm run test:all",
