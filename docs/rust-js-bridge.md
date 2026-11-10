@@ -1,9 +1,10 @@
 # Plan: expose ipfs-gh-pages JS functionality to the Rust ratzilla TUI
 
-Status: backend implemented (commit 752f78e) — the full op surface lives
-in js/ipfs-node.js behind `__ipfsState`/`__ipfsCmd` with main.js protocol
-parity and the optional-services registry. TUI phases below are not
-implemented yet.
+Status: bridge backend + TUI phases 1-7 implemented (commits 752f78e,
+d5b1754, ee93e01, e47288f, 5d08cdb, 4c2c5c8, 6f57948, 8cf94d2). All ops
+are live behind __ipfsState/__ipfsCmd and reachable from the TUI tabs:
+IPFS, Peers, Fetch, Publish, Chat, Kubo, Services. Remaining: git server
+(phases 8-9), issues CAR (10), repo snapshot (11).
 
 ## The core constraint
 
