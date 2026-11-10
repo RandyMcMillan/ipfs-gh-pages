@@ -112,6 +112,33 @@ converge to the same canonical view without either being authoritative.
   `ipfs dag import` = load, recompute canonical chain. No
   replay-from-genesis beyond the CAR's contents.
 
+### Git-host bridge (hooks)
+
+Notes are refs, so any git host is a free mirror and transport — GitHub
+shows nothing in the UI but stores and serves `refs/notes/*` faithfully.
+The bridge syncs the two worlds at git operation boundaries:
+
+- **Outbound** (`pre-push` or a sync script the user runs): read the
+  current canonical index tip (from the local IPFS node or a file the app
+  exported), write it into `refs/notes/<repo>/index` — a notes commit
+  whose tree names the tip CID (same SHA-keyed-tree convention as native
+  notes, so git tooling can read it) — and push it alongside the code via
+  the remote's push refspec (`+refs/notes/*:refs/notes/*`). Forks on the
+  host then carry the notes to whoever clones or forks them.
+- **Inbound** (`post-merge` / `post-fetch`): read the fetched notes ref,
+  hand the tip CID to the app, and merge per the Chronology protocol
+  (prefix closure, union, fork-choice).
+- **Hooks live in `.githooks/`** (versioned) activated by
+  `git config core.hooksPath .githooks` via an npm script — hooks are not
+  cloned, so the repo must install them explicitly.
+- **Caveat**: notes created in the browser are not git events, so the
+  hook is a *sync point*, not real time — realtime propagation stays on
+  pubsub/IPNS; the git-host path is durability and bootstrapping (a fresh
+  clone with no IPFS connectivity still obtains the notes from origin).
+- **Interop bonus**: using the standard notes layout means git-native
+  tools (git-appraise, git-bug, plain `git notes`) can read and write the
+  same layer — comments filed from a terminal appear in the app.
+
 ### Attacks and resolutions
 
 | attack | resolution |
@@ -301,6 +328,9 @@ encoding of everything except `signature` and `publicKey`; verify with
 11. **Blame.** Blame toggle in the blob view: per-line origin attribution
     via the root chain, origin-anchored `blame-comment` notes riding the
     line's history, blame-row commenting UI.
+12. **Git-host bridge.** `.githooks/` (pre-push outbound, post-merge
+    inbound) + an npm script to activate via `core.hooksPath`; push
+    refspec carries `refs/notes/*` to any host.
 
 ## Open questions
 
