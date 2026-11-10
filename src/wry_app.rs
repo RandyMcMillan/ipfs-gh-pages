@@ -14,7 +14,7 @@ use std::{
 };
 
 use muda::{
-    accelerator::{Accelerator, Code, Modifiers, CMD_OR_CTRL},
+    accelerator::{Accelerator, Code, CMD_OR_CTRL},
     Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu,
 };
 #[cfg(any(
@@ -28,8 +28,9 @@ use tao::platform::unix::WindowExtUnix;
 #[cfg(target_os = "windows")]
 use tao::platform::windows::{EventLoopBuilderExtWindows, WindowExtWindows};
 use tao::{
-    event::{Event, WindowEvent},
+    event::{ElementState, Event, WindowEvent},
     event_loop::{ControlFlow, EventLoopBuilder},
+    keyboard::{Key, ModifiersState},
     window::{Window, WindowBuilder},
 };
 use wry::WebViewBuilder;
@@ -65,26 +66,16 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let app_menu = Submenu::new("ipfs-gh-pages", true);
     let about_item = MenuItem::new("About ipfs-gh-pages", true, None);
     // Platform-standard quit: Cmd+Q on macOS, Ctrl+Q on Windows/Linux
-    // (muda's CMD_OR_CTRL is SUPER on mac, CONTROL elsewhere). Ctrl+C is a
-    // second quit shortcut per the terminal convention — note it shadows
-    // copy, which is fine: the webview hosts a TUI, not text fields.
+    // (muda's CMD_OR_CTRL is SUPER on mac, CONTROL elsewhere). Ctrl+C also
+    // quits — terminal convention — but is handled as a raw key event in the
+    // event loop below, so the menu shows a single Quit row.
     let quit_item = MenuItem::new(
         "Quit",
         true,
         Some(Accelerator::new(Some(CMD_OR_CTRL), Code::KeyQ)),
     );
-    let quit_ctrl_c_item = MenuItem::new(
-        "Quit (Ctrl+C)",
-        true,
-        Some(Accelerator::new(Some(Modifiers::CONTROL), Code::KeyC)),
-    );
     app_menu
-        .append_items(&[
-            &about_item,
-            &PredefinedMenuItem::separator(),
-            &quit_item,
-            &quit_ctrl_c_item,
-        ])
+        .append_items(&[&about_item, &PredefinedMenuItem::separator(), &quit_item])
         .unwrap();
     menu_bar.append(&app_menu).unwrap();
 
@@ -117,10 +108,26 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         .with_url(&app_source.url)
         .build(&window)?;
 
+    let mut modifiers = ModifiersState::default();
+
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
 
         match event {
+            Event::WindowEvent {
+                event: WindowEvent::ModifiersChanged(state),
+                ..
+            } => modifiers = state,
+            Event::WindowEvent {
+                event: WindowEvent::KeyboardInput { event: key_event, .. },
+                ..
+            } if key_event.state == ElementState::Pressed
+                && !key_event.repeat
+                && modifiers.control_key()
+                && matches!(&key_event.logical_key, Key::Character(c) if c.eq_ignore_ascii_case("c")) =>
+            {
+                stop_server(&app_source.server, control_flow);
+            }
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
@@ -128,7 +135,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             Event::UserEvent(UserEvent::MenuEvent(event)) => {
                 if event.id() == about_item.id() {
                     println!("ipfs-gh-pages: native About menu selected");
-                } else if event.id() == quit_item.id() || event.id() == quit_ctrl_c_item.id() {
+                } else if event.id() == quit_item.id() {
                     stop_server(&app_source.server, control_flow);
                 }
             }
