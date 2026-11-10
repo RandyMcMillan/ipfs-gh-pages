@@ -29,6 +29,44 @@ entirely on notes namespaces; git-bug stores full issue trackers in refs.
 | `git fetch +refs/notes/*:refs/notes/*` | importing an issues CAR (fetch, not adopt) |
 | `git log --notes` | issue badges rendered on files/CIDs in the UI |
 
+| git (extended) | this layer |
+|---|---|
+| `git blame` (line → origin commit) | attribution walk over the root chain |
+| commit parent | release-commit object `{root, prev}` |
+| GitHub PR line comments | `(fileCid, line)` notes — immutable by construction |
+| blame-anchored discussion | origin-anchored notes that ride the line's history |
+
+## Granular commenting
+
+Three annotation granularities ride the same envelope pipe, discriminated
+by `type`:
+
+- **`issue`** — repo/dir/file level via `anchors` (the notes model).
+- **`line-comment`** — a line range *within one exact blob CID*:
+  `{anchors: [fileCid], line: {start, end}}`. This is stable forever:
+  the CID pins the content, so `(cid, line)` is a content-addressed
+  coordinate. GitHub's line comments die when the PR merges; these
+  persist on the annotated version and correlate forward via blame.
+- **`blame-comment`** — attached to the *origin* of a line, not the
+  version: `{anchors: [fileCid], line: {start}, origin: <root CID>}`.
+  It surfaces on every later version whose blame attributes that line to
+  the same origin — the comment rides the line's history the way git
+  blame rides the commit graph.
+
+Blame requires a **root chain**: each build/publish records a
+release-commit object `{root, prev, timestamp}` (one CID of history —
+the git commit analog our DAG was missing). Blame then computes
+attribution: walk the chain newest→oldest, diff consecutive roots by CID
+(a file whose CID changed changed content), attribute each line of the
+current file to the oldest root containing it; exact line-text match is
+the MVP correlation heuristic (git's own blame uses content + context).
+
+Rendering: the blob view already renders line numbers — a comment gutter
+shows markers on annotated lines, text selection offers "Comment on lines
+X–Y", and a Blame toggle computes per-line origin and lets any blame row
+receive a comment. Tree rows and blob headers carry the badge when any
+note anchors to that CID.
+
 ## Core properties (why this works)
 
 1. **Objects, not rows.** Issues and comments are content-addressed
@@ -59,7 +97,7 @@ Issue:
 }
 ```
 
-Comment:
+Comment (issue thread reply):
 ```json
 {
   "ns": "issues", "type": "comment",
@@ -68,6 +106,34 @@ Comment:
   "timestamp": "ISO-8601", "signer": "<peerId>",
   "signature": "<base64>", "publicKey": "<base64>"
 }
+```
+
+Line comment (granular review):
+```json
+{
+  "ns": "review", "type": "line-comment",
+  "anchors": ["<fileCid>"], "line": { "start": 42, "end": 47 },
+  "body": "…",
+  "timestamp": "ISO-8601", "signer": "<peerId>",
+  "signature": "<base64>", "publicKey": "<base64>"
+}
+```
+
+Blame comment (rides the line's origin across versions):
+```json
+{
+  "ns": "review", "type": "blame-comment",
+  "anchors": ["<fileCid>"], "line": { "start": 42 },
+  "origin": "<root CID the line is attributed to>",
+  "body": "…",
+  "timestamp": "ISO-8601", "signer": "<peerId>",
+  "signature": "<base64>", "publicKey": "<base64>"
+}
+```
+
+Release commit (the history link blame walks):
+```json
+{ "type": "release", "root": "<root CID>", "prev": "<previous release CID or null>", "timestamp": "ISO-8601" }
 ```
 
 Index:
@@ -109,6 +175,15 @@ encoding of everything except `signature` and `publicKey`; verify with
    objects without authority; rendering always verifies signatures.
 8. **Issue badges.** Notes rendered next to files (the `git log --notes`
    equivalent): CIDs with notes get a marker in the tree/blob view.
+9. **Line comments.** Blob-view comment gutter: markers on annotated
+   lines, text selection offers "Comment on lines X–Y" (signed
+   `line-comment` notes; `(cid, line)` is the immutable coordinate).
+10. **Root chain.** The build/publish flow records the release-commit
+    object `{root, prev}`; the app's Clone bar links the current
+    release CID, making history walkable.
+11. **Blame.** Blame toggle in the blob view: per-line origin attribution
+    via the root chain, origin-anchored `blame-comment` notes riding the
+    line's history, blame-row commenting UI.
 
 ## Open questions
 
@@ -119,3 +194,9 @@ encoding of everything except `signature` and `publicKey`; verify with
   if comment ordering becomes a real problem.
 - Namespace governance: `review` and `ci` ride the same pipe but are not
   built until issues prove the model.
+- Blame correlation: exact line-text match is the MVP heuristic; git-style
+  content+context moves are a later refinement if reindentation churn
+  mis-attributes often.
+- Root chain bootstrapping: the first release-commit has `prev: null`;
+  history before the chain exists is unattributable (same as `git blame`
+  hitting a root commit).
