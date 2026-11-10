@@ -2940,28 +2940,26 @@ const issueCreateBtn = document.getElementById('btn-issue-create');
 if (issueCreateBtn) issueCreateBtn.addEventListener('click', createIssue);
 renderIssues();
 
-// Click once to copy a command field; the block flashes confirmation.
-function bindCopyOnClick(el) {
+// Design pattern: EVERY command displayed is single-click copy — any
+// <pre><code> block or kubo chip anywhere on the page (help modal, publish
+// tab, issues, settings, clone bar). The block flashes confirmation.
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('pre code, code.kubo-chip');
   if (!el) return;
-  el.style.cursor = 'pointer';
-  el.title = 'Click to copy';
-  el.addEventListener('click', () => {
-    const v = el.textContent.trim();
-    if (!v) return;
-    const done = () => {
-      const orig = el.textContent;
-      el.textContent = 'Copied to clipboard';
-      setTimeout(() => { el.textContent = orig; }, 900);
-    };
-    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-      navigator.clipboard.writeText(v).then(done).catch(done);
-    } else {
-      done();
-    }
-  });
-}
-bindCopyOnClick(document.querySelector('#issue-result code'));
-bindCopyOnClick(document.getElementById('issue-pin-cmd'));
+  const v = el.textContent.trim();
+  if (!v || v.includes('Copied to clipboard')) return;
+  if (!el.title) el.title = 'Click to copy';
+  const done = () => {
+    const orig = el.textContent;
+    el.textContent = 'Copied to clipboard';
+    setTimeout(() => { if (el.textContent === 'Copied to clipboard') el.textContent = orig; }, 900);
+  };
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    navigator.clipboard.writeText(v).then(done).catch(done);
+  } else {
+    done();
+  }
+});
 
 // Sub-tab navigation (inside Peer tab)
 document.querySelectorAll('.sub-tab-button').forEach((button) => {
