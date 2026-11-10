@@ -44,6 +44,29 @@ function repoFilesPlugin() {
   };
 }
 
+function resolveIdentity(root) {
+  let owner = process.env.GITHUB_REPOSITORY_OWNER || '';
+  let name = (process.env.GITHUB_REPOSITORY || '').split('/')[1] || '';
+  let version = process.env.npm_package_version || '';
+  if (!name || !version) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+      version = version || pkg.version || '';
+    } catch {}
+  }
+  if (!owner || !name) {
+    try {
+      const remote = execSync('git config --get remote.origin.url', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+      const m = remote.match(/github\.com[:/]([^/]+)\/([^/.]+)/);
+      if (m) {
+        owner = owner || m[1];
+        name = name || m[2];
+      }
+    } catch {}
+  }
+  return { owner: owner || 'gnostr', name: name || 'gnostr-repo', version };
+}
+
 function repoIdentityPlugin() {
   const virtualId = 'virtual:repo-identity';
   const resolvedId = '\0' + virtualId;
@@ -55,25 +78,7 @@ function repoIdentityPlugin() {
     load(id) {
       if (id !== resolvedId) return;
       const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
-      let owner = process.env.GITHUB_REPOSITORY_OWNER || '';
-      let name = (process.env.GITHUB_REPOSITORY || '').split('/')[1] || '';
-      let version = process.env.npm_package_version || '';
-      if (!name || !version) {
-        try {
-          const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-          version = version || pkg.version || '';
-        } catch {}
-      }
-      if (!owner || !name) {
-        try {
-          const remote = execSync('git config --get remote.origin.url', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-          const m = remote.match(/github\.com[:/]([^/]+)\/([^/.]+)/);
-          if (m) {
-            owner = owner || m[1];
-            name = name || m[2];
-          }
-        } catch {}
-      }
+      const { owner, name, version } = resolveIdentity(root);
       let lastCommitMsg = '';
       let lastCommitTime = '';
       let shortSha = '';
@@ -86,6 +91,16 @@ function repoIdentityPlugin() {
         if (n > 1) commitCount = String(n);
       } catch {}
       return `export default { owner: ${JSON.stringify(owner)}, name: ${JSON.stringify(name)}, version: ${JSON.stringify(version)}, lastCommitMsg: ${JSON.stringify(lastCommitMsg)}, lastCommitTime: ${JSON.stringify(lastCommitTime)}, shortSha: ${JSON.stringify(shortSha)}, commitCount: ${JSON.stringify(commitCount)} };`;
+    },
+    transformIndexHtml(html) {
+      const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
+      const { owner, name } = resolveIdentity(root);
+      // The template ships owner-neutral; the built page carries whoever's
+      // repo it is (GITHUB_REPOSITORY, else the git remote, else the gnostr
+      // fallback that main.js also uses at runtime).
+      return html
+        .replaceAll('__REPO_OWNER__', owner)
+        .replaceAll('__REPO_NAME__', name);
     }
   };
 }
