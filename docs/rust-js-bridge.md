@@ -101,6 +101,11 @@ smart-HTTP client; static IPFS content can't answer it, so a real server
 is required — options: shell out to `git http-backend`, thin upload-pack
 over our blockstore, libp2p transport last).
 
+Binding constraint: `docs/optional-services.md` — service endpoints
+(e.g. gnostr.org, gnostr.cloud) are optional accelerants on top of a
+zero-config decentralized core; the protocol must work with no services
+configured.
+
 ## Explicitly out of scope (for now)
 
 Issues/comments CAR (docs/issues-car.md phases 5+), IPNS branch pointer
