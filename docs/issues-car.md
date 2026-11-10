@@ -6,6 +6,28 @@ construction) and on `git notes` (non-invasive annotation of immutable
 objects). Precedent: Google's git-appraise ran distributed code review
 entirely on notes namespaces; git-bug stores full issue trackers in refs.
 
+## git notes: the functionality we exploit (do not lose these)
+
+Mechanics of upstream `git notes`, each mapped to where it lives in this
+layer — this inventory is the contract; features below build on it.
+
+| git notes mechanic | what it gives us | where it lives here |
+|---|---|---|
+| Annotated object's hash never changes | an issue/comment on a CID never mutates the code DAG; annotate root, dir, or single file CID non-invasively | `anchors: [cid]` on every note |
+| A note is a blob in the object DB | notes are transportable content, content-addressed like everything else | note = dag-json envelope (P7-signed) |
+| Notes ref (`refs/notes/commits`) is an ordinary commit | full append history of the annotation layer itself | the index chain (`prev`, `height`, lamport) |
+| Notes tree maps annotated-SHA → note blob | O(1) lookup of notes per annotated object; tree rebalancing is git's problem, not ours | notes looked up by `anchors` CID (view computed at walk time, not a mutable tree) |
+| `refs/notes/<namespace>` — parallel namespaces | issues now, code review and CI status later on the same pipe, zero migrations (the git-appraise pattern) | `ns` field per note: `issues` · `review` · `ci` |
+| `git fetch +refs/notes/*:refs/notes/*` | fork annotations merge into your view WITHOUT adopting their code — fetch-only awareness | importing an issues CAR = fetch semantics |
+| Notes merge is 3-way, conflicts only per-object | two sides annotating the same object is the only collision class; our append-only set makes even that a union | OR-Set chronology + merge entries |
+| `git log --notes` display | annotations rendered next to the annotated content | issue badges on CIDs in the file tree; blame-anchored discussion |
+| Hooks transport notes on push/fetch (`.githooks/`) | git hosting carries the layer with zero host cooperation beyond ref passthrough | phase 12 hook bridge |
+
+Derived features already designed on top of this inventory:
+line-by-line comments `(fileCid, line)` — immutable by construction;
+blame-anchored discussion that rides a line's history; file-level
+"File Issue on This CID".
+
 ## Chronology protocol
 
 The notes set is append-only and CID-keyed, which alone guarantees
