@@ -60,8 +60,17 @@ try {
     }
     const branch = run(`git -C ${sub} rev-parse --abbrev-ref HEAD`);
     const sha = run(`git -C ${sub} rev-parse HEAD`);
+    const subPush = (ref) => {
+      try {
+        run(`git -C ${sub} push origin ${ref}`);
+      } catch {
+        // OAuth tokens can't push workflow-file changes (deploy.yml pin);
+        // an SSH remote bypasses that — use it when configured.
+        run(`git -C ${sub} push origin-ssh ${ref}`);
+      }
+    };
     if (dirty || run(`git -C ${sub} rev-parse HEAD`) !== (() => { try { return run(`git -C ${sub} rev-parse origin/${branch}`); } catch { return ''; } })()) {
-      run(`git -C ${sub} push origin ${branch}`);
+      subPush(branch);
     }
     const remoteHas = (() => {
       try {
@@ -72,7 +81,7 @@ try {
       run(`git -C ${sub} tag ${tag}`);
     }
     if (!remoteHas) {
-      run(`git -C ${sub} push origin ${tag}`);
+      subPush(tag);
     }
     // If the submodule moved, bump the superproject gitlink.
     if (dirty) {
