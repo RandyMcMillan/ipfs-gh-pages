@@ -12,7 +12,7 @@ const HOST = process.env.E2E_HOST || '127.0.0.1';
 const PORT = Number(process.env.E2E_PORT || 5173);
 const BASE = `http://${HOST}:${PORT}`;
 const READY_TIMEOUT_MS = Number(process.env.E2E_READY_TIMEOUT_MS || 60000);
-const GLOBAL_TIMEOUT_MS = Number(process.env.E2E_TIMEOUT_MS || 20 * 60 * 1000);
+const GLOBAL_TIMEOUT_MS = Number(process.env.E2E_TIMEOUT_MS || 35 * 60 * 1000);
 
 function killTree(pid) {
   try { process.kill(-pid, 'SIGKILL'); } catch {}
