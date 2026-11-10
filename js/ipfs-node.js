@@ -1,34 +1,130 @@
-// Helia node for the ratzilla shell (index-rust.html).
+// ipfs-gh-pages bridge backend — runs in the ratzilla page beside the
+// ratzilla wasm TUI. This module OWNS the IPFS/Helia functionality; the TUI
+// (and later the desktop chrome) drives it over two channels:
 //
-// Runs alongside the ratzilla wasm app — it does NOT own the page. Ratzilla
-// injects the TUI canvas and the fixed footer; this module writes IPFS
-// connection status into the LEFT side of that footer
-// (#ratzilla-ipfs-status, created by inject_backend_footer in src/utils.rs).
-// The footer is injected by wasm asynchronously, so status writes go through
-// a MutationObserver-backed buffer rather than getElementById at call time.
+//   STATE:   window.__ipfsState  — plain JSON, polled by Rust every frame
+//   COMMAND: window.__ipfsCmd(id, op, arg) — async ops, results keyed by id
+//            in __ipfsState.results[id] = { ok: true, value } | { ok: false, error }
 //
-// Bundled to a single ESM file by scripts/build-ipfs-js.mjs (esbuild) and
-// copied into dist/assets by trunk's copy-file link. Mirrors the proven
-// browser config from main.js: helia's libp2p defaults + gossipsub +
-// pubsubPeerDiscovery on the repo topic, bootstrap dialing.
+// Backend protocol parity with main.js (the vite app) is a hard contract —
+// the two surfaces MUST interoperate:
+//   - repoFullName derivation: Pages origin, then build-time identity
+//     (esbuild --define, same resolution order as vite's repo-identity
+//     plugin), then the gnostr fallback main.js uses.
+//   - identity key: localStorage `ipns-branch-key:<repoFullName>`, Ed25519
+//     raw bytes base64 — notes/chat signed here verify in main.js and
+//     vice versa (P7 envelope scheme).
+//   - gossipsub topics: `repo-gossip:<repo>` and `:chat` subtopic,
+//     emitSelf off, self-render own messages.
+//   - blocklist: localStorage `blocked-peers`, enforced on connection:open
+//     (inbound included).
+//   - bootstrap: bootstrap.libp2p.io peers (main.js list).
+//   - shareable multiaddr preference: webrtc > wss > circuit > first.
+//
+// Optional services (docs/optional-services.md): registry in localStorage
+// `ipfs-services`, empty by default; resolution order is configured
+// services -> public defaults -> the p2p path. Nothing here REQUIRES a
+// service.
+//
+// Git server advertisement (docs/git-over-ipfs.md): signed `serve` envelopes
+// on the repo topic. The /ipfs-gh-pages/git/1 stream handler lands in a
+// later phase; advertisement is wired now.
 
 import { createHelia, libp2pDefaults } from 'helia';
 import { createLibp2p } from 'libp2p';
 import { gossipsub } from '@chainsafe/libp2p-gossipsub';
 import { pubsubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
+import { strings } from '@helia/strings';
+import { unixfs } from '@helia/unixfs';
+import { CID } from 'multiformats/cid';
+import * as dagJson from '@ipld/dag-json';
+import { sha256 } from 'multiformats/hashes/sha2';
+import {
+  generateKeyPair,
+  privateKeyFromRaw,
+  publicKeyFromProtobuf,
+  publicKeyToProtobuf
+} from '@libp2p/crypto/keys';
+import { peerIdFromPrivateKey, peerIdFromPublicKey } from '@libp2p/peer-id';
 
-const BOOTSTRAP_PEERS = [
-  '/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN',
-  '/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb',
-  '/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt',
-  '/dnsaddr/va1.bootstrap.libp2p.io/p2p/12D3KooWKnDdG3iXw9eTFijk3EWSunZcFi54Zka4wmtqtt6rPxc8'
-];
+// ---- repo identity (parity: main.js lines 27-41) ---------------------------
 
-const TOPIC = 'repo-gossip:ipfs-gh-pages';
+const repoIdentity = { owner: REPO_OWNER, name: REPO_NAME, version: REPO_VERSION };
+const { repoOwner, repoName } = (() => {
+  const host = window.location.hostname;
+  const m = host.match(/^([^.]+)\.github\.io$/);
+  if (m) {
+    const seg = window.location.pathname.split('/').filter(Boolean)[0];
+    return { repoOwner: m[1], repoName: seg || m[1] };
+  }
+  if (repoIdentity.owner && repoIdentity.name) {
+    return { repoOwner: repoIdentity.owner, repoName: repoIdentity.name };
+  }
+  return { repoOwner: 'gnostr', repoName: 'gnostr-repo' };
+})();
+const repoFullName = `${repoOwner}/${repoName}`;
 
-// The ratzilla footer (with our target span) is injected by wasm at runtime;
-// load order vs this module is a race. Buffer the latest message and flush
-// it via a MutationObserver once the span exists.
+const GOSSIP_TOPIC = `repo-gossip:${repoFullName}`;
+const CHAT_TOPIC = `${GOSSIP_TOPIC}:chat`;
+
+// ---- base64 (parity: lib/shared.mjs) ---------------------------------------
+
+function uint8ArrayToBase64(bytes) {
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+function base64ToUint8Array(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+// ---- optional service registry (docs/optional-services.md) -----------------
+
+const SERVICES_KEY = 'ipfs-services';
+const PUBLIC_DEFAULTS = {
+  gateways: ['https://ipfs.io'],
+  delegatedRouting: ['https://delegated-ipfs.dev'],
+  pinning: []
+};
+
+function loadServices() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(SERVICES_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed.filter((s) => s && typeof s === 'object') : [];
+  } catch {
+    return [];
+  }
+}
+
+// Resolution order: configured services in user order, then public
+// defaults. The p2p path needs no endpoint and is always available.
+function resolveEndpoints(field) {
+  const out = [];
+  for (const svc of loadServices()) {
+    for (const url of svc[field] || []) if (typeof url === 'string') out.push(url);
+  }
+  for (const url of PUBLIC_DEFAULTS[field] || []) out.push(url);
+  return out;
+}
+
+// ---- state (JS -> Rust) -----------------------------------------------------
+
+const state = {
+  repo: { owner: repoOwner, name: repoName, fullName: repoFullName, version: repoIdentity.version },
+  node: { status: 'starting', peerId: null, multiaddrs: [], protocols: [], connections: [] },
+  chat: { inbox: [] }, // { signer, verified, text, timestamp } — newest first, cap 50
+  git: { serving: null, seen: [] }, // serve envelopes: ours + heard from gossip
+  kubo: { status: 'unknown', endpoint: null, peerId: null, addresses: [] },
+  services: { configured: [], endpoints: {} },
+  results: {} // command results keyed by id
+};
+window.__ipfsState = state;
+
+// ---- footer status (written into the ratzilla footer) -----------------------
+
 let statusEl = null;
 let pendingStatus = null;
 
@@ -65,41 +161,439 @@ new MutationObserver((mutations, observer) => {
   }
 }).observe(document.documentElement, { childList: true, subtree: true });
 
-async function main() {
-  statusLine('Starting IPFS node...');
+// ---- identity key (parity: main.js getIpnsBranchKey) ------------------------
+
+let ipnsBranchKeyPromise = null;
+function getIpnsBranchKey() {
+  if (!ipnsBranchKeyPromise) {
+    ipnsBranchKeyPromise = (async () => {
+      const storageKey = `ipns-branch-key:${repoFullName}`;
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        try {
+          return privateKeyFromRaw(base64ToUint8Array(stored));
+        } catch {
+          // corrupted entry — regenerate below
+        }
+      }
+      const key = await generateKeyPair('Ed25519');
+      localStorage.setItem(storageKey, uint8ArrayToBase64(key.raw));
+      return key;
+    })();
+  }
+  return ipnsBranchKeyPromise;
+}
+
+// P7 envelope scheme (parity: main.js signNote/verifyNote).
+async function signFields(fields) {
+  const key = await getIpnsBranchKey();
+  const signer = peerIdFromPrivateKey(key).toString();
+  const signed = { ...fields, signer };
+  const signature = await key.sign(dagJson.encode(signed));
+  return {
+    ...signed,
+    signature: uint8ArrayToBase64(signature),
+    publicKey: uint8ArrayToBase64(publicKeyToProtobuf(key.publicKey))
+  };
+}
+
+async function verifyEnvelope(envelope) {
+  const { signature, publicKey, ...signed } = envelope;
+  const pub = publicKeyFromProtobuf(base64ToUint8Array(publicKey));
+  const signer = peerIdFromPublicKey(pub).toString();
+  const ok = await pub.verify(dagJson.encode(signed), base64ToUint8Array(signature));
+  return { ok, signed, signer };
+}
+
+// ---- node boot ---------------------------------------------------------------
+
+const BOOTSTRAP_PEERS = [
+  '/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN',
+  '/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb',
+  '/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt',
+  '/dnsaddr/va1.bootstrap.libp2p.io/p2p/12D3KooWKnDdG3iXw9eTFijk3EWSunZcFi54Zka4wmtqtt6rPxc8'
+];
+
+const BLOCKED_KEY = 'blocked-peers';
+function getBlockedPeers() {
+  try {
+    return JSON.parse(localStorage.getItem(BLOCKED_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+function setBlockedPeers(list) {
+  localStorage.setItem(BLOCKED_KEY, JSON.stringify(list));
+}
+
+let heliaNode = null;
+let heliaStrings = null;
+let heliaUnixfs = null;
+const chatSeen = new Set();
+
+async function boot() {
+  statusLine('starting...');
+  state.services.configured = loadServices().map((s) => s.name || '(unnamed)');
+  state.services.endpoints = {
+    gateways: resolveEndpoints('gateways'),
+    delegatedRouting: resolveEndpoints('delegatedRouting'),
+    pinning: resolveEndpoints('pinning')
+  };
 
   const lpDefaults = libp2pDefaults();
   const libp2p = await createLibp2p({
     ...lpDefaults,
     peerDiscovery: [
       ...lpDefaults.peerDiscovery,
-      pubsubPeerDiscovery({ topics: [TOPIC] })
+      pubsubPeerDiscovery({ topics: [GOSSIP_TOPIC] })
     ],
     services: {
       ...lpDefaults.services,
       pubsub: gossipsub({ emitSelf: false })
     }
   });
-  const helia = await createHelia({ libp2p });
-  window.__heliaNode = helia;
+  heliaNode = await createHelia({ libp2p });
+  heliaStrings = strings(heliaNode);
+  heliaUnixfs = unixfs(heliaNode);
+  window.__heliaNode = heliaNode;
 
-  libp2p.addEventListener('connection:open', () => {
-    statusLine(`peer ${libp2p.peerId} — ${libp2p.getConnections().length} connection(s)`);
+  // Blocklist gate, inbound included (parity: main.js).
+  libp2p.addEventListener('connection:open', (evt) => {
+    if (getBlockedPeers().includes(evt.detail.remotePeer.toString())) {
+      evt.detail.close().catch(() => {});
+    }
+    refreshNodeState();
   });
-  libp2p.addEventListener('connection:close', () => {
-    statusLine(`peer ${libp2p.peerId} — ${libp2p.getConnections().length} connection(s)`);
-  });
+  libp2p.addEventListener('connection:close', refreshNodeState);
 
   const pubsub = libp2p.services?.pubsub;
   if (pubsub) {
-    try { pubsub.subscribe(TOPIC); } catch {}
+    try { pubsub.subscribe(GOSSIP_TOPIC); } catch {}
+    try {
+      pubsub.subscribe(CHAT_TOPIC);
+      pubsub.addEventListener('message', (evt) => {
+        if (evt.detail.topic === CHAT_TOPIC) onChatMessage(evt.detail.data);
+        else if (evt.detail.topic === GOSSIP_TOPIC) onGossipMessage(evt.detail.data);
+      });
+    } catch {}
   }
 
   statusLine(`peer ${libp2p.peerId} — dialing bootstrap peers...`);
-
+  refreshNodeState();
   await Promise.allSettled(BOOTSTRAP_PEERS.map((addr) => libp2p.dial(addr)));
+  refreshNodeState();
 }
 
-main().catch((err) => {
-  statusLine(`IPFS node failed: ${err.message || err}`);
-});
+function refreshNodeState() {
+  if (!heliaNode) return;
+  const libp2p = heliaNode.libp2p;
+  state.node.status = 'online';
+  state.node.peerId = libp2p.peerId.toString();
+  state.node.multiaddrs = libp2p.getMultiaddrs().map((a) => a.toString());
+  try {
+    state.node.protocols = [...libp2p.getProtocols()];
+  } catch {
+    state.node.protocols = [];
+  }
+  state.node.connections = libp2p.getConnections().map((conn) => ({
+    peer: conn.remotePeer.toString(),
+    addr: conn.remoteAddr.toString(),
+    direction: conn.stat?.direction || 'unknown',
+    status: conn.stat?.status || 'unknown'
+  }));
+  statusLine(
+    `peer ${state.node.peerId} — ${state.node.connections.length} connection(s)`
+  );
+}
+
+// ---- gossip: chat + git serve envelopes ---------------------------------------
+
+async function onChatMessage(data) {
+  let envelope;
+  try { envelope = dagJson.decode(data); } catch { return; }
+  const { signature, publicKey, ...signed } = envelope;
+  if (!signature || !publicKey || typeof signed.text !== 'string') return;
+  const key = `${signed.signer}:${signed.timestamp}:${signed.text.slice(0, 32)}`;
+  if (chatSeen.has(key)) return;
+  chatSeen.add(key);
+  let verified = false;
+  let signer = signed.signer;
+  try {
+    const result = await verifyEnvelope(envelope);
+    verified = result.ok;
+    signer = result.signer;
+  } catch {}
+  state.chat.inbox.unshift({ signer, verified, text: signed.text, timestamp: signed.timestamp });
+  if (state.chat.inbox.length > 50) state.chat.inbox.length = 50;
+}
+
+async function onGossipMessage(data) {
+  let envelope;
+  try { envelope = dagJson.decode(data); } catch { return; }
+  if (envelope.op !== 'serve' || !envelope.signature) return;
+  try {
+    const result = await verifyEnvelope(envelope);
+    if (!result.ok) return;
+  } catch { return; }
+  const key = `${envelope.signer}:${envelope.repo}:${envelope.ts}`;
+  if (state.git.seen.some((s) => `${s.signer}:${s.repo}:${s.ts}` === key)) return;
+  state.git.seen.unshift({
+    signer: envelope.signer,
+    repo: envelope.repo,
+    head: envelope.head || null,
+    rootCid: envelope.rootCid || null,
+    addrs: Array.isArray(envelope.addrs) ? envelope.addrs : [],
+    ts: envelope.ts
+  });
+  if (state.git.seen.length > 100) state.git.seen.length = 100;
+}
+
+async function advertiseServe(arg) {
+  const libp2p = heliaNode?.libp2p;
+  const pubsub = libp2p?.services?.pubsub;
+  if (!pubsub) throw new Error('pubsub unavailable');
+  const envelope = await signFields({
+    op: 'serve',
+    repo: repoFullName,
+    head: arg?.head || null,
+    rootCid: arg?.rootCid || null,
+    addrs: arg?.addrs || [],
+    ts: new Date().toISOString()
+  });
+  state.git.serving = {
+    signer: envelope.signer,
+    repo: repoFullName,
+    head: envelope.head,
+    rootCid: envelope.rootCid,
+    addrs: envelope.addrs,
+    ts: envelope.ts
+  };
+  await pubsub.publish(GOSSIP_TOPIC, dagJson.encode(envelope));
+  return state.git.serving;
+}
+
+// ---- ops ----------------------------------------------------------------------
+
+function result(id, promise) {
+  promise
+    .then((value) => { state.results[id] = { ok: true, value }; })
+    .catch((error) => { state.results[id] = { ok: false, error: String(error?.message || error) }; });
+}
+
+async function opFetch(arg) {
+  const cid = CID.parse(String(arg?.cid || ''));
+  const stat = await heliaUnixfs.stat(cid);
+  if (stat.type === 'directory') {
+    const entries = [];
+    for await (const entry of heliaUnixfs.ls(cid)) {
+      entries.push({ name: entry.name, type: entry.type, size: Number(entry.size || 0), cid: entry.cid.toString() });
+    }
+    return { type: 'directory', cid: cid.toString(), entries };
+  }
+  const chunks = [];
+  for await (const chunk of heliaUnixfs.cat(cid)) chunks.push(chunk);
+  const total = chunks.reduce((n, c) => n + c.length, 0);
+  const bytes = new Uint8Array(total);
+  let off = 0;
+  for (const c of chunks) { bytes.set(c, off); off += c.length; }
+  return { type: 'file', cid: cid.toString(), text: new TextDecoder().decode(bytes), size: total };
+}
+
+async function opPublish(arg) {
+  const text = String(arg?.text || '');
+  if (!text) throw new Error('empty text');
+  const cid = await heliaStrings.add(text);
+  const cidStr = cid.toString();
+  const gateway = resolveEndpoints('gateways')[0];
+  return {
+    cid: cidStr,
+    gatewayUrl: `${gateway}/ipfs/${cidStr}`,
+    pinCmd: `ipfs pin add ${cidStr}`
+  };
+}
+
+async function opDagPut(arg) {
+  const bytes = dagJson.encode(arg?.obj);
+  const cid = CID.create(1, dagJson.code, await sha256.digest(bytes));
+  await heliaNode.blockstore.put(cid, bytes);
+  return { cid: cid.toString() };
+}
+
+async function opDagGet(arg) {
+  const bytes = await heliaNode.blockstore.get(CID.parse(String(arg?.cid)));
+  return { obj: dagJson.decode(bytes) };
+}
+
+async function opChatSend(arg) {
+  const text = String(arg?.text || '').trim();
+  if (!text) throw new Error('empty message');
+  const pubsub = heliaNode?.libp2p?.services?.pubsub;
+  if (!pubsub) throw new Error('pubsub unavailable');
+  const envelope = await signFields({ text, timestamp: new Date().toISOString() });
+  const data = dagJson.encode(envelope);
+  await pubsub.publish(CHAT_TOPIC, data);
+  // emitSelf is off — render our own post so the sender sees it immediately.
+  await onChatMessage(data);
+  return { sent: true };
+}
+
+async function opConnect(arg) {
+  const addr = String(arg?.addr || '').trim();
+  if (!addr) throw new Error('empty multiaddr');
+  const timeoutMs = Number(arg?.timeoutMs || 8000);
+  await Promise.race([
+    heliaNode.libp2p.dial(addr),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('dial timeout')), timeoutMs))
+  ]);
+  refreshNodeState();
+  return { connected: addr };
+}
+
+async function opDisconnect(arg) {
+  const peer = String(arg?.peer || '');
+  await heliaNode.libp2p.hangUp(peer);
+  refreshNodeState();
+  return { disconnected: peer };
+}
+
+function opBlock(arg) {
+  const peer = String(arg?.peer || '');
+  const list = getBlockedPeers();
+  if (!list.includes(peer)) list.push(peer);
+  setBlockedPeers(list);
+  heliaNode?.libp2p
+    .getConnections()
+    .filter((c) => c.remotePeer.toString() === peer)
+    .forEach((c) => c.close().catch(() => {}));
+  refreshNodeState();
+  return { blocked: peer };
+}
+
+function opUnblock(arg) {
+  const peer = String(arg?.peer || '');
+  setBlockedPeers(getBlockedPeers().filter((p) => p !== peer));
+  return { unblocked: peer };
+}
+
+// Kubo RPC detection (parity: main.js tryKuboRpc — probes /api/v0/id on
+// 127.0.0.1, ports 5001-5010 by default).
+async function opKuboDetect(arg) {
+  const host = String(arg?.host || '127.0.0.1');
+  const portStart = Number(arg?.portStart || 5001);
+  const portEnd = Number(arg?.portEnd || 5010);
+  for (let port = portStart; port <= portEnd; port++) {
+    const endpoint = `http://${host}:${port}`;
+    try {
+      const res = await fetch(`${endpoint}/api/v0/id?stream-channels=true`, { method: 'POST' });
+      if (!res.ok) continue;
+      const data = await res.json();
+      state.kubo = {
+        status: 'online',
+        endpoint,
+        peerId: data.ID || null,
+        addresses: Array.isArray(data.Addresses) ? data.Addresses : []
+      };
+      return state.kubo;
+    } catch {
+      // not on this port
+    }
+  }
+  state.kubo = { status: 'offline', endpoint: null, peerId: null, addresses: [] };
+  return state.kubo;
+}
+
+async function opKuboPin(arg) {
+  const cid = String(arg?.cid || '');
+  if (!cid) throw new Error('empty cid');
+  if (state.kubo.status !== 'online') throw new Error('kubo not detected — run kuboDetect first');
+  const res = await fetch(`${state.kubo.endpoint}/api/v0/pin/add?stream-channels=true&arg=${encodeURIComponent(cid)}`, { method: 'POST' });
+  if (!res.ok) throw new Error(`kubo pin failed: HTTP ${res.status}`);
+  return await res.json();
+}
+
+// Provider lookup via configured delegated routing endpoints, then the
+// public default. Pure HTTP — a service answer is an optimization, the p2p
+// path remains available regardless.
+async function opProviders(arg) {
+  const cid = String(arg?.cid || '');
+  if (!cid) throw new Error('empty cid');
+  const endpoints = resolveEndpoints('delegatedRouting');
+  const providers = [];
+  for (const base of endpoints) {
+    try {
+      const res = await fetch(`${base}/routing/v1/providers/${cid}`);
+      if (!res.ok) continue;
+      const data = await res.json();
+      for (const p of data.Providers || []) {
+        providers.push({ id: p.ID, addrs: p.Addrs || [], schema: p.Schema, endpoint: base });
+      }
+      if (providers.length) break; // first success wins
+    } catch {
+      // try next endpoint
+    }
+  }
+  return { providers };
+}
+
+function opShareAddr() {
+  const addrs = state.node.multiaddrs;
+  const pick =
+    addrs.find((a) => a.includes('/p2p-circuit') && a.includes('/webrtc')) ||
+    addrs.find((a) => a.includes('/p2p-circuit') && a.includes('/wss')) ||
+    addrs.find((a) => a.includes('/p2p-circuit')) ||
+    addrs[0] ||
+    null;
+  return { multiaddr: pick };
+}
+
+function opServicesSet(arg) {
+  const list = Array.isArray(arg?.services) ? arg.services : [];
+  localStorage.setItem(SERVICES_KEY, JSON.stringify(list));
+  state.services.configured = list.map((s) => s?.name || '(unnamed)');
+  state.services.endpoints = {
+    gateways: resolveEndpoints('gateways'),
+    delegatedRouting: resolveEndpoints('delegatedRouting'),
+    pinning: resolveEndpoints('pinning')
+  };
+  return { configured: state.services.configured, endpoints: state.services.endpoints };
+}
+
+const ops = {
+  refresh: async () => { refreshNodeState(); return state.node; },
+  fetch: opFetch,
+  publish: opPublish,
+  dagPut: opDagPut,
+  dagGet: opDagGet,
+  chatSend: opChatSend,
+  connect: opConnect,
+  disconnect: opDisconnect,
+  block: async (a) => opBlock(a),
+  unblock: async (a) => opUnblock(a),
+  kuboDetect: opKuboDetect,
+  kuboPin: opKuboPin,
+  providers: opProviders,
+  shareAddr: async () => opShareAddr(),
+  'services.set': async (a) => opServicesSet(a),
+  'git.advertise': advertiseServe
+};
+
+// ---- command channel (Rust -> JS) --------------------------------------------
+
+window.__ipfsCmd = (id, op, arg) => {
+  const fn = ops[op];
+  if (!fn) {
+    state.results[id] = { ok: false, error: `unknown op: ${op}` };
+    return false;
+  }
+  result(id, fn(arg));
+  return true;
+};
+
+// ---- boot ----------------------------------------------------------------------
+
+if (typeof window !== 'undefined' && window.document) {
+  boot().catch((err) => {
+    state.node.status = 'error';
+    statusLine(`node failed: ${err.message || err}`);
+  });
+}
