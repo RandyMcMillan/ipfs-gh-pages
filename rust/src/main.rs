@@ -117,6 +117,27 @@ fn stage_files(root: &str, files: &[String]) -> PathBuf {
     stage
 }
 
+// Always add through a private throwaway repo: `ipfs add -r` only needs A
+// repo, and borrowing the user's (or a relative IPFS_PATH from their shell)
+// fails on missing repos, daemon-held locks, and cwd-dependent paths.
+fn ensure_temp_repo() -> PathBuf {
+    let temp = env::temp_dir().join("ipfs-gh-pages-repo");
+    if !temp.join("config").exists() {
+        let _ = fs::remove_dir_all(&temp);
+        fs::create_dir_all(&temp).expect("failed to create temp repo dir");
+        let init = Command::new("ipfs")
+            .env("IPFS_PATH", &temp)
+            .arg("init")
+            .output()
+            .expect("failed to run `ipfs init`");
+        if !init.status.success() {
+            eprintln!("{}", String::from_utf8_lossy(&init.stderr));
+            std::process::exit(1);
+        }
+    }
+    temp
+}
+
 fn run_ipfs_add(stage: &Path, ipfs_path: Option<&str>, verbose: bool) -> Result<(String, Vec<String>), String> {
     let mut cmd = Command::new("ipfs");
     if verbose {
@@ -181,32 +202,9 @@ fn main() {
     let files = tracked_files(&root).unwrap_or_else(|| fallback_files(&root));
     let stage = stage_files(&root, &files);
 
-    let result = run_ipfs_add(&stage, None, verbose);
-    let (cid, lines) = match result {
+    let temp = ensure_temp_repo();
+    let (cid, lines) = match run_ipfs_add(&stage, Some(temp.to_str().unwrap()), verbose) {
         Ok(r) => r,
-        Err(err) if err.contains("old style") || err.contains("datatstore") => {
-            let temp = env::temp_dir().join("ipfs-gh-pages-repo");
-            let _ = fs::remove_dir_all(&temp);
-            fs::create_dir_all(&temp).expect("failed to create temp repo dir");
-
-            let init = Command::new("ipfs")
-                .env("IPFS_PATH", &temp)
-                .arg("init")
-                .output()
-                .expect("failed to run `ipfs init`");
-            if !init.status.success() {
-                eprintln!("{}", String::from_utf8_lossy(&init.stderr));
-                std::process::exit(1);
-            }
-
-            match run_ipfs_add(&stage, Some(temp.to_str().unwrap()), verbose) {
-                Ok(r) => r,
-                Err(err) => {
-                    eprintln!("{err}");
-                    std::process::exit(1);
-                }
-            }
-        }
         Err(err) => {
             eprintln!("{err}");
             std::process::exit(1);
