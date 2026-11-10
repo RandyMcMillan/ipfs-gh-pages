@@ -274,6 +274,21 @@ const codeShareField = document.getElementById('code-share-field');
 const codeMultiaddrField = document.getElementById('code-multiaddr-field');
 const codeCopyLinkBtn = document.getElementById('btn-code-copy-link');
 const codeCopyMultiaddrBtn = document.getElementById('btn-code-copy-multiaddr');
+const remotePinBtn = document.getElementById('btn-remote-pin');
+const remotePinStatus = document.getElementById('remote-pin-status');
+const remotePinEndpointInput = document.getElementById('remote-pin-endpoint');
+const remotePinTokenInput = document.getElementById('remote-pin-token');
+const remotePinSaveBtn = document.getElementById('btn-remote-pin-save');
+const REMOTE_PIN_CFG_KEY = 'remote-pin-config';
+const REMOTE_PIN_LAST_KEY = 'remote-pin-last';
+
+function loadRemotePinConfig() {
+  try { return JSON.parse(localStorage.getItem(REMOTE_PIN_CFG_KEY) || '{}'); } catch { return {}; }
+}
+
+function setRemotePinStatus(msg) {
+  if (remotePinStatus) remotePinStatus.textContent = msg;
+}
 
 function selectFile(cid, name, element) {
   selectedFileCid = cid;
@@ -1454,6 +1469,80 @@ if (codeMultiaddrField) {
   codeMultiaddrField.addEventListener('focus', () => codeMultiaddrField.select());
 }
 
+// Remote pin (Pinning Services API) — the GitHub "star" equivalent: pin the
+// repo root CID to a remote pinning service so it outlives this tab. Config
+// persists in localStorage only; the request follows the PSA spec.
+async function remotePinRoot() {
+  const root = cloneCidEl?.textContent.trim();
+  const cfg = loadRemotePinConfig();
+  if (!root || !root.startsWith('baf')) return;
+  if (!cfg.endpoint || !cfg.token) {
+    setRemotePinStatus('Set the endpoint + token below first.');
+    return;
+  }
+  setRemotePinStatus('Pinning…');
+  remotePinBtn.disabled = true;
+  try {
+    const origins = [];
+    const ma = getShareableMultiaddr();
+    if (ma) origins.push(ma);
+    const res = await fetch(cfg.endpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cfg.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ cid: root, name: repoFullName, origins })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 160)}`);
+    const pin = await res.json();
+    try {
+      localStorage.setItem(REMOTE_PIN_LAST_KEY, JSON.stringify({ requestId: pin.requestId, cid: root, endpoint: cfg.endpoint, status: pin.status }));
+    } catch {}
+    setRemotePinStatus(`Pin ${pin.status}${pin.requestId ? ` (${pin.requestId})` : ''}`);
+    remotePinBtn.textContent = '★ Pinned';
+  } catch (err) {
+    setRemotePinStatus(`Pin failed: ${err.message}`);
+  } finally {
+    remotePinBtn.disabled = false;
+  }
+}
+
+// Restore the last pin's status (best effort — the service may want fresh auth).
+(async () => {
+  try {
+    const last = JSON.parse(localStorage.getItem(REMOTE_PIN_LAST_KEY) || 'null');
+    if (!last?.requestId || !last?.endpoint) return;
+    const res = await fetch(`${last.endpoint.replace(/\/$/, '')}/${last.requestId}`, {
+      headers: { Authorization: `Bearer ${loadRemotePinConfig().token || ''}` }
+    });
+    if (!res.ok) return;
+    const pin = await res.json();
+    last.status = pin.status;
+    localStorage.setItem(REMOTE_PIN_LAST_KEY, JSON.stringify(last));
+    setRemotePinStatus(`Pin ${pin.status} (${last.cid})`);
+    if (pin.status === 'pinned' && remotePinBtn) remotePinBtn.textContent = '★ Pinned';
+  } catch {}
+})();
+
+if (remotePinSaveBtn) {
+  const cfg = loadRemotePinConfig();
+  if (remotePinEndpointInput) remotePinEndpointInput.value = cfg.endpoint || '';
+  if (remotePinTokenInput) remotePinTokenInput.value = cfg.token || '';
+  remotePinSaveBtn.addEventListener('click', () => {
+    try {
+      localStorage.setItem(REMOTE_PIN_CFG_KEY, JSON.stringify({
+        endpoint: (remotePinEndpointInput?.value || '').trim(),
+        token: (remotePinTokenInput?.value || '').trim()
+      }));
+    } catch {}
+    setRemotePinStatus('Settings saved.');
+  });
+}
+if (remotePinBtn) {
+  remotePinBtn.addEventListener('click', remotePinRoot);
+}
+
 // Clone bar: copy the root CID, or fetch the whole repo and download a zip.
 if (cloneCidCopyBtn) {
   cloneCidCopyBtn.addEventListener('click', async () => {
@@ -2065,6 +2154,10 @@ setInterval(() => {
     publishBranchPointer(ipnsBranchCid).catch(() => {});
   }
   if (codeBtn && (ma || ipnsBranchName)) codeBtn.disabled = false;
+  if (remotePinBtn) {
+    const root = cloneCidEl?.textContent.trim() || '';
+    if (root.startsWith('baf') && loadRemotePinConfig().endpoint) remotePinBtn.disabled = false;
+  }
   if (ma) {
     if (copyMultiaddrBtn) copyMultiaddrBtn.disabled = false;
     if (copyLinkBtn) copyLinkBtn.disabled = false;

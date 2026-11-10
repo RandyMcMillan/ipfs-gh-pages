@@ -1058,6 +1058,23 @@
                   Download CAR
                 </button>
               </div>
+              <div style="border-top: 1px solid var(--color-border-muted); margin-top: 0.75rem; padding-top: 0.5rem;">
+                <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem;">
+                  <button id="btn-remote-pin" class="btn btn-sm" type="button" disabled title="Pin the repo root CID to a remote pinning service (Pinning Services API) — the durable, network-wide &quot;star&quot;">☆ Remote pin</button>
+                  <span id="remote-pin-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
+                </div>
+                <details style="margin-top: 0.4rem;">
+                  <summary class="f6 color-fg-muted" style="cursor: pointer;">Pinning service settings</summary>
+                  <label class="f6 d-block" style="margin-top: 0.4rem;">Endpoint (full /pins URL)</label>
+                  <input id="remote-pin-endpoint" type="text" class="form-control input-monospace" style="width: 100%;" placeholder="https://api.web3.storage/pins" />
+                  <label class="f6 d-block" style="margin-top: 0.4rem;">Bearer token</label>
+                  <input id="remote-pin-token" type="password" class="form-control input-monospace" style="width: 100%;" placeholder="Paste your pinning service token" />
+                  <div class="d-flex flex-items-center" style="gap: 0.5rem; margin-top: 0.5rem;">
+                    <button id="btn-remote-pin-save" class="btn btn-sm" type="button">Save</button>
+                    <span class="f6 color-fg-muted">Saved only in this browser. If the service rejects browser calls (CORS), use the curl in the help modal.</span>
+                  </div>
+                </details>
+              </div>
               <p id="clone-status" class="f6 status" style="margin: 0.5rem 0 0; word-break: break-all;"></p>
             </div>
           </div>
@@ -1543,6 +1560,12 @@ ipfs pin add &lt;CID from the Publish tab&gt;</code></pre>
         <p><span style="color: var(--fgColor-attention);"><strong>IPFS keeps only what someone pins.</strong></span> The browser announces the repo to the delegated index <strong>while the page is open</strong>.<br><strong>A closed tab stops serving.</strong><br>For durable availability, pin the root CID on your Kubo:</p>
         <pre><code id="doc-pin-cmd">ipfs pin add &lt;root CID&gt;</code></pre>
         <p>The Pin row in the Clone bar and this section are the same command.</p>
+        <p>No Kubo of your own? Use the Code dropdown's <strong>☆ Remote pin</strong> to pin to any Pinning Services API provider (web3.storage, Pinata, …). From a terminal the same request is:</p>
+        <pre><code>curl -X POST "https://&lt;endpoint&gt;/pins" \
+  -H "Authorization: Bearer &lt;token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{"cid":"&lt;root CID&gt;","name":"&lt;repo&gt;"}'</code></pre>
+        <p>Pinning services fetch the CID from your browser node while this page is open — include a <code>?connect=</code> share link when you want them to find it, or pin again once it is on your Kubo.</p>
 
         <h4>Reference — this page ↔ IPFS ↔ Kubo</h4>
         <p>Every feature here has a canonical counterpart in the IPFS ecosystem:</p>
