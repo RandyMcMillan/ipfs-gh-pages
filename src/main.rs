@@ -80,6 +80,16 @@ fn browser_main() -> Result<(), Box<dyn Error>> {
         let app_state_cloned = app_state.clone();
         move |event| {
             let mut app_state = app_state_cloned.borrow_mut();
+            if app_state.input_active {
+                match event.code {
+                    KeyCode::Enter => app_state.submit_input(),
+                    KeyCode::Esc => app_state.cancel_input(),
+                    KeyCode::Backspace => app_state.on_input_backspace(),
+                    KeyCode::Char(c) => app_state.on_input_char(c),
+                    _ => {}
+                }
+                return;
+            }
             match event.code {
                 KeyCode::Right => {
                     app_state.on_right();

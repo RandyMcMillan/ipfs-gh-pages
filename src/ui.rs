@@ -33,6 +33,7 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
         2 => draw_second_tab(frame, app, chunks[1]),
         3 => draw_third_tab(frame, app, chunks[1]),
         4 => draw_ipfs_tab(frame, app, chunks[1]),
+        5 => draw_peers_tab(frame, app, chunks[1]),
         _ => {}
     };
     // let big_text = BigText::builder()
@@ -61,6 +62,45 @@ fn draw_first_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     draw_gauges(frame, app, chunks[0]);
     draw_charts(frame, app, chunks[1]);
     draw_text(frame, chunks[2]);
+}
+
+fn draw_peers_tab(frame: &mut Frame, app: &mut App, area: Rect) {
+    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
+    let snap = &app.ipfs;
+    let mut lines = vec![];
+    if snap.connections.is_empty() {
+        lines.push(text::Line::from(
+            "(no connections — press c to dial a multiaddr)",
+        ));
+    } else {
+        for conn in &snap.connections {
+            lines.push(text::Line::from(format!(
+                "{} [{}] {}",
+                conn.peer, conn.direction, conn.addr
+            )));
+        }
+    }
+    let block = Block::bordered().title(format!("Peers ({} connected)", snap.connections.len()));
+    frame.render_widget(
+        Paragraph::new(lines)
+            .block(block)
+            .wrap(Wrap { trim: false }),
+        chunks[0],
+    );
+    let footer = if app.input_active {
+        format!(
+            "connect: > {}_   (Enter dials, Esc cancels)",
+            app.input_buffer
+        )
+    } else if app.last_result.is_empty() {
+        "c = connect".to_string()
+    } else {
+        app.last_result.clone()
+    };
+    frame.render_widget(
+        Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),
+        chunks[1],
+    );
 }
 
 fn draw_ipfs_tab(frame: &mut Frame, app: &mut App, area: Rect) {

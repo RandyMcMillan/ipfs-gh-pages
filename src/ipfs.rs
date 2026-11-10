@@ -195,6 +195,21 @@ mod imp {
             Some(Err(get_string(&entry, "error")))
         }
     }
+
+    /// Extract a string field from a JSON text (command results). Objects
+    /// are re-stringified; missing fields yield None.
+    pub fn json_field(text: &str, key: &str) -> Option<String> {
+        let parsed = JSON::parse(text).ok()?;
+        let value = Reflect::get(&parsed, &JsValue::from_str(key)).ok()?;
+        if value.is_undefined() || value.is_null() {
+            return None;
+        }
+        if value.is_string() {
+            value.as_string()
+        } else {
+            JSON::stringify(&value).ok().and_then(|s| s.as_string())
+        }
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -238,6 +253,10 @@ mod imp {
     pub fn take_result(_id: u64) -> Option<Result<String, String>> {
         None
     }
+
+    pub fn json_field(_text: &str, _key: &str) -> Option<String> {
+        None
+    }
 }
 
-pub use imp::{cmd, poll, take_result, ChatMessage, Connection, Snapshot};
+pub use imp::{cmd, json_field, poll, take_result, ChatMessage, Connection, Snapshot};

@@ -223,6 +223,15 @@ pub struct Server<'a> {
     pub status: &'a str,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum InputTarget {
+    Connect,
+    Fetch,
+    Publish,
+    Chat,
+    KuboPin,
+}
+
 pub struct App<'a> {
     pub title: &'a str,
     pub should_quit: bool,
@@ -243,6 +252,18 @@ pub struct App<'a> {
     /// docs/rust-js-bridge.md.
     pub ipfs: ipfs::Snapshot,
     ipfs_poll_counter: u32,
+    /// Single-line input buffer (bottom of a tab) and what submitting it
+    /// does. While active, char keys edit the buffer instead of hitting
+    /// the global key handler.
+    pub input_active: bool,
+    pub input_buffer: String,
+    pub input_target: InputTarget,
+    /// Command id awaiting its async result, with the target it belongs to.
+    pub pending: Option<(u64, InputTarget)>,
+    /// One-line status shown on the active tab (command results/errors).
+    pub last_result: String,
+    /// Fetched content for the Fetch tab (text or directory listing).
+    pub fetch_output: String,
 }
 
 #[derive(Clone, Copy, Debug, Default, Ord, PartialOrd, Eq, PartialEq)]
@@ -266,7 +287,7 @@ impl<'a> App<'a> {
         App {
             title,
             should_quit: false,
-            tabs: TabsState::new(vec!["Home", "About", "Status", "Theme", "IPFS"]),
+            tabs: TabsState::new(vec!["Home", "About", "Status", "Theme", "IPFS", "Peers"]),
             show_chart: true,
             progress: 0.0,
             sparkline: Signal {
@@ -321,6 +342,12 @@ impl<'a> App<'a> {
             last_frame: web_time::Instant::now(),
             ipfs: ipfs::Snapshot::default(),
             ipfs_poll_counter: 0,
+            input_active: false,
+            input_buffer: String::new(),
+            input_target: InputTarget::Connect,
+            pending: None,
+            last_result: String::new(),
+            fetch_output: String::new(),
         }
     }
 
@@ -350,7 +377,98 @@ impl<'a> App<'a> {
             't' => {
                 self.show_chart = !self.show_chart;
             }
+            'c' if self.tabs.index == 5 => self.start_input(InputTarget::Connect),
             _ => {}
+        }
+    }
+
+    pub fn start_input(&mut self, target: InputTarget) {
+        self.input_active = true;
+        self.input_target = target;
+        self.input_buffer.clear();
+    }
+
+    pub fn cancel_input(&mut self) {
+        self.input_active = false;
+        self.input_buffer.clear();
+    }
+
+    pub fn on_input_char(&mut self, c: char) {
+        self.input_buffer.push(c);
+    }
+
+    pub fn on_input_backspace(&mut self) {
+        self.input_buffer.pop();
+    }
+
+    /// Escape a string for embedding in a JSON string literal.
+    fn json_escape(s: &str) -> String {
+        let mut out = String::with_capacity(s.len() + 8);
+        for ch in s.chars() {
+            match ch {
+                '"' => out.push_str("\\\""),
+                '\\' => out.push_str("\\\\"),
+                '\n' => out.push_str("\\n"),
+                '\r' => out.push_str("\\r"),
+                '\t' => out.push_str("\\t"),
+                c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
+                c => out.push(c),
+            }
+        }
+        out
+    }
+
+    /// Submit the input buffer as a bridge command and arm result pickup.
+    pub fn submit_input(&mut self) {
+        let arg = format!(
+            "{{\"addr\":\"{}\",\"cid\":\"{}\",\"text\":\"{}\"}}",
+            Self::json_escape(&self.input_buffer),
+            Self::json_escape(&self.input_buffer),
+            Self::json_escape(&self.input_buffer)
+        );
+        let op = match self.input_target {
+            InputTarget::Connect => "connect",
+            InputTarget::Fetch => "fetch",
+            InputTarget::Publish => "publish",
+            InputTarget::Chat => "chatSend",
+            InputTarget::KuboPin => "kuboPin",
+        };
+        if let Some(id) = ipfs::cmd(op, &arg) {
+            self.pending = Some((id, self.input_target));
+            self.last_result = "working...".to_string();
+        } else {
+            self.last_result = "bridge unavailable (window.__ipfsCmd missing)".to_string();
+        }
+        self.cancel_input();
+    }
+
+    fn finish_pending(&mut self) {
+        let Some((id, target)) = self.pending else {
+            return;
+        };
+        let Some(result) = ipfs::take_result(id) else {
+            return;
+        };
+        self.pending = None;
+        match result {
+            Ok(value) => {
+                self.last_result = match target {
+                    InputTarget::Fetch => {
+                        // Surface the content, not the JSON wrapper.
+                        let body =
+                            ipfs::json_field(&value, "text").unwrap_or_else(|| value.clone());
+                        self.fetch_output = body.clone();
+                        format!("fetched ({} bytes)", body.len())
+                    }
+                    InputTarget::Publish => format!("published: {value}"),
+                    InputTarget::Chat => "sent".to_string(),
+                    InputTarget::Connect => "connected".to_string(),
+                    InputTarget::KuboPin => format!("pinned: {value}"),
+                };
+            }
+            Err(error) => {
+                self.last_result = format!("error: {error}");
+            }
         }
     }
 
@@ -362,6 +480,7 @@ impl<'a> App<'a> {
         if self.ipfs_poll_counter % 30 == 0 {
             self.ipfs = ipfs::poll();
         }
+        self.finish_pending();
 
         // Update progress
         self.progress += 0.001;
