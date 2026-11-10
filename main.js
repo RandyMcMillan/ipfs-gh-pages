@@ -1569,6 +1569,9 @@ if (downloadRepoBtn) {
 if (codeBtn && codeDropdown) {
   codeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    // Clicking Code while a file is open returns to the repo tree first,
+    // the same way the breadcrumb repo link does.
+    if (blobView && !blobView.hidden) hideFileBlob();
     const opening = codeDropdown.style.display === 'none';
     codeDropdown.style.display = opening ? 'block' : 'none';
     if (!opening) return;
