@@ -2898,6 +2898,13 @@ async function createIssue() {
     if (titleEl) titleEl.value = '';
     if (bodyEl) bodyEl.value = '';
     if (statusEl) statusEl.textContent = `Created — ${cid}`;
+    // Hand the user the real command at the moment of creation, on its own
+    // line (yellow by the global command rule).
+    const resultPre = document.getElementById('issue-result');
+    if (resultPre) {
+      resultPre.style.display = 'block';
+      resultPre.querySelector('code').textContent = `ipfs pin add ${cid}`;
+    }
     const pinCmd = document.getElementById('issue-pin-cmd');
     if (pinCmd) pinCmd.textContent = `ipfs pin add ${cid}`;
     renderIssues();
@@ -2932,6 +2939,29 @@ async function openIssue(cid) {
 const issueCreateBtn = document.getElementById('btn-issue-create');
 if (issueCreateBtn) issueCreateBtn.addEventListener('click', createIssue);
 renderIssues();
+
+// Click once to copy a command field; the block flashes confirmation.
+function bindCopyOnClick(el) {
+  if (!el) return;
+  el.style.cursor = 'pointer';
+  el.title = 'Click to copy';
+  el.addEventListener('click', () => {
+    const v = el.textContent.trim();
+    if (!v) return;
+    const done = () => {
+      const orig = el.textContent;
+      el.textContent = 'Copied to clipboard';
+      setTimeout(() => { el.textContent = orig; }, 900);
+    };
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(v).then(done).catch(done);
+    } else {
+      done();
+    }
+  });
+}
+bindCopyOnClick(document.querySelector('#issue-result code'));
+bindCopyOnClick(document.getElementById('issue-pin-cmd'));
 
 // Sub-tab navigation (inside Peer tab)
 document.querySelectorAll('.sub-tab-button').forEach((button) => {
