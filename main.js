@@ -56,6 +56,12 @@ function applyRepoIdentity() {
     a.href = `https://github.com/${repoOwner}`;
     a.textContent = repoOwner;
   });
+  // The header avatar link wraps the owner image (no text to rewrite) and
+  // works for both user and organization owners — the .png shortcut
+  // redirects to the right avatar for either.
+  document.querySelectorAll('a.Header-link').forEach((a) => {
+    a.href = `https://github.com/${repoOwner}`;
+  });
   document.querySelectorAll('a.gh-repo-link').forEach((a) => {
     a.href = repoUrl;
     a.textContent = repoName;
