@@ -2898,6 +2898,8 @@ async function createIssue() {
     if (titleEl) titleEl.value = '';
     if (bodyEl) bodyEl.value = '';
     if (statusEl) statusEl.textContent = `Created — ${cid}`;
+    const pinCmd = document.getElementById('issue-pin-cmd');
+    if (pinCmd) pinCmd.textContent = `ipfs pin add ${cid}`;
     renderIssues();
   } catch (err) {
     if (statusEl) statusEl.textContent = `Failed: ${err.message}`;
@@ -2910,6 +2912,8 @@ async function createIssue() {
 async function openIssue(cid) {
   const statusEl = document.getElementById('issue-status');
   if (!statusEl || !heliaNode) return;
+  const pinCmd = document.getElementById('issue-pin-cmd');
+  if (pinCmd) pinCmd.textContent = `ipfs pin add ${cid}`;
   statusEl.textContent = `Fetching ${cid}…`;
   try {
     const envelope = await getDagJson(CID.parse(cid));
