@@ -498,6 +498,13 @@
       content: '≡ Kubo: ';
       font-weight: 600;
     }
+    /* Global design pattern: runnable commands always get their own line
+       (their own <pre>) AND yellow emphasis — same token as the manual
+       callouts, in both color modes. */
+    pre code,
+    code.kubo-chip {
+      color: var(--fgColor-attention);
+    }
     .ref-table {
       width: 100%;
       border-collapse: collapse;
