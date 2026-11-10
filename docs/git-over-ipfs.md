@@ -29,42 +29,83 @@ for cloning from the TUI) but it is a **client of the smart HTTP protocol**
 IPFS content cannot answer those RPCs. So "just use isomorphic-git" fails
 without a real git server behind it — the exact problem this note is for.
 
-## What we need to build: an embedded git server backed by IPFS
+## Chosen direction: gossip advertisement + libp2p transport
 
-The app's existing embedded HTTP server (src/wry_app.rs) is the natural
-host. `git clone http://127.0.0.1:<port>/git/<cid-or-ipns>` should work.
+The repo-gossip gossipsub channel the app ALREADY runs
+(`repo-gossip:<repo>` in js/ipfs-node.js / main.js) doubles as the
+advertisement layer, and git's smart protocol runs over a libp2p stream.
+No localhost HTTP, no gateway, no central registry.
 
-Architecture options, in order of pragmatism:
+### Advertisement (gossipsub)
+
+Any node that serves a repo publishes a signed envelope on
+`repo-gossip:<repo>`:
+
+```
+{ op: "serve", repo, head: <git sha>, rootCid, addrs: [...], ts, signature }
+```
+
+- `addrs` = dialable multiaddrs offering `/ipfs-gh-pages/git/1`
+  (desktop/kubo-style nodes), OR a relayed p2p-circuit address for
+  browser nodes (we already build those for share links).
+- Subscribers learn who serves the repo = the existing clone-detection
+  trick, extended with serve intent. Forks announce themselves the same
+  way — no registry, the signature is the only authority.
+
+### Transport (libp2p stream)
+
+Registered libp2p protocol: `/ipfs-gh-pages/git/1`. The stream speaks git
+smart protocol RPCs (`info/refs?service=git-upload-pack`, then
+`git-upload-pack`; `receive-pack` later for push):
+
+```
+client                                     server (serves repo from IPFS)
+  |--- /info/refs?service=git-upload-pack -->|
+  |<--- ref advertisement --------------------|
+  |--- wants/haves --------------------------->|
+  |<--- packfile (whole objects; delta-free   |
+        packs are legal) ---------------------|
+```
+
+Object resolution on the server side goes through the blockstore: git
+objects are content-addressed like CIDs, a bare repo's objects/ maps onto
+unixfs. Browser nodes can't listen, so they clone by DIALING an advertised
+address (direct or relayed circuit) — same reachability model as the
+existing share-link flow.
+
+### isomorphic-git plugs straight in
+
+isomorphic-git's http client is pluggable: we hand it a client whose
+`request()` maps the smart-HTTP URLs onto the libp2p stream above
+(one short-lived stream per RPC). The TUI clones in-page with live
+progress reported over `__ipfsState` — no separate download path.
+
+## Compatibility / fallback paths
 
 1. **Shell out to `git http-backend`** when a `git` binary is available:
-   serve a temp/exported tree (or a fetched unixfs dir) as a bare repo.
-   Least code, full smart protocol incl. push. Fallback when git is
-   absent: dumb protocol from the exported tree (native-git-only).
-2. **Thin upload-pack in-process**: implement `git-upload-pack` (ref
-   advertisement + pack generation). Packs may contain whole (undeltified)
-   objects — legal per pack format — so no delta compression is needed.
-   Objects resolve through our blockstore (git objects are
-   content-addressed, like CIDs; a bare repo's objects/ maps cleanly onto
-   unixfs).
-3. **libp2p transport later**: the same upload-pack/receive-pack logic over
-   a libp2p protocol stream (`/ipfs-gh-pages/git/1`) so clones work without
-   localhost HTTP — browser isomorphic-git would tunnel smart-HTTP RPCs
-   over the page's libp2p connection via the JS bridge.
+   the embedded HTTP server in src/wry_app.rs exposes
+   `http://127.0.0.1:<port>/git/<cid-or-ipns>` for native
+   `git clone`. Localhost convenience for kubo-style workflows and a
+   stopgap before the libp2p protocol lands.
+2. **Dumb HTTP / bundles via gateway** (prior art above) — zero-code
+   read-only fallback, native git only.
 
 ## Relationship to the bridge plan
 
 - Fetch tab (docs/rust-js-bridge.md phase 3) already retrieves a CID's
-  tree; a bare repo fetched to disk/unixfs is the input to option 1.
-- In-TUI clone display (isomorphic-git client in the JS bundle, progress
-  over `__ipfsState`) becomes possible the moment option 1/2 answers
-  smart HTTP — no separate download path needed.
-- Push/receive-pack is the same machinery plus ref update auth — out of
-  scope until clone is proven.
+  tree; the serve path (fallback 1) reuses it to materialize a bare repo.
+- The advertisement envelope reuses the P7 notes signing scheme from
+  main.js — one identity, one verification path.
+- The gossipsub module in js/ipfs-node.js gains publish/subscribe of
+  `serve` envelopes; git transport lives behind the same
+  `__ipfsState`/`__ipfsCmd` bridge.
 
 ## Open questions
 
-- Repo update flow: dumb/bundle snapshots mean the served CID changes per
-  release; IPNS (or the existing branch-pointer scheme from main.js) is the
-  stable clone address.
-- Do we serve the git objects as ONE unixfs tree (easy transport, naive
-  resolution) or map git sha1s to CIDs (dedup across versions, harder)?
+- Stable clone address: gossip `serve` envelopes are ephemeral — pair
+  with IPNS / the existing branch-pointer scheme so `clone <repo>` has a
+  persistent entry point even when no advertisement is fresh.
+- Push (receive-pack): same machinery plus ref-update auth — after clone
+  works end to end.
+- One unixfs tree per repo snapshot vs sha1→CID mapping (dedup across
+  versions, harder resolution).
