@@ -65,15 +65,22 @@ fn draw_first_tab(frame: &mut Frame, app: &mut App, area: Rect) {
 fn draw_about_tab(frame: &mut Frame, area: Rect) {
     let block = Block::bordered().title("About");
     let text = vec![
-        text::Line::from("ipfs-gh-pages is a Ratzilla demo app with a tabbed menu bar."),
+        text::Line::from("ipfs-gh-pages — a Ratzilla (ratatui in the browser) TUI bundled as a"),
+        text::Line::from("native desktop app by wry, alongside a Helia IPFS node."),
         text::Line::from(""),
-        text::Line::from(
-            "Use the left and right arrow keys to move between Home, About, Status, and Theme.",
-        ),
+        text::Line::from("The IPFS node (Helia, in the page) dials bootstrap.libp2p.io on start and"),
+        text::Line::from("joins the repo-gossip:ipfs-gh-pages gossipsub topic so clones discover"),
+        text::Line::from("each other. Its live status is the footer bar on the left:"),
+        text::Line::from("IPFS: peer <id> — N connection(s)."),
         text::Line::from(""),
-        text::Line::from(
-            "This view is where the app description, links, and quick start notes can live.",
-        ),
+        text::Line::from("In devtools, window.__heliaNode is the running node."),
+        text::Line::from(""),
+        text::Line::from("Keys: Left/Right switch tabs, Up/Down move the task list, t toggles"),
+        text::Line::from("the chart, q sets the quit flag. Footer right side shows FPS; the"),
+        text::Line::from("backend switcher (?backend=dom|canvas|webgl2) is hidden, not removed."),
+        text::Line::from(""),
+        text::Line::from("Repo: https://github.com/RandyMcMillan/ipfs-gh-pages"),
+        text::Line::from("Build: scripts/bundle.sh --build | serve: scripts/bundle.sh --run"),
     ];
     let paragraph = Paragraph::new(text).block(block).wrap(Wrap { trim: true });
     frame.render_widget(paragraph, area);
