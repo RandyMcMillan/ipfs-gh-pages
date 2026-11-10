@@ -58,8 +58,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     }));
 
     let menu_bar = Menu::new();
-    let app_menu = Submenu::new("bundle-wry", true);
-    let about_item = MenuItem::new("About bundle-wry", true, None);
+    let app_menu = Submenu::new("ipfs-gh-pages", true);
+    let about_item = MenuItem::new("About ipfs-gh-pages", true, None);
     let quit_item = MenuItem::new("Quit", true, None);
     app_menu
         .append_items(&[&about_item, &PredefinedMenuItem::separator(), &quit_item])
@@ -67,7 +67,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     menu_bar.append(&app_menu).unwrap();
 
     let window = WindowBuilder::new()
-        .with_title("bundlle-wry")
+        .with_title("ipfs-gh-pages")
         .build(&event_loop)?;
 
     #[cfg(target_os = "windows")]
@@ -105,7 +105,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             } => stop_server(&app_source.server, control_flow),
             Event::UserEvent(UserEvent::MenuEvent(event)) => {
                 if event.id() == about_item.id() {
-                    println!("bundle-wry: native About menu selected");
+                    println!("ipfs-gh-pages: native About menu selected");
                 } else if event.id() == quit_item.id() {
                     stop_server(&app_source.server, control_flow);
                 }

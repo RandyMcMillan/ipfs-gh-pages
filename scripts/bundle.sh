@@ -8,7 +8,7 @@ usage() {
   cat <<'EOF'
 Usage: scripts/bundle.sh [--build] [--run] [--test]
 
-Builds the macOS app bundle for bundle-wry.
+Builds the macOS app bundle for ipfs-gh-pages.
 --run opens the bundled macOS app.
 --test opens the bundled macOS app, curls the bundled index.html, and verifies the HTML.
 EOF
@@ -53,7 +53,7 @@ root="$(repo_root)"
 cd "$root"
 
 bundle_root="$(cargo_target_dir)/release/bundle"
-bundle_name="bundle-wry"
+bundle_name="ipfs-gh-pages"
 bundle_app_path() {
   find "$bundle_root" -type d -name "${bundle_name}.app" -print -quit
 }
@@ -64,7 +64,7 @@ build_bundle() {
   ensure_trunk
 
   trunk build --release --dist dist
-  cargo bundle --bin bundle-wry --release
+  cargo bundle --bin ipfs-gh-pages --release
 }
 
 ensure_bundle() {

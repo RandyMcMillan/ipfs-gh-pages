@@ -1,23 +1,23 @@
 [package]
-name = "bundle-wry"
+name = "ipfs-gh-pages"
 version = "0.1.0"
 edition = "2021"
 description = "Ratzilla web and wry desktop app example"
 publish = false
 
 [package.metadata.bundle]
-name = "bundle-wry"
-identifier = "rs.ratatui.bundle-wry"
+name = "ipfs-gh-pages"
+identifier = "org.gnostr.ipfs-gh-pages"
 icon = ["icons/icon.png"]
 category = "Utility"
 short_description = "ratatui-ratzilla bundle wry example"
 
-[package.metadata.bundle.bin.bundle-wry]
-name = "bundle-wry"
-identifier = "rs.ratatui.bundle-wry"
+[package.metadata.bundle.bin.ipfs-gh-pages]
+name = "ipfs-gh-pages"
+identifier = "org.gnostr.ipfs-gh-pages"
 icon = ["icons/icon.png"]
 category = "Utility"
-short_description = "bundle-wry"
+short_description = "ipfs-gh-pages"
 resources = ["dist"]
 
 [features]

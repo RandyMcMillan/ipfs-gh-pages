@@ -57,7 +57,7 @@ release_dir="$out_dir/$host"
 bundle_root="$(cargo_target_dir)/release/bundle"
 wasm_dist="dist"
 
-bundle_artifact="$(bundle_artifact_path bundle-wry "$bundle_root")"
+bundle_artifact="$(bundle_artifact_path ipfs-gh-pages "$bundle_root")"
 
 if [[ -z "$bundle_artifact" ]]; then
   echo "Missing bundle-wry bundle in $bundle_root; omit --skip-build to build it." >&2
@@ -75,13 +75,13 @@ mkdir -p "$release_dir"
 bundle_name="$(basename "$bundle_artifact")"
 
 cp -R "$bundle_artifact" "$release_dir/$bundle_name"
-cp -R "$wasm_dist" "$release_dir/bundle-wry-web"
+cp -R "$wasm_dist" "$release_dir/ipfs-gh-pages"
 
-bundle_archive="$out_dir/bundle-wry-$host.tar.gz"
-web_archive="$out_dir/bundle-wry-web-$host.tar.gz"
+bundle_archive="$out_dir/ipfs-gh-pages-$host.tar.gz"
+web_archive="$out_dir/ipfs-gh-pages-$host.tar.gz"
 
 tar -C "$release_dir" -czf "$bundle_archive" "$bundle_name"
-tar -C "$release_dir" -czf "$web_archive" bundle-wry-web
+tar -C "$release_dir" -czf "$web_archive" ipfs-gh-pages
 
 printf 'Staged %s\n' "$release_dir"
 printf 'Packed %s\n' "$bundle_archive"

@@ -18,7 +18,7 @@ ignore = []
 
 [serve]
 addresses = ["127.0.0.1"]
-aliases = ["rs.ratatui.bundle-wry", "localhost"]
+aliases = ["org.gnostr.ipfs-gh-pages", "localhost"]
 # The port to serve on.
 port = 8080
 # Open a browser tab once the initial build is complete.

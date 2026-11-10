@@ -16,9 +16,9 @@ use std::error::Error;
 use std::{cell::RefCell, rc::Rc};
 
 #[cfg(all(not(feature = "bundle-wry"), target_arch = "wasm32"))]
-use bundle_wry::app::App;
+use ipfs_gh_pages::app::App;
 #[cfg(all(not(feature = "bundle-wry"), target_arch = "wasm32"))]
-use bundle_wry::backend::{BackendType, MultiBackendBuilder};
+use ipfs_gh_pages::backend::{BackendType, MultiBackendBuilder};
 #[cfg(all(not(feature = "bundle-wry"), target_arch = "wasm32"))]
 use ratzilla::backend::webgl2::WebGl2BackendOptions;
 #[cfg(all(not(feature = "bundle-wry"), target_arch = "wasm32"))]
@@ -71,7 +71,7 @@ fn browser_main() -> Result<(), Box<dyn Error>> {
     terminal.draw_web(move |f| {
         let mut app_state = app_state.borrow_mut();
         let elapsed = app_state.on_tick();
-        bundle_wry::ui::draw(elapsed, f, &mut app_state);
+        ipfs_gh_pages::ui::draw(elapsed, f, &mut app_state);
     });
 
     Ok(())
@@ -85,7 +85,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 #[cfg(all(not(feature = "bundle-wry"), not(target_arch = "wasm32")))]
 fn main() {
     println!(
-        "bundle-wry's browser entrypoint is for wasm32.\n\
+        "ipfs-gh-pages's browser entrypoint is for wasm32.\n\
          Run `trunk serve` or `trunk build` for the Ratzilla web app."
     );
 }

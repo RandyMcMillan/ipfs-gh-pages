@@ -65,7 +65,7 @@ fn draw_first_tab(frame: &mut Frame, app: &mut App, area: Rect) {
 fn draw_about_tab(frame: &mut Frame, area: Rect) {
     let block = Block::bordered().title("About");
     let text = vec![
-        text::Line::from("bundle-wry is a Ratzilla demo app with a tabbed menu bar."),
+        text::Line::from("ipfs-gh-pages is a Ratzilla demo app with a tabbed menu bar."),
         text::Line::from(""),
         text::Line::from(
             "Use the left and right arrow keys to move between Home, About, Status, and Theme.",
