@@ -140,8 +140,14 @@ check('fetch chip tracks input', await evalJson(`(() => {
   i.value = 'bafybeicj3t4gsdyf2rw7l3ljfl6vhpftvu3be3n6mrqhygqlt4bq5xpotq';
   return true;
 })()`) === true);
-await new Promise((r) => setTimeout(r, 2500));
-check('fetch chip updated', await evalJson(`document.getElementById('chip-fetch-get').textContent`) === 'ipfs get bafybeicj3t4gsdyf2rw7l3ljfl6vhpftvu3be3n6mrqhygqlt4bq5xpotq');
+// The chip refreshes on the 2s interval — poll instead of racing it.
+let chipText = '';
+for (let i = 0; i < 20; i++) {
+  chipText = (await evalJson(`document.getElementById('chip-fetch-get').textContent`)) || '';
+  if (chipText === 'ipfs get bafybeicj3t4gsdyf2rw7l3ljfl6vhpftvu3be3n6mrqhygqlt4bq5xpotq') break;
+  await new Promise((r) => setTimeout(r, 500));
+}
+check('fetch chip updated', chipText === 'ipfs get bafybeicj3t4gsdyf2rw7l3ljfl6vhpftvu3be3n6mrqhygqlt4bq5xpotq', chipText);
 await evalJson(`document.getElementById('tab-btn-peer').click(); true`);
 await new Promise((r) => setTimeout(r, 400));
 check('peer reference chips rendered', await evalJson(`document.querySelectorAll('#sub-tab-connect .kubo-chip').length`) >= 4);
