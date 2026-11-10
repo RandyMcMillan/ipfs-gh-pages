@@ -68,8 +68,15 @@ await new Promise((r) => setTimeout(r, 300));
 check('dropdown opens', await evalJson(`document.getElementById('code-dropdown').style.display === 'block'`));
 const ddBg = await evalJson(`getComputedStyle(document.getElementById('code-dropdown')).backgroundColor`);
 check('dropdown has a background', ddBg && ddBg !== 'rgba(0, 0, 0, 0)', `bg=${ddBg}`);
-const shareUrl = await evalJson(`document.getElementById('code-share-field').value`);
-check('share link is a full Pages URL', /^https:\/\/[^/]+\.github\.io\/[^/?]+\/\?connect=/.test(shareUrl || ''), shareUrl?.slice(0, 80));
+// The share link fills only once a relay reservation exists (the field's
+// placeholder says so) — wait for it instead of racing the reservation.
+let shareUrl = '';
+for (let i = 0; i < 90; i++) {
+  shareUrl = (await evalJson(`document.getElementById('code-share-field').value`)) || '';
+  if (shareUrl) break;
+  await new Promise((r) => setTimeout(r, 2000));
+}
+check('share link is a full Pages URL', /^https:\/\/[^/]+\.github\.io\/[^/?]+\/\?connect=/.test(shareUrl), shareUrl?.slice(0, 80));
 
 // Multiaddr tab: switches panels WITHOUT blanking the repo view.
 vlog('Checking the Multiaddr tab...');
