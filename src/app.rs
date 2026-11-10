@@ -287,7 +287,9 @@ impl<'a> App<'a> {
         App {
             title,
             should_quit: false,
-            tabs: TabsState::new(vec!["Home", "About", "Status", "Theme", "IPFS", "Peers"]),
+            tabs: TabsState::new(vec![
+                "Home", "About", "Status", "Theme", "IPFS", "Peers", "Fetch",
+            ]),
             show_chart: true,
             progress: 0.0,
             sparkline: Signal {
@@ -378,6 +380,7 @@ impl<'a> App<'a> {
                 self.show_chart = !self.show_chart;
             }
             'c' if self.tabs.index == 5 => self.start_input(InputTarget::Connect),
+            'f' if self.tabs.index == 6 => self.start_input(InputTarget::Fetch),
             _ => {}
         }
     }
@@ -454,9 +457,10 @@ impl<'a> App<'a> {
             Ok(value) => {
                 self.last_result = match target {
                     InputTarget::Fetch => {
-                        // Surface the content, not the JSON wrapper.
-                        let body =
-                            ipfs::json_field(&value, "text").unwrap_or_else(|| value.clone());
+                        // Surface the pre-rendered content, not the JSON wrapper.
+                        let body = ipfs::json_field(&value, "display")
+                            .or_else(|| ipfs::json_field(&value, "text"))
+                            .unwrap_or_else(|| value.clone());
                         self.fetch_output = body.clone();
                         format!("fetched ({} bytes)", body.len())
                     }

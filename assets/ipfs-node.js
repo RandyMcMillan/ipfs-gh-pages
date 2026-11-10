@@ -112092,7 +112092,7 @@ function unixfs(helia) {
 }
 
 // js/ipfs-node.js
-var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "2.3.0" };
+var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "2.4.0" };
 var { repoOwner, repoName } = (() => {
   const host = window.location.hostname;
   const m2 = host.match(/^([^.]+)\.github\.io$/);
@@ -112405,7 +112405,8 @@ async function opFetch(arg) {
     for await (const entry of heliaUnixfs.ls(cid)) {
       entries.push({ name: entry.name, type: entry.type, size: Number(entry.size || 0), cid: entry.cid.toString() });
     }
-    return { type: "directory", cid: cid.toString(), entries };
+    const display = entries.length ? entries.map((e) => `${e.type === "directory" ? "\u{1F4C1}" : "\u{1F4C4}"} ${e.name} ${e.cid} (${e.size} B)`).join("\n") : "(empty directory)";
+    return { type: "directory", cid: cid.toString(), entries, display };
   }
   const chunks = [];
   for await (const chunk of heliaUnixfs.cat(cid)) chunks.push(chunk);
@@ -112416,7 +112417,8 @@ async function opFetch(arg) {
     bytes.set(c, off);
     off += c.length;
   }
-  return { type: "file", cid: cid.toString(), text: new TextDecoder().decode(bytes), size: total };
+  const text = new TextDecoder().decode(bytes);
+  return { type: "file", cid: cid.toString(), text, size: total, display: text };
 }
 async function opPublish(arg) {
   const text = String(arg?.text || "");

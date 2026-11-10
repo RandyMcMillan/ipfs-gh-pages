@@ -388,7 +388,10 @@ async function opFetch(arg) {
     for await (const entry of heliaUnixfs.ls(cid)) {
       entries.push({ name: entry.name, type: entry.type, size: Number(entry.size || 0), cid: entry.cid.toString() });
     }
-    return { type: 'directory', cid: cid.toString(), entries };
+    const display = entries.length
+      ? entries.map((e) => `${e.type === 'directory' ? '📁' : '📄'} ${e.name} ${e.cid} (${e.size} B)`).join('\n')
+      : '(empty directory)';
+    return { type: 'directory', cid: cid.toString(), entries, display };
   }
   const chunks = [];
   for await (const chunk of heliaUnixfs.cat(cid)) chunks.push(chunk);
@@ -396,7 +399,8 @@ async function opFetch(arg) {
   const bytes = new Uint8Array(total);
   let off = 0;
   for (const c of chunks) { bytes.set(c, off); off += c.length; }
-  return { type: 'file', cid: cid.toString(), text: new TextDecoder().decode(bytes), size: total };
+  const text = new TextDecoder().decode(bytes);
+  return { type: 'file', cid: cid.toString(), text, size: total, display: text };
 }
 
 async function opPublish(arg) {
