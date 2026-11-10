@@ -64,7 +64,7 @@ build_bundle() {
   ensure_trunk
 
   trunk build --release --dist dist
-  cargo bundle --bin ipfs-gh-pages --release
+  cargo bundle --bin ipfs-gh-pages --release --features bundle-wry
 }
 
 ensure_bundle() {

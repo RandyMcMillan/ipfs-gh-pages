@@ -8,20 +8,23 @@ publish = false
 [package.metadata.bundle]
 name = "ipfs-gh-pages"
 identifier = "org.gnostr.ipfs-gh-pages"
-icon = ["icons/icon.png"]
+icon = ["icons/icon.icns"]
 category = "Utility"
 short_description = "ratatui-ratzilla bundle wry example"
 
 [package.metadata.bundle.bin.ipfs-gh-pages]
 name = "ipfs-gh-pages"
 identifier = "org.gnostr.ipfs-gh-pages"
-icon = ["icons/icon.png"]
+icon = ["icons/icon.icns"]
 category = "Utility"
 short_description = "ipfs-gh-pages"
 resources = ["dist"]
 
 [features]
-default = ["bundle-wry"]
+# Empty by default: trunk/wasm builds must not pull wry/tao/muda (native-only)
+# into the wasm32 graph. The desktop bundle passes --features bundle-wry
+# explicitly (see scripts/bundle.sh).
+default = []
 bundle-wry = ["dep:tao", "dep:wry", "dep:muda"]
 
 [dependencies]
