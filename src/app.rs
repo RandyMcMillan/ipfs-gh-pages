@@ -229,6 +229,7 @@ pub enum InputTarget {
     Fetch,
     Publish,
     Chat,
+    KuboDetect,
     KuboPin,
 }
 
@@ -291,6 +292,7 @@ impl<'a> App<'a> {
             should_quit: false,
             tabs: TabsState::new(vec![
                 "Home", "About", "Status", "Theme", "IPFS", "Peers", "Fetch", "Publish", "Chat",
+                "Kubo",
             ]),
             show_chart: true,
             progress: 0.0,
@@ -386,6 +388,13 @@ impl<'a> App<'a> {
             'f' if self.tabs.index == 6 => self.start_input(InputTarget::Fetch),
             'p' if self.tabs.index == 7 => self.start_input(InputTarget::Publish),
             'm' if self.tabs.index == 8 => self.start_input(InputTarget::Chat),
+            'd' if self.tabs.index == 9 => {
+                if let Some(id) = ipfs::cmd("kuboDetect", "{}") {
+                    self.pending = Some((id, InputTarget::KuboDetect));
+                    self.last_result = "detecting kubo (ports 5001-5010)...".to_string();
+                }
+            }
+            'p' if self.tabs.index == 9 => self.start_input(InputTarget::KuboPin),
             _ => {}
         }
     }
@@ -439,6 +448,7 @@ impl<'a> App<'a> {
             InputTarget::Fetch => "fetch",
             InputTarget::Publish => "publish",
             InputTarget::Chat => "chatSend",
+            InputTarget::KuboDetect => "kuboDetect",
             InputTarget::KuboPin => "kuboPin",
         };
         if let Some(id) = ipfs::cmd(op, &arg) {
@@ -480,6 +490,7 @@ impl<'a> App<'a> {
                     }
                     InputTarget::Chat => "sent".to_string(),
                     InputTarget::Connect => "connected".to_string(),
+                    InputTarget::KuboDetect => format!("kubo: {value}"),
                     InputTarget::KuboPin => format!("pinned: {value}"),
                 };
             }

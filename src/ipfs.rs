@@ -42,6 +42,7 @@ mod imp {
         pub chat_inbox: Vec<ChatMessage>,
         pub kubo_status: String,
         pub kubo_endpoint: String,
+        pub kubo_peer_id: String,
         pub git_seen: usize,
         pub serving: bool,
     }
@@ -123,6 +124,7 @@ mod imp {
         if let Ok(kubo) = Reflect::get(&state, &JsValue::from_str("kubo")) {
             snap.kubo_status = get_string(&kubo, "status");
             snap.kubo_endpoint = get_string(&kubo, "endpoint");
+            snap.kubo_peer_id = get_string(&kubo, "peerId");
         }
 
         if let Ok(git) = Reflect::get(&state, &JsValue::from_str("git")) {
@@ -238,6 +240,7 @@ mod imp {
         pub chat_inbox: Vec<ChatMessage>,
         pub kubo_status: String,
         pub kubo_endpoint: String,
+        pub kubo_peer_id: String,
         pub git_seen: usize,
         pub serving: bool,
     }

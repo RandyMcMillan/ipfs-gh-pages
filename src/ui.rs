@@ -37,6 +37,7 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
         6 => draw_fetch_tab(frame, app, chunks[1]),
         7 => draw_publish_tab(frame, app, chunks[1]),
         8 => draw_chat_tab(frame, app, chunks[1]),
+        9 => draw_kubo_tab(frame, app, chunks[1]),
         _ => {}
     };
     // let big_text = BigText::builder()
@@ -99,6 +100,38 @@ fn draw_peers_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         "c = connect".to_string()
     } else {
         app.last_result.clone()
+    };
+    frame.render_widget(
+        Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),
+        chunks[1],
+    );
+}
+
+fn draw_kubo_tab(frame: &mut Frame, app: &mut App, area: Rect) {
+    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
+    let kubo = &app.ipfs;
+    let mut lines = vec![
+        text::Line::from(format!("Status: {}", kubo.kubo_status)),
+        text::Line::from(format!("Endpoint: {}", kubo.kubo_endpoint)),
+        text::Line::from(format!("Peer ID: {}", kubo.kubo_peer_id)),
+    ];
+    if !app.last_result.is_empty() {
+        lines.push(text::Line::from(""));
+        lines.push(text::Line::from(app.last_result.as_str()));
+    }
+    frame.render_widget(
+        Paragraph::new(lines)
+            .block(Block::bordered().title("Kubo"))
+            .wrap(Wrap { trim: false }),
+        chunks[0],
+    );
+    let footer = if app.input_active {
+        format!(
+            "pin CID: > {}_   (Enter pins, Esc cancels)",
+            app.input_buffer
+        )
+    } else {
+        "d = detect (ports 5001-5010)   p = pin CID".to_string()
     };
     frame.render_widget(
         Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),
