@@ -153,6 +153,33 @@ documents.
   https://gist.github.com/RandyMcMillan/7b7b0de098cd26a341fc4a7390d22254 ·
   https://gist.github.com/RandyMcMillan/524a2d81ee8f0df35fcf2b08f0e1222c
 
+## External verification (2026-11-11)
+
+Every load-bearing claim above was checked against external sources, not
+just asserted:
+
+| Claim | Verdict | Sources |
+|---|---|---|
+| SVG via `<img>` is script-inert; inline/`<embed>`/navigation execute | CONFIRMED — scripts run when SVG is inline or embedded, never in `<img>` context | [InfoSec SE #212894](https://security.stackexchange.com/questions/212894/is-there-a-way-to-execute-xss-in-an-html-img-tag-with-svg), [arnevogel.com/til/svg-script](https://www.arnevogel.com/til/svg-script/) |
+| mXSS is a living CVE stream, sanitizer must stay current | CONFIRMED — CVE-2020-26870 (namespace confusion), CVE-2025-26791 (DOMPurify < 3.2.4) | [Cure53 Attack Classes wiki](https://github.com/cure53/DOMPurify/wiki/Attack-Classes-&-Bypass-History), [securitum mXSS writeup](https://securitum.com/mutation-xss-via-mathml-mutation-dompurify-2-0-17-bypass.html) |
+| marked does not sanitize; sanitize after render | CONFIRMED — upstream warns and recommends DOMPurify | [marked.js.org](https://marked.js.org/), [markedjs/marked#3943](https://github.com/markedjs/marked/issues/3943) |
+| `blob:`/`data:` navigation inherits the app origin | CONFIRMED — blob URLs are same-origin with the creator; `blob:` in `script-src` is flagged risky | [MDN Worker()](https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker), [centralcsp script-src-elem](https://centralcsp.com/en/docs/web-security/policies/content-security-policy/directives/script-src-elem) |
+| Remote images are tracking beacons | CONFIRMED — IP/location/timestamp leak to the image host | [Wikipedia: Web beacon](https://en.wikipedia.org/wiki/Web_beacon) |
+| Camo's purpose (privacy proxy) | CONFIRMED — "your browser information won't be leaked"; GitLab ships go-camo for the same reason | [GitHub blog: Proxying User Images](https://github.blog/news-insights/product-news/proxying-user-images/), [GitLab asset proxy docs](https://docs.gitlab.com/security/asset_proxy/) |
+| SVG steganography is real-world, not just PoCs | CONFIRMED STRONGER — DPRK's Contagious Interview campaign hid C2 payloads in SVGs; academic + commercial SVG-stego tooling exists | [Securonix threat research](https://connect.securonix.com/threat-research-intelligence-62/flags-fake-jobs-and-fileless-payloads-inside-dprk-s-svg-steganography-contagious-interview-campaign-440), [CVPR GVIS](https://openaccess.thecvf.com/content/CVPR2026/papers/Xu_GVIS_Generative_Vector_Image_Steganography_CVPR_2026_paper.pdf) |
+
+Corrections adopted from verification:
+
+- **DOMPurify floor is ≥ 3.2.4** (CVE-2025-26791) — pin and track
+  updates; the "namespace-aware" requirement is necessary but not
+  sufficient on its own.
+- The steganography section's "working PoCs exist" now has a
+  **real-world campaign** behind it (DPRK SVG-stego C2), not just the
+  owner's gists and academic literature.
+- If the image-policy decision ever goes the proxy route,
+  [go-camo](https://github.com/cactus/go-camo) is the maintained camo
+  successor (GitLab uses it) — see `docs/ipfs-rehost-service.md`.
+
 ## Open decisions (make these, then implement)
 
 1. Image policy: block-by-default, gateway-proxied, or accepted leak?
