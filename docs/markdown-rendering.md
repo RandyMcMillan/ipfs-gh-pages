@@ -140,10 +140,18 @@ documents.
 - **What this changes**: strengthens the case for the sandboxed-iframe
   option and a strict CSP — rendered content should never share an
   execution context with the keys.
-- **Working PoCs exist** (the owner's gists, listed in STATUS.md
-  "Backlog — potential attack vectors"): SVG `feColorMatrix`-coefficient
-  stego, SVG phantom-polyline coordinate stego, PPM LSB channel stego —
-  all produce valid-looking media carrying arbitrary bytes.
+- **Working PoCs exist — in-repo fixtures**: `tests/fixtures/stego/`
+  (generator `scripts/build-stego-fixtures.mjs`, round-trip decoder
+  tests `tests/stego-fixtures.test.mjs`) carries the three techniques on
+  the real gnostr.svg carrier (`gnostr-clean.svg` == the pinned interop
+  vector): `gnostr-matrix-stego.svg` (`feColorMatrix` coefficients),
+  `gnostr-phantom-stego.svg` (polyline coordinate decimals),
+  `gnostr-lsb.ppm` (blue-channel LSB of the rsvg-rasterized logo). Each
+  decodes to its manifest payload and none contains it as plaintext —
+  the exact property renderers must be tested against. Origin gists:
+  https://gist.github.com/RandyMcMillan/55e56ac549b4c31ac16ce7f7c7d381bd ·
+  https://gist.github.com/RandyMcMillan/7b7b0de098cd26a341fc4a7390d22254 ·
+  https://gist.github.com/RandyMcMillan/524a2d81ee8f0df35fcf2b08f0e1222c
 
 ## Open decisions (make these, then implement)
 

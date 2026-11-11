@@ -1,0 +1,29 @@
+{
+  "carrier": {
+    "name": "gnostr.svg",
+    "cid": "bafkreih2kz6g6n5fhria2x23ana6dp76e2nln6edrt4iyikzgifxomx46a",
+    "sha256": "fa567c6f37a53c500d5f5b0341e1bffe269ab6f8838cf88c2159320b7732fcf0",
+    "file": "gnostr-clean.svg"
+  },
+  "fixtures": [
+    {
+      "file": "gnostr-matrix-stego.svg",
+      "technique": "svg-feColorMatrix-coefficients",
+      "payload": "gnostr-stego-matrix",
+      "gist": "https://gist.github.com/RandyMcMillan/55e56ac549b4c31ac16ce7f7c7d381bd"
+    },
+    {
+      "file": "gnostr-phantom-stego.svg",
+      "technique": "svg-phantom-polyline-decimals",
+      "payload": "gnostr-stego-phantom",
+      "gist": "https://gist.github.com/RandyMcMillan/7b7b0de098cd26a341fc4a7390d22254"
+    },
+    {
+      "file": "gnostr-lsb.ppm",
+      "technique": "ppm-blue-channel-lsb",
+      "payload": "gnostr-stego-lsb",
+      "gist": "https://gist.github.com/RandyMcMillan/524a2d81ee8f0df35fcf2b08f0e1222c",
+      "raster": "rsvg-convert 64x64 of the carrier"
+    }
+  ]
+}

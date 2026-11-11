@@ -22,7 +22,7 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 - Bundle build: `./scripts/bundle.sh --build` (runs build-ipfs-js.mjs + build-repo-files.mjs + trunk + cargo bundle)
 - JS bundle only: `node scripts/build-ipfs-js.mjs` (inject repo identity via --define)
 - Web app: `npm run dev` / `npm run build` (installs consumer.example.yml → actions-test/.github/workflows/deploy.yml in lockstep via `install:consumer-example`, then rebuilds actions-test.car — snapshot the submodule before releasing)
-- Tests: `npm run test:all` — unit, car, index-merge (5), index-walk (3), line-comments (4), blame (6), cid-links (4), interop-vectors (3+1 skip), pinata-pin (5), git-notes-bridge (7), check-gitlink (7), install-consumer-example (5), git-objects (14), git-upload-pack (4), git-clone-smart (2), git-pull-smart (2), then CDP suite (incl. cdp-git-bridge, cdp-cid-links, cdp-interop-vector)
+- Tests: `npm run test:all` — unit, car, index-merge (5), index-walk (3), line-comments (4), blame (6), cid-links (4), interop-vectors (3+1 skip), pinata-pin (5), stego-fixtures (6), git-notes-bridge (7), check-gitlink (7), install-consumer-example (5), git-objects (14), git-upload-pack (4), git-clone-smart (2), git-pull-smart (2), then CDP suite (incl. cdp-git-bridge, cdp-cid-links, cdp-interop-vector)
 - Release (ONLY when user orders): `npm run release <semver>` — refuses on dirty tree; snapshot `actions-test.car` first if `npm run build` ran
 - Sign/release app: `scripts/sign-app.sh`, `scripts/release-app.sh [--notarize]`
 
@@ -49,7 +49,7 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 - **Memoization where it measurably improves** — fib 5 ways (naive/memo/iterative/matrix/Binet) as the benchmark pattern: https://gist.github.com/RandyMcMillan/555fefec9a9c00b2864d066c9362bbbe
 - **Consider for transport** — self-extracting shell script with appended tar.gz payload (marker-offset extraction): https://gist.github.com/RandyMcMillan/b4858efada0d267b228e2d016093f673
 - **Consider for alternate transport protocol** — recursive MTU slicing with XOR parity slices, loss recovery from sibling+parity: https://gist.github.com/RandyMcMillan/f72ede9bff8bb79ec70d004ee34dd3ad
-- **Potential attack vectors — stego carriers (PoCs, see docs/markdown-rendering.md)** — SVG `feColorMatrix`-coefficient stego: https://gist.github.com/RandyMcMillan/55e56ac549b4c31ac16ce7f7c7d381bd · SVG phantom-polyline coordinate stego (encode+decode): https://gist.github.com/RandyMcMillan/7b7b0de098cd26a341fc4a7390d22254 · PPM LSB channel stego (std-only): https://gist.github.com/RandyMcMillan/524a2d81ee8f0df35fcf2b08f0e1222c
+- **Potential attack vectors — stego carriers (PoCs; in-repo fixtures in tests/fixtures/stego/, see docs/markdown-rendering.md)** — SVG `feColorMatrix`-coefficient stego: https://gist.github.com/RandyMcMillan/55e56ac549b4c31ac16ce7f7c7d381bd · SVG phantom-polyline coordinate stego (encode+decode): https://gist.github.com/RandyMcMillan/7b7b0de098cd26a341fc4a7390d22254 · PPM LSB channel stego (std-only): https://gist.github.com/RandyMcMillan/524a2d81ee8f0df35fcf2b08f0e1222c
 - **P2P time sync, JS ↔ Rust bridge** — median-diff clock convergence (hour→minute→second) then nonce-grind consensus ritual with escalating SHA-difficulty as finality: https://gist.github.com/RandyMcMillan/dd116a5d29178ad16cae73cb0f84954e
 
 ## Hard-won gotchas (do not relearn)
