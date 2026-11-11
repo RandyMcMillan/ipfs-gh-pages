@@ -22,7 +22,7 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 - Bundle build: `./scripts/bundle.sh --build` (runs build-ipfs-js.mjs + build-repo-files.mjs + trunk + cargo bundle)
 - JS bundle only: `node scripts/build-ipfs-js.mjs` (inject repo identity via --define)
 - Web app: `npm run dev` / `npm run build` (installs consumer.example.yml → actions-test/.github/workflows/deploy.yml in lockstep via `install:consumer-example`, then rebuilds actions-test.car — snapshot the submodule before releasing)
-- Tests: `npm run test:all` — unit, car, index-merge (5), index-walk (3), line-comments (4), blame (6), git-notes-bridge (7), check-gitlink (5), install-consumer-example (5), git-objects (14), git-upload-pack (4), git-clone-smart (2), git-pull-smart (2), then CDP suite (incl. cdp-git-bridge)
+- Tests: `npm run test:all` — unit, car, index-merge (5), index-walk (3), line-comments (4), blame (6), git-notes-bridge (7), check-gitlink (7), install-consumer-example (5), git-objects (14), git-upload-pack (4), git-clone-smart (2), git-pull-smart (2), then CDP suite (incl. cdp-git-bridge)
 - Release (ONLY when user orders): `npm run release <semver>` — refuses on dirty tree; snapshot `actions-test.car` first if `npm run build` ran
 - Sign/release app: `scripts/sign-app.sh`, `scripts/release-app.sh [--notarize]`
 

@@ -1,0 +1,29 @@
+#!/bin/bash
+# .githooks/pre-commit — push-order guard at COMMIT time (AGENTS.md
+# "Push order"). A gitlink bump recorded while the submodule commit is
+# NOT yet on the submodule's remote is the exact state that breaks CI
+# checkout on the next superproject push ("upload-pack: not our ref").
+# The bump is only meaningful once the submodule commit exists remotely —
+# so push the submodule FIRST (origin-ssh when it touches workflow
+# files), THEN commit the gitlink. (release.mjs already does it in that
+# order; this hook covers manual commits.)
+set -u
+
+# Only gitlink changes can create the bad state; everything else passes.
+# (raw diff prints abbreviated SHAs — match any length.)
+git diff --cached --raw | grep -qE '^:160000 160000 [0-9a-f]+ [0-9a-f]+' || exit 0
+
+[ -f scripts/check-gitlink.mjs ] || exit 0
+command -v node >/dev/null 2>&1 || exit 0
+
+if ! node scripts/check-gitlink.mjs; then
+  cat >&2 <<'EOF'
+pre-commit: BLOCKED — this commit records a gitlink the submodule remote
+does not have yet. Push order (AGENTS.md): submodule FIRST, superproject
+second. Push the submodule, then re-commit:
+
+git -C actions-test push origin-ssh master
+EOF
+  exit 1
+fi
+exit 0

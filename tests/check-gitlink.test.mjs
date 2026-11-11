@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const GUARD = path.join(ROOT, 'scripts', 'check-gitlink.mjs');
 const PRE_PUSH = path.join(ROOT, '.githooks', 'pre-push');
+const PRE_COMMIT = path.join(ROOT, '.githooks', 'pre-commit');
 const ZERO40 = '0'.repeat(40);
 
 const git = (args, cwd) =>
@@ -113,6 +114,43 @@ test('guard works on a checkout with UNINITIALIZED submodules (the CI path)', ()
   git(['push', '-q', remote, 'master'], sub);
   const ok = runGuard(sup2);
   assert.equal(ok.code, 0);
+});
+
+test('pre-commit BLOCKS staging a gitlink bump the remote does not have', () => {
+  const { remote, sub, sup } = mkFixture();
+  const stageBump = () => {
+    fs.writeFileSync(path.join(sub, 'hello.txt'), `hello ${Date.now()}\n`);
+    git(['add', '.'], sub);
+    git(['commit', '-q', '-m', 'unpushed advance'], sub);
+    const sha = git(['rev-parse', 'HEAD'], sub);
+    git(['fetch', '-q', sub, 'master'], path.join(sup, 'actions-test'));
+    git(['checkout', '-q', 'FETCH_HEAD'], path.join(sup, 'actions-test'));
+    git(['add', 'actions-test'], sup); // staged, NOT committed
+    return sha;
+  };
+  const runHook = () => {
+    try {
+      return { code: 0, out: execFileSync('bash', [PRE_COMMIT], { cwd: sup, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }) };
+    } catch (e) {
+      return { code: e.status, out: `${e.stdout || ''}${e.stderr || ''}` };
+    }
+  };
+
+  const newSha = stageBump();
+  const blocked = runHook();
+  assert.equal(blocked.code, 1, 'staging a bump past the remote is blocked');
+  assert.ok(blocked.out.includes('BLOCKED') && blocked.out.includes(newSha), 'message names the full SHA');
+
+  // A commit that does not touch the gitlink is never gated.
+  git(['reset', '-q'], sup);
+  fs.writeFileSync(path.join(sup, 'other.txt'), 'x\n');
+  git(['add', 'other.txt'], sup);
+  assert.equal(runHook().code, 0, 'non-gitlink commits pass');
+
+  // Once the submodule commit is on its remote, the bump may be committed.
+  git(['push', '-q', remote, 'master'], sub);
+  git(['add', 'actions-test'], sup);
+  assert.equal(runHook().code, 0, 'bump passes after the submodule push');
 });
 
 test('pre-push BLOCKS a default-branch push with an unpushed gitlink', () => {

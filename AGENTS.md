@@ -45,7 +45,9 @@ superproject. Verify before any superproject push:
 node scripts/check-gitlink.mjs
 ```
 
-Enforced by: `.githooks/pre-push` (blocks default-branch pushes on an
+Enforced by: `.githooks/pre-commit` (BLOCKS recording a gitlink bump
+while the submodule commit is still unpushed — the state must never be
+created), `.githooks/pre-push` (blocks default-branch pushes on an
 unresolvable gitlink), `scripts/release.mjs` (runs the guard before
 pushing main), and the CI workflows (guard step before submodule checkout,
 so a violation fails with a clear message instead of a cryptic one).
