@@ -27,7 +27,12 @@ export function findInstalledChrome() {
       if (e.isDirectory()) {
         stack.push(p);
       } else if (BIN_NAMES.has(e.name)) {
-        return p;
+        // A cached binary that the OS kills on spawn (corrupt download,
+        // broken signature) must not poison every run — verify it runs.
+        try {
+          execFileSync(p, ['--version'], { stdio: 'ignore' });
+          return p;
+        } catch {}
       }
     }
   }
