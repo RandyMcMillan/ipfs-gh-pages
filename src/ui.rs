@@ -170,6 +170,9 @@ fn draw_git_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         text::Line::from(
             "Clone a repo through the app: fetch a bare-repo-shaped CID tree, get a zip with .git/ reconstructed.",
         ),
+        text::Line::from(
+            "Live clone: s = isomorphic-git clone (persists in-browser)   u = pull newer CID   l = list clones",
+        ),
         text::Line::from(""),
         text::Line::from(format!(
             "Serve advertisements seen: {}{}",
@@ -195,13 +198,25 @@ fn draw_git_tab(frame: &mut Frame, app: &mut App, area: Rect) {
                     app.input_buffer
                 )
             }
+            crate::app::InputTarget::GitCloneSmart => {
+                format!(
+                    "live clone CID: > {}_   (Enter clones in-browser, Esc cancels)",
+                    app.input_buffer
+                )
+            }
+            crate::app::InputTarget::GitPullSmart => {
+                format!(
+                    "pull CID: > {}_   (Enter pulls newer state, Esc cancels)",
+                    app.input_buffer
+                )
+            }
             _ => format!(
                 "advertise CID: > {}_   (Enter publishes serve envelope, Esc cancels)",
                 app.input_buffer
             ),
         }
     } else {
-        "c = clone CID to zip   a = advertise CID (serve envelope on repo-gossip)".to_string()
+        "c = clone zip   s = live clone   u = pull   a = advertise   l = list clones".to_string()
     };
     frame.render_widget(
         Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),

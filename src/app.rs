@@ -235,6 +235,8 @@ pub enum InputTarget {
     ServicesSet,
     GitClone,
     GitAdvertise,
+    GitCloneSmart,
+    GitPullSmart,
     RepoPublish,
     /// The `:`-bar command line — head word = bridge op, rest = argument.
     RawCommand,
@@ -423,6 +425,14 @@ impl<'a> App<'a> {
             's' if self.tabs.index == 10 => self.start_input(InputTarget::ServicesSet),
             'c' if self.tabs.index == 11 => self.start_input(InputTarget::GitClone),
             'a' if self.tabs.index == 11 => self.start_input(InputTarget::GitAdvertise),
+            's' if self.tabs.index == 11 => self.start_input(InputTarget::GitCloneSmart),
+            'u' if self.tabs.index == 11 => self.start_input(InputTarget::GitPullSmart),
+            'l' if self.tabs.index == 11 => {
+                if let Some(id) = ipfs::cmd("git.clones", "{}") {
+                    self.pending = Some((id, InputTarget::GitCloneSmart));
+                    self.last_result = "listing clones...".to_string();
+                }
+            }
             'p' if self.tabs.index == 12 => {
                 if let Some(id) = ipfs::cmd("repo.publishAll", "{}") {
                     self.pending = Some((id, InputTarget::RepoPublish));
@@ -569,6 +579,8 @@ impl<'a> App<'a> {
             InputTarget::ServicesSet => "services.set",
             InputTarget::GitClone => "git.clone",
             InputTarget::GitAdvertise => "git.advertise",
+            InputTarget::GitCloneSmart => "git.cloneSmart",
+            InputTarget::GitPullSmart => "git.pullSmart",
             InputTarget::RepoPublish => "repo.publishAll",
             InputTarget::RawCommand => "raw-command",
         };
@@ -626,6 +638,37 @@ impl<'a> App<'a> {
                         format!("cloned to {zip} ({bytes} bytes, bare repo: {bare})")
                     }
                     InputTarget::GitAdvertise => format!("advertised: {value}"),
+                    InputTarget::GitCloneSmart => {
+                        // Two ops share this target: cloneSmart returns
+                        // name/branches/tags; git.clones returns a clones list.
+                        if let Some(list) = ipfs::json_field(&value, "clones") {
+                            let names: Vec<String> = list
+                                .trim_matches(|c| c == '[' || c == ']')
+                                .split("{\"name\":")
+                                .skip(1)
+                                .filter_map(|s| s.split('"').nth(1).map(str::to_string))
+                                .collect();
+                            if names.is_empty() {
+                                "no clones yet".to_string()
+                            } else {
+                                format!("clones: {}", names.join(", "))
+                            }
+                        } else {
+                            let name = ipfs::json_field(&value, "name").unwrap_or_default();
+                            let branches = ipfs::json_field(&value, "branches").unwrap_or_default();
+                            let tags = ipfs::json_field(&value, "tags").unwrap_or_default();
+                            format!("cloned {name} (branches: {branches}, tags: {tags})")
+                        }
+                    }
+                    InputTarget::GitPullSmart => {
+                        let advanced = ipfs::json_field(&value, "advanced").unwrap_or_default();
+                        let after = ipfs::json_field(&value, "after").unwrap_or_default();
+                        if advanced == "true" {
+                            format!("updated to {after}")
+                        } else {
+                            "already up to date".to_string()
+                        }
+                    }
                     InputTarget::RawCommand => {
                         self.cmd_output = value;
                         String::new()
