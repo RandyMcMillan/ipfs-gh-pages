@@ -157,12 +157,13 @@ async function refreshRepoMetadata() {
   }
   try {
     const headers = { accept: 'application/vnd.github+json' };
-    const [repoRes, langRes, branchRes] = await Promise.all([
+    const [repoRes, langRes, branchRes, relRes] = await Promise.all([
       fetch(`https://api.github.com/repos/${repoFullName}`, { headers }),
       fetch(`https://api.github.com/repos/${repoFullName}/languages`, { headers }),
       // Exact branch count in one tiny request: per_page=1 + the Link
       // header's last page (no Link → the array itself is 0 or 1).
-      fetch(`https://api.github.com/repos/${repoFullName}/branches?per_page=1`, { headers })
+      fetch(`https://api.github.com/repos/${repoFullName}/branches?per_page=1`, { headers }),
+      fetch(`https://api.github.com/repos/${repoFullName}/releases/latest`, { headers })
     ]);
     if (!repoRes.ok) return;
     const repo = await repoRes.json();
@@ -173,7 +174,20 @@ async function refreshRepoMetadata() {
       const last = link && link.match(/[?&]page=(\d+)>;\s*rel="last"/);
       branches = last ? parseInt(last[1], 10) : (await branchRes.json()).length;
     }
-    const meta = { fetchedAt: Date.now(), repo, languages, branches };
+    // Latest release, else newest tag (repos without releases still show
+    // their real tag — the agregore v1.5.0-vs-v2.24.0 bug).
+    let release = null;
+    if (relRes.ok) {
+      const r = await relRes.json();
+      if (r.tag_name) release = { tag: r.tag_name, url: r.html_url };
+    } else {
+      const tagsRes = await fetch(`https://api.github.com/repos/${repoFullName}/tags?per_page=1`, { headers });
+      if (tagsRes.ok) {
+        const tags = await tagsRes.json();
+        if (tags.length) release = { tag: tags[0].name, url: `https://github.com/${repoFullName}/releases/tag/${tags[0].name}` };
+      }
+    }
+    const meta = { fetchedAt: Date.now(), repo, languages, branches, release };
     try { localStorage.setItem(cacheKey, JSON.stringify(meta)); } catch (e) {}
     applyRepoMetadata(meta);
   } catch (e) {
@@ -193,6 +207,17 @@ function applyRepoMetadata(meta) {
   if (typeof meta.branches === 'number') {
     const el = document.getElementById('gh-branches-count');
     if (el) el.textContent = `${meta.branches} Branch${meta.branches === 1 ? '' : 'es'}`;
+  }
+  // Live release/tag beats the build-time bake (which only refreshes when
+  // the site rebuilds; the API answer is always current).
+  if (meta.release && meta.release.tag) {
+    const rel = document.getElementById('latest-release-version');
+    if (rel) rel.textContent = meta.release.tag;
+    const relLink = document.getElementById('latest-release-link');
+    if (relLink) {
+      relLink.dataset.ghpath = `/releases/tag/${meta.release.tag}`;
+      relLink.href = meta.release.url;
+    }
   }
 
   if (repo.description) {
