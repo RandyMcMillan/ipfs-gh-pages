@@ -83,7 +83,13 @@ pub fn run(cli: &Cli) -> Result<(), Box<dyn Error>> {
         .unwrap();
     menu_bar.append(&app_menu).unwrap();
 
-    let mut window_builder = WindowBuilder::new().with_title("ipfs-gh-pages");
+    // Sized for the ratzilla TUI chrome (tabs + content + footer): big
+    // enough for ~120x36 cells, small enough not to feel like a maximized
+    // blank window on first launch.
+    let mut window_builder = WindowBuilder::new()
+        .with_title("ipfs-gh-pages")
+        .with_inner_size(LogicalSize::new(1024.0, 720.0))
+        .with_min_inner_size(LogicalSize::new(640.0, 420.0));
     if cli.systray {
         // Start hidden; the tray icon is the entry point.
         window_builder = window_builder.with_visible(false);
