@@ -103,9 +103,13 @@ configuration and needs no public instance at all.
    in-webview Helia → `{cid, size, contentType}`. No rust TLS stack
    added (the desktop bundle stays lean); the TUI reaches it via the
    `:` bar.
-4. **Index on the issues chain** — `rehost` notes, signed, synced via
-   the existing index machinery; a `rehost-mirror` script that walks
-   the index and pins everything (availability without the origin).
+4. ~~**Index on the issues chain**~~ SHIPPED: `recordRehost(url, cid)`
+   in main.js signs + publishes + extends the chain with
+   `{ns:'rehost', url, cid, timestamp}` (the renderer calls it when the
+   image policy is "rehost"), and `scripts/rehost-mirror.mjs <tipCid>
+   [--dry-run]` walks the chain (Kubo RPC → gateway block sources),
+   keeping the NEWEST rehost per URL, and pins the set on Kubo.
+   Tests: tests/rehost-mirror.test.mjs (3).
 
 ## Verification
 

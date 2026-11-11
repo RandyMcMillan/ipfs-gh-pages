@@ -4122,6 +4122,24 @@ async function publishNote(envelope) {
   return cid.toString();
 }
 
+// Rehost records (docs/ipfs-rehost-service.md phase 4): a completed
+// rehost is written to the issues chain as a signed {ns:'rehost'} note,
+// so mirrors (scripts/rehost-mirror.mjs) can pin the set without the
+// origin or the original rehoster. The renderer calls this when the
+// image policy is "rehost" (js/rehost.js returns a CID).
+async function recordRehost(url, cid) {
+  const { envelope } = await signNote({
+    ns: 'rehost',
+    type: 'rehost',
+    url,
+    cid,
+    timestamp: new Date().toISOString()
+  });
+  const noteCid = await publishNote(envelope);
+  await extendChain([noteCid]);
+  return noteCid;
+}
+
 async function createIssue() {
   const titleEl = document.getElementById('issue-title');
   const bodyEl = document.getElementById('issue-body');
