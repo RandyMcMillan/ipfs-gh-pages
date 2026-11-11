@@ -13,9 +13,10 @@ function hex(bytes) {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-function sha1Hex(bytes) {
+export function sha1Hex(bytes) {
   // SHA-1 in ~15 lines (FIPS 180-1) — avoids pulling a crypto dep into
-  // the browser bundle just for REF_DELTA base resolution.
+  // the browser bundle just for REF_DELTA base resolution and pack
+  // checksums.
   const h = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
   const ml = bytes.length * 8;
   const withPad = new Uint8Array((((bytes.length + 8) >> 6) + 1) << 6);
