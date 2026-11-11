@@ -6,17 +6,21 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 usage() {
   cat <<'EOF'
-Usage: scripts/bundle.sh [--build] [--run] [--test]
+Usage: scripts/bundle.sh [--build] [--run] [--test] [--install [PATH]]
 
 Builds the macOS app bundle for ipfs-gh-pages.
 --run opens the bundled macOS app.
 --test opens the bundled macOS app, curls the bundled index.html, and verifies the HTML.
+--install copies the .app to PATH (default: /Applications, or ~/Applications
+  if /Applications is not writable). Builds first if the bundle is missing.
 EOF
 }
 
 build=false
 run=false
 test=false
+install=false
+install_path=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -32,6 +36,20 @@ while [[ $# -gt 0 ]]; do
       test=true
       shift
       ;;
+    --install)
+      install=true
+      # Optional value: the next word, unless it is another flag.
+      if [[ $# -gt 1 && "$2" != --* ]]; then
+        install_path="$2"
+        shift
+      fi
+      shift
+      ;;
+    --install=*)
+      install=true
+      install_path="${1#*=}"
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -44,7 +62,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ "$build" == false && "$run" == false && "$test" == false ]]; then
+if [[ "$build" == false && "$run" == false && "$test" == false && "$install" == false ]]; then
   usage
   exit 1
 fi
@@ -175,4 +193,41 @@ fi
 if [[ "$test" == true ]]; then
   ensure_bundle
   test_bundle
+fi
+
+install_bundle() {
+  local app_path
+  local dest
+  local target
+
+  app_path="$(bundle_app_path)"
+  if [[ -z "$app_path" ]]; then
+    echo "Missing bundled app; run scripts/bundle.sh --build first." >&2
+    exit 1
+  fi
+
+  if [[ -n "$install_path" ]]; then
+    dest="$install_path"
+  elif [[ -w /Applications ]]; then
+    dest="/Applications"
+  else
+    dest="$HOME/Applications"
+  fi
+
+  # A path ending in .app is the exact target; anything else is a directory.
+  if [[ "$dest" == *.app ]]; then
+    target="$dest"
+  else
+    mkdir -p "$dest"
+    target="$dest/${bundle_name}.app"
+  fi
+
+  rm -rf "$target"
+  cp -R "$app_path" "$target"
+  echo "Installed ${bundle_name}.app to $target"
+}
+
+if [[ "$install" == true ]]; then
+  ensure_bundle
+  install_bundle
 fi
