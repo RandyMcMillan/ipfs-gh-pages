@@ -134667,6 +134667,79 @@ function unixfs(helia) {
   return new UnixFS2(helia);
 }
 
+// js/camo-fetch.js
+var MIME_WHITELIST = /* @__PURE__ */ new Set([
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+  "image/avif",
+  "image/svg+xml",
+  "image/x-icon",
+  "image/bmp",
+  "image/tiff"
+]);
+var MAX_BYTES = 5 * 1024 * 1024;
+var MAX_REDIRECTS = 4;
+var TIMEOUT_MS = 1e4;
+var VIA = "ipfs-rehost/1.0";
+var PRIVATE_HOST = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|::1|f[cd])/i;
+var RehostError = class extends Error {
+  constructor(status2, message5) {
+    super(message5);
+    this.status = status2;
+  }
+};
+function assertFetchable(url) {
+  const u = new URL(url);
+  if (u.protocol !== "http:" && u.protocol !== "https:") {
+    throw new RehostError(400, `unsupported protocol: ${u.protocol}`);
+  }
+  if (!process.env.REHOST_ALLOW_PRIVATE && PRIVATE_HOST.test(u.hostname)) {
+    throw new RehostError(403, `refusing private/loopback host: ${u.hostname}`);
+  }
+  return u;
+}
+async function fetchAsset(url, fetchImpl = fetch) {
+  let current = assertFetchable(url).toString();
+  for (let redirects = 0; ; redirects++) {
+    const res = await fetchImpl(current, {
+      redirect: "manual",
+      headers: { Accept: "image/*", "Accept-Encoding": "identity", Via: VIA },
+      signal: AbortSignal.timeout(TIMEOUT_MS)
+    });
+    if (res.status >= 301 && res.status <= 308) {
+      const loc = res.headers.get("location");
+      if (!loc) throw new RehostError(502, "redirect with no location");
+      if (redirects >= MAX_REDIRECTS) throw new RehostError(508, "redirect depth exceeded");
+      current = new URL(loc, current).toString();
+      assertFetchable(current);
+      continue;
+    }
+    if (!res.ok) throw new RehostError(502, `origin HTTP ${res.status}`);
+    const contentType = (res.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+    if (!MIME_WHITELIST.has(contentType)) {
+      throw new RehostError(415, `non-image content-type: ${contentType || "none"}`);
+    }
+    const declared = parseInt(res.headers.get("content-length") || "0", 10);
+    if (declared > MAX_BYTES) throw new RehostError(413, `content-length ${declared} > ${MAX_BYTES}`);
+    const chunks = [];
+    let total = 0;
+    for await (const chunk of res.body) {
+      total += chunk.length;
+      if (total > MAX_BYTES) throw new RehostError(413, `streamed size > ${MAX_BYTES}`);
+      chunks.push(chunk);
+    }
+    const bytes = new Uint8Array(total);
+    let off = 0;
+    for (const c of chunks) {
+      bytes.set(c, off);
+      off += c.length;
+    }
+    return { bytes, contentType, finalUrl: current };
+  }
+}
+
 // node_modules/fflate/esm/browser.js
 var u8 = Uint8Array;
 var u16 = Uint16Array;
@@ -136051,7 +136124,7 @@ function classifyIndexSync(local, remote, remoteDescendsLocal, localDescendsRemo
 }
 
 // js/ipfs-node.js
-var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "2.7.7" };
+var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "2.9.0" };
 var { repoOwner, repoName } = (() => {
   const host = window.location.hostname;
   const m2 = host.match(/^([^.]+)\.github\.io$/);
@@ -137031,6 +137104,15 @@ async function opIdentityImport(arg) {
   const key = await getIpnsBranchKey();
   return { imported: peerIdFromPrivateKey(key).toString() };
 }
+async function opRehost(arg) {
+  const url = String(arg?.url || "").trim();
+  if (!url) throw new Error("url required");
+  const { bytes, contentType, finalUrl } = await fetchAsset(url);
+  const cid = await heliaUnixfs.addBytes(bytes);
+  heliaNode.routing?.provide?.(cid).catch(() => {
+  });
+  return { cid: cid.toString(), size: bytes.length, contentType, finalUrl };
+}
 var ops = {
   refresh: async () => {
     refreshNodeState();
@@ -137064,7 +137146,8 @@ var ops = {
   "identity.export": opIdentityExport,
   "identity.import": opIdentityImport,
   "issues.create": opIssueCreate,
-  "issues.sync": opIssuesSync
+  "issues.sync": opIssuesSync,
+  rehost: opRehost
 };
 window.__ipfsCmd = (id, op, arg) => {
   const fn = ops[op];

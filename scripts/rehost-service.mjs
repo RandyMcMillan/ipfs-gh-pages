@@ -26,72 +26,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHelia } from 'helia';
 import { unixfs } from '@helia/unixfs';
-
-const MIME_WHITELIST = new Set([
-  'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif',
-  'image/svg+xml', 'image/x-icon', 'image/bmp', 'image/tiff'
-]);
-const MAX_BYTES = 5 * 1024 * 1024;
-const MAX_REDIRECTS = 4;
-const TIMEOUT_MS = 10000;
-const VIA = 'ipfs-rehost/1.0';
-
-const PRIVATE_HOST = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|::1|f[cd])/i;
-
-export class RehostError extends Error {
-  constructor(status, message) {
-    super(message);
-    this.status = status;
-  }
-}
-
-function assertFetchable(url) {
-  const u = new URL(url);
-  if (u.protocol !== 'http:' && u.protocol !== 'https:') {
-    throw new RehostError(400, `unsupported protocol: ${u.protocol}`);
-  }
-  if (!process.env.REHOST_ALLOW_PRIVATE && PRIVATE_HOST.test(u.hostname)) {
-    throw new RehostError(403, `refusing private/loopback host: ${u.hostname}`);
-  }
-  return u;
-}
-
-// Fetch with camo's rules: manual redirects (bounded), per-try timeout,
-// cookies stripped, image Accept, size cap (declared AND streamed), MIME
-// whitelist. Returns { bytes, contentType, finalUrl }.
-export async function fetchAsset(url, fetchImpl = fetch) {
-  let current = assertFetchable(url).toString();
-  for (let redirects = 0; ; redirects++) {
-    const res = await fetchImpl(current, {
-      redirect: 'manual',
-      headers: { Accept: 'image/*', 'Accept-Encoding': 'identity', Via: VIA },
-      signal: AbortSignal.timeout(TIMEOUT_MS)
-    });
-    if (res.status >= 301 && res.status <= 308) {
-      const loc = res.headers.get('location');
-      if (!loc) throw new RehostError(502, 'redirect with no location');
-      if (redirects >= MAX_REDIRECTS) throw new RehostError(508, 'redirect depth exceeded');
-      current = new URL(loc, current).toString();
-      assertFetchable(current);
-      continue;
-    }
-    if (!res.ok) throw new RehostError(502, `origin HTTP ${res.status}`);
-    const contentType = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-    if (!MIME_WHITELIST.has(contentType)) {
-      throw new RehostError(415, `non-image content-type: ${contentType || 'none'}`);
-    }
-    const declared = parseInt(res.headers.get('content-length') || '0', 10);
-    if (declared > MAX_BYTES) throw new RehostError(413, `content-length ${declared} > ${MAX_BYTES}`);
-    const chunks = [];
-    let total = 0;
-    for await (const chunk of res.body) {
-      total += chunk.length;
-      if (total > MAX_BYTES) throw new RehostError(413, `streamed size > ${MAX_BYTES}`);
-      chunks.push(chunk);
-    }
-    return { bytes: Buffer.concat(chunks), contentType, finalUrl: current };
-  }
-}
+import { fetchAsset, RehostError, VIA } from '../js/camo-fetch.js';
 
 // In-process UnixFS add (raw-leaf CIDv1 — same bytes `ipfs add` yields).
 export async function addBytes(bytes, helia) {

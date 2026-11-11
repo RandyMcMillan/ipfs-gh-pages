@@ -36,6 +36,7 @@ import { gossipsub } from '@chainsafe/libp2p-gossipsub';
 import { pubsubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
 import { strings } from '@helia/strings';
 import { unixfs } from '@helia/unixfs';
+import { fetchAsset } from './camo-fetch.js';
 import { CID } from 'multiformats/cid';
 import * as dagJson from '@ipld/dag-json';
 import { sha256 } from 'multiformats/hashes/sha2';
@@ -1148,6 +1149,18 @@ async function opIdentityImport(arg) {
   return { imported: peerIdFromPrivateKey(key).toString() };
 }
 
+// Rehost (docs/ipfs-rehost-service.md tier 2): fetch a remote asset with
+// camo's rules ON THIS MACHINE and add it to the local node — the
+// desktop's self-contained rehoster (no third party sees the fetch).
+async function opRehost(arg) {
+  const url = String(arg?.url || '').trim();
+  if (!url) throw new Error('url required');
+  const { bytes, contentType, finalUrl } = await fetchAsset(url);
+  const cid = await heliaUnixfs.addBytes(bytes);
+  heliaNode.routing?.provide?.(cid).catch(() => {});
+  return { cid: cid.toString(), size: bytes.length, contentType, finalUrl };
+}
+
 const ops = {
   refresh: async () => { refreshNodeState(); return state.node; },
   fetch: opFetch,
@@ -1178,7 +1191,8 @@ const ops = {
   'identity.export': opIdentityExport,
   'identity.import': opIdentityImport,
   'issues.create': opIssueCreate,
-  'issues.sync': opIssuesSync
+  'issues.sync': opIssuesSync,
+  rehost: opRehost
 };
 
 // ---- command channel (Rust -> JS) --------------------------------------------

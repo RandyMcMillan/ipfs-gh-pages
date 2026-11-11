@@ -96,8 +96,13 @@ configuration and needs no public instance at all.
    failure — the caller falls back), injectable fetch/cache, unit-tested
    (tests/rehost.test.mjs, 5). The renderer wiring itself lands with the
    markdown image-policy decision.
-3. **Tier 2** — `rehost` op in the rust interop server (rust fetches,
-   the bridge adds), so the desktop app is a self-contained rehoster.
+3. ~~**Tier 2**~~ SHIPPED (bridge form): the camo rules moved to the
+   shared `js/camo-fetch.js` (environment-agnostic — node service and
+   webview use the identical rulebook), and the bridge gained a `rehost`
+   op (js/ipfs-node.js): fetch on the user's machine → add via the
+   in-webview Helia → `{cid, size, contentType}`. No rust TLS stack
+   added (the desktop bundle stays lean); the TUI reaches it via the
+   `:` bar.
 4. **Index on the issues chain** — `rehost` notes, signed, synced via
    the existing index machinery; a `rehost-mirror` script that walks
    the index and pins everything (availability without the origin).
