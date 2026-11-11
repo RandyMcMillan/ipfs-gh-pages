@@ -74,7 +74,17 @@ export function parseUploadPackRequest(body) {
   let done = false;
   let caps = [];
   let pos = 0;
-  const text = typeof body === 'string' ? body : new TextDecoder().decode(body);
+  // Normalize: callers hand us strings, byte buffers, or arrays of chunks
+  // (isomorphic-git builds its request body as an array of pkt-lines).
+  let text;
+  if (typeof body === 'string') {
+    text = body;
+  } else if (Array.isArray(body)) {
+    const parts = body.map((c) => (typeof c === 'string' ? c : new TextDecoder().decode(c)));
+    text = parts.join('');
+  } else {
+    text = new TextDecoder().decode(body);
+  }
   while (pos + 4 <= text.length) {
     const len = parseInt(text.slice(pos, pos + 4), 16);
     if (Number.isNaN(len)) break;

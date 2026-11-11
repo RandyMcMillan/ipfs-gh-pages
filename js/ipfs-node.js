@@ -48,6 +48,7 @@ import {
 import { peerIdFromPrivateKey, peerIdFromPublicKey } from '@libp2p/peer-id';
 import { zipSync } from 'fflate';
 import { GitStore } from './git-objects.js';
+import { makeSmartHttp } from './git-smart.js';
 
 // ---- repo identity (parity: main.js lines 27-41) ---------------------------
 
@@ -489,6 +490,43 @@ async function opGitCatFile(arg) {
   return store.catFile(sha);
 }
 
+// Live clone (docs/git-over-ipfs.md phase 9 step 3): isomorphic-git over
+// lightning-fs (IndexedDB), with the smart-HTTP transport routed to the
+// in-process upload-pack for the fetched store. The clone persists in the
+// browser across sessions; use git.cloneSmart(cid) again after a publish
+// to incremental-fetch.
+let isoGit = null;
+let LightningFS = null;
+async function isoGitModules() {
+  if (!isoGit) {
+    [isoGit, LightningFS] = await Promise.all([
+      import('isomorphic-git'),
+      import('@isomorphic-git/lightning-fs')
+    ]);
+  }
+  return { git: isoGit.default || isoGit, LightningFS: LightningFS.default || LightningFS };
+}
+
+async function opGitCloneSmart(arg) {
+  const cid = String(arg?.cid || '');
+  if (!cid) throw new Error('empty cid');
+  const name = (String(arg?.text || '').trim() || `repo-${cid.slice(0, 8)}`).split(/\s+/)[0];
+  const store = await gitStoreForCid(cid);
+  const { git, LightningFS: LFS } = await isoGitModules();
+  const fs = new LFS(name);
+  await git.clone({
+    fs,
+    http: makeSmartHttp(store),
+    url: `http://ipfs.local/${cid}.git`, // decorative; the store is the remote
+    dir: '/repo',
+    corsProxy: undefined,
+    tags: true
+  });
+  const branches = await git.listBranches({ fs, dir: '/repo' });
+  const tags = await git.listTags({ fs, dir: '/repo' });
+  return { cid, name, branches, tags };
+}
+
 async function advertiseServe(arg) {
   const libp2p = heliaNode?.libp2p;
   const pubsub = libp2p?.services?.pubsub;
@@ -861,6 +899,7 @@ const ops = {
   'git.clone': opGitClone,
   'git.refs': opGitRefs,
   'git.catFile': opGitCatFile,
+  'git.cloneSmart': opGitCloneSmart,
   'repo.publishAll': opRepoPublishAll,
   'pin.remote.list': opPinRemoteList,
   'pin.remote.add': opPinRemoteAdd,
