@@ -76,12 +76,30 @@ machine is off.
 
 ## Build order
 
-1. Registry schema extension (token) + `pin.remote.*` bridge ops.
-2. CID linkification in gh-pages: every rendered CID gets
+1. ~~Registry schema extension (token) + `pin.remote.*` bridge ops.~~ SHIPPED.
+2. ~~CID linkification in gh-pages: every rendered CID gets
    gateway/ipfs:///providers/pin affordances (the click interception
-   already works via fetch).
-3. `web+ipfs` protocol handler registration.
-4. Companion preference toggle + native-link passthrough.
+   already works via fetch).~~ SHIPPED.
+3. ~~`web+ipfs` protocol handler registration.~~ SHIPPED.
+4. ~~Companion preference toggle + native-link passthrough.~~ SHIPPED.
+
+### Shipped notes (steps 2–4)
+
+- `js/cid-links.js` (pure, unit-tested): CID token finder (CIDv1 base32
+  + CIDv0 base58; peer IDs deliberately excluded) and the affordance
+  model. A MutationObserver linkifies every CID rendered anywhere on the
+  page into `a.cid-link` — commands stay copy-pure (`pre`, `.kubo-chip`
+  are never linkified). Click fetches in-app (the step-2 interception)
+  and opens the affordance popover: `ipfs://` link, gateway +
+  subdomain links (full URLs, new tab), `ipfs pin add` command
+  (yellow, one-click copy), delegated-routing providers (full peer IDs,
+  `ipfs swarm connect` per address, one per line), and ☆ Pin to
+  provider (Pinning Services API, shared `remotePinCid` with the
+  Code-tab button).
+- Companion toggle: Peer tab → Settings → "Protocol handlers"
+  (`pref-ipfs-companion` in localStorage, default off). On: native
+  `ipfs://`/`ipns://` hrefs skip interception (extension handles
+  them); `web+ipfs`/`web+ipns` always land in-app.
 
 ## Non-goals
 

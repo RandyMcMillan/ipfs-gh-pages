@@ -379,6 +379,11 @@
       cursor: pointer;
       word-break: break-all;
     }
+    /* CID linkification (docs/ipfs-uri-providers.md step 3): full values
+       wrap, never truncate. */
+    .cid-link {
+      word-break: break-all;
+    }
     .clone-spacer {
       flex: 1;
     }
@@ -1687,6 +1692,20 @@ ipfs daemon</pre>
 ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
 ipfs daemon</pre>
               <button id="btn-copy-cors-multi" type="button">Copy Multi-Origin CORS Command</button>
+            </div>
+            <div class="help" style="margin-top:1rem;">
+              <h4>Protocol handlers</h4>
+              <div class="settings-row">
+                <label for="pref-companion" style="display:flex; align-items:center; gap:0.4rem;">
+                  <input type="checkbox" id="pref-companion" />
+                  <span>I run ipfs-companion — leave <code>ipfs://</code> / <code>ipns://</code> links to the extension</span>
+                </label>
+              </div>
+              <p class="f6 color-fg-muted" style="margin-bottom:0;">
+                Off (default): every CID link on this page is intercepted and fetched in-app — works with no install.
+                On: native <code>ipfs://</code> hrefs pass through to the extension (local node, no page fetch).
+                <code>web+ipfs://</code> / <code>web+ipns://</code> always land in this app.
+              </p>
             </div>
           </div>
         </div>
