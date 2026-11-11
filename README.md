@@ -1,6 +1,6 @@
 # Helia IPFS - Browser Self-Hosting
 
-[![Deploy Helia App to GitHub Pages](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/deploy.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/deploy.yml)
+[![Deploy Helia App to GitHub Pages](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/this-repo-pages-deploy.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/this-repo-pages-deploy.yml)
 [![Release](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/release.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/release.yml)
 
 A browser-based IPFS node built with [Helia](https://github.com/ipfs/helia) that runs entirely on GitHub Pages. On load it automatically adds every file in the repository to IPFS and exposes a root CID, plus a browsable file tree, content fetch, and download support.
@@ -65,7 +65,7 @@ Release procedure with submodules:
 
 1. To update the fixture's content: commit and push inside the
    submodule, then bump the gitlink here (the normal two-step).
-2. Every build installs `example.deploy.yml` as the fixture's
+2. Every build installs `consumer.example.yml` as the fixture's
    `actions-test/.github/workflows/deploy.yml` — the two stay in
    lockstep, so the fixture consumes the same self-updating workflow
    linked above — then rebuilds every submodule CAR from the checked-out
@@ -86,7 +86,7 @@ node scripts/check-gitlink.mjs
 Sync the fixture workflow by hand with:
 
 ```
-npm run install:example-deploy
+npm run install:consumer-example
 ```
 
 Releases are cut with `npm run release <version>` — it bumps,
@@ -139,7 +139,7 @@ jobs:
 The example above pins a release tag. A self-updating variant — it auto-detects the
 newest `v*` tag of this action at run time (falling back to the default-branch HEAD),
 and takes an explicit pin via `workflow_dispatch` — lives in
-[`example.deploy.yml`](https://github.com/RandyMcMillan/ipfs-gh-pages/blob/main/example.deploy.yml).
+[`consumer.example.yml`](https://github.com/RandyMcMillan/ipfs-gh-pages/blob/main/consumer.example.yml).
 
 Inputs:
 
@@ -158,7 +158,7 @@ the Pages deployment step.
 
 ## CI / CD
 
-- `.github/workflows/deploy.yml` runs the full test suite on every push and pull request; deployment to GitHub Pages only happens on `main` after tests pass.
+- `.github/workflows/this-repo-pages-deploy.yml` runs the full test suite on every push and pull request; deployment to GitHub Pages only happens on `main` after tests pass.
 - `.github/workflows/release.yml` runs tests, builds the project, archives `./dist` as `dist.zip`, and attaches it to a GitHub Release (triggered by `v*` tags or manually).
 
 ## Project Structure

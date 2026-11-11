@@ -43,16 +43,22 @@ const repoFullName = `${repoOwner}/${repoName}`;
 const repoUrl = `https://github.com/${repoFullName}`;
 const pagesUrl = `https://${repoOwner}.github.io/${repoName}/`;
 const appVersion = repoIdentity.version || '';
+// The header "latest release" chip shows the repo's latest TAG (baked at
+// build time from the checkout — consumer workflows need fetch-depth: 0,
+// see example.deploy.yml); appVersion (the action's version) is the
+// fallback and stays the Actions panel's "Built as v…".
+const tagVersion = repoIdentity.tagVersion || '';
 
 function applyRepoIdentity() {
   document.title = repoFullName;
   const search = document.getElementById('repo-search-input');
   if (search) search.value = repoFullName;
-  if (appVersion) {
+  const releaseVersion = tagVersion || appVersion;
+  if (releaseVersion) {
     const rel = document.getElementById('latest-release-version');
-    if (rel) rel.textContent = `v${appVersion}`;
+    if (rel) rel.textContent = `v${releaseVersion}`;
     const relLink = document.getElementById('latest-release-link');
-    if (relLink) relLink.dataset.ghpath = `/releases/tag/v${appVersion}`;
+    if (relLink) relLink.dataset.ghpath = `/releases/tag/v${releaseVersion}`;
   }
   document.querySelectorAll('a.gh-link').forEach((a) => {
     a.href = repoUrl + (a.dataset.ghpath || '');

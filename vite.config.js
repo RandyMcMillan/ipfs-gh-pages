@@ -111,7 +111,19 @@ function resolveIdentity(root) {
       }
     } catch {}
   }
-  return { owner: owner || 'gnostr', name: name || 'gnostr-repo', version };
+  // The repo's latest TAG is what the header "latest release" chip shows —
+  // `version` above is the ACTION's/package version (the Actions panel's
+  // "Built as v…"), which for consumer repos is not their release line.
+  // Consumer checkouts must fetch tags (example.deploy.yml has a step that
+  // fetches just the newest tag); REPO_TAG_VERSION overrides without git.
+  let tagVersion = process.env.REPO_TAG_VERSION || '';
+  if (!tagVersion) {
+    try {
+      tagVersion = execSync('git describe --tags --abbrev=0', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] })
+        .toString().trim().replace(/^v(?=\d)/, '');
+    } catch {}
+  }
+  return { owner: owner || 'gnostr', name: name || 'gnostr-repo', version, tagVersion };
 }
 
 function repoIdentityPlugin() {
@@ -125,7 +137,7 @@ function repoIdentityPlugin() {
     load(id) {
       if (id !== resolvedId) return;
       const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
-      const { owner, name, version } = resolveIdentity(root);
+      const { owner, name, version, tagVersion } = resolveIdentity(root);
       let lastCommitMsg = '';
       let lastCommitTime = '';
       let shortSha = '';
@@ -137,7 +149,7 @@ function repoIdentityPlugin() {
         const n = parseInt(execSync('git rev-list --count HEAD', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(), 10);
         if (n > 1) commitCount = String(n);
       } catch {}
-      return `export default { owner: ${JSON.stringify(owner)}, name: ${JSON.stringify(name)}, version: ${JSON.stringify(version)}, lastCommitMsg: ${JSON.stringify(lastCommitMsg)}, lastCommitTime: ${JSON.stringify(lastCommitTime)}, shortSha: ${JSON.stringify(shortSha)}, commitCount: ${JSON.stringify(commitCount)} };`;
+      return `export default { owner: ${JSON.stringify(owner)}, name: ${JSON.stringify(name)}, version: ${JSON.stringify(version)}, tagVersion: ${JSON.stringify(tagVersion)}, lastCommitMsg: ${JSON.stringify(lastCommitMsg)}, lastCommitTime: ${JSON.stringify(lastCommitTime)}, shortSha: ${JSON.stringify(shortSha)}, commitCount: ${JSON.stringify(commitCount)} };`;
     },
     transformIndexHtml(html) {
       const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
