@@ -43,6 +43,15 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 2. **markdown rendering like GitHub** (`docs/markdown-rendering.md`): concern DOCUMENTED, DECISION PENDING (image policy / iframe sandbox / CSP timing / bundle budget) — do not implement until decided.
 3. **libp2p git transport** (`/ipfs-gh-pages/git/1`): for cross-machine clone; blocked on having a LISTENING libp2p node (browser can't); the in-process upload-pack is the same logic wrapped in a stream later.
 
+## Backlog (research TODOs, gist refs)
+
+- **Self-contained entropy generation, standards-compliant** — Rust NIST SP 800-90B health-tested jitter engine (RCT/APT/POST, latched failure) + BIP-64MOD conditioned 64-bit words + C ABI: https://gist.github.com/RandyMcMillan/17583506b0b00f4724ed2d3a2918e39c
+- **Memoization where it measurably improves** — fib 5 ways (naive/memo/iterative/matrix/Binet) as the benchmark pattern: https://gist.github.com/RandyMcMillan/555fefec9a9c00b2864d066c9362bbbe
+- **Consider for transport** — self-extracting shell script with appended tar.gz payload (marker-offset extraction): https://gist.github.com/RandyMcMillan/b4858efada0d267b228e2d016093f673
+- **Consider for alternate transport protocol** — recursive MTU slicing with XOR parity slices, loss recovery from sibling+parity: https://gist.github.com/RandyMcMillan/f72ede9bff8bb79ec70d004ee34dd3ad
+- **Potential attack vectors — stego carriers (PoCs, see docs/markdown-rendering.md)** — SVG `feColorMatrix`-coefficient stego: https://gist.github.com/RandyMcMillan/55e56ac549b4c31ac16ce7f7c7d381bd · SVG phantom-polyline coordinate stego (encode+decode): https://gist.github.com/RandyMcMillan/7b7b0de098cd26a341fc4a7390d22254 · PPM LSB channel stego (std-only): https://gist.github.com/RandyMcMillan/524a2d81ee8f0df35fcf2b08f0e1222c
+- **P2P time sync, JS ↔ Rust bridge** — median-diff clock convergence (hour→minute→second) then nonce-grind consensus ritual with escalating SHA-difficulty as finality: https://gist.github.com/RandyMcMillan/dd116a5d29178ad16cae73cb0f84954e
+
 ## Hard-won gotchas (do not relearn)
 
 - trunk canonicalizes its target's path → target html must live at repo root; `--html-output index-rust.html` sets the dist artifact name; `copy-file` flattens unless `data-target-path`.

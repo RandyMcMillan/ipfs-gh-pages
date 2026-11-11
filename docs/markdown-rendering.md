@@ -140,6 +140,10 @@ documents.
 - **What this changes**: strengthens the case for the sandboxed-iframe
   option and a strict CSP — rendered content should never share an
   execution context with the keys.
+- **Working PoCs exist** (the owner's gists, listed in STATUS.md
+  "Backlog — potential attack vectors"): SVG `feColorMatrix`-coefficient
+  stego, SVG phantom-polyline coordinate stego, PPM LSB channel stego —
+  all produce valid-looking media carrying arbitrary bytes.
 
 ## Open decisions (make these, then implement)
 
