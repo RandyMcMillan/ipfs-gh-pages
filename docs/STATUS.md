@@ -44,6 +44,10 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 
 - **Markdown like GitHub** (`docs/markdown-rendering.md`): SHIPPED — marked+DOMPurify pipeline (`js/markdown.js`), SVG `<img>`-only, rehost-first images, sandboxed iframes for network content (issue bodies/comments), CSP meta `script-src 'self'` (theme-init.js externalized, last inline handler de-inlined). Decisions recorded in the doc. Unit (3) + CDP (cdp-markdown, 7) covered.
 
+## Reference notes
+
+- `docs/brig-ideas.md` — brig (sahib/brig, Go IPFS sync) mapped onto our stack: daemon model, pin-set manifests, tombstone releases, layered streams, cache quota. Suggested order inside.
+
 ## Backlog (research TODOs, gist refs)
 
 - **Self-contained entropy generation, standards-compliant** — Rust NIST SP 800-90B health-tested jitter engine (RCT/APT/POST, latched failure) + BIP-64MOD conditioned 64-bit words + C ABI: https://gist.github.com/RandyMcMillan/17583506b0b00f4724ed2d3a2918e39c
