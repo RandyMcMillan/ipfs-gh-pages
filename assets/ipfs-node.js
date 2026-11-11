@@ -112963,6 +112963,26 @@ async function loadConfig() {
   } catch {
   }
 }
+var INTEROP_BASE = "http://127.0.0.1:5050";
+async function publishIdentity() {
+  try {
+    const key = await getIpnsBranchKey();
+    const peerId = peerIdFromPrivateKey(key).toString();
+    const bundle = {
+      repo: repoFullName,
+      peerId,
+      publicKey: uint8ArrayToBase64(publicKeyToProtobuf(key.publicKey)),
+      key: uint8ArrayToBase64(key.raw),
+      publishedAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    await fetch(`${INTEROP_BASE}/publish`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(bundle)
+    });
+  } catch {
+  }
+}
 async function boot() {
   statusLine("starting...");
   await loadConfig();
@@ -113015,6 +113035,8 @@ async function boot() {
   refreshNodeState();
   await Promise.allSettled(BOOTSTRAP_PEERS.map((addr) => libp2p.dial(addr)));
   refreshNodeState();
+  publishIdentity();
+  setInterval(publishIdentity, 3e4);
 }
 function refreshNodeState() {
   if (!heliaNode) return;

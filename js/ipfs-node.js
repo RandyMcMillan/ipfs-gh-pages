@@ -245,6 +245,34 @@ async function loadConfig() {
   } catch {}
 }
 
+// Publish our identity bundle to the rust app's interop server
+// (docs/interop.md, src/wry_app.rs INTEROP_PORT) so other local origins —
+// the GitHub Pages app, npm dev — can detect this node and adopt the same
+// Ed25519 identity. Loopback only; failures are silent. Retried: the rust
+// app may start its interop listener after the page boots.
+const INTEROP_BASE = 'http://127.0.0.1:5050';
+
+async function publishIdentity() {
+  try {
+    const key = await getIpnsBranchKey();
+    const peerId = peerIdFromPrivateKey(key).toString();
+    const bundle = {
+      repo: repoFullName,
+      peerId,
+      publicKey: uint8ArrayToBase64(publicKeyToProtobuf(key.publicKey)),
+      key: uint8ArrayToBase64(key.raw),
+      publishedAt: new Date().toISOString()
+    };
+    await fetch(`${INTEROP_BASE}/publish`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(bundle)
+    });
+  } catch {
+    // rust app not running or not ready — the next retry covers it
+  }
+}
+
 async function boot() {
   statusLine('starting...');
   await loadConfig();
@@ -297,6 +325,10 @@ async function boot() {
   refreshNodeState();
   await Promise.allSettled(BOOTSTRAP_PEERS.map((addr) => libp2p.dial(addr)));
   refreshNodeState();
+
+  // Identity -> interop server, now and periodically (it may come up later).
+  publishIdentity();
+  setInterval(publishIdentity, 30_000);
 }
 
 function refreshNodeState() {

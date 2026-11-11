@@ -47,6 +47,11 @@ use wry::{WebView, WebViewBuilder};
 
 const HOST: &str = "127.0.0.1";
 const PORT: u16 = 8080;
+// Fixed interop port (docs/interop.md): the GitHub Pages / npm dev surfaces
+// probe http://127.0.0.1:5050/well-known/identity to detect the local app
+// and adopt its identity. Fixed (not ephemeral) because other origins need
+// a stable address.
+const INTEROP_PORT: u16 = 5050;
 
 use ipfs_gh_pages::cli::Cli;
 
@@ -57,6 +62,7 @@ enum UserEvent {
 pub fn run(cli: &Cli) -> Result<(), Box<dyn Error>> {
     let app_source = app_source(cli)?;
     println!("Serving web UI at {}", app_source.url);
+    spawn_interop_server();
 
     let mut event_loop_builder = EventLoopBuilder::<UserEvent>::with_user_event();
 
@@ -454,6 +460,152 @@ fn bundled_index_path(cli: &Cli) -> Result<Option<PathBuf>, io::Error> {
         }
     }
     Ok(None)
+}
+
+// ---- interop server (docs/interop.md) ----------------------------------------
+//
+// Loopback-only HTTP service on the fixed INTEROP_PORT. The bridge
+// (js/ipfs-node.js) POSTs its identity bundle here after boot; any local
+// origin (GitHub Pages app, npm dev) can then GET it and adopt the same
+// Ed25519 identity. Loopback connections only, CORS-open — the same trust
+// domain as the Kubo RPC API on port 5001.
+
+fn spawn_interop_server() {
+    let state: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
+    let state_publish = Arc::clone(&state);
+
+    thread::spawn(move || {
+        let listener = match std::net::TcpListener::bind((HOST, INTEROP_PORT)) {
+            Ok(l) => l,
+            Err(err) => {
+                eprintln!("interop server: cannot bind {HOST}:{INTEROP_PORT}: {err}");
+                return;
+            }
+        };
+        for stream in listener.incoming() {
+            if let Ok(stream) = stream {
+                let state = Arc::clone(&state_publish);
+                thread::spawn(move || {
+                    let _ = handle_interop_request(stream, &state);
+                });
+            }
+        }
+    });
+}
+
+fn handle_interop_request(
+    mut stream: std::net::TcpStream,
+    identity: &Arc<Mutex<Option<String>>>,
+) -> Result<(), io::Error> {
+    stream.set_nonblocking(false)?;
+
+    // Loopback only: never answer to other interfaces.
+    let peer_ip = stream
+        .peer_addr()
+        .map(|addr| addr.ip().to_string())
+        .unwrap_or_default();
+    if peer_ip != "127.0.0.1" && peer_ip != "::1" {
+        write_response(
+            &mut stream,
+            "403 Forbidden",
+            "text/plain; charset=utf-8",
+            b"loopback only",
+        )?;
+        return Ok(());
+    }
+
+    let mut buffer = vec![0_u8; 65536];
+    let bytes_read = stream.read(&mut buffer)?;
+    let request = String::from_utf8_lossy(&buffer[..bytes_read]);
+    let mut lines = request.lines();
+    let request_line = lines.next().unwrap_or("");
+    let mut parts = request_line.split_whitespace();
+    let method = parts.next().unwrap_or("");
+    let path = parts.next().unwrap_or("/");
+    // Headers end at a blank line; the body follows.
+    let body = request.split("\r\n\r\n").nth(1).unwrap_or("").to_string();
+
+    let cors = [
+        "Access-Control-Allow-Origin: *",
+        "Access-Control-Allow-Methods: GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers: content-type",
+    ];
+
+    match (method, path.split('?').next().unwrap_or("/")) {
+        ("OPTIONS", _) => {
+            write_response_with_headers(&mut stream, "204 No Content", "text/plain", b"", &cors)?;
+        }
+        ("POST", "/publish") => {
+            if body.trim().is_empty() {
+                write_response_with_headers(
+                    &mut stream,
+                    "400 Bad Request",
+                    "text/plain; charset=utf-8",
+                    b"empty body",
+                    &cors,
+                )?;
+            } else {
+                if let Ok(mut slot) = identity.lock() {
+                    *slot = Some(body.trim().to_string());
+                }
+                write_response_with_headers(
+                    &mut stream,
+                    "200 OK",
+                    "application/json",
+                    b"{\"ok\":true}",
+                    &cors,
+                )?;
+            }
+        }
+        ("GET", "/well-known/identity") => {
+            let snapshot = identity.lock().ok().and_then(|slot| slot.clone());
+            match snapshot {
+                Some(json) => write_response_with_headers(
+                    &mut stream,
+                    "200 OK",
+                    "application/json; charset=utf-8",
+                    json.as_bytes(),
+                    &cors,
+                )?,
+                None => write_response_with_headers(
+                    &mut stream,
+                    "404 Not Found",
+                    "text/plain; charset=utf-8",
+                    b"no identity published yet",
+                    &cors,
+                )?,
+            }
+        }
+        _ => write_response_with_headers(
+            &mut stream,
+            "404 Not Found",
+            "text/plain; charset=utf-8",
+            b"Not Found",
+            &cors,
+        )?,
+    }
+    Ok(())
+}
+
+fn write_response_with_headers(
+    stream: &mut std::net::TcpStream,
+    status: &str,
+    content_type: &str,
+    body: &[u8],
+    extra_headers: &[&str],
+) -> Result<(), io::Error> {
+    let mut head = format!(
+        "HTTP/1.1 {status}\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\nConnection: close\r\n",
+        body.len()
+    );
+    for header in extra_headers {
+        head.push_str(header);
+        head.push_str("\r\n");
+    }
+    head.push_str("\r\n");
+    stream.write_all(head.as_bytes())?;
+    stream.write_all(body)?;
+    Ok(())
 }
 
 fn json_str(s: &str) -> String {
