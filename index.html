@@ -200,6 +200,13 @@
       color: var(--color-fg-default);
       text-decoration: none;
     }
+    .tab-bar a.tab-link.active {
+      background: transparent;
+      color: var(--color-fg-default);
+      font-weight: 600;
+      border-bottom: 2px solid var(--color-primer-border-active, #fd8c73);
+      border-radius: 6px 6px 0 0;
+    }
     .tab-panel {
       display: none;
     }
@@ -1086,10 +1093,10 @@
     </div>
 
     <nav class="tab-bar" role="tablist" aria-label="App sections">
-      <button class="tab-button active" role="tab" aria-selected="true" data-tab="files" id="tab-btn-files">
+      <a class="tab-link active" role="tab" aria-selected="true" href="#/code" data-tab-route="code" id="tab-btn-files">
         <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.47a.75.75 0 0 1 0-1.06Z"></path></svg>
         Code
-      </button>
+      </a>
       <a class="tab-link" href="#/issues" data-tab-route="issues">
         <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"></path></svg>
         Issues
@@ -1122,8 +1129,8 @@
         <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M10.325 1.937a1.75 1.75 0 0 1 2.987 1.243V3.5h1.75a.75.75 0 0 1 0 1.5h-.109a1.749 1.749 0 0 1-1.609 2.405 1.75 1.75 0 0 1 2.514 1.55c0 .457-.175.875-.462 1.19a.747.747 0 0 1-.513.22h-1.918c-.17 0-.337.03-.495.086a1.75 1.75 0 0 0-1.205 1.682c0 .209.036.41.102.598l.495 1.385a.748.748 0 0 1-.175.77.749.749 0 0 1-1.154-.2l-.495-1.386a1.75 1.75 0 0 0-2.354-1.053 1.75 1.75 0 0 0-.888 2.19l.495 1.385a.749.749 0 0 1-.812 1.033.747.747 0 0 1-.555-.273l-.495-1.385a1.75 1.75 0 0 0-2.35-1.048 1.75 1.75 0 0 0-.893 2.194l.495 1.386a.749.749 0 0 1-1.155.2.748.748 0 0 1-.174-.77l.495-1.385a1.75 1.75 0 0 0-.889-2.19 1.75 1.75 0 0 0-2.354 1.053l-.495 1.386a.749.749 0 0 1-1.154.2.748.748 0 0 1-.175-.77l.495-1.385a1.75 1.75 0 0 0-1.205-1.682 1.75 1.75 0 0 0-.495-.086H2.437a.75.75 0 0 1 0-1.5h1.75v-.32a1.75 1.75 0 0 1 2.987-1.243.749.749 0 0 1 .208.587v.32h1.5v-.32c0-.22.073-.432.208-.587Z"></path></svg>
         Settings
       </a>
-      <button class="tab-button" role="tab" aria-selected="false" data-tab="peer" id="tab-btn-peer">Peer</button>
-      <button class="tab-button" role="tab" aria-selected="false" data-tab="publish" id="tab-btn-publish">Publish</button>
+      <a class="tab-link" role="tab" aria-selected="false" href="#/peer" data-tab-route="peer" id="tab-btn-peer">Peer</a>
+      <a class="tab-link" role="tab" aria-selected="false" href="#/publish" data-tab-route="publish" id="tab-btn-publish">Publish</a>
     </nav>
 
     <main>

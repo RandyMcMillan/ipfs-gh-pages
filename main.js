@@ -3365,14 +3365,21 @@ const VALID_TABS = ['files', 'issues', 'pulls', 'actions', 'projects', 'wiki', '
 function activateTab(tab) {
   const target = TAB_ROUTE_ALIAS[tab] || tab;
   if (!VALID_TABS.includes(target)) return false;
-  document.querySelectorAll('.tab-button[data-tab]').forEach((btn) => {
-    const on = btn.dataset.tab === target;
-    btn.classList.toggle('active', on);
-    btn.setAttribute('aria-selected', String(on));
+  // Nav items are endpoint links (`<a href="#/route" data-tab-route>`);
+  // match active state by route, not by tab name.
+  const route = target === 'files' ? 'code' : target;
+  document.querySelectorAll('.tab-button[data-tab], a.tab-link[data-tab-route]').forEach((el) => {
+    const elRoute = el.dataset.tabRoute || (el.dataset.tab === 'files' ? 'code' : el.dataset.tab);
+    const on = elRoute === route;
+    el.classList.toggle('active', on);
+    el.setAttribute('aria-selected', String(on));
   });
   document.querySelectorAll('.tab-panel').forEach((panel) => panel.classList.remove('active'));
   const panel = document.getElementById(`tab-${target}`);
   if (panel) panel.classList.add('active');
+  // The Code tab's landing state is the file tree — arriving at #/code
+  // (link click or navigation) escapes any open file view.
+  if (target === 'files') hideFileBlob();
   return true;
 }
 
@@ -3396,14 +3403,12 @@ function applyRoute() {
   }
 }
 
-document.querySelectorAll('.tab-button[data-tab]').forEach((button) => {
-  button.addEventListener('click', () => {
-    const route = button.dataset.tab === 'files' ? 'code' : button.dataset.tab;
-    if (`#/${route}` === window.location.hash) {
-      activateTab(route);
-    } else {
-      window.location.hash = `/${route}`;
-    }
+// Tab links navigate natively (hash → applyRoute). Clicking the CURRENT
+// route's link fires no hashchange, so re-apply it: pressing Code while a
+// file view is open escapes to the tree.
+document.querySelectorAll('a.tab-link[data-tab-route]').forEach((a) => {
+  a.addEventListener('click', () => {
+    if (a.getAttribute('href') === window.location.hash) applyRoute();
   });
 });
 window.addEventListener('hashchange', applyRoute);

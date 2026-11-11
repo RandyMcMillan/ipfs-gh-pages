@@ -117,6 +117,25 @@ await evalJson(`document.getElementById('blob-repo-link').click(); true`);
 await new Promise((r) => setTimeout(r, 300));
 check('repo link returns to the tree', await evalJson(`document.getElementById('blob-view').hidden && !document.getElementById('tree-view').hidden`));
 
+// Every top-level tab is an endpoint link; pressing Code while a file
+// view is open escapes to the tree (same-route click re-applies #/code).
+vlog('Checking tab endpoint links + Code escape...');
+check('all top-level tabs are endpoint links', await evalJson(`(() => {
+  const routes = ['code', 'issues', 'pulls', 'actions', 'projects', 'wiki', 'security', 'insights', 'settings', 'peer', 'publish'];
+  return routes.every((r) => document.querySelector(\`a.tab-link[href="#/\${r}"][data-tab-route="\${r}"]\`));
+})()`));
+await evalJson(`(() => {
+  const rows = [...document.querySelectorAll('#file-tree li.row')];
+  const f = rows.find((x) => x.querySelector('.cell-name span').textContent === 'package.json');
+  if (f) f.querySelector('.cell-name').click();
+  return Boolean(f);
+})()`);
+await new Promise((r) => setTimeout(r, 400));
+check('blob view open before Code press', await evalJson(`!document.getElementById('blob-view').hidden`));
+await evalJson(`document.querySelector('a.tab-link[data-tab-route="code"]').click(); true`);
+await new Promise((r) => setTimeout(r, 300));
+check('Code tab press escapes the file view to the tree', await evalJson(`document.getElementById('blob-view').hidden && !document.getElementById('tree-view').hidden && document.getElementById('tab-files').classList.contains('active')`));
+
 // Commit bar carries real build-time data.
 vlog('Checking the commit bar...');
 const commitMsg = await evalJson(`document.getElementById('commit-msg').textContent`);
