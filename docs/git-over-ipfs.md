@@ -80,6 +80,34 @@ isomorphic-git's http client is pluggable: we hand it a client whose
 (one short-lived stream per RPC). The TUI clones in-page with live
 progress reported over `__ipfsState` — no separate download path.
 
+## Phase 9 implementation plan: real clone through the app
+
+The phase-8 zip is a snapshot; this is live git. Both sides of the
+smart protocol run INSIDE the bridge — no libp2p listener needed yet,
+because client and server are the same process (the wasm page):
+
+1. **Git object primitives** (bridge, new section):
+   - unixfs-walk the bare-repo CID into an in-memory object store
+     (loose objects: fflate `unzlibSync` → `<type> <size>\0<payload>`)
+   - packfile reader: `.idx` v2 parse, pack entry inflate, OFS_DELTA /
+     REF_DELTA resolution chains
+   - `git.refs(cid)` op — list refs (HEAD, refs/*, packed-refs)
+   - `git.catFile(cid, sha)` op — read a commit/tree/blob back
+2. **upload-pack in-process**: parse `info/refs` + `git-upload-pack`
+   wants/haves against the object store, emit a delta-free packfile.
+3. **isomorphic-git clone**: `git.clone(cid)` op = lightning-fs
+   (IndexedDB) + custom http `request()` wired DIRECTLY to the
+   in-process upload-pack (no sockets — the "transport" is a function
+   call; the libp2p stream from the earlier section replaces it later
+   for cross-machine clones). TUI shows refs/log; zip download of
+   worktree + .git from lightning-fs.
+4. **Incremental fetch/pull**: persist the clone's object store in
+   IndexedDB; haves come from the local store, wants close the delta
+   with the remote CID — true incremental clone across publishes.
+
+The existing phase-8 `git.clone` (zip of the raw tree) stays as the
+no-JS-pack-parser fallback and for repos that aren't git-shaped.
+
 ## Compatibility / fallback paths
 
 1. **Shell out to `git http-backend`** when a `git` binary is available:
