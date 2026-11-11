@@ -798,6 +798,34 @@
       color: var(--color-fg-default);
       text-decoration: underline;
     }
+    /* Blame (docs/issues-car.md phase 11): origin column between the line
+       number and the code; doubles as the blame-comment affordance. */
+    .blob-code .bl {
+      appearance: none;
+      border: none;
+      border-right: 1px solid var(--color-border-muted);
+      background: var(--color-canvas-subtle);
+      color: var(--color-fg-muted);
+      flex-shrink: 0;
+      min-width: 118px;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: left;
+      padding: 0 0.5rem 0 0;
+      font: inherit;
+      font-size: 0.72rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .blob-code .bl:hover {
+      color: var(--color-fg-default);
+      text-decoration: underline;
+    }
+    .blob-code.blame-on .ln {
+      display: none;
+    }
     .line-comment-bar {
       position: fixed;
       z-index: 1000;
@@ -1108,6 +1136,7 @@
             <button class="btn btn-sm" type="button" id="btn-blob-raw">Raw</button>
             <button class="btn btn-sm" type="button" id="btn-blob-copy">Copy raw file</button>
             <button class="btn btn-sm btn-primary" type="button" id="btn-blob-download">Download</button>
+            <button class="btn btn-sm" type="button" id="btn-blame-toggle" aria-pressed="false" title="Attribute each line to the release that introduced it (docs/issues-car.md phase 11)">Blame</button>
             <span class="flex-auto"></span>
             <span class="blob-meta" id="blob-meta"></span>
           </div>

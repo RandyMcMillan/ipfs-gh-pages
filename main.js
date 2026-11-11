@@ -22,6 +22,7 @@ import { formatSize, base64ToUint8Array, uint8ArrayToBase64, buildRepoTree, isBr
 
 import { classifyIndexSync } from './js/index-merge.js';
 import { normalizeLineRange, makeLineCommentFields, isLineCommentNote, commentsByLine } from './js/line-comments.js';
+import { collectReleases, blameLines, blameCommentMatches } from './js/blame.js';
 
 // Repo identity: prefer the Pages origin (<owner>.github.io/<repo>), then the
 // build-time identity baked by the action (GITHUB_REPOSITORY / git remote), so
@@ -481,6 +482,7 @@ const blobView = document.getElementById('blob-view');
 const treeView = document.getElementById('tree-view');
 let blobCurrentBytes = null;
 let blobCurrentCid = null;
+let blobCurrentPath = null;
 
 function showFileBlob(path) {
   const b64 = repoFiles[path];
@@ -489,6 +491,7 @@ function showFileBlob(path) {
   const text = new TextDecoder().decode(bytes);
   blobCurrentBytes = bytes;
   blobCurrentCid = repoTreeCids.get(path) || null;
+  blobCurrentPath = path;
 
   const repoLink = document.getElementById('blob-repo-link');
   repoLink.textContent = repoName;
@@ -536,6 +539,7 @@ function hideFileBlob() {
   if (treeView) treeView.hidden = false;
   blobCurrentBytes = null;
   blobCurrentCid = null;
+  blobCurrentPath = null;
   resetLineCommentUi();
 }
 
@@ -590,11 +594,14 @@ if (blobDownloadBtn) {
 // clicking one lists the file's fetched-and-verified comments below the code.
 
 const LINE_COMMENTS_KEY = 'repo-line-comments';
+const BLAME_COMMENTS_KEY = 'repo-blame-comments';
 const lineBarEl = document.getElementById('line-comment-bar');
 const lineBarBtn = document.getElementById('btn-line-comment-start');
 const lineComposerEl = document.getElementById('line-comment-composer');
 const linePanelEl = document.getElementById('line-comment-panel');
-let pendingLineRange = null;
+// The composer carries one pending comment: a line-comment range or a
+// blame-comment coordinate (line + origin release root).
+let pendingComment = null;
 
 function loadLineCommentIndex() {
   try { return JSON.parse(localStorage.getItem(LINE_COMMENTS_KEY) || '{}'); } catch { return {}; }
@@ -663,7 +670,7 @@ if (lineBarBtn) {
   lineBarBtn.addEventListener('click', () => {
     const range = currentBlobSelectionRange();
     if (!range) return;
-    pendingLineRange = range;
+    pendingComment = { kind: 'line', range };
     hideLineBar();
     window.getSelection()?.removeAllRanges();
     openLineComposer();
@@ -671,11 +678,16 @@ if (lineBarBtn) {
 }
 
 function openLineComposer() {
-  if (!lineComposerEl || !pendingLineRange) return;
+  if (!lineComposerEl || !pendingComment) return;
   const heading = document.getElementById('line-comment-heading');
   const path = (document.getElementById('blob-path')?.textContent || '').trim();
   if (heading) {
-    heading.textContent = `Commenting on ${path || '(file)'} — lines ${pendingLineRange.start}–${pendingLineRange.end}, anchored to ${blobCurrentCid}`;
+    if (pendingComment.kind === 'blame') {
+      const originTimestamp = pendingComment.originTimestamp ? ` · ${pendingComment.originTimestamp}` : '';
+      heading.textContent = `Blame comment on ${path || '(file)'} line ${pendingComment.line} — originates in ${pendingComment.origin}${originTimestamp} · rides this line across later versions`;
+    } else {
+      heading.textContent = `Commenting on ${path || '(file)'} — lines ${pendingComment.range.start}–${pendingComment.range.end}, anchored to ${blobCurrentCid}`;
+    }
   }
   const bodyEl = document.getElementById('line-comment-body');
   if (bodyEl) bodyEl.value = '';
@@ -686,7 +698,7 @@ function openLineComposer() {
 }
 
 function hideLineComposer() {
-  pendingLineRange = null;
+  pendingComment = null;
   if (lineComposerEl) lineComposerEl.hidden = true;
 }
 
@@ -722,6 +734,7 @@ function renderLineGutter() {
     });
     ln.appendChild(marker);
   });
+  renderBlameGutter();
 }
 
 // Fetch + verify one comment note for the panel; a valid signature on a
@@ -809,17 +822,18 @@ function openLineCommentPanel() {
 }
 
 async function createLineComment() {
+  if (pendingComment?.kind === 'blame') return createBlameComment();
   const statusEl = document.getElementById('line-comment-status');
   const bodyEl = document.getElementById('line-comment-body');
   const btn = document.getElementById('btn-line-comment-submit');
-  if (!blobCurrentCid || !pendingLineRange) {
+  if (!blobCurrentCid || pendingComment?.kind !== 'line') {
     if (statusEl) statusEl.textContent = 'Select a line range in the code first.';
     return;
   }
   const fields = makeLineCommentFields({
     fileCid: blobCurrentCid,
-    start: pendingLineRange.start,
-    end: pendingLineRange.end,
+    start: pendingComment.range.start,
+    end: pendingComment.range.end,
     body: bodyEl?.value,
     timestamp: new Date().toISOString()
   });
@@ -853,6 +867,191 @@ async function createLineComment() {
   }
 }
 
+// A blame comment anchors to the ORIGIN of a line (its release root), not
+// the version — { ns:'review', type:'blame-comment', anchors:[fileCid],
+// line:{start}, origin }. It surfaces on every later version whose blame
+// attributes that line to the same origin (blameCommentMatches).
+async function createBlameComment() {
+  const statusEl = document.getElementById('line-comment-status');
+  const bodyEl = document.getElementById('line-comment-body');
+  const btn = document.getElementById('btn-line-comment-submit');
+  const pending = pendingComment;
+  const body = (bodyEl?.value || '').trim();
+  if (!blobCurrentCid || pending?.kind !== 'blame' || !pending.origin || !body) {
+    if (statusEl) statusEl.textContent = 'Write a comment first.';
+    return;
+  }
+  if (!heliaNode) {
+    if (statusEl) statusEl.textContent = 'Wait for the node to come online.';
+    return;
+  }
+  if (btn) btn.disabled = true;
+  if (statusEl) statusEl.textContent = 'Signing and publishing…';
+  try {
+    const { envelope, signer } = await signNote({
+      ns: 'review',
+      type: 'blame-comment',
+      anchors: [blobCurrentCid],
+      line: { start: pending.line },
+      origin: pending.origin,
+      body,
+      timestamp: new Date().toISOString()
+    });
+    const cid = await publishNote(envelope);
+    const list = loadBlameCommentIndex();
+    list.unshift({
+      cid, anchor: blobCurrentCid, line: pending.line, origin: pending.origin,
+      timestamp: envelope.timestamp, signer
+    });
+    saveBlameCommentIndex(list);
+    await extendChain([cid]);
+    if (statusEl) statusEl.textContent = `Commented — ${cid}`;
+    if (bodyEl) bodyEl.value = '';
+    renderBlameGutter();
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Failed: ${err.message}`;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+// ---- Blame (docs/issues-car.md phase 11) ---------------------------------------
+// The Blame toggle computes per-line origin attribution over the release
+// chain and renders an origin column; every blame cell can carry a
+// blame-comment, which rides the line's history across later versions.
+
+const blameToggleBtn = document.getElementById('btn-blame-toggle');
+let blameOn = false;
+let blameOrigins = null; // array parallel to the file's lines, or null
+let blameReleases = [];
+
+function loadBlameCommentIndex() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(BLAME_COMMENTS_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveBlameCommentIndex(list) {
+  try { localStorage.setItem(BLAME_COMMENTS_KEY, JSON.stringify(list.slice(0, 500))); } catch {}
+}
+
+// The release chain for THIS checkout: local tips (recorded at publish
+// time), newest first. Fetched-repo roots have no chain here — history
+// before the chain exists attributes to the current root, the genesis
+// release (same as git blame at a root commit: earlier content is
+// unattributable).
+function loadBlameReleases() {
+  const currentRoot = outputCid?.textContent?.trim();
+  const releases = collectReleases(loadReleaseTips());
+  if (currentRoot && !releases.some((r) => r.root === currentRoot)) {
+    return [{ cid: null, root: currentRoot, timestamp: null }, ...releases];
+  }
+  return releases;
+}
+
+// File lines at a path under a release root; null when absent/unfetchable.
+async function blameFileLines(root) {
+  if (!heliaUnixfs || !blobCurrentPath || !root) return null;
+  try {
+    const stat = await heliaUnixfs.stat(CID.parse(root), { path: blobCurrentPath });
+    if (stat.type === 'directory') return null;
+    const chunks = [];
+    for await (const chunk of heliaUnixfs.cat(stat.cid)) chunks.push(chunk);
+    const total = chunks.reduce((n, c) => n + c.length, 0);
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+    return new TextDecoder().decode(bytes).replace(/\n$/, '').split('\n');
+  } catch {
+    return null;
+  }
+}
+
+async function computeBlame() {
+  const codeEl = document.getElementById('blob-code');
+  if (!codeEl) return;
+  blameReleases = loadBlameReleases();
+  // The file's true lines, exactly as published (the rendered rows use a
+  // ' ' placeholder for empty lines, which would never match a release's
+  // empty string).
+  const currentText = new TextDecoder().decode(blobCurrentBytes || new Uint8Array());
+  const currentLines = currentText.replace(/\n$/, '').split('\n');
+  if (!currentLines.length) return;
+  // Doc optimization: a file whose CID is unchanged between consecutive
+  // roots has identical content, so keep the last fetched lines instead of
+  // refetching.
+  let lastFileCid = null;
+  let lastLines = null;
+  const fetchFileLines = async (root) => {
+    const stat = await heliaUnixfs.stat(CID.parse(root), { path: blobCurrentPath });
+    if (stat.type === 'directory') return null;
+    const fileCid = stat.cid.toString();
+    if (fileCid === lastFileCid && lastLines) return lastLines;
+    const chunks = [];
+    for await (const chunk of heliaUnixfs.cat(stat.cid)) chunks.push(chunk);
+    const total = chunks.reduce((n, c) => n + c.length, 0);
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+    lastFileCid = fileCid;
+    lastLines = new TextDecoder().decode(bytes).replace(/\n$/, '').split('\n');
+    return lastLines;
+  };
+  blameOrigins = await blameLines(currentLines, blameReleases, fetchFileLines);
+}
+
+function renderBlameGutter() {
+  blobLineRows().forEach((row) => {
+    row.querySelectorAll('.bl').forEach((el) => el.remove());
+  });
+  if (!blameOn || !blameOrigins) return;
+  const comments = loadBlameCommentIndex();
+  blobLineRows().forEach((row, i) => {
+    const origin = blameOrigins[i];
+    if (!origin) return;
+    const bl = document.createElement('button');
+    bl.type = 'button';
+    bl.className = 'bl';
+    const count = comments.filter((c) => blameCommentMatches(c, origin.root, i + 1)).length;
+    bl.textContent = `${origin.timestamp || 'release'}${count > 0 ? ` 💬${count}` : ' ＋'}`;
+    bl.title = `Line ${i + 1} originates in release ${origin.root} — click to comment on this origin`;
+    bl.setAttribute('aria-label', bl.title);
+    bl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      pendingComment = { kind: 'blame', line: i + 1, origin: origin.root, originTimestamp: origin.timestamp };
+      openLineComposer();
+    });
+    row.insertBefore(bl, row.querySelector('.lc'));
+  });
+}
+
+async function toggleBlame() {
+  if (!blobView || blobView.hidden) return;
+  blameOn = !blameOn;
+  if (blameToggleBtn) blameToggleBtn.setAttribute('aria-pressed', String(blameOn));
+  const codeEl = document.getElementById('blob-code');
+  if (codeEl) codeEl.classList.toggle('blame-on', blameOn);
+  if (blameOn) {
+    if (blameToggleBtn) blameToggleBtn.disabled = true;
+    try {
+      await computeBlame();
+    } finally {
+      if (blameToggleBtn) blameToggleBtn.disabled = false;
+    }
+  } else {
+    blameOrigins = null;
+  }
+  renderBlameGutter();
+}
+
+if (blameToggleBtn) {
+  blameToggleBtn.setAttribute('aria-pressed', 'false');
+  blameToggleBtn.addEventListener('click', toggleBlame);
+}
+
 const lineSubmitBtn = document.getElementById('btn-line-comment-submit');
 if (lineSubmitBtn) lineSubmitBtn.addEventListener('click', createLineComment);
 const lineCancelBtn = document.getElementById('btn-line-comment-cancel');
@@ -862,6 +1061,10 @@ function resetLineCommentUi() {
   hideLineBar();
   hideLineComposer();
   if (linePanelEl) linePanelEl.hidden = true;
+  blameOn = false;
+  blameOrigins = null;
+  blameReleases = [];
+  if (blameToggleBtn) blameToggleBtn.setAttribute('aria-pressed', 'false');
 }
 
 // Export a CID (and its full DAG) as CAR bytes. CarWriter streams block
@@ -1309,6 +1512,52 @@ async function publishBranchPointer(rootCid) {
   }
 }
 
+// ---- Release chain (docs/issues-car.md phase 10) -------------------------------
+// Every publish of a NEW repo root records a release-commit object
+// { type:'release', root, prev, timestamp } — the git-commit analog the
+// DAG was missing, and what blame (phase 11) walks. The object is plain
+// dag-json (no signature — the data model keeps releases as history links;
+// blame attribution is advisory). Dedup: publishing an unchanged tree
+// yields the same root CID, so the chain only advances when content does.
+
+const RELEASE_CHAIN_KEY = 'repo-release-chain';
+
+function loadReleaseTips() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(RELEASE_CHAIN_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveReleaseTips(tips) {
+  try { localStorage.setItem(RELEASE_CHAIN_KEY, JSON.stringify(tips.slice(0, 50))); } catch {}
+}
+
+// Record `rootCidStr` as a release; no-op when it matches the current tip
+// (same content republished). Returns the release record or null.
+async function recordRelease(rootCidStr) {
+  if (!heliaNode || !rootCidStr) return null;
+  const tips = loadReleaseTips();
+  if (tips[0] && tips[0].root === rootCidStr) return tips[0];
+  const obj = {
+    type: 'release',
+    root: rootCidStr,
+    prev: tips[0] ? tips[0].cid : null,
+    timestamp: new Date().toISOString()
+  };
+  try {
+    const cid = await addDagJson(obj);
+    heliaNode.routing?.provide?.(cid).catch(() => {});
+    const record = { cid: cid.toString(), root: rootCidStr, timestamp: obj.timestamp };
+    saveReleaseTips([record, ...tips]);
+    return record;
+  } catch {
+    return null;
+  }
+}
+
 async function addAllRepoFiles() {
   if (!heliaUnixfs) return;
   statusEl.textContent = 'Adding all repository files to IPFS...';
@@ -1338,6 +1587,7 @@ async function addAllRepoFiles() {
       if (fetchRepoBtn) fetchRepoBtn.disabled = false;
       if (downloadRepoBtn) downloadRepoBtn.disabled = false;
       publishBranchPointer(rootCid).catch(() => {});
+      recordRelease(rootCidStr).catch(() => {});
       statusEl.textContent = 'Online & All repository files added to IPFS';
 
       // Announce the root CID to the IPFS network so other peers
