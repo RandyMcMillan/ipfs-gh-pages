@@ -1,6 +1,7 @@
 // Release procedure: version bump, commit, tag, and keep the actions-test
-// submodule's tags in lockstep with ours — including the action SHA its
-// deploy.yml pins, so the fixture always consumes the release being cut.
+// submodule's tags in lockstep with ours — including installing the repo's
+// example.deploy.yml as the fixture's deploy.yml, so the fixture always
+// consumes the newest release (it auto-detects the newest v* tag).
 // Usage: npm run release <version>   (e.g. npm run release 1.6.38)
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -27,24 +28,14 @@ run('git add -A');
 run(`git commit -m "Release ${tag}"`);
 run(`git tag ${tag}`);
 
-// The fixture's deploy.yml must consume THIS release: pin it to the release
-// commit's full SHA before the lockstep flow below commits the submodule.
+// The fixture's deploy.yml IS the repo's example.deploy.yml (lockstep). It
+// auto-detects the newest v* tag at run time — which is the release being
+// cut once the tag below is pushed — so no SHA pinning is needed. Refresh
+// it before the lockstep flow commits the submodule.
 try {
-  const releaseSha = run('git rev-parse HEAD');
-  const deployYml = 'actions-test/.github/workflows/deploy.yml';
-  if (fs.existsSync(deployYml)) {
-    const yml = fs.readFileSync(deployYml, 'utf8');
-    const bumped = yml.replace(
-      /uses: RandyMcMillan\/ipfs-gh-pages@\S+/,
-      `uses: RandyMcMillan/ipfs-gh-pages@${releaseSha} # ${tag}`
-    );
-    if (bumped !== yml) {
-      fs.writeFileSync(deployYml, bumped);
-      console.log(`${deployYml} pinned to ${releaseSha} (${tag})`);
-    }
-  }
+  run('node scripts/install-example-deploy.mjs');
 } catch (e) {
-  console.warn(`deploy.yml pin skipped: ${e.message}`);
+  console.warn(`example.deploy.yml install skipped: ${e.message}`);
 }
 
 // Lockstep: commit any pending changes inside the actions-test submodule,
@@ -64,8 +55,9 @@ try {
       try {
         run(`git -C ${sub} push origin ${ref}`);
       } catch {
-        // OAuth tokens can't push workflow-file changes (deploy.yml pin);
-        // an SSH remote bypasses that — use it when configured.
+        // OAuth tokens can't push workflow-file changes (deploy.yml
+        // lockstep install); an SSH remote bypasses that — use it when
+        // configured.
         run(`git -C ${sub} push origin-ssh ${ref}`);
       }
     };

@@ -65,11 +65,20 @@ Release procedure with submodules:
 
 1. To update the fixture's content: commit and push inside the
    submodule, then bump the gitlink here (the normal two-step).
-2. `npm run build` rebuilds every submodule CAR from the checked-out
-   commit — the CAR's root CID changes only when the submodule's
+2. Every build installs `example.deploy.yml` as the fixture's
+   `actions-test/.github/workflows/deploy.yml` — the two stay in
+   lockstep, so the fixture consumes the same self-updating workflow
+   linked above — then rebuilds every submodule CAR from the checked-out
+   commit. The CAR's root CID changes only when the submodule's
    tracked files change.
 3. CI checkouts that don't initialize submodules skip the submodule
    CARs gracefully; the main `dist/ipfs-gh-pages.car` is unaffected.
+
+Sync the fixture workflow by hand with:
+
+```
+npm run install:example-deploy
+```
 
 Releases are cut with `npm run release <version>` — it bumps,
 commits, tags, and pushes this repo AND tags the actions-test

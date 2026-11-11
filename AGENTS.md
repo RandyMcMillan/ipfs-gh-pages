@@ -74,7 +74,11 @@ npm run release <semver>
 `scripts/release.mjs` bumps the version, rewrites README action references,
 commits, tags, and keeps the `actions-test` submodule in lockstep: it commits
 pending submodule changes, pushes its branch, tags it with the same release
-tag, and bumps the superproject gitlink. On every release it also pins
-`actions-test/.github/workflows/deploy.yml` to the release commit's full SHA
-so the fixture always consumes the release being cut. Do not cut a release
-unless the user asks for one; a commit is just a snapshot, not a release.
+tag, and bumps the superproject gitlink. The fixture's
+`actions-test/.github/workflows/deploy.yml` stays in lockstep with the repo's
+`example.deploy.yml`: `scripts/install-example-deploy.mjs` installs one as
+the other on every release AND before every CAR build (it is wired into the
+build script), so the fixture always consumes the release being cut — the
+workflow auto-detects the newest `v*` tag, which is that release once the
+tag is pushed. Do not cut a release unless the user asks for one; a commit
+is just a snapshot, not a release.
