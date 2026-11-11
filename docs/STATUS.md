@@ -40,7 +40,8 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 ## Next (in priority order)
 
 1. **uri-providers steps 3–4**: CID linkification rendering pass (every rendered CID gets gateway/ipfs:// /providers/pin affordances), companion preference toggle.
-2. **libp2p git transport** (`/ipfs-gh-pages/git/1`): for cross-machine clone; blocked on having a LISTENING libp2p node (browser can't); the in-process upload-pack is the same logic wrapped in a stream later.
+2. **markdown rendering like GitHub** (`docs/markdown-rendering.md`): concern DOCUMENTED, DECISION PENDING (image policy / iframe sandbox / CSP timing / bundle budget) — do not implement until decided.
+3. **libp2p git transport** (`/ipfs-gh-pages/git/1`): for cross-machine clone; blocked on having a LISTENING libp2p node (browser can't); the in-process upload-pack is the same logic wrapped in a stream later.
 
 ## Hard-won gotchas (do not relearn)
 
