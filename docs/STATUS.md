@@ -40,7 +40,8 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 ## Next (in priority order)
 
 1. **markdown rendering like GitHub** (`docs/markdown-rendering.md`): concern DOCUMENTED, DECISION PENDING (image policy / iframe sandbox / CSP timing / bundle budget) — do not implement until decided.
-2. **libp2p git transport** (`/ipfs-gh-pages/git/1`): for cross-machine clone; blocked on having a LISTENING libp2p node (browser can't); the in-process upload-pack is the same logic wrapped in a stream later.
+2. **IPFS rehost service** (`docs/ipfs-rehost-service.md`): PLAN — decentralized camo (fetch-once → content-addressed URLs); tiers: browser-native / node service / desktop daemon; feeds the markdown image-policy decision (#1) as the "rehost" option.
+3. **libp2p git transport** (`/ipfs-gh-pages/git/1`): for cross-machine clone; blocked on having a LISTENING libp2p node (browser can't); the in-process upload-pack is the same logic wrapped in a stream later.
 
 ## Backlog (research TODOs, gist refs)
 
