@@ -33,6 +33,23 @@ Every runnable command shown in UI text, help docs, or README gets its own
 line (its own code block). Never append comments or prose to a command line,
 and never bury a command inside a sentence.
 
+## Push order is critical (submodules)
+
+A superproject commit whose gitlink points at an UNPUSHED submodule commit
+breaks every `submodules: recursive` checkout of that ref — CI dies inside
+actions/checkout with "upload-pack: not our ref <sha>", far from the cause.
+The order is always: submodule branch, submodule tag (releases), THEN the
+superproject. Verify before any superproject push:
+
+```
+node scripts/check-gitlink.mjs
+```
+
+Enforced by: `.githooks/pre-push` (blocks default-branch pushes on an
+unresolvable gitlink), `scripts/release.mjs` (runs the guard before
+pushing main), and the CI workflows (guard step before submodule checkout,
+so a violation fails with a clear message instead of a cryptic one).
+
 # Design Objectives
 
 1. **This project enables devs to publish repos to IPFS — other people must

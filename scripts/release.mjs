@@ -86,6 +86,14 @@ try {
   console.warn(`submodule lockstep skipped: ${e.message}`);
 }
 
+// PUSH ORDER IS CRITICAL (AGENTS.md "Push order"): every gitlink this
+// superproject records must already resolve on the submodule's remote — a
+// gitlink pointing at an unpushed submodule commit breaks every
+// `submodules: recursive` checkout of main (CI: "upload-pack: not our
+// ref"). The lockstep flow above pushed the submodule branch + tag first;
+// verify before the superproject goes out.
+run('node scripts/check-gitlink.mjs');
+
 run('git push origin main');
 run(`git push origin ${tag}`);
 console.log(`Released ${tag}`);

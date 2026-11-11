@@ -22,7 +22,7 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 - Bundle build: `./scripts/bundle.sh --build` (runs build-ipfs-js.mjs + build-repo-files.mjs + trunk + cargo bundle)
 - JS bundle only: `node scripts/build-ipfs-js.mjs` (inject repo identity via --define)
 - Web app: `npm run dev` / `npm run build` (installs example.deploy.yml → actions-test/.github/workflows/deploy.yml in lockstep via `install:example-deploy`, then rebuilds actions-test.car — snapshot the submodule before releasing)
-- Tests: `npm run test:all` — unit, car, index-merge (5), index-walk (3), line-comments (4), blame (6), git-notes-bridge (7), git-objects (14), git-upload-pack (4), git-clone-smart (2), git-pull-smart (2), then CDP suite (incl. cdp-git-bridge)
+- Tests: `npm run test:all` — unit, car, index-merge (5), index-walk (3), line-comments (4), blame (6), git-notes-bridge (7), check-gitlink (5), install-example-deploy (5), git-objects (14), git-upload-pack (4), git-clone-smart (2), git-pull-smart (2), then CDP suite (incl. cdp-git-bridge)
 - Release (ONLY when user orders): `npm run release <semver>` — refuses on dirty tree; snapshot `actions-test.car` first if `npm run build` ran
 - Sign/release app: `scripts/sign-app.sh`, `scripts/release-app.sh [--notarize]`
 
@@ -55,6 +55,8 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 - Release flow: `npm run release` refuses on dirty tree; https-push of actions-test submodule is blocked (workflow scope) — release script falls back to origin-ssh automatically.
 - Identity ONEness: `ipns-branch-key` (repo/root pointer) vs `ipns-index-key` (issues chain) are DIFFERENT keys — one IPNS name = one value.
 - Optional services (`docs/optional-services.md`) are accelerants, never dependencies; resolution: configured → public defaults → p2p.
+- PUSH ORDER (AGENTS.md): submodule branch/tag on ITS remote FIRST, superproject second — a gitlink pointing at an unpushed commit breaks CI checkout ("upload-pack: not our ref <sha>"). Guard: `node scripts/check-gitlink.mjs`; enforced in `.githooks/pre-push`, `release.mjs`, and the CI workflows (guard step before submodule checkout).
+- `Action packaging smoke test` rust-smoke job fails spuriously on runner-image issues (glib-sys/gobject-sys build scripts, rustup network) — unrelated to push contents; check the deploy + smoke jobs first.
 
 ## Standing orders
 

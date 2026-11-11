@@ -74,6 +74,15 @@ Release procedure with submodules:
 3. CI checkouts that don't initialize submodules skip the submodule
    CARs gracefully; the main `dist/ipfs-gh-pages.car` is unaffected.
 
+Push order is critical: the submodule's commits must be on ITS remote
+BEFORE any superproject commit referencing them is pushed — a gitlink
+pointing at an unpushed commit breaks every `submodules: recursive`
+checkout (CI: "upload-pack: not our ref"). Verify with:
+
+```
+node scripts/check-gitlink.mjs
+```
+
 Sync the fixture workflow by hand with:
 
 ```

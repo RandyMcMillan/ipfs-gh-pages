@@ -9,13 +9,34 @@
 # ordinary ref passthrough.
 #
 # Tip sources and the activation step are documented in lib.sh and
-# docs/issues-car.md ("Git-host bridge (hooks)"). The hook NEVER fails the
+# docs/issues-car.md ("Git-host bridge (hooks)"). The bridge NEVER fails the
 # push: the bridge is a sync point, not a gate — realtime propagation stays
 # on pubsub/IPNS.
+#
+# The gitlink GUARD below is the one exception that blocks: pushing a
+# default branch whose gitlink points at an UNPUSHED submodule commit
+# breaks CI checkout ("upload-pack: not our ref") — see AGENTS.md
+# "Push order".
 set -u
 . "$(dirname "$0")/lib.sh"
 
 remote="${1:-origin}"
+
+# stdin: <local ref> <local sha> <remote ref> <remote sha> per pushed ref.
+stdin=$(cat)
+
+# Push-order guard: only default-branch pushes can put a bad gitlink on
+# CI, so only those are gated (topic-branch pushes stay unblocked).
+pushes_default=0
+while read -r local_ref _local_sha _remote_ref _remote_sha; do
+  case "$local_ref" in refs/heads/main|refs/heads/master) pushes_default=1 ;; esac
+done <<<"$stdin"
+if [ "$pushes_default" -eq 1 ] && [ -f scripts/check-gitlink.mjs ] && command -v node >/dev/null 2>&1; then
+  if ! node scripts/check-gitlink.mjs; then
+    echo "pre-push: BLOCKED — push the submodule FIRST, then the superproject (AGENTS.md \"Push order\")." >&2
+    exit 1
+  fi
+fi
 
 ns=$(ipfs_notes_namespace) || exit 0
 tip=$(ipfs_index_tip) || {
@@ -37,7 +58,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   else
     echo "ipfs-bridge: git notes --ref=$ns add failed on $local_sha (user.name/user.email set?)" >&2
   fi
-done
+done <<<"$stdin"
 
 if [ "$wrote" -gt 0 ]; then
   cat >&2 <<EOF

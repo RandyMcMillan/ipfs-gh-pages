@@ -57,8 +57,15 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
+        # Submodules intentionally NOT checked out here: the gitlink guard
+        # below runs first, so a bad push order fails with a clear message
+        # instead of checkout's cryptic "upload-pack: not our ref".
+
+      - name: Verify submodule gitlinks resolve on their remotes
+        run: node scripts/check-gitlink.mjs
+
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
 
       - name: Build and deploy via the action
         id: deploy
