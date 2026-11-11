@@ -51,6 +51,7 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
         10 => draw_services_tab(frame, app, chunks[1]),
         11 => draw_git_tab(frame, app, chunks[1]),
         12 => draw_repo_tab(frame, app, chunks[1]),
+        13 => draw_issues_tab(frame, app, chunks[1]),
         _ => {}
     };
     // let big_text = BigText::builder()
@@ -130,6 +131,44 @@ fn draw_peers_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         "c = connect".to_string()
     } else {
         app.last_result.clone()
+    };
+    frame.render_widget(
+        Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),
+        chunks[1],
+    );
+}
+
+fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
+    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
+    let issues = &app.ipfs.issues;
+    let mut lines = vec![];
+    if issues.is_empty() {
+        lines.push(text::Line::from(
+            "(no issues — press i to file one; s syncs from the index IPNS name)",
+        ));
+    } else {
+        for issue in issues {
+            lines.push(text::Line::from(format!(
+                "{} {} {}",
+                issue.timestamp, issue.title, issue.cid
+            )));
+        }
+    }
+    frame.render_widget(
+        Paragraph::new(lines)
+            .block(Block::bordered().title(format!("Issues ({} in view)", issues.len())))
+            .wrap(Wrap { trim: false }),
+        chunks[0],
+    );
+    let footer = if app.input_active {
+        format!(
+            "file issue: > {}_   (Enter files, Esc cancels)",
+            app.input_buffer
+        )
+    } else if !app.last_result.is_empty() {
+        app.last_result.clone()
+    } else {
+        "i = file issue   s = sync from IPNS".to_string()
     };
     frame.render_widget(
         Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),

@@ -34,12 +34,20 @@ mod imp {
     }
 
     #[derive(Clone, Debug, Default)]
+    pub struct IssueEntry {
+        pub cid: String,
+        pub title: String,
+        pub timestamp: String,
+    }
+
+    #[derive(Clone, Debug, Default)]
     pub struct Snapshot {
         pub node_status: String,
         pub peer_id: String,
         pub multiaddrs: Vec<String>,
         pub connections: Vec<Connection>,
         pub chat_inbox: Vec<ChatMessage>,
+        pub issues: Vec<IssueEntry>,
         pub kubo_status: String,
         pub kubo_endpoint: String,
         pub kubo_peer_id: String,
@@ -121,6 +129,20 @@ mod imp {
                 })
                 .collect();
         }
+
+        snap.issues = get_array(&state, "issues")
+            .into_iter()
+            .filter_map(|m| {
+                if !m.is_object() {
+                    return None;
+                }
+                Some(IssueEntry {
+                    cid: get_string(&m, "cid"),
+                    title: get_string(&m, "title"),
+                    timestamp: get_string(&m, "timestamp"),
+                })
+            })
+            .collect();
 
         if let Ok(kubo) = Reflect::get(&state, &JsValue::from_str("kubo")) {
             snap.kubo_status = get_string(&kubo, "status");
@@ -240,12 +262,20 @@ mod imp {
     }
 
     #[derive(Clone, Debug, Default)]
+    pub struct IssueEntry {
+        pub cid: String,
+        pub title: String,
+        pub timestamp: String,
+    }
+
+    #[derive(Clone, Debug, Default)]
     pub struct Snapshot {
         pub node_status: String,
         pub peer_id: String,
         pub multiaddrs: Vec<String>,
         pub connections: Vec<Connection>,
         pub chat_inbox: Vec<ChatMessage>,
+        pub issues: Vec<IssueEntry>,
         pub kubo_status: String,
         pub kubo_endpoint: String,
         pub kubo_peer_id: String,
@@ -271,4 +301,4 @@ mod imp {
     }
 }
 
-pub use imp::{cmd, json_field, poll, take_result, ChatMessage, Connection, Snapshot};
+pub use imp::{cmd, json_field, poll, take_result, ChatMessage, Connection, IssueEntry, Snapshot};

@@ -237,6 +237,7 @@ pub enum InputTarget {
     GitAdvertise,
     GitCloneSmart,
     GitPullSmart,
+    IssueCreate,
     RepoPublish,
     /// The `:`-bar command line — head word = bridge op, rest = argument.
     RawCommand,
@@ -309,7 +310,7 @@ impl<'a> App<'a> {
             should_quit: false,
             tabs: TabsState::new(vec![
                 "Home", "About", "Status", "Theme", "IPFS", "Peers", "Fetch", "Publish", "Chat",
-                "Kubo", "Services", "Git", "Repo",
+                "Kubo", "Services", "Git", "Repo", "Issues",
             ]),
             show_chart: true,
             progress: 0.0,
@@ -437,6 +438,13 @@ impl<'a> App<'a> {
                 if let Some(id) = ipfs::cmd("repo.publishAll", "{}") {
                     self.pending = Some((id, InputTarget::RepoPublish));
                     self.last_result = "publishing repo tree...".to_string();
+                }
+            }
+            'i' if self.tabs.index == 13 => self.start_input(InputTarget::IssueCreate),
+            's' if self.tabs.index == 13 => {
+                if let Some(id) = ipfs::cmd("issues.sync", "{}") {
+                    self.pending = Some((id, InputTarget::IssueCreate));
+                    self.last_result = "syncing issues from IPNS...".to_string();
                 }
             }
             _ => {}
@@ -581,6 +589,7 @@ impl<'a> App<'a> {
             InputTarget::GitAdvertise => "git.advertise",
             InputTarget::GitCloneSmart => "git.cloneSmart",
             InputTarget::GitPullSmart => "git.pullSmart",
+            InputTarget::IssueCreate => "issues.create",
             InputTarget::RepoPublish => "repo.publishAll",
             InputTarget::RawCommand => "raw-command",
         };
@@ -667,6 +676,16 @@ impl<'a> App<'a> {
                             format!("updated to {after}")
                         } else {
                             "already up to date".to_string()
+                        }
+                    }
+                    InputTarget::IssueCreate => {
+                        // create returns cid/tip; sync returns issues/name.
+                        if let Some(cid) = ipfs::json_field(&value, "cid") {
+                            self.cmd_output = format!("ipfs pin add {cid}");
+                            format!("issue filed: {cid}")
+                        } else {
+                            let n = ipfs::json_field(&value, "issues").unwrap_or_default();
+                            format!("synced ({n} issue(s) in view)")
                         }
                     }
                     InputTarget::RawCommand => {

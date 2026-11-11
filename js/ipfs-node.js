@@ -119,6 +119,7 @@ const state = {
   repo: { owner: repoOwner, name: repoName, fullName: repoFullName, version: repoIdentity.version },
   node: { status: 'starting', peerId: null, multiaddrs: [], protocols: [], connections: [] },
   chat: { inbox: [] }, // { signer, verified, text, timestamp } — newest first, cap 50
+  issues: [], // { cid, title, timestamp } — newest first (local index view)
   git: { serving: null, seen: [] }, // serve envelopes: ours + heard from gossip
   kubo: { status: 'unknown', endpoint: null, peerId: null, addresses: [] },
   services: { configured: [], endpoints: {} },
@@ -278,6 +279,7 @@ async function publishIdentity() {
 async function boot() {
   statusLine('starting...');
   await loadConfig();
+  state.issues = loadIssues();
   state.services.configured = loadServices().map((s) => s.name || '(unnamed)');
   state.services.endpoints = {
     gateways: resolveEndpoints('gateways'),
@@ -577,6 +579,160 @@ async function opGitPullSmart(arg) {
 function opGitClones() {
   return { clones: loadClones() };
 }
+
+// ---- issues (docs/issues-car.md) — same scheme as main.js: P7 envelopes,
+// hash-chained index, dedicated index IPNS name. Parity across surfaces is
+// the contract: an issue filed here verifies and syncs in the web app.
+
+const ISSUES_KEY = 'repo-issues';
+const CHAIN_KEY = 'repo-index-chain';
+const LAMPORT_KEY = 'repo-index-lamport';
+
+function loadIssues() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(ISSUES_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function loadChainTip() {
+  try { return JSON.parse(localStorage.getItem(CHAIN_KEY) || 'null'); } catch { return null; }
+}
+
+function nextLamport(parentLamports = []) {
+  let l = 0;
+  try { l = parseInt(localStorage.getItem(LAMPORT_KEY) || '0', 10) || 0; } catch {}
+  const next = Math.max(l, ...parentLamports) + 1;
+  try { localStorage.setItem(LAMPORT_KEY, String(next)); } catch {}
+  return next;
+}
+
+let ipnsIndexKeyPromise = null;
+function getIpnsIndexKey() {
+  if (!ipnsIndexKeyPromise) {
+    ipnsIndexKeyPromise = (async () => {
+      const storageKey = `ipns-index-key:${repoFullName}`;
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        try { return privateKeyFromRaw(base64ToUint8Array(stored)); } catch {}
+      }
+      const key = await generateKeyPair('Ed25519');
+      localStorage.setItem(storageKey, uint8ArrayToBase64(key.raw));
+      return key;
+    })();
+  }
+  return ipnsIndexKeyPromise;
+}
+
+function publishIndexTip(tipCid) {
+  if (!heliaNode || !tipCid) return;
+  (async () => {
+    try {
+      const key = await getIpnsIndexKey();
+      await ipns(heliaNode).publish(key, CID.parse(String(tipCid)));
+    } catch {}
+  })();
+}
+
+async function opIssuesCreate(arg) {
+  const title = String(arg?.text || '').trim();
+  if (!title) throw new Error('empty title');
+  const envelope = await signFields({
+    ns: 'issues',
+    type: 'issue',
+    title,
+    body: String(arg?.body || ''),
+    anchors: [],
+    timestamp: new Date().toISOString()
+  });
+  const { cid: noteCid } = await opDagPut({ obj: envelope });
+  heliaNode?.routing?.provide?.(CID.parse(noteCid)).catch(() => {});
+
+  // Extend the index chain (height/lamport fork-choice scheme).
+  const prevTip = loadChainTip();
+  let parentHeight = 0;
+  let parentLamport = 0;
+  if (prevTip) {
+    try {
+      const prevEntry = await opDagGet({ cid: prevTip.cid });
+      parentHeight = Number(prevEntry.obj?.height) || 0;
+      parentLamport = Number(prevEntry.obj?.lamport) || 0;
+    } catch {}
+  }
+  const indexEnvelope = await signFields({
+    type: 'index-entry',
+    added: [noteCid],
+    prev: prevTip ? [prevTip.cid] : [],
+    height: parentHeight + 1,
+    lamport: nextLamport([parentLamport]),
+    timestamp: new Date().toISOString()
+  });
+  const { cid: tipCid } = await opDagPut({ obj: indexEnvelope });
+  localStorage.setItem(CHAIN_KEY, JSON.stringify({
+    cid: tipCid, height: parentHeight + 1,
+    lamport: Number(indexEnvelope.lamport) || 0, added: 1
+  }));
+  publishIndexTip(tipCid);
+
+  const issues = loadIssues();
+  issues.unshift({ cid: noteCid, title, timestamp: envelope.timestamp });
+  state.issues = issues.slice(0, 200);
+  localStorage.setItem(ISSUES_KEY, JSON.stringify(state.issues));
+  return { cid: noteCid, tip: tipCid };
+}
+
+async function opIssuesSync() {
+  if (!heliaNode) throw new Error('helia not ready');
+  const key = await getIpnsIndexKey();
+  const name = `/ipns/${peerIdFromPrivateKey(key)}`;
+  const result = await ipns(heliaNode).resolve(name, { timeout: 8000 }).catch(() => null);
+  if (!result) return { synced: false, reason: 'index name not resolvable' };
+  const remoteStr = (result.value || result.path || result).toString().replace(/^\/ipfs\//, '');
+  const local = loadChainTip();
+  if (remoteStr && (!local || remoteStr !== local.cid)) {
+    const { obj: remoteEntry } = await opDagGet({ cid: remoteStr });
+    const remoteWins = !local
+      || (Number(remoteEntry?.height) || 0) > (local.height || 0)
+      || ((Number(remoteEntry?.height) || 0) === (local.height || 0)
+          && (Number(remoteEntry?.lamport) || 0) > (local.lamport || 0));
+    if (remoteWins && remoteEntry) {
+      localStorage.setItem(CHAIN_KEY, JSON.stringify({
+        cid: remoteStr,
+        height: Number(remoteEntry.height) || 0,
+        lamport: Number(remoteEntry.lamport) || 0,
+        added: Array.isArray(remoteEntry.added) ? remoteEntry.added.length : 0
+      }));
+      try { localStorage.setItem(LAMPORT_KEY, String(Number(remoteEntry.lamport) || 0)); } catch {}
+      const issues = loadIssues();
+      const known = new Set(issues.map((i) => i.cid));
+      let cursor = remoteEntry;
+      let walked = 0;
+      while (cursor && walked < 50) {
+        for (const noteCid of cursor.added || []) {
+          if (known.has(noteCid)) continue;
+          try {
+            const { obj: note } = await opDagGet({ cid: noteCid });
+            if (note && note.ns === 'issues' && note.type === 'issue' && note.title) {
+              issues.unshift({ cid: noteCid, title: note.title, timestamp: note.timestamp });
+              known.add(noteCid);
+            }
+          } catch {}
+        }
+        const prev = Array.isArray(cursor.prev) ? cursor.prev[0] : null;
+        if (!prev) break;
+        try { cursor = (await opDagGet({ cid: prev })).obj; } catch { break; }
+        walked++;
+      }
+      state.issues = issues.slice(0, 200);
+      localStorage.setItem(ISSUES_KEY, JSON.stringify(state.issues));
+    }
+  }
+  return { synced: true, issues: state.issues.length, tip: loadChainTip()?.cid || null, name };
+}
+
+async function opIssueCreate(arg) { return opIssuesCreate(arg); }
 
 async function advertiseServe(arg) {
   const libp2p = heliaNode?.libp2p;
@@ -957,7 +1113,9 @@ const ops = {
   'pin.remote.list': opPinRemoteList,
   'pin.remote.add': opPinRemoteAdd,
   'identity.export': opIdentityExport,
-  'identity.import': opIdentityImport
+  'identity.import': opIdentityImport,
+  'issues.create': opIssueCreate,
+  'issues.sync': opIssuesSync
 };
 
 // ---- command channel (Rust -> JS) --------------------------------------------
