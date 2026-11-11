@@ -49,6 +49,7 @@ import { peerIdFromPrivateKey, peerIdFromPublicKey } from '@libp2p/peer-id';
 import { zipSync } from 'fflate';
 import { GitStore } from './git-objects.js';
 import { makeSmartHttp } from './git-smart.js';
+import { classifyIndexSync } from './index-merge.js';
 
 // ---- repo identity (parity: main.js lines 27-41) ---------------------------
 
@@ -691,45 +692,107 @@ async function opIssuesSync() {
   if (!result) return { synced: false, reason: 'index name not resolvable' };
   const remoteStr = (result.value || result.path || result).toString().replace(/^\/ipfs\//, '');
   const local = loadChainTip();
-  if (remoteStr && (!local || remoteStr !== local.cid)) {
-    const { obj: remoteEntry } = await opDagGet({ cid: remoteStr });
-    const remoteWins = !local
-      || (Number(remoteEntry?.height) || 0) > (local.height || 0)
-      || ((Number(remoteEntry?.height) || 0) === (local.height || 0)
-          && (Number(remoteEntry?.lamport) || 0) > (local.lamport || 0));
-    if (remoteWins && remoteEntry) {
-      localStorage.setItem(CHAIN_KEY, JSON.stringify({
-        cid: remoteStr,
-        height: Number(remoteEntry.height) || 0,
-        lamport: Number(remoteEntry.lamport) || 0,
-        added: Array.isArray(remoteEntry.added) ? remoteEntry.added.length : 0
-      }));
-      try { localStorage.setItem(LAMPORT_KEY, String(Number(remoteEntry.lamport) || 0)); } catch {}
-      const issues = loadIssues();
-      const known = new Set(issues.map((i) => i.cid));
-      let cursor = remoteEntry;
-      let walked = 0;
-      while (cursor && walked < 50) {
-        for (const noteCid of cursor.added || []) {
-          if (known.has(noteCid)) continue;
-          try {
-            const { obj: note } = await opDagGet({ cid: noteCid });
-            if (note && note.ns === 'issues' && note.type === 'issue' && note.title) {
-              issues.unshift({ cid: noteCid, title: note.title, timestamp: note.timestamp });
-              known.add(noteCid);
-            }
-          } catch {}
-        }
-        const prev = Array.isArray(cursor.prev) ? cursor.prev[0] : null;
-        if (!prev) break;
-        try { cursor = (await opDagGet({ cid: prev })).obj; } catch { break; }
-        walked++;
+  if (!remoteStr || (local && remoteStr === local.cid)) {
+    return { synced: true, merged: false, issues: state.issues.length, tip: local?.cid || null, name };
+  }
+  const { obj: remoteEntry } = await opDagGet({ cid: remoteStr });
+
+  // Merge semantics (docs/issues-car.md chronology): fast-forward when one
+  // side descends from the other; otherwise a MERGE entry with both
+  // parents and the union of missing notes — never loser-deleted data.
+  const descendsFrom = async (tipCid, ancestorCid, maxSteps = 50) => {
+    let cursor = tipCid;
+    for (let i = 0; i < maxSteps && cursor; i++) {
+      if (cursor === ancestorCid) return true;
+      try {
+        const { obj } = await opDagGet({ cid: cursor });
+        cursor = Array.isArray(obj?.prev) ? obj.prev[0] : null;
+      } catch { break; }
+    }
+    return false;
+  };
+
+  // Collect the remote chain's notes missing locally (bounded walk) —
+  // needed both for the issues view AND as the merge entry's `added`.
+  const missingNotes = [];
+  {
+    const known = new Set(loadIssues().map((i) => i.cid));
+    let cursor = remoteEntry;
+    let walked = 0;
+    while (cursor && walked < 50) {
+      for (const noteCid of cursor.added || []) {
+        if (known.has(noteCid)) continue;
+        try {
+          const { obj: note } = await opDagGet({ cid: noteCid });
+          if (note && note.ns === 'issues' && note.type === 'issue' && note.title) {
+            missingNotes.push({ cid: noteCid, title: note.title, timestamp: note.timestamp });
+            known.add(noteCid);
+          }
+        } catch {}
       }
-      state.issues = issues.slice(0, 200);
-      localStorage.setItem(ISSUES_KEY, JSON.stringify(state.issues));
+      const prev = Array.isArray(cursor.prev) ? cursor.prev[0] : null;
+      if (!prev) break;
+      try { cursor = (await opDagGet({ cid: prev })).obj; } catch { break; }
+      walked++;
     }
   }
-  return { synced: true, issues: state.issues.length, tip: loadChainTip()?.cid || null, name };
+
+  let merged = false;
+  let newTip = null;
+  const decision = classifyIndexSync(
+    local,
+    { cid: remoteStr, height: Number(remoteEntry?.height) || 0, lamport: Number(remoteEntry?.lamport) || 0 },
+    local ? await descendsFrom(remoteStr, local.cid) : false,
+    local ? await descendsFrom(local.cid, remoteStr) : false
+  );
+  if (decision.action === 'noop') {
+    return { synced: true, merged: false, issues: state.issues.length, tip: local.cid, name };
+  }
+  if (decision.action === 'adopt-remote') {
+    localStorage.setItem(CHAIN_KEY, JSON.stringify({
+      cid: remoteStr,
+      height: Number(remoteEntry.height) || 0,
+      lamport: Number(remoteEntry.lamport) || 0,
+      added: Array.isArray(remoteEntry.added) ? remoteEntry.added.length : 0
+    }));
+    try { localStorage.setItem(LAMPORT_KEY, String(Number(remoteEntry.lamport) || 0)); } catch {}
+    newTip = remoteStr;
+    merged = true;
+  } else {
+    // Divergence: merge entry with both parents and the union of missing
+    // notes as `added` — add-wins, nobody's data is dropped.
+    const envelope = await signFields({
+      type: 'index-entry',
+      added: missingNotes.map((n) => n.cid),
+      prev: [local.cid, remoteStr],
+      height: decision.height,
+      lamport: decision.lamport,
+      timestamp: new Date().toISOString()
+    });
+    const { cid: tipCid } = await opDagPut({ obj: envelope });
+    localStorage.setItem(CHAIN_KEY, JSON.stringify({ cid: tipCid, height: decision.height, lamport: decision.lamport, added: missingNotes.length }));
+    publishIndexTip(tipCid);
+    newTip = tipCid;
+    merged = true;
+  }
+
+  // Merge missing notes into the local view.
+  const issues = loadIssues();
+  const before = issues.length;
+  if (missingNotes.length) {
+    issues.unshift(...missingNotes);
+    state.issues = issues.slice(0, 200);
+    localStorage.setItem(ISSUES_KEY, JSON.stringify(state.issues));
+  }
+
+  return {
+    synced: true,
+    merged,
+    newNotes: issues.length - before,
+    issues: state.issues.length,
+    tip: newTip || loadChainTip()?.cid,
+    name
+  };
 }
 
 async function opIssueCreate(arg) { return opIssuesCreate(arg); }

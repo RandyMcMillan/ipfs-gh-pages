@@ -20,6 +20,8 @@ import { zipSync } from 'fflate';
 import { multiaddr } from '@multiformats/multiaddr';
 import { formatSize, base64ToUint8Array, uint8ArrayToBase64, buildRepoTree, isBrowserDialable, normalizeAddressForProxy } from './lib/shared.mjs';
 
+import { classifyIndexSync } from './js/index-merge.js';
+
 // Repo identity: prefer the Pages origin (<owner>.github.io/<repo>), then the
 // build-time identity baked by the action (GITHUB_REPOSITORY / git remote), so
 // the chrome is correct for whoever deploys this app.
@@ -3076,45 +3078,77 @@ async function syncIndexFromIpns() {
     const local = loadChainTip();
     if (!remoteStr || (local && remoteStr === local.cid)) return;
     const remoteEntry = await getDagJson(CID.parse(remoteStr));
-    const remoteWins = !local
-      || (Number(remoteEntry.height) || 0) > (local.height || 0)
-      || ((Number(remoteEntry.height) || 0) === (local.height || 0)
-          && (Number(remoteEntry.lamport) || 0) > (local.lamport || 0));
-    if (!remoteWins) return;
-    localStorage.setItem(CHAIN_KEY, JSON.stringify({
-      cid: remoteStr,
-      height: Number(remoteEntry.height) || 0,
-      lamport: Number(remoteEntry.lamport) || 0,
-      added: Array.isArray(remoteEntry.added) ? remoteEntry.added.length : 0
-    }));
-    try {
-      localStorage.setItem(LAMPORT_KEY, String(Number(remoteEntry.lamport) || 0));
-    } catch {}
 
-    // Merge issues referenced by the winning chain (bounded walk back).
-    const issues = loadIssues();
-    const known = new Set(issues.map((i) => i.cid));
-    let cursor = remoteEntry;
-    let walked = 0;
-    while (cursor && walked < 50) {
-      for (const noteCid of cursor.added || []) {
-        if (known.has(noteCid)) continue;
+    const descendsFrom = async (tipCid, ancestorCid, maxSteps = 50) => {
+      let cursor = tipCid;
+      for (let i = 0; i < maxSteps && cursor; i++) {
+        if (cursor === ancestorCid) return true;
         try {
-          const note = await getDagJson(CID.parse(noteCid));
-          if (note && note.ns === 'issues' && note.type === 'issue' && note.title) {
-            issues.unshift({ cid: noteCid, title: note.title, timestamp: note.timestamp });
-            known.add(noteCid);
-          }
-        } catch {}
+          const entry = await getDagJson(CID.parse(cursor));
+          cursor = Array.isArray(entry?.prev) ? entry.prev[0] : null;
+        } catch { break; }
       }
-      const prev = Array.isArray(cursor.prev) ? cursor.prev[0] : null;
-      if (!prev || known.size > 200) break;
-      try {
-        cursor = await getDagJson(CID.parse(prev));
-      } catch { break; }
-      walked++;
+      return false;
+    };
+
+    // Collect remote notes missing locally (bounded) — feeds both the
+    // issues view and the merge entry's `added`.
+    const missingNotes = [];
+    {
+      const known = new Set(loadIssues().map((i) => i.cid));
+      let cursor = remoteEntry;
+      let walked = 0;
+      while (cursor && walked < 50) {
+        for (const noteCid of cursor.added || []) {
+          if (known.has(noteCid)) continue;
+          try {
+            const note = await getDagJson(CID.parse(noteCid));
+            if (note && note.ns === 'issues' && note.type === 'issue' && note.title) {
+              missingNotes.push({ cid: noteCid, title: note.title, timestamp: note.timestamp });
+              known.add(noteCid);
+            }
+          } catch {}
+        }
+        const prev = Array.isArray(cursor.prev) ? cursor.prev[0] : null;
+        if (!prev) break;
+        try { cursor = await getDagJson(CID.parse(prev)); } catch { break; }
+        walked++;
+      }
     }
-    if (walked > 0 || issues.length !== loadIssues().length) {
+
+    const decision = classifyIndexSync(
+      local,
+      { cid: remoteStr, height: Number(remoteEntry?.height) || 0, lamport: Number(remoteEntry?.lamport) || 0 },
+      local ? await descendsFrom(remoteStr, local.cid) : false,
+      local ? await descendsFrom(local.cid, remoteStr) : false
+    );
+    if (decision.action === 'noop') return;
+    if (decision.action === 'adopt-remote') {
+      localStorage.setItem(CHAIN_KEY, JSON.stringify({
+        cid: remoteStr,
+        height: Number(remoteEntry.height) || 0,
+        lamport: Number(remoteEntry.lamport) || 0,
+        added: Array.isArray(remoteEntry.added) ? remoteEntry.added.length : 0
+      }));
+      try { localStorage.setItem(LAMPORT_KEY, String(Number(remoteEntry.lamport) || 0)); } catch {}
+    } else {
+      // Divergence: merge entry, both parents, union of missing notes.
+      const { envelope } = await signNote({
+        type: 'index-entry',
+        added: missingNotes.map((n) => n.cid),
+        prev: [local.cid, remoteStr],
+        height: decision.height,
+        lamport: decision.lamport,
+        timestamp: new Date().toISOString()
+      });
+      const tipCid = await publishNote(envelope);
+      localStorage.setItem(CHAIN_KEY, JSON.stringify({ cid: tipCid, height: decision.height, lamport: decision.lamport, added: missingNotes.length }));
+      publishIndexTip(tipCid);
+    }
+
+    if (missingNotes.length) {
+      const issues = loadIssues();
+      issues.unshift(...missingNotes);
       localStorage.setItem(ISSUES_KEY, JSON.stringify(issues.slice(0, 200)));
     }
     renderChainStatus();

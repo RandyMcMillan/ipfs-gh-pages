@@ -136034,8 +136034,24 @@ function makeSmartHttp(store2) {
   };
 }
 
+// js/index-merge.js
+function classifyIndexSync(local, remote, remoteDescendsLocal, localDescendsRemote) {
+  if (!local) {
+    return { action: "adopt-remote", height: remote.height, lamport: remote.lamport };
+  }
+  if (remoteDescendsLocal) {
+    return { action: "adopt-remote", height: remote.height, lamport: remote.lamport };
+  }
+  if (localDescendsRemote) {
+    return { action: "noop" };
+  }
+  const height = Math.max(local.height || 0, remote.height || 0) + 1;
+  const lamport = Math.max(local.lamport || 0, remote.lamport || 0) + 1;
+  return { action: "merge", height, lamport };
+}
+
 // js/ipfs-node.js
-var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "2.7.6" };
+var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "2.7.7" };
 var { repoOwner, repoName } = (() => {
   const host = window.location.hostname;
   const m2 = host.match(/^([^.]+)\.github\.io$/);
@@ -136612,50 +136628,104 @@ async function opIssuesSync() {
   if (!result2) return { synced: false, reason: "index name not resolvable" };
   const remoteStr = (result2.value || result2.path || result2).toString().replace(/^\/ipfs\//, "");
   const local = loadChainTip();
-  if (remoteStr && (!local || remoteStr !== local.cid)) {
-    const { obj: remoteEntry } = await opDagGet({ cid: remoteStr });
-    const remoteWins = !local || (Number(remoteEntry?.height) || 0) > (local.height || 0) || (Number(remoteEntry?.height) || 0) === (local.height || 0) && (Number(remoteEntry?.lamport) || 0) > (local.lamport || 0);
-    if (remoteWins && remoteEntry) {
-      localStorage.setItem(CHAIN_KEY, JSON.stringify({
-        cid: remoteStr,
-        height: Number(remoteEntry.height) || 0,
-        lamport: Number(remoteEntry.lamport) || 0,
-        added: Array.isArray(remoteEntry.added) ? remoteEntry.added.length : 0
-      }));
+  if (!remoteStr || local && remoteStr === local.cid) {
+    return { synced: true, merged: false, issues: state.issues.length, tip: local?.cid || null, name: name15 };
+  }
+  const { obj: remoteEntry } = await opDagGet({ cid: remoteStr });
+  const descendsFrom = async (tipCid, ancestorCid, maxSteps = 50) => {
+    let cursor = tipCid;
+    for (let i = 0; i < maxSteps && cursor; i++) {
+      if (cursor === ancestorCid) return true;
       try {
-        localStorage.setItem(LAMPORT_KEY, String(Number(remoteEntry.lamport) || 0));
+        const { obj } = await opDagGet({ cid: cursor });
+        cursor = Array.isArray(obj?.prev) ? obj.prev[0] : null;
       } catch {
+        break;
       }
-      const issues = loadIssues();
-      const known = new Set(issues.map((i) => i.cid));
-      let cursor = remoteEntry;
-      let walked = 0;
-      while (cursor && walked < 50) {
-        for (const noteCid of cursor.added || []) {
-          if (known.has(noteCid)) continue;
-          try {
-            const { obj: note } = await opDagGet({ cid: noteCid });
-            if (note && note.ns === "issues" && note.type === "issue" && note.title) {
-              issues.unshift({ cid: noteCid, title: note.title, timestamp: note.timestamp });
-              known.add(noteCid);
-            }
-          } catch {
-          }
-        }
-        const prev = Array.isArray(cursor.prev) ? cursor.prev[0] : null;
-        if (!prev) break;
+    }
+    return false;
+  };
+  const missingNotes = [];
+  {
+    const known = new Set(loadIssues().map((i) => i.cid));
+    let cursor = remoteEntry;
+    let walked = 0;
+    while (cursor && walked < 50) {
+      for (const noteCid of cursor.added || []) {
+        if (known.has(noteCid)) continue;
         try {
-          cursor = (await opDagGet({ cid: prev })).obj;
+          const { obj: note } = await opDagGet({ cid: noteCid });
+          if (note && note.ns === "issues" && note.type === "issue" && note.title) {
+            missingNotes.push({ cid: noteCid, title: note.title, timestamp: note.timestamp });
+            known.add(noteCid);
+          }
         } catch {
-          break;
         }
-        walked++;
       }
-      state.issues = issues.slice(0, 200);
-      localStorage.setItem(ISSUES_KEY, JSON.stringify(state.issues));
+      const prev = Array.isArray(cursor.prev) ? cursor.prev[0] : null;
+      if (!prev) break;
+      try {
+        cursor = (await opDagGet({ cid: prev })).obj;
+      } catch {
+        break;
+      }
+      walked++;
     }
   }
-  return { synced: true, issues: state.issues.length, tip: loadChainTip()?.cid || null, name: name15 };
+  let merged = false;
+  let newTip = null;
+  const decision = classifyIndexSync(
+    local,
+    { cid: remoteStr, height: Number(remoteEntry?.height) || 0, lamport: Number(remoteEntry?.lamport) || 0 },
+    local ? await descendsFrom(remoteStr, local.cid) : false,
+    local ? await descendsFrom(local.cid, remoteStr) : false
+  );
+  if (decision.action === "noop") {
+    return { synced: true, merged: false, issues: state.issues.length, tip: local.cid, name: name15 };
+  }
+  if (decision.action === "adopt-remote") {
+    localStorage.setItem(CHAIN_KEY, JSON.stringify({
+      cid: remoteStr,
+      height: Number(remoteEntry.height) || 0,
+      lamport: Number(remoteEntry.lamport) || 0,
+      added: Array.isArray(remoteEntry.added) ? remoteEntry.added.length : 0
+    }));
+    try {
+      localStorage.setItem(LAMPORT_KEY, String(Number(remoteEntry.lamport) || 0));
+    } catch {
+    }
+    newTip = remoteStr;
+    merged = true;
+  } else {
+    const envelope = await signFields({
+      type: "index-entry",
+      added: missingNotes.map((n) => n.cid),
+      prev: [local.cid, remoteStr],
+      height: decision.height,
+      lamport: decision.lamport,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    const { cid: tipCid } = await opDagPut({ obj: envelope });
+    localStorage.setItem(CHAIN_KEY, JSON.stringify({ cid: tipCid, height: decision.height, lamport: decision.lamport, added: missingNotes.length }));
+    publishIndexTip(tipCid);
+    newTip = tipCid;
+    merged = true;
+  }
+  const issues = loadIssues();
+  const before = issues.length;
+  if (missingNotes.length) {
+    issues.unshift(...missingNotes);
+    state.issues = issues.slice(0, 200);
+    localStorage.setItem(ISSUES_KEY, JSON.stringify(state.issues));
+  }
+  return {
+    synced: true,
+    merged,
+    newNotes: issues.length - before,
+    issues: state.issues.length,
+    tip: newTip || loadChainTip()?.cid,
+    name: name15
+  };
 }
 async function opIssueCreate(arg) {
   return opIssuesCreate(arg);
