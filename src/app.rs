@@ -234,6 +234,7 @@ pub enum InputTarget {
     ServicesSet,
     GitClone,
     GitAdvertise,
+    RepoPublish,
 }
 
 pub struct App<'a> {
@@ -270,6 +271,8 @@ pub struct App<'a> {
     pub fetch_output: String,
     /// Publish result lines (CID, gateway URL, pin command).
     pub publish_output: String,
+    /// Repo publish result (root CID + commands).
+    pub repo_output: String,
 }
 
 #[derive(Clone, Copy, Debug, Default, Ord, PartialOrd, Eq, PartialEq)]
@@ -295,7 +298,7 @@ impl<'a> App<'a> {
             should_quit: false,
             tabs: TabsState::new(vec![
                 "Home", "About", "Status", "Theme", "IPFS", "Peers", "Fetch", "Publish", "Chat",
-                "Kubo", "Services", "Git",
+                "Kubo", "Services", "Git", "Repo",
             ]),
             show_chart: true,
             progress: 0.0,
@@ -358,6 +361,7 @@ impl<'a> App<'a> {
             last_result: String::new(),
             fetch_output: String::new(),
             publish_output: String::new(),
+            repo_output: String::new(),
         }
     }
 
@@ -401,6 +405,12 @@ impl<'a> App<'a> {
             's' if self.tabs.index == 10 => self.start_input(InputTarget::ServicesSet),
             'c' if self.tabs.index == 11 => self.start_input(InputTarget::GitClone),
             'a' if self.tabs.index == 11 => self.start_input(InputTarget::GitAdvertise),
+            'p' if self.tabs.index == 12 => {
+                if let Some(id) = ipfs::cmd("repo.publishAll", "{}") {
+                    self.pending = Some((id, InputTarget::RepoPublish));
+                    self.last_result = "publishing repo tree...".to_string();
+                }
+            }
             _ => {}
         }
     }
@@ -461,6 +471,7 @@ impl<'a> App<'a> {
             InputTarget::ServicesSet => "services.set",
             InputTarget::GitClone => "git.clone",
             InputTarget::GitAdvertise => "git.advertise",
+            InputTarget::RepoPublish => "repo.publishAll",
         };
         if let Some(id) = ipfs::cmd(op, &arg) {
             self.pending = Some((id, self.input_target));
@@ -511,6 +522,19 @@ impl<'a> App<'a> {
                         format!("cloned to {zip} ({bytes} bytes, bare repo: {bare})")
                     }
                     InputTarget::GitAdvertise => format!("advertised: {value}"),
+                    InputTarget::RepoPublish => {
+                        // One fact per line, full values.
+                        let root = ipfs::json_field(&value, "rootCid").unwrap_or_default();
+                        let count = ipfs::json_field(&value, "fileCount").unwrap_or_default();
+                        let url = ipfs::json_field(&value, "gatewayUrl").unwrap_or_default();
+                        let pin = ipfs::json_field(&value, "pinCmd").unwrap_or_default();
+                        let import = ipfs::json_field(&value, "importCmd").unwrap_or_default();
+                        let summary = format!("repo published: {root} ({count} files)");
+                        self.repo_output = format!(
+                            "Root CID: {root}\nGateway: {url}\n{pin}\n{import}\n\nserve envelope advertised on repo-gossip"
+                        );
+                        summary
+                    }
                 };
             }
             Err(error) => {

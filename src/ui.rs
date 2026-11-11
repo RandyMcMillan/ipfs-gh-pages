@@ -40,6 +40,7 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
         9 => draw_kubo_tab(frame, app, chunks[1]),
         10 => draw_services_tab(frame, app, chunks[1]),
         11 => draw_git_tab(frame, app, chunks[1]),
+        12 => draw_repo_tab(frame, app, chunks[1]),
         _ => {}
     };
     // let big_text = BigText::builder()
@@ -100,6 +101,32 @@ fn draw_peers_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         )
     } else if app.last_result.is_empty() {
         "c = connect".to_string()
+    } else {
+        app.last_result.clone()
+    };
+    frame.render_widget(
+        Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),
+        chunks[1],
+    );
+}
+
+fn draw_repo_tab(frame: &mut Frame, app: &mut App, area: Rect) {
+    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
+    let body = if app.repo_output.is_empty() {
+        "(repo not published — press p to add the whole repo tree to IPFS and advertise it)"
+    } else {
+        app.repo_output.as_str()
+    };
+    frame.render_widget(
+        Paragraph::new(body)
+            .block(Block::bordered().title("Repo"))
+            .wrap(Wrap { trim: false }),
+        chunks[0],
+    );
+    let footer = if app.input_active {
+        format!("> {}_", app.input_buffer)
+    } else if app.last_result.is_empty() {
+        "p = publish repo tree to IPFS".to_string()
     } else {
         app.last_result.clone()
     };

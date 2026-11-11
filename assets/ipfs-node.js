@@ -113306,6 +113306,35 @@ function opServicesSet(arg) {
   };
   return { configured: state.services.configured, endpoints: state.services.endpoints };
 }
+async function opRepoPublishAll() {
+  const res = await fetch("./assets/repo-files.json");
+  if (!res.ok) throw new Error(`repo-files.json: HTTP ${res.status} \u2014 run scripts/build-repo-files.mjs`);
+  const entries = await res.json();
+  const candidates = Object.entries(entries).map(([path, rec]) => ({
+    path,
+    content: base64ToUint8Array(rec.content)
+  }));
+  let rootCid = null;
+  for await (const entry of heliaUnixfs.addAll(candidates, { wrapWithDirectory: true })) {
+    rootCid = entry.cid.toString();
+  }
+  if (!rootCid) throw new Error("addAll produced no entries");
+  const gateway = resolveEndpoints("gateways")[0];
+  let head = null;
+  try {
+    head = (await (await fetch("./assets/repo-head.txt")).text()).trim() || null;
+  } catch {
+  }
+  await advertiseServe({ head, rootCid }).catch(() => {
+  });
+  return {
+    rootCid,
+    fileCount: candidates.length,
+    gatewayUrl: `${gateway}/ipfs/${rootCid}`,
+    pinCmd: `ipfs pin add ${rootCid}`,
+    importCmd: `ipfs dag import ${rootCid}.car`
+  };
+}
 var ops = {
   refresh: async () => {
     refreshNodeState();
@@ -113326,7 +113355,8 @@ var ops = {
   shareAddr: async () => opShareAddr(),
   "services.set": async (a) => opServicesSet(a),
   "git.advertise": advertiseServe,
-  "git.clone": opGitClone
+  "git.clone": opGitClone,
+  "repo.publishAll": opRepoPublishAll
 };
 window.__ipfsCmd = (id, op, arg) => {
   const fn = ops[op];

@@ -625,6 +625,39 @@ function opServicesSet(arg) {
   return { configured: state.services.configured, endpoints: state.services.endpoints };
 }
 
+// Publish the whole repo tree: fetch the build-emitted file set
+// (scripts/build-repo-files.mjs -> assets/repo-files.json, same content
+// set as the vite plugin's virtual:repo-files), add it as a wrapped unixfs
+// directory, and advertise it as a git serve envelope. Mirrors main.js
+// addAllRepoFiles + the Clone bar's root CID.
+async function opRepoPublishAll() {
+  const res = await fetch('./assets/repo-files.json');
+  if (!res.ok) throw new Error(`repo-files.json: HTTP ${res.status} — run scripts/build-repo-files.mjs`);
+  const entries = await res.json();
+  const candidates = Object.entries(entries).map(([path, rec]) => ({
+    path,
+    content: base64ToUint8Array(rec.content)
+  }));
+  let rootCid = null;
+  for await (const entry of heliaUnixfs.addAll(candidates, { wrapWithDirectory: true })) {
+    rootCid = entry.cid.toString(); // last entry = the wrapping directory
+  }
+  if (!rootCid) throw new Error('addAll produced no entries');
+  const gateway = resolveEndpoints('gateways')[0];
+  let head = null;
+  try {
+    head = (await (await fetch('./assets/repo-head.txt')).text()).trim() || null;
+  } catch {}
+  await advertiseServe({ head, rootCid }).catch(() => {});
+  return {
+    rootCid,
+    fileCount: candidates.length,
+    gatewayUrl: `${gateway}/ipfs/${rootCid}`,
+    pinCmd: `ipfs pin add ${rootCid}`,
+    importCmd: `ipfs dag import ${rootCid}.car`
+  };
+}
+
 const ops = {
   refresh: async () => { refreshNodeState(); return state.node; },
   fetch: opFetch,
@@ -642,7 +675,8 @@ const ops = {
   shareAddr: async () => opShareAddr(),
   'services.set': async (a) => opServicesSet(a),
   'git.advertise': advertiseServe,
-  'git.clone': opGitClone
+  'git.clone': opGitClone,
+  'repo.publishAll': opRepoPublishAll
 };
 
 // ---- command channel (Rust -> JS) --------------------------------------------

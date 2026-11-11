@@ -64,6 +64,7 @@ build_bundle() {
   ensure_trunk
 
   node scripts/build-ipfs-js.mjs
+  node scripts/build-repo-files.mjs
   trunk build --release --dist dist --html-output index-rust.html
   # cargo-bundle does not refresh Resources/ inside an existing .app —
   # wipe it so dist/ (and the icon) are copied fresh every build.
