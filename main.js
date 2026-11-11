@@ -2848,6 +2848,34 @@ document.querySelectorAll('.tab-button[data-tab]').forEach((button) => {
 window.addEventListener('hashchange', applyRoute);
 applyRoute();
 
+// ipfs:// URI support (docs/ipfs-uri-providers.md): clicking an ipfs:// or
+// ipns:// link fetches in-app through our own Helia node — works on every
+// platform with no extension. web+ipfs/web+ipns protocol handlers land
+// external "open in app" requests on the same path via ?uri=.
+function openUri(uri) {
+  const m = uri.match(/^ip[fn]s:\/\/([^/?#]+)/i) || uri.match(/^web\+ip[fn]s:\/\/([^/?#]+)/i);
+  if (!m) return false;
+  activateTab('files');
+  if (inputCid) inputCid.value = m[1];
+  fetchContent(m[1]);
+  return true;
+}
+
+document.addEventListener('click', (e) => {
+  const a = e.target.closest && e.target.closest('a[href^="ipfs://"],a[href^="ipns://"],a[href^="web+ipfs://"],a[href^="web+ipns://"]');
+  if (!a) return;
+  e.preventDefault();
+  openUri(a.getAttribute('href'));
+});
+
+try {
+  navigator.registerProtocolHandler('web+ipfs', `${location.origin}${basePath()}/?uri=%s`, 'ipfs-gh-pages');
+  navigator.registerProtocolHandler('web+ipns', `${location.origin}${basePath()}/?uri=%s`, 'ipfs-gh-pages');
+} catch {}
+
+const uriParam = new URLSearchParams(window.location.search).get('uri');
+if (uriParam) openUri(uriParam);
+
 // Settings endpoint deep-link: open the Peer tab's Settings sub-tab.
 const openNodeSettingsBtn = document.getElementById('btn-open-node-settings');
 if (openNodeSettingsBtn) {
