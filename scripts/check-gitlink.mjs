@@ -60,6 +60,7 @@ function remoteHas(subDir, url, sha) {
   } catch { /* ls-remote failed — the probe below reports the real error */ }
   const probe = subDir || fs.mkdtempSync(path.join(os.tmpdir(), 'check-gitlink-'));
   try {
+    if (!subDir) run('git init -q', probe); // fetch needs a repo context
     run(`git fetch --depth 1 ${url} ${sha}`, probe);
     return true;
   } catch (e) {

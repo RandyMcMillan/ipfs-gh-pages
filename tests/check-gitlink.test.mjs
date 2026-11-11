@@ -98,6 +98,23 @@ test('guard passes on a repo with no submodules', () => {
   assert.ok(r.out.includes('no submodules recorded'));
 });
 
+test('guard works on a checkout with UNINITIALIZED submodules (the CI path)', () => {
+  const { remote, sub, sup, subSha } = mkFixture();
+  const sup2 = `${fs.mkdtempSync(path.join(os.tmpdir(), 'gitlink-sup2-'))}`;
+  git(['clone', '-q', sup, sup2], os.tmpdir());
+  assert.ok(!fs.existsSync(path.join(sup2, 'actions-test', '.git')), 'submodule not initialized');
+
+  const r = runGuard(sup2);
+  assert.equal(r.code, 1);
+  assert.ok(r.out.includes(subSha), 'full SHA named');
+  assert.ok(r.out.includes('not our ref'), 'probe reports the real fetch error, not a spurious one');
+  assert.ok(!r.out.includes('not a git repository'), 'probe dir is a real repo');
+
+  git(['push', '-q', remote, 'master'], sub);
+  const ok = runGuard(sup2);
+  assert.equal(ok.code, 0);
+});
+
 test('pre-push BLOCKS a default-branch push with an unpushed gitlink', () => {
   const { sup, sub, remote, subSha } = mkFixture();
   const supSha = git(['rev-parse', 'HEAD'], sup);
