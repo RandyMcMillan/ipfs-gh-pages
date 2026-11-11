@@ -174,7 +174,8 @@ fn create_about_window(
     let window = WindowBuilder::new()
         .with_title(format!("About {}", env!("CARGO_PKG_NAME")))
         .with_inner_size(LogicalSize::new(420.0, 360.0))
-        .with_resizable(false)
+        .with_min_inner_size(LogicalSize::new(300.0, 260.0))
+        .with_resizable(true)
         .with_maximizable(false)
         .with_minimizable(false)
         .build(target)?;
@@ -191,19 +192,37 @@ fn about_html() -> String {
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+  :root {{
+    --bg: #f5f5f7;
+    --fg: #1d1d1f;
+    --fg-secondary: #6e6e73;
+    --fg-tertiary: #86868b;
+    --fg-credits: #48484a;
+  }}
+  @media (prefers-color-scheme: dark) {{
+    :root {{
+      --bg: #1c1c1e;
+      --fg: #f2f2f7;
+      --fg-secondary: #98989f;
+      --fg-tertiary: #6e6e73;
+      --fg-credits: #aeaeb2;
+    }}
+  }}
   body {{
-    margin: 0; height: 100vh; box-sizing: border-box; padding: 24px 16px;
+    margin: 0; min-height: 100vh; box-sizing: border-box;
+    padding: clamp(12px, 4vmin, 28px);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: #f5f5f7; color: #1d1d1f; text-align: center;
+    background: var(--bg); color: var(--fg); text-align: center;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }}
-  img {{ width: 96px; height: 96px; border-radius: 22%;
-         box-shadow: 0 4px 16px rgba(0,0,0,.18); margin-bottom: 14px; }}
-  h1 {{ font-size: 22px; font-weight: 600; margin: 2px 0; }}
-  .version {{ font-size: 13px; color: #6e6e73; margin-bottom: 10px; }}
-  .credits {{ font-size: 12px; color: #48484a; line-height: 1.5; max-width: 340px; }}
-  .copy {{ font-size: 11px; color: #86868b; margin-top: 18px; }}
+  img {{ width: clamp(56px, 18vmin, 96px); height: auto; border-radius: 22%;
+         box-shadow: 0 4px 16px rgba(0,0,0,.18); margin-bottom: clamp(8px, 2vmin, 14px); }}
+  h1 {{ font-size: clamp(16px, 4vmin, 22px); font-weight: 600; margin: 2px 0; }}
+  .version {{ font-size: clamp(11px, 2.4vmin, 13px); color: var(--fg-secondary); margin-bottom: clamp(6px, 1.6vmin, 10px); }}
+  .credits {{ font-size: clamp(11px, 2.2vmin, 12px); color: var(--fg-credits); line-height: 1.5; max-width: 40ch; }}
+  .copy {{ font-size: clamp(10px, 2vmin, 11px); color: var(--fg-tertiary); margin-top: clamp(10px, 3vmin, 18px); }}
 </style>
 </head>
 <body>
