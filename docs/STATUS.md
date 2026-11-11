@@ -67,7 +67,7 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 - Identity ONEness: `ipns-branch-key` (repo/root pointer) vs `ipns-index-key` (issues chain) are DIFFERENT keys — one IPNS name = one value.
 - Optional services (`docs/optional-services.md`) are accelerants, never dependencies; resolution: configured → public defaults → p2p.
 - PUSH ORDER (AGENTS.md): submodule branch/tag on ITS remote FIRST, superproject second — a gitlink pointing at an unpushed commit breaks CI checkout ("upload-pack: not our ref <sha>"). Guard: `node scripts/check-gitlink.mjs`; enforced in `.githooks/pre-push`, `release.mjs`, and the CI workflows (guard step before submodule checkout).
-- `Action packaging smoke test` rust-smoke job fails spuriously on runner-image issues (glib-sys/gobject-sys build scripts, rustup network) — unrelated to push contents; check the deploy + smoke jobs first.
+- `Action packaging smoke test` rust-smoke job: FIXED — was the ubuntu-latest migration dropping glib preinstalls; now pins `ubuntu-24.04` and apt-installs `libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev` (wry 0.55 / webkit2gtk-sys 2.0 pkg-config set).
 
 ## Standing orders
 

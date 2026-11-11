@@ -42,7 +42,10 @@ jobs:
           echo "Submodule CAR OK"
 
   rust-smoke:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest is migrating (to 26.04) and the migration broke
+    # the glib preinstalls this job used to rely on. Deps are now installed
+    # explicitly below — the pin stops the next migration from breaking it.
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,6 +64,13 @@ jobs:
 
       - name: Check wasm browser build
         run: cargo check --target wasm32-unknown-unknown
+
+      # wry 0.55 / webkit2gtk-sys 2.0: pkg-config needs glib-2.0, gtk-3,
+      # webkit2gtk-4.1 and libsoup-3.0 dev files on Linux.
+      - name: Install desktop build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev
 
       - name: Check desktop build (bundle-wry)
         run: cargo check --features bundle-wry
