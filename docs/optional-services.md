@@ -41,6 +41,12 @@ settings tab:
 All fields optional per service; unknown fields ignored; a service with
 no reachable endpoint is skipped, never fatal.
 
+Pinata fits the same shape — its JWT-auth endpoints drop into the
+`pinning` registry (`{ "endpoint": "https://api.pinata.cloud/psa/pins",
+"token": "<jwt>" }`), and the action's `pinata-jwt` input is the
+repo-secret path to the same capability (server-side, token never in
+the page).
+
 ## Resolution order (per capability)
 
 1. Configured services, in user order (first success wins).

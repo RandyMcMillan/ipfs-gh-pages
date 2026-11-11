@@ -2304,6 +2304,17 @@ if (remotePinSaveBtn) {
     setRemotePinStatus('Settings saved.');
   });
 }
+// Pinata preset: fills the PSA endpoint (docs.pinata.cloud — the page's
+// remotePinCid speaks the Pinning Services API JSON, same call the
+// server-side SDK's upload.public.cid wraps).
+const remotePinPresetPinata = document.getElementById('btn-remote-pin-preset-pinata');
+if (remotePinPresetPinata) {
+  remotePinPresetPinata.addEventListener('click', () => {
+    if (remotePinEndpointInput) remotePinEndpointInput.value = 'https://api.pinata.cloud/psa/pins';
+    if (remotePinTokenInput) remotePinTokenInput.focus();
+    setRemotePinStatus('Endpoint set to Pinata — paste your JWT and Save.');
+  });
+}
 if (remotePinBtn) {
   remotePinBtn.addEventListener('click', remotePinRoot);
 }

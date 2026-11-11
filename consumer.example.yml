@@ -104,3 +104,7 @@ jobs:
         with:
           node-version: ${{ steps.set-inputs.outputs.node_version }}
           deploy: 'true'
+          # Optional: pin the release CAR to Pinata public IPFS. Create the
+          # secret in the repo's Settings → Secrets and variables → Actions
+          # (a Pinata JWT from app.pinata.cloud → Keys). Missing/empty = skipped.
+          pinata-jwt: ${{ secrets.PINATA_JWT }}

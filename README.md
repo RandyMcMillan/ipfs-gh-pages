@@ -148,6 +148,7 @@ Inputs:
 - `out-dir` (default `${{ github.workspace }}/dist`) — where the production bundle is written.
 - `deploy` (default `true`) — whether to deploy to GitHub Pages.
 - `run-tests` (default `false`) — run the integration suite (installs Chromium) before building.
+- `pinata-jwt` (default empty) — a Pinata JWT, normally passed as a repo secret (`pinata-jwt: ${{ secrets.PINATA_JWT }}`). When set, the built `ipfs-gh-pages.car` is pinned to Pinata's public IPFS network (`car=true` — the CAR's roots are what gets pinned). Empty = skipped; failures only warn (optional service).
 
 Outputs:
 
