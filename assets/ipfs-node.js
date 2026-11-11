@@ -113208,7 +113208,7 @@ var GitStore = class {
 };
 
 // js/ipfs-node.js
-var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "2.5.0" };
+var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "2.6.0" };
 var { repoOwner, repoName } = (() => {
   const host = window.location.hostname;
   const m2 = host.match(/^([^.]+)\.github\.io$/);
