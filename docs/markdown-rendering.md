@@ -53,13 +53,19 @@ in our origin. Inputs are genuinely untrusted:
 
 1. **DOMPurify after marked**, GitHub-style config — strip scripts,
    event handlers, `style`; keep the safe whitelist (incl. `align`).
-   Never `innerHTML` raw marked output. Keep DOMPurify pinned-current:
+   Never `innerHTML` raw marked output ([marked does not
+   sanitize](https://marked.js.org/) — upstream's own warning).
+   Keep DOMPurify pinned-current (floor ≥ 3.2.4, CVE-2025-26791):
    sanitizer bypasses (incl. mXSS via SVG/MathML namespace confusion)
-   are a living CVE stream, and the sanitizer must be namespace-aware.
+   are a living CVE stream
+   ([bypass history](https://github.com/cure53/DOMPurify/wiki/Attack-Classes-&-Bypass-History)),
+   and the sanitizer must be namespace-aware.
 2. **URL scheme filtering** — `javascript:`, `data:` (except possibly
    images), `vbscript:` blocked in hrefs/srcs.
 3. **CSP meta tag** (works on GitHub Pages): `script-src 'self'` kills
-   injected scripts and inline handlers even if sanitization misses.
+   injected scripts and inline handlers even if sanitization misses;
+   never add `blob:` to script sources ([blob URLs execute as
+   script](https://centralcsp.com/en/docs/web-security/policies/content-security-policy/directives/script-src-elem)).
    `img-src` is the enforcement layer for the image policy below.
    Prerequisite: remove the few inline `onclick=` attributes in
    index.html (the delegated-listener idiom already covers them).
@@ -74,19 +80,24 @@ in our origin. Inputs are genuinely untrusted:
 
 SVG is XML, not a passive picture — it can carry `<script>`, event
 attributes (`onload`), `<a xlink:href="javascript:…">`,
-`<foreignObject>` HTML, and `<animate>` attribute-mutation XSS. Context
+`<foreignObject>` HTML, and `<animate>` attribute-mutation XSS
+([payload survey](https://salivity.github.io/svg/article/svg-xss-how-malicious-scripts-execute-in-sv-gs),
+[weaponization in the wild](https://www.cryptika.com/hackers-weaponizing-svg-files-with-malicious-embedded-javascript-to-execute-malware-on-windows-systems/)). Context
 decides everything:
 
 - `<img src="x.svg">` (and CSS backgrounds) are script-inert — the SVG
-  parses in image context. This is the ONLY safe way to render SVG.
+  parses in image context ([confirmed](https://security.stackexchange.com/questions/212894/is-there-a-way-to-execute-xss-in-an-html-img-tag-with-svg)). This is the ONLY safe way to render SVG.
 - Inline `<svg>` in HTML, `<object>`, `<embed>`, `<iframe>`, or
-  top-level navigation to an `.svg` URL = scriptable context.
+  top-level navigation to an `.svg` URL = scriptable context
+  ([demonstrated](https://www.arnevogel.com/til/svg-script/)).
 - Sanitized output must therefore forbid `<object>`, `<embed>`,
   `<iframe>`, and either forbid inline `<svg>` entirely or run it
   through a namespace-aware SVG sanitizer profile (no `<script>`, no
   `<foreignObject>`, no `<animate>`, no `xlink:href`/`href` with
   executable schemes, no event attributes). A sanitizer that treats SVG
-  as opaque markup gets mXSS'd.
+  as opaque markup gets mXSS'd — DOMPurify's bypass history is the
+  proof ([attack classes](https://github.com/cure53/DOMPurify/wiki/Attack-Classes-&-Bypass-History),
+  [namespace-confusion bypass](https://securitum.com/mutation-xss-via-mathml-mutation-dompurify-2-0-17-bypass.html)).
 - Repo and network content both include SVGs (icons, badges). Rule:
   render SVG via `<img>`/blob URL only, never inline; the blob view's
   image preview must not inline SVG either.
@@ -95,8 +106,12 @@ decides everything:
 
 - **Tracking pixels**: every remote `<img>` beacons viewer IP, user-
   agent, timing, and the page URL (which may carry `?uri=`, repo
-  identity, peer info) to the image host. GitHub runs camo precisely
-  because of this; we have no proxy. DECISION on the policy.
+  identity, peer info) to the image host ([web beacons](https://en.wikipedia.org/wiki/Web_beacon)).
+  GitHub runs camo precisely because of this — "your browser information
+  won't be leaked to other third party services"
+  ([GitHub blog](https://github.blog/news-insights/product-news/proxying-user-images/));
+  GitLab ships [go-camo](https://docs.gitlab.com/security/asset_proxy/)
+  for the same reason. We have no proxy. DECISION on the policy.
 - **Gateway leakage is still leakage**: even "decentralized" loading
   tells the gateway operator which CIDs you view; loading via our own
   Helia node instead leaks to the swarm/providers. There is no
@@ -116,13 +131,19 @@ decides everything:
 Sanitization works on markup, not on file bytes. A payload hidden in a
 valid PNG (LSB steganography) or a **polyglot** file that is
 simultaneously a valid image and valid HTML/JS passes every layer above
-untouched — the image is a real image. We will NOT attempt stego
+untouched — the image is a real image. This is not hypothetical: DPRK's
+Contagious Interview campaign hid C2 payloads in SVGs
+([Securonix](https://connect.securonix.com/threat-research-intelligence-62/flags-fake-jobs-and-fileless-payloads-inside-dprk-s-svg-steganography-contagious-interview-campaign-440));
+SVG steganography is an active research area
+([CVPR GVIS](https://openaccess.thecvf.com/content/CVPR2026/papers/Xu_GVIS_Generative_Vector_Image_Steganography_CVPR_2026_paper.pdf))
+with commercial tooling. We will NOT attempt stego
 detection (statistically infeasible in-browser); the defense is
 containment: repo/network bytes are never executed and never served as
 documents.
 
 - **Polyglot delivery paths to keep shut**: `blob:` URLs inherit the
-  page's origin — a `blob:` URL typed `text/html` and navigated to
+  page's origin ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker))
+  — a `blob:` URL typed `text/html` and navigated to
   top-level executes in the app's origin with full key access. Same for
   `data:` navigation and any raw-view iframe that renders bytes as a
   document. Rule: file content is rendered as escaped text or `<img>`
