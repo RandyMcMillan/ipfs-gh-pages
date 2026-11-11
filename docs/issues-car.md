@@ -161,6 +161,48 @@ The bridge syncs the two worlds at git operation boundaries:
   tools (git-appraise, git-bug, plain `git notes`) can read and write the
   same layer — comments filed from a terminal appear in the app.
 
+### Usage (phase 12, shipped)
+
+Hooks live in `.githooks/` and are not cloned, so activation is explicit
+per clone:
+
+```
+npm run githooks:activate
+```
+
+Outbound: export the current index tip for the pre-push hook — the app
+shows this command (with the live CID filled in) under the index chain
+status in the Issues panel; run it in the clone:
+
+```
+printf '%s\n' '<tip CID>' > "$(git rev-parse --git-path ipfs-index-tip)"
+```
+
+Tip sources, first match wins: `IPFS_INDEX_TIP` env, the exported file,
+`git config ipfs.indexTip`, then `git config ipfs.indexName` resolved
+through a local Kubo daemon. The notes namespace is `<owner>/<repo>/index`
+derived from the origin remote (override: `git config ipfs.repo`).
+
+The pre-push hook writes the note locally; the notes ref travels with the
+next push once the remote's refspec carries it (one-time setup):
+
+```
+git config --add remote.origin.push '+refs/notes/*:refs/notes/*'
+```
+
+or send it immediately:
+
+```
+git push origin '+refs/notes/<owner>/<repo>/index:refs/notes/<owner>/<repo>/index'
+```
+
+Inbound: after a pull/merge the post-merge hook prints the fetched tip
+CID (full value) and records it in `.git/ipfs-index-tip-incoming`; paste
+the CID into the app's Issues panel → "Sync index tip" to merge it per
+the Chronology protocol (union of notes, then adopt or two-parent merge
+entry — a CLI hook cannot write into a browser tab, so the paste is the
+hand-off).
+
 ### Attacks and resolutions
 
 | attack | resolution |

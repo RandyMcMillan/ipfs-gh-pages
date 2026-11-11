@@ -1,0 +1,55 @@
+#!/bin/bash
+# .githooks/pre-push — git-host bridge, outbound (docs/issues-car.md phase 12).
+#
+# Reads the current canonical issues-index tip CID and writes it as a git
+# note on every commit being pushed, under refs/notes/<owner>/<repo>/index
+# (the native SHA-keyed notes layout — plain `git notes --ref=<owner>/<repo>/index
+# show <sha>` reads it back, and so can git-appraise / git-bug). Any git host
+# stores and serves refs/notes/* faithfully, so the notes ride to forks as
+# ordinary ref passthrough.
+#
+# Tip sources and the activation step are documented in lib.sh and
+# docs/issues-car.md ("Git-host bridge (hooks)"). The hook NEVER fails the
+# push: the bridge is a sync point, not a gate — realtime propagation stays
+# on pubsub/IPNS.
+set -u
+. "$(dirname "$0")/lib.sh"
+
+remote="${1:-origin}"
+
+ns=$(ipfs_notes_namespace) || exit 0
+tip=$(ipfs_index_tip) || {
+  echo "ipfs-bridge: no index tip found — export one from the app's Issues panel (index chain status) or: git config ipfs.indexTip <cid>. Skipping notes sync." >&2
+  exit 0
+}
+
+zero=0000000000000000000000000000000000000000
+zero64=0000000000000000000000000000000000000000000000000000000000000000
+
+wrote=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$local_sha" in
+    ''|"$zero"|"$zero64") continue ;; # branch deletion — nothing to annotate
+  esac
+  if git notes --ref="$ns" add -f -m "$tip" "$local_sha" 2>/dev/null; then
+    wrote=$((wrote + 1))
+    echo "ipfs-bridge: noted index tip $tip on $local_sha ($local_ref) under refs/notes/$ns"
+  else
+    echo "ipfs-bridge: git notes --ref=$ns add failed on $local_sha (user.name/user.email set?)" >&2
+  fi
+done
+
+if [ "$wrote" -gt 0 ]; then
+  cat >&2 <<EOF
+ipfs-bridge: $wrote note(s) written locally. The current push already fixed
+its ref list, so the notes travel with the NEXT push once the remote's push
+refspec carries them — one-time setup:
+
+git config --add remote.$remote.push '+refs/notes/*:refs/notes/*'
+
+or send the notes for what you just pushed immediately:
+
+git push $remote '+refs/notes/$ns:refs/notes/$ns'
+EOF
+fi
+exit 0

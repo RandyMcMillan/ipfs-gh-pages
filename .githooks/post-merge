@@ -1,0 +1,41 @@
+#!/bin/bash
+# .githooks/post-merge — git-host bridge, inbound (docs/issues-car.md phase 12).
+#
+# After a merge (e.g. git pull), read the notes ref the fetch brought in and
+# hand the issues-index tip CID to the app. A fast-forward pull leaves HEAD
+# on the pushed tip, which carries the note; a true merge commit is new, so
+# its second parent (the fetched side) is checked too. The hand-off is the
+# printed CID — the app merges it per the Chronology protocol when the CID
+# is pasted into the Issues panel's "Sync index tip" field (a CLI hook
+# cannot write into a browser tab). Never fails the merge.
+set -u
+. "$(dirname "$0")/lib.sh"
+
+ns=$(ipfs_notes_namespace) || exit 0
+
+tips=""
+for rev in HEAD 'HEAD^2'; do
+  tip=$(git notes --ref="$ns" show "$rev" 2>/dev/null | head -n 1 | tr -d '[:space:]') || tip=""
+  [ -n "$tip" ] || continue
+  case "
+$tips" in *"
+$tip"*) continue ;; esac # dedup (ff: HEAD == HEAD^2's note)
+  tips="$tips
+$tip"
+  echo "ipfs-bridge: notes ref refs/notes/$ns names index tip $tip (from $rev)"
+done
+
+if [ -n "$tips" ]; then
+  incoming=$(git rev-parse --git-path ipfs-index-tip-incoming)
+  printf '%s\n' "$tips" | sed '/^$/d' > "$incoming"
+  first=$(printf '%s\n' "$tips" | sed '/^$/d' | head -n 1)
+  cat <<EOF
+
+Paste the tip CID into the app's Issues panel → "Sync index tip" to merge it
+per the Chronology protocol (also recorded in $incoming).
+To keep the index entries resolvable, pin the tip on your Kubo:
+
+ipfs pin add $first
+EOF
+fi
+exit 0

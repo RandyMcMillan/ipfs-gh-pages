@@ -3594,15 +3594,22 @@ function renderChainStatus() {
   const code = document.createElement('code');
   code.textContent = `ipfs pin add ${tip.cid}`;
   pre.appendChild(code);
+  // Git-host bridge (docs/issues-car.md phase 12): the pre-push hook reads
+  // this file — run the export command, then activate the hooks with
+  // `npm run githooks:activate` in a clone of the repo.
+  const exportPre = document.createElement('pre');
+  exportPre.style.margin = '0.2rem 0 0 0';
+  const exportCode = document.createElement('code');
+  exportCode.textContent = `printf '%s\\n' '${tip.cid}' > "$(git rev-parse --git-path ipfs-index-tip)"`;
+  exportPre.appendChild(exportCode);
   el.appendChild(meta);
   el.appendChild(pre);
+  el.appendChild(exportPre);
 }
 
 // Phase 10 cross-surface sync (docs/interop.md step 4): resolve our index
-// IPNS name; if a remote tip wins the fork-choice rule (greater height,
-// tie -> greater lamport), adopt it, then walk its `added` note CIDs
-// (bounded) merging fetched issues into the local list so they render.
-// Signature verification happens when an issue is opened.
+// IPNS name and hand the tip to the shared merge. Fire-and-forget on load;
+// the git-host bridge (phase 12) feeds the same merge via the button below.
 async function syncIndexFromIpns() {
   if (!heliaNode) return;
   try {
@@ -3611,85 +3618,133 @@ async function syncIndexFromIpns() {
     if (!result) return;
     const remoteCid = result.value || result.path || result;
     const remoteStr = remoteCid.toString().replace(/^\/ipfs\//, '');
-    const local = loadChainTip();
-    if (!remoteStr || (local && remoteStr === local.cid)) return;
-    const remoteEntry = await getDagJson(CID.parse(remoteStr));
+    await syncIndexFromTip(remoteStr);
+  } catch {}
+}
 
-    const descendsFrom = async (tipCid, ancestorCid, maxSteps = 50) => {
-      let cursor = tipCid;
-      for (let i = 0; i < maxSteps && cursor; i++) {
-        if (cursor === ancestorCid) return true;
+// Merge a remote index tip per the Chronology protocol (docs/issues-car.md):
+// fetch the entry (prefix closure on walk), union missing notes into the
+// local list — OR-Set semantics, so the union happens even when the chain
+// decision is noop — then adopt the remote chain or write a two-parent
+// merge entry (shared js/index-merge.js decision). Returns
+// { action, merged, tip }; throws when the tip cannot be fetched.
+async function syncIndexFromTip(remoteStr) {
+  if (!heliaNode) throw new Error('IPFS node not ready');
+  const local = loadChainTip();
+  if (!remoteStr || (local && remoteStr === local.cid)) {
+    return { action: 'noop', merged: 0, tip: (local && local.cid) || remoteStr || null };
+  }
+  const remoteEntry = await getDagJson(CID.parse(remoteStr));
+  if (!remoteEntry || remoteEntry.type !== 'index-entry') {
+    throw new Error(`${remoteStr} is not an index entry`);
+  }
+
+  const descendsFrom = async (tipCid, ancestorCid, maxSteps = 50) => {
+    let cursor = tipCid;
+    for (let i = 0; i < maxSteps && cursor; i++) {
+      if (cursor === ancestorCid) return true;
+      try {
+        const entry = await getDagJson(CID.parse(cursor));
+        cursor = Array.isArray(entry?.prev) ? entry.prev[0] : null;
+      } catch { break; }
+    }
+    return false;
+  };
+
+  // Collect remote notes missing locally (bounded) — feeds both the
+  // issues view and the merge entry's `added`.
+  const missingNotes = [];
+  {
+    const known = new Set(loadIssues().map((i) => i.cid));
+    let cursor = remoteEntry;
+    let walked = 0;
+    while (cursor && walked < 50) {
+      for (const noteCid of cursor.added || []) {
+        if (known.has(noteCid)) continue;
         try {
-          const entry = await getDagJson(CID.parse(cursor));
-          cursor = Array.isArray(entry?.prev) ? entry.prev[0] : null;
-        } catch { break; }
+          const note = await getDagJson(CID.parse(noteCid));
+          if (note && note.ns === 'issues' && note.type === 'issue' && note.title) {
+            missingNotes.push({ cid: noteCid, title: note.title, timestamp: note.timestamp });
+            known.add(noteCid);
+          }
+        } catch {}
       }
-      return false;
-    };
-
-    // Collect remote notes missing locally (bounded) — feeds both the
-    // issues view and the merge entry's `added`.
-    const missingNotes = [];
-    {
-      const known = new Set(loadIssues().map((i) => i.cid));
-      let cursor = remoteEntry;
-      let walked = 0;
-      while (cursor && walked < 50) {
-        for (const noteCid of cursor.added || []) {
-          if (known.has(noteCid)) continue;
-          try {
-            const note = await getDagJson(CID.parse(noteCid));
-            if (note && note.ns === 'issues' && note.type === 'issue' && note.title) {
-              missingNotes.push({ cid: noteCid, title: note.title, timestamp: note.timestamp });
-              known.add(noteCid);
-            }
-          } catch {}
-        }
-        const prev = Array.isArray(cursor.prev) ? cursor.prev[0] : null;
-        if (!prev) break;
-        try { cursor = await getDagJson(CID.parse(prev)); } catch { break; }
-        walked++;
-      }
+      const prev = Array.isArray(cursor.prev) ? cursor.prev[0] : null;
+      if (!prev) break;
+      try { cursor = await getDagJson(CID.parse(prev)); } catch { break; }
+      walked++;
     }
+  }
 
-    const decision = classifyIndexSync(
-      local,
-      { cid: remoteStr, height: Number(remoteEntry?.height) || 0, lamport: Number(remoteEntry?.lamport) || 0 },
-      local ? await descendsFrom(remoteStr, local.cid) : false,
-      local ? await descendsFrom(local.cid, remoteStr) : false
-    );
-    if (decision.action === 'noop') return;
-    if (decision.action === 'adopt-remote') {
-      localStorage.setItem(CHAIN_KEY, JSON.stringify({
-        cid: remoteStr,
-        height: Number(remoteEntry.height) || 0,
-        lamport: Number(remoteEntry.lamport) || 0,
-        added: Array.isArray(remoteEntry.added) ? remoteEntry.added.length : 0
-      }));
-      try { localStorage.setItem(LAMPORT_KEY, String(Number(remoteEntry.lamport) || 0)); } catch {}
-    } else {
-      // Divergence: merge entry, both parents, union of missing notes.
-      const { envelope } = await signNote({
-        type: 'index-entry',
-        added: missingNotes.map((n) => n.cid),
-        prev: [local.cid, remoteStr],
-        height: decision.height,
-        lamport: decision.lamport,
-        timestamp: new Date().toISOString()
-      });
-      const tipCid = await publishNote(envelope);
-      localStorage.setItem(CHAIN_KEY, JSON.stringify({ cid: tipCid, height: decision.height, lamport: decision.lamport, added: missingNotes.length }));
-      publishIndexTip(tipCid);
-    }
+  const decision = classifyIndexSync(
+    local,
+    { cid: remoteStr, height: Number(remoteEntry?.height) || 0, lamport: Number(remoteEntry?.lamport) || 0 },
+    local ? await descendsFrom(remoteStr, local.cid) : false,
+    local ? await descendsFrom(local.cid, remoteStr) : false
+  );
+  if (decision.action === 'adopt-remote') {
+    localStorage.setItem(CHAIN_KEY, JSON.stringify({
+      cid: remoteStr,
+      height: Number(remoteEntry.height) || 0,
+      lamport: Number(remoteEntry.lamport) || 0,
+      added: Array.isArray(remoteEntry.added) ? remoteEntry.added.length : 0
+    }));
+    try { localStorage.setItem(LAMPORT_KEY, String(Number(remoteEntry.lamport) || 0)); } catch {}
+  } else if (decision.action === 'merge') {
+    // Divergence: merge entry, both parents, union of missing notes.
+    const { envelope } = await signNote({
+      type: 'index-entry',
+      added: missingNotes.map((n) => n.cid),
+      prev: [local.cid, remoteStr],
+      height: decision.height,
+      lamport: decision.lamport,
+      timestamp: new Date().toISOString()
+    });
+    const tipCid = await publishNote(envelope);
+    localStorage.setItem(CHAIN_KEY, JSON.stringify({ cid: tipCid, height: decision.height, lamport: decision.lamport, added: missingNotes.length }));
+    publishIndexTip(tipCid);
+  }
 
-    if (missingNotes.length) {
-      const issues = loadIssues();
-      issues.unshift(...missingNotes);
-      localStorage.setItem(ISSUES_KEY, JSON.stringify(issues.slice(0, 200)));
-    }
+  if (missingNotes.length) {
+    const issues = loadIssues();
+    issues.unshift(...missingNotes);
+    localStorage.setItem(ISSUES_KEY, JSON.stringify(issues.slice(0, 200)));
+  }
+  if (decision.action !== 'noop' || missingNotes.length) {
     renderChainStatus();
     renderIssues();
-  } catch {}
+  }
+  return { action: decision.action, merged: missingNotes.length, tip: loadChainTip()?.cid || remoteStr };
+}
+
+// Git-host bridge inbound (docs/issues-car.md phase 12): a fetched notes ref
+// (the post-merge hook prints it) or a peer hands us a tip CID — paste it
+// here to merge it into the local chain and issue list.
+const indexSyncBtn = document.getElementById('btn-index-sync');
+if (indexSyncBtn) {
+  indexSyncBtn.addEventListener('click', async () => {
+    const input = document.getElementById('index-sync-cid');
+    const status = document.getElementById('index-sync-status');
+    const raw = (input?.value || '').trim().replace(/^\/ipfs\//, '');
+    if (!raw) {
+      if (status) status.textContent = 'Paste an index tip CID first.';
+      return;
+    }
+    indexSyncBtn.disabled = true;
+    if (status) status.textContent = `Fetching ${raw}…`;
+    try {
+      const r = await syncIndexFromTip(raw);
+      if (r.action === 'noop') {
+        if (status) status.textContent = `Already current — ${raw} needs no merge.`;
+      } else {
+        if (status) status.textContent = `${r.action === 'merge' ? 'Merged' : 'Adopted'} ${raw} · ${r.merged} new note(s) · tip now ${r.tip}`;
+      }
+    } catch (err) {
+      if (status) status.textContent = `Sync failed for ${raw}: ${err.message}`;
+    } finally {
+      indexSyncBtn.disabled = false;
+    }
+  });
 }
 
 function renderIssues() {

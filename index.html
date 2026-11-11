@@ -1367,6 +1367,11 @@
             </div>
           </div>
           <div id="index-chain-status" style="margin-top: 0.75rem;"></div>
+          <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem; margin-top: 0.5rem;">
+            <input id="index-sync-cid" type="text" class="form-control" style="flex: 1 1 18rem; min-width: 12rem;" placeholder="Index tip CID (from a fetched git notes ref or a peer)" />
+            <button id="btn-index-sync" class="btn btn-sm" type="button">Sync index tip</button>
+            <span id="index-sync-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
+          </div>
           <p class="f6 color-fg-muted" style="margin-top: 0.75rem; margin-bottom: 0;">Availability is the usual IPFS rule: the issue resolves while someone provides it — keep this tab open, pin it on your Kubo, or use ☆ Remote pin.</p>
           <pre style="margin: 0.4rem 0;"><code id="issue-pin-cmd">ipfs pin add &lt;issue CID&gt;</code></pre>
           <p class="f6 color-fg-muted">Vulnerability reports belong on GitHub: <a class="gh-link" data-ghpath="/issues" href="https://github.com/__REPO_OWNER__/__REPO_NAME__/issues">Issues ↗</a></p>
