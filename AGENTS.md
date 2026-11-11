@@ -77,7 +77,11 @@ Page-wide patterns. Keep them; new UI gets them for free or not at all.
   `<pre><code>` in any panel inherits all three.
 - **Live values**: if the page knows the real CID/hash/address, print it —
   never a placeholder when the data exists (pattern: `doc-pin-cmd`,
-  `chip-car-export`, `issue-pin-cmd`).
+  `chip-car-export`, `issue-pin-cmd`). Repo metadata (branch/tag counts,
+  stars, forks) is always fetched per-repo at runtime — this app is a
+  plugin for ANY GitHub repo, so no repo-specific value may be hardcoded;
+  when the API is unreachable, fall back to a neutral label, never a fake
+  number.
 - **Full values**: never truncate CIDs, hashes, peer IDs, URLs for display;
   let the UI wrap (user override: gitlink markers in the file tree use
   GitHub's `@<short>` convention next to the folder name).
