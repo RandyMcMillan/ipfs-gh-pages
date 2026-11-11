@@ -232,6 +232,8 @@ pub enum InputTarget {
     KuboDetect,
     KuboPin,
     ServicesSet,
+    GitClone,
+    GitAdvertise,
 }
 
 pub struct App<'a> {
@@ -293,7 +295,7 @@ impl<'a> App<'a> {
             should_quit: false,
             tabs: TabsState::new(vec![
                 "Home", "About", "Status", "Theme", "IPFS", "Peers", "Fetch", "Publish", "Chat",
-                "Kubo", "Services",
+                "Kubo", "Services", "Git",
             ]),
             show_chart: true,
             progress: 0.0,
@@ -397,6 +399,8 @@ impl<'a> App<'a> {
             }
             'p' if self.tabs.index == 9 => self.start_input(InputTarget::KuboPin),
             's' if self.tabs.index == 10 => self.start_input(InputTarget::ServicesSet),
+            'c' if self.tabs.index == 11 => self.start_input(InputTarget::GitClone),
+            'a' if self.tabs.index == 11 => self.start_input(InputTarget::GitAdvertise),
             _ => {}
         }
     }
@@ -443,7 +447,7 @@ impl<'a> App<'a> {
         // needs. `services` is the raw buffer (must be a JSON array) and is
         // only meaningful for the services.set target.
         let arg = format!(
-            "{{\"addr\":\"{0}\",\"cid\":\"{0}\",\"text\":\"{0}\",\"services\":{1}}}",
+            "{{\"addr\":\"{0}\",\"cid\":\"{0}\",\"text\":\"{0}\",\"rootCid\":\"{0}\",\"services\":{1}}}",
             Self::json_escape(&self.input_buffer),
             self.input_buffer.trim()
         );
@@ -455,6 +459,8 @@ impl<'a> App<'a> {
             InputTarget::KuboDetect => "kuboDetect",
             InputTarget::KuboPin => "kuboPin",
             InputTarget::ServicesSet => "services.set",
+            InputTarget::GitClone => "git.clone",
+            InputTarget::GitAdvertise => "git.advertise",
         };
         if let Some(id) = ipfs::cmd(op, &arg) {
             self.pending = Some((id, self.input_target));
@@ -498,6 +504,13 @@ impl<'a> App<'a> {
                     InputTarget::KuboDetect => format!("kubo: {value}"),
                     InputTarget::KuboPin => format!("pinned: {value}"),
                     InputTarget::ServicesSet => format!("services: {value}"),
+                    InputTarget::GitClone => {
+                        let zip = ipfs::json_field(&value, "zipName").unwrap_or_default();
+                        let bytes = ipfs::json_field(&value, "bytes").unwrap_or_default();
+                        let bare = ipfs::json_field(&value, "bareRepo").unwrap_or_default();
+                        format!("cloned to {zip} ({bytes} bytes, bare repo: {bare})")
+                    }
+                    InputTarget::GitAdvertise => format!("advertised: {value}"),
                 };
             }
             Err(error) => {

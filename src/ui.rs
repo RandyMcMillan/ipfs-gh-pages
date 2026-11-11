@@ -39,6 +39,7 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
         8 => draw_chat_tab(frame, app, chunks[1]),
         9 => draw_kubo_tab(frame, app, chunks[1]),
         10 => draw_services_tab(frame, app, chunks[1]),
+        11 => draw_git_tab(frame, app, chunks[1]),
         _ => {}
     };
     // let big_text = BigText::builder()
@@ -101,6 +102,52 @@ fn draw_peers_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         "c = connect".to_string()
     } else {
         app.last_result.clone()
+    };
+    frame.render_widget(
+        Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),
+        chunks[1],
+    );
+}
+
+fn draw_git_tab(frame: &mut Frame, app: &mut App, area: Rect) {
+    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
+    let snap = &app.ipfs;
+    let mut lines = vec![
+        text::Line::from(
+            "Clone a repo through the app: fetch a bare-repo-shaped CID tree, get a zip with .git/ reconstructed.",
+        ),
+        text::Line::from(""),
+        text::Line::from(format!(
+            "Serve advertisements seen: {}{}",
+            snap.git_seen,
+            if snap.serving { " (we are advertising)" } else { "" }
+        )),
+    ];
+    if !app.last_result.is_empty() {
+        lines.push(text::Line::from(""));
+        lines.push(text::Line::from(app.last_result.as_str()));
+    }
+    frame.render_widget(
+        Paragraph::new(lines)
+            .block(Block::bordered().title("Git"))
+            .wrap(Wrap { trim: false }),
+        chunks[0],
+    );
+    let footer = if app.input_active {
+        match app.input_target {
+            crate::app::InputTarget::GitClone => {
+                format!(
+                    "clone CID: > {}_   (Enter clones to zip, Esc cancels)",
+                    app.input_buffer
+                )
+            }
+            _ => format!(
+                "advertise CID: > {}_   (Enter publishes serve envelope, Esc cancels)",
+                app.input_buffer
+            ),
+        }
+    } else {
+        "c = clone CID to zip   a = advertise CID (serve envelope on repo-gossip)".to_string()
     };
     frame.render_widget(
         Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),

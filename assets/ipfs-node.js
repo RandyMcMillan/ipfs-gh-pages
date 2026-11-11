@@ -839,20 +839,20 @@ var require_retry_operation = __commonJS({
       this._timeouts = [];
       this._cachedTimeouts = null;
     };
-    RetryOperation.prototype.retry = function(err) {
+    RetryOperation.prototype.retry = function(err2) {
       if (this._timeout) {
         clearTimeout(this._timeout);
       }
-      if (!err) {
+      if (!err2) {
         return false;
       }
       var currentTime = (/* @__PURE__ */ new Date()).getTime();
-      if (err && currentTime - this._operationStart >= this._maxRetryTime) {
-        this._errors.push(err);
+      if (err2 && currentTime - this._operationStart >= this._maxRetryTime) {
+        this._errors.push(err2);
         this._errors.unshift(new Error("RetryOperation timeout occurred"));
         return false;
       }
-      this._errors.push(err);
+      this._errors.push(err2);
       var timeout = this._timeouts.shift();
       if (timeout === void 0) {
         if (this._cachedTimeouts) {
@@ -1003,11 +1003,11 @@ var require_retry = __commonJS({
           var op = exports.operation(options2);
           var args = Array.prototype.slice.call(arguments, 1);
           var callback = args.pop();
-          args.push(function(err) {
-            if (op.retry(err)) {
+          args.push(function(err2) {
+            if (op.retry(err2)) {
               return;
             }
-            if (err) {
+            if (err2) {
               arguments[0] = op.mainError();
             }
             callback.apply(this, arguments);
@@ -1786,8 +1786,8 @@ var require_Reflect = __commonJS({
               keys.push(key);
             }
           }
-          for (var _a3 = 0, parentKeys_1 = parentKeys; _a3 < parentKeys_1.length; _a3++) {
-            var key = parentKeys_1[_a3];
+          for (var _a4 = 0, parentKeys_1 = parentKeys; _a4 < parentKeys_1.length; _a4++) {
+            var key = parentKeys_1[_a4];
             var hasKey = set.has(key);
             if (!hasKey) {
               set.add(key);
@@ -7014,9 +7014,9 @@ var DNS = class {
           this.cache.add(domain, answer);
         }
         return result2;
-      } catch (err) {
-        errors.push(err);
-        options2.onProgress?.(new CustomProgressEvent("dns:error", err));
+      } catch (err2) {
+        errors.push(err2);
+        options2.onProgress?.(new CustomProgressEvent("dns:error", err2));
       }
     }
     throw new DNSQueryFailedError(errors, `DNS lookup of ${domain} ${types2} failed`);
@@ -7194,8 +7194,8 @@ function _pushable(getNext, options2) {
           buffer5.push(next);
           try {
             resolve8(getNext(buffer5));
-          } catch (err) {
-            reject(err);
+          } catch (err2) {
+            reject(err2);
           }
           return pushable2;
         };
@@ -7216,12 +7216,12 @@ function _pushable(getNext, options2) {
     buffer5.push(next);
     return pushable2;
   };
-  const bufferError = (err) => {
+  const bufferError = (err2) => {
     buffer5 = new FIFO();
     if (onNext != null) {
-      return onNext({ error: err });
+      return onNext({ error: err2 });
     }
-    buffer5.push({ error: err });
+    buffer5.push({ error: err2 });
     return pushable2;
   };
   const push = (value2) => {
@@ -7233,20 +7233,20 @@ function _pushable(getNext, options2) {
     }
     return bufferNext({ done: false, value: value2 });
   };
-  const end = (err) => {
+  const end = (err2) => {
     if (ended) {
       return pushable2;
     }
     ended = true;
-    return err != null ? bufferError(err) : bufferNext({ done: true });
+    return err2 != null ? bufferError(err2) : bufferNext({ done: true });
   };
   const _return = () => {
     buffer5 = new FIFO();
     end();
     return { done: true };
   };
-  const _throw = (err) => {
-    end(err);
+  const _throw = (err2) => {
+    end(err2);
     return { done: true };
   };
   pushable2 = {
@@ -7300,10 +7300,10 @@ function _pushable(getNext, options2) {
     next() {
       return _pushable2.next();
     },
-    throw(err) {
-      _pushable2.throw(err);
+    throw(err2) {
+      _pushable2.throw(err2);
       if (onEnd != null) {
-        onEnd(err);
+        onEnd(err2);
         onEnd = void 0;
       }
       return { done: true };
@@ -7317,10 +7317,10 @@ function _pushable(getNext, options2) {
       return { done: true };
     },
     push,
-    end(err) {
-      _pushable2.end(err);
+    end(err2) {
+      _pushable2.end(err2);
       if (onEnd != null) {
-        onEnd(err);
+        onEnd(err2);
         onEnd = void 0;
       }
       return pushable2;
@@ -7365,9 +7365,9 @@ async function raceEvent(emitter, eventName, signal, opts) {
         if (opts?.filter?.(evt) === false) {
           return;
         }
-      } catch (err) {
+      } catch (err2) {
         removeListeners();
-        reject(err);
+        reject(err2);
         return;
       }
       removeListeners();
@@ -7538,8 +7538,8 @@ var Job = class {
     setMaxListeners(Infinity, this.controller.signal);
     this.onAbort = this.onAbort.bind(this);
   }
-  abort(err) {
-    this.controller.abort(err);
+  abort(err2) {
+    this.controller.abort(err2);
   }
   onAbort() {
     const allAborted = this.recipients.reduce((acc, curr) => {
@@ -7569,9 +7569,9 @@ var Job = class {
         recipient.deferred.resolve(result2);
       });
       this.status = "complete";
-    } catch (err) {
+    } catch (err2) {
       this.recipients.forEach((recipient) => {
-        recipient.deferred.reject(err);
+        recipient.deferred.reject(err2);
       });
       this.status = "errored";
     } finally {
@@ -7685,7 +7685,7 @@ var Queue = class extends TypedEventEmitter {
       this.safeDispatchEvent("completed", { detail: result2 });
       this.safeDispatchEvent("success", { detail: { job, result: result2 } });
       return result2;
-    }).catch((err) => {
+    }).catch((err2) => {
       if (job.status === "queued") {
         for (let i = 0; i < this.queue.length; i++) {
           if (this.queue[i] === job) {
@@ -7694,8 +7694,8 @@ var Queue = class extends TypedEventEmitter {
           }
         }
       }
-      this.safeDispatchEvent("failure", { detail: { job, error: err } });
-      throw err;
+      this.safeDispatchEvent("failure", { detail: { job, error: err2 } });
+      throw err2;
     });
   }
   /**
@@ -7790,13 +7790,13 @@ var Queue = class extends TypedEventEmitter {
     const stream = pushable({
       objectMode: true
     });
-    const cleanup = (err) => {
-      if (err != null) {
+    const cleanup = (err2) => {
+      if (err2 != null) {
         this.abort();
       } else {
         this.clear();
       }
-      stream.end(err);
+      stream.end(err2);
     };
     const onQueueJobComplete = (evt) => {
       if (evt.detail != null) {
@@ -10906,9 +10906,9 @@ var PinsImpl = class {
     };
     try {
       pinnedBlock = decode7(await this.datastore.get(blockKey, options2));
-    } catch (err) {
-      if (err.name !== "NotFoundError") {
-        throw err;
+    } catch (err2) {
+      if (err2.name !== "NotFoundError") {
+        throw err2;
       }
     }
     const shouldContinue = withPinnedBlock(pinnedBlock);
@@ -11081,13 +11081,13 @@ var QueuelessPushable = class {
     this.readNext = pDefer();
     return nextResult;
   }
-  async throw(err) {
+  async throw(err2) {
     this.ended = true;
-    this.error = err;
-    if (err != null) {
+    this.error = err2;
+    if (err2 != null) {
       this.haveNext.promise.catch(() => {
       });
-      this.haveNext.reject(err);
+      this.haveNext.reject(err2);
     }
     const result2 = {
       done: true,
@@ -11108,9 +11108,9 @@ var QueuelessPushable = class {
   async push(value2, options2) {
     await this._push(value2, options2);
   }
-  async end(err, options2) {
-    if (err != null) {
-      await this.throw(err);
+  async end(err2, options2) {
+    if (err2 != null) {
+      await this.throw(err2);
     } else {
       await this._push(void 0, options2);
     }
@@ -11158,8 +11158,8 @@ async function addAllToPushable(iterators, output, signal) {
     await output.end(void 0, {
       signal
     });
-  } catch (err) {
-    await output.end(err, {
+  } catch (err2) {
+    await output.end(err2, {
       signal
     }).catch(() => {
     });
@@ -11269,15 +11269,15 @@ var Routing = class {
               return null;
             }
             return provider;
-          } catch (err) {
-            this.log.error("could not load multiaddrs for peer %p", peer.id, err);
+          } catch (err2) {
+            this.log.error("could not load multiaddrs for peer %p", peer.id, err2);
             return null;
           }
         }, {
           peerId: peer.id,
           signal: options2.signal
-        }).catch((err) => {
-          this.log.error("could not load multiaddrs for peer %p", peer.id, err);
+        }).catch((err2) => {
+          this.log.error("could not load multiaddrs for peer %p", peer.id, err2);
         });
       }
       yield peer;
@@ -11328,8 +11328,8 @@ var Routing = class {
     const source = src_default3(...supports(this.routers, "findPeer").map((router) => async function* () {
       try {
         yield await router.findPeer(id, options2);
-      } catch (err) {
-        self2.log.error(err);
+      } catch (err2) {
+        self2.log.error(err2);
       }
     }()));
     for await (const peer of source) {
@@ -11441,8 +11441,8 @@ var Job2 = class {
     setMaxListeners(Infinity, this.controller.signal);
     this.onAbort = this.onAbort.bind(this);
   }
-  abort(err) {
-    this.controller.abort(err);
+  abort(err2) {
+    this.controller.abort(err2);
   }
   onAbort() {
     const allAborted = this.recipients.reduce((acc, curr) => {
@@ -11472,9 +11472,9 @@ var Job2 = class {
         recipient.deferred.resolve(result2);
       });
       this.status = "complete";
-    } catch (err) {
+    } catch (err2) {
       this.recipients.forEach((recipient) => {
-        recipient.deferred.reject(err);
+        recipient.deferred.reject(err2);
       });
       this.status = "errored";
     } finally {
@@ -11621,7 +11621,7 @@ var Queue2 = class extends TypedEventEmitter {
     return job.join(options2).then((result2) => {
       this.safeDispatchEvent("success", { detail: { job, result: result2 } });
       return result2;
-    }).catch((err) => {
+    }).catch((err2) => {
       if (job.status === "queued") {
         for (let i = 0; i < this.queue.length; i++) {
           if (this.queue[i] === job) {
@@ -11630,8 +11630,8 @@ var Queue2 = class extends TypedEventEmitter {
           }
         }
       }
-      this.safeDispatchEvent("failure", { detail: { job, error: err } });
-      throw err;
+      this.safeDispatchEvent("failure", { detail: { job, error: err2 } });
+      throw err2;
     });
   }
   /**
@@ -11726,13 +11726,13 @@ var Queue2 = class extends TypedEventEmitter {
     const stream = pushable({
       objectMode: true
     });
-    const cleanup = (err) => {
-      if (err != null) {
+    const cleanup = (err2) => {
+      if (err2 != null) {
         this.abort();
       } else {
         this.clear();
       }
-      stream.end(err);
+      stream.end(err2);
     };
     const onQueueJobComplete = (evt) => {
       if (evt.detail != null) {
@@ -11821,15 +11821,15 @@ var handleChannelWorkerLockRequest = (emitter, channel, masterEvent, abortMaster
               channel.addEventListener("message", releaseEventListener);
             });
           },
-          onError: (err) => {
+          onError: (err2) => {
             channel.postMessage({
               type: errorType,
               name: requestEvent.name,
               identifier: requestEvent.identifier,
               error: {
-                message: err.message,
-                name: err.name,
-                stack: err.stack
+                message: err2.message,
+                name: err2.name,
+                stack: err2.stack
               }
             });
           }
@@ -11917,13 +11917,13 @@ var MorticeChannelWorker = class {
         if (event.data.type === errorType) {
           this.channel.removeEventListener("message", listener);
           options2?.signal?.removeEventListener("abort", abortListener);
-          const err = new Error();
+          const err2 = new Error();
           if (event.data.error != null) {
-            err.message = event.data.error.message;
-            err.name = event.data.error.name;
-            err.stack = event.data.error.stack;
+            err2.message = event.data.error.message;
+            err2.name = event.data.error.name;
+            err2.stack = event.data.error.stack;
           }
-          reject(err);
+          reject(err2);
         }
       };
       this.channel.addEventListener("message", listener);
@@ -11977,8 +11977,8 @@ function getImplementation(opts) {
           await event.detail.handler().finally(() => {
             release();
           });
-        }).catch((err) => {
-          event.detail.onError(err);
+        }).catch((err2) => {
+          event.detail.onError(err2);
         }).finally(() => {
           emitter.removeEventListener("abortReadLockRequest", abortListener);
         });
@@ -12004,8 +12004,8 @@ function getImplementation(opts) {
           await event.detail.handler().finally(() => {
             release();
           });
-        }).catch((err) => {
-          event.detail.onError(err);
+        }).catch((err2) => {
+          event.detail.onError(err2);
         }).finally(() => {
           emitter.removeEventListener("abortWriteLockRequest", abortListener);
         });
@@ -12044,8 +12044,8 @@ async function createReleasable(queue, options2) {
     });
   }, {
     signal: options2?.signal
-  }).catch((err) => {
-    rej(err);
+  }).catch((err2) => {
+    rej(err2);
   });
   return p;
 }
@@ -18999,9 +18999,9 @@ async function raceBlockRetrievers(cid, blockBrokers, hasher, options2) {
           await validateFn(block);
         }
         return block;
-      } catch (err) {
-        options2.log.error("could not retrieve verified block for %c", cid, err);
-        throw err;
+      } catch (err2) {
+        options2.log.error("could not retrieve verified block for %c", cid, err2);
+        throw err2;
       }
     }));
   } finally {
@@ -23072,8 +23072,8 @@ function createCurveFields(type, CURVE, curveOpts = {}, FpFnLE) {
   }
   const Fp3 = createField(CURVE.p, curveOpts.Fp, FpFnLE);
   const Fn2 = createField(CURVE.n, curveOpts.Fn, FpFnLE);
-  const _b2 = type === "weierstrass" ? "b" : "d";
-  const params = ["Gx", "Gy", "a", _b2];
+  const _b3 = type === "weierstrass" ? "b" : "d";
+  const params = ["Gx", "Gy", "a", _b3];
   for (const p of params) {
     if (!Fp3.isValid(CURVE[p]))
       throw new Error(`CURVE.${p} must be valid field element of CURVE.Fp`);
@@ -25792,8 +25792,8 @@ function weierstrass(params, extraOpts = {}) {
       try {
         y3 = Fp3.sqrt(y2);
       } catch (sqrtError) {
-        const err = sqrtError instanceof Error ? ": " + sqrtError.message : "";
-        throw new Error("bad point: is not on curve, sqrt error" + err);
+        const err2 = sqrtError instanceof Error ? ": " + sqrtError.message : "";
+        throw new Error("bad point: is not on curve, sqrt error" + err2);
       }
       assertCompressionIsSupported();
       const evenY = Fp3.isOdd(y3);
@@ -26574,11 +26574,11 @@ function hashAndSign4(key, msg, options2) {
         prehash: false,
         format: "der"
       });
-    }).catch((err) => {
-      if (err.name === "AbortError") {
-        throw err;
+    }).catch((err2) => {
+      if (err2.name === "AbortError") {
+        throw err2;
       }
-      throw new SigningError(String(err));
+      throw new SigningError(String(err2));
     });
   }
   try {
@@ -26586,8 +26586,8 @@ function hashAndSign4(key, msg, options2) {
       prehash: false,
       format: "der"
     });
-  } catch (err) {
-    throw new SigningError(String(err));
+  } catch (err2) {
+    throw new SigningError(String(err2));
   }
 }
 function hashAndVerify4(key, sig, msg, options2) {
@@ -26599,11 +26599,11 @@ function hashAndVerify4(key, sig, msg, options2) {
         prehash: false,
         format: "der"
       });
-    }).catch((err) => {
-      if (err.name === "AbortError") {
-        throw err;
+    }).catch((err2) => {
+      if (err2.name === "AbortError") {
+        throw err2;
       }
-      throw new VerificationError(String(err));
+      throw new VerificationError(String(err2));
     });
   }
   try {
@@ -26612,8 +26612,8 @@ function hashAndVerify4(key, sig, msg, options2) {
       prehash: false,
       format: "der"
     });
-  } catch (err) {
-    throw new VerificationError(String(err));
+  } catch (err2) {
+    throw new VerificationError(String(err2));
   }
 }
 
@@ -26682,23 +26682,23 @@ function validateSecp256k1PrivateKey(key) {
   try {
     secp256k1.getPublicKey(key, true);
     return key;
-  } catch (err) {
-    throw new InvalidPrivateKeyError(String(err));
+  } catch (err2) {
+    throw new InvalidPrivateKeyError(String(err2));
   }
 }
 function validateSecp256k1PublicKey(key) {
   try {
     secp256k1.Point.fromBytes(key);
     return key;
-  } catch (err) {
-    throw new InvalidPublicKeyError2(String(err));
+  } catch (err2) {
+    throw new InvalidPublicKeyError2(String(err2));
   }
 }
 function computeSecp256k1PublicKey(privateKey) {
   try {
     return secp256k1.getPublicKey(privateKey, true);
-  } catch (err) {
-    throw new InvalidPrivateKeyError(String(err));
+  } catch (err2) {
+    throw new InvalidPrivateKeyError(String(err2));
   }
 }
 function generateSecp256k1PrivateKey() {
@@ -27925,9 +27925,9 @@ var AbstractSession = class extends TypedEventEmitter {
         this.log("found new providers re-retrieving %c", cid);
         this.requests.delete(cidStr);
         deferred.resolve(await this.retrieve(cid, options2));
-      }).catch((err) => {
-        this.log.error("could not find new providers for %c", cid, err);
-        deferred.reject(err);
+      }).catch((err2) => {
+        this.log.error("could not find new providers for %c", cid, err2);
+        deferred.reject(err2);
       });
     });
     const peerAddedToSessionListener = (event) => {
@@ -27935,11 +27935,11 @@ var AbstractSession = class extends TypedEventEmitter {
         return this.queryProvider(cid, event.detail, options2);
       }, {
         provider: event.detail
-      }).catch((err) => {
+      }).catch((err2) => {
         if (options2.signal?.aborted === true) {
           return;
         }
-        this.log.error("error retrieving session block for %c", cid, err);
+        this.log.error("error retrieving session block for %c", cid, err2);
       });
     };
     this.addEventListener("provider", peerAddedToSessionListener);
@@ -27949,11 +27949,11 @@ var AbstractSession = class extends TypedEventEmitter {
       }, {
         provider
       });
-    })).catch((err) => {
+    })).catch((err2) => {
       if (options2.signal?.aborted === true) {
         return;
       }
-      this.log.error("error retrieving session block for %c", cid, err);
+      this.log.error("error retrieving session block for %c", cid, err2);
     });
     const signalAbortedListener = () => {
       deferred.reject(new AbortError(options2.signal?.reason ?? "Session aborted"));
@@ -28054,9 +28054,9 @@ var AbstractSession = class extends TypedEventEmitter {
       if (found < count) {
         throw new InsufficientProvidersError(`Found ${found} of ${count} ${this.name} providers for ${cid}`);
       }
-    }).catch((err) => {
-      this.log.error("error searching routing for potential session peers for %c", cid, err.errors ?? err);
-      deferred.reject(err);
+    }).catch((err2) => {
+      this.log.error("error searching routing for potential session peers for %c", cid, err2.errors ?? err2);
+      deferred.reject(err2);
     });
     return deferred.promise;
   }
@@ -28141,9 +28141,9 @@ var Helia = class {
             }
             yield cid;
             options2.onProgress?.(new CustomProgressEvent("helia:gc:deleted", cid));
-          } catch (err) {
-            helia.log.error("Error during gc", err);
-            options2.onProgress?.(new CustomProgressEvent("helia:gc:error", err));
+          } catch (err2) {
+            helia.log.error("Error during gc", err2);
+            options2.onProgress?.(new CustomProgressEvent("helia:gc:error", err2));
           }
         }
       }()));
@@ -28493,14 +28493,14 @@ function decode30(source, options2) {
             options2.onLength(dataLength);
           }
           mode = ReadMode.DATA;
-        } catch (err) {
-          if (err instanceof RangeError) {
+        } catch (err2) {
+          if (err2 instanceof RangeError) {
             if (buffer5.byteLength > maxLengthLength) {
               throw new InvalidDataLengthLengthError("Message length length too long");
             }
             break;
           }
-          throw err;
+          throw err2;
         }
       }
       if (mode === ReadMode.DATA) {
@@ -28550,11 +28550,11 @@ decode30.fromReader = (reader, options2) => {
         if (value2 != null) {
           yield value2;
         }
-      } catch (err) {
-        if (err.code === "ERR_UNDER_READ") {
+      } catch (err2) {
+        if (err2.code === "ERR_UNDER_READ") {
           return { done: true, value: null };
         }
-        throw err;
+        throw err2;
       } finally {
         byteLength = 1;
       }
@@ -28662,8 +28662,8 @@ var duplexPipelineFn = (duplex) => {
       });
       p.then(() => {
         stream.end();
-      }, (err) => {
-        stream.end(err);
+      }, (err2) => {
+        stream.end(err2);
       });
       let sourceWrap;
       const source2 = duplex.source;
@@ -30435,16 +30435,16 @@ var Network = class extends TypedEventEmitter {
             signal = AbortSignal.timeout(this.messageReceiveTimeout);
             setMaxListeners(Infinity, signal);
             signal.addEventListener("abort", abortListener);
-          } catch (err) {
-            this.log.error("error reading incoming bitswap message from %p on stream", connection.remotePeer, stream.id, err);
-            stream.abort(err);
+          } catch (err2) {
+            this.log.error("error reading incoming bitswap message from %p on stream", connection.remotePeer, stream.id, err2);
+            stream.abort(err2);
             break;
           }
         }
       });
-    }).catch((err) => {
-      this.log.error("error handling incoming stream from %p", connection.remotePeer, err);
-      stream.abort(err);
+    }).catch((err2) => {
+      this.log.error("error handling incoming stream from %p", connection.remotePeer, err2);
+      stream.abort(err2);
     });
   }
   /**
@@ -30467,12 +30467,12 @@ var Network = class extends TypedEventEmitter {
    */
   async findAndConnect(cid, options2) {
     if (options2?.providers != null) {
-      await Promise.all(options2.providers.map(async (prov) => this.connectTo(prov).catch((err) => {
-        this.log.error("could not connect to supplied provider - %e", err);
+      await Promise.all(options2.providers.map(async (prov) => this.connectTo(prov).catch((err2) => {
+        this.log.error("could not connect to supplied provider - %e", err2);
       })));
     }
-    await src_default2(src_default7(src_default8(this.findProviders(cid, options2), options2?.maxProviders ?? DEFAULT_MAX_PROVIDERS_PER_REQUEST), async (provider) => this.connectTo(provider.id, options2))).catch((err) => {
-      this.log.error(err);
+    await src_default2(src_default7(src_default8(this.findProviders(cid, options2), options2?.maxProviders ?? DEFAULT_MAX_PROVIDERS_PER_REQUEST), async (provider) => this.connectTo(provider.id, options2))).catch((err2) => {
+      this.log.error(err2);
     });
   }
   /**
@@ -30505,10 +30505,10 @@ var Network = class extends TypedEventEmitter {
       try {
         await pipe(splitMessage(message6, this.maxOutgoingMessageSize), (source) => encode25(source), stream);
         await stream.close(options3);
-      } catch (err) {
-        options3?.onProgress?.(new CustomProgressEvent("bitswap:network:send-wantlist:error", { peer: peerId, error: err }));
-        this.log.error("error sending message to %p", peerId, err);
-        stream.abort(err);
+      } catch (err2) {
+        options3?.onProgress?.(new CustomProgressEvent("bitswap:network:send-wantlist:error", { peer: peerId, error: err2 }));
+        this.log.error("error sending message to %p", peerId, err2);
+        stream.abort(err2);
       }
       this._updateSentStats(message6.blocks);
     }, {
@@ -30732,7 +30732,7 @@ function peerIdFromMultihash(multihash) {
       } else if (publicKey2.type === "secp256k1") {
         return new Secp256k1PeerId({ multihash, publicKey: publicKey2 });
       }
-    } catch (err) {
+    } catch (err2) {
       const url = toString4(multihash.digest);
       return new URLPeerId(new URL(url));
     }
@@ -31091,9 +31091,9 @@ var Ledger = class {
             prefix: cidToPrefix(entry.cid)
           });
         }
-      } catch (err) {
-        if (err.name !== "NotFoundError") {
-          throw err;
+      } catch (err2) {
+        if (err2.name !== "NotFoundError") {
+          throw err2;
         }
         this.log("do not have block for %c", entry.cid);
         if (!entry.sendDontHave) {
@@ -31140,8 +31140,8 @@ var PeerWantLists = class {
       metrics: components.metrics
     });
     this.network.addEventListener("bitswap:message", (evt) => {
-      this.receiveMessage(evt.detail.peer, evt.detail.message).catch((err) => {
-        this.log.error("error receiving bitswap message from %p", evt.detail.peer, err);
+      this.receiveMessage(evt.detail.peer, evt.detail.message).catch((err2) => {
+        this.log.error("error receiving bitswap message from %p", evt.detail.peer, err2);
       });
     });
     this.network.addEventListener("peer:disconnected", (evt) => {
@@ -31409,13 +31409,13 @@ var WantList = class extends TypedEventEmitter {
     this.log = components.logger.forComponent("helia:bitswap:wantlist");
     this.hashLoader = init.hashLoader;
     this.network.addEventListener("bitswap:message", (evt) => {
-      this.receiveMessage(evt.detail.peer, evt.detail.message).catch((err) => {
-        this.log.error("error receiving bitswap message from %p", evt.detail.peer, err);
+      this.receiveMessage(evt.detail.peer, evt.detail.message).catch((err2) => {
+        this.log.error("error receiving bitswap message from %p", evt.detail.peer, err2);
       });
     });
     this.network.addEventListener("peer:connected", (evt) => {
-      this.peerConnected(evt.detail).catch((err) => {
-        this.log.error("error processing newly connected bitswap peer %p", evt.detail, err);
+      this.peerConnected(evt.detail).catch((err2) => {
+        this.log.error("error processing newly connected bitswap peer %p", evt.detail, err2);
       });
     });
     this.network.addEventListener("peer:disconnected", (evt) => {
@@ -31468,8 +31468,8 @@ var WantList = class extends TypedEventEmitter {
     await this.sendingMessages?.promise;
     clearTimeout(this.sendMessagesTimeout);
     this.sendMessagesTimeout = setTimeout(() => {
-      void this.sendMessages().catch((err) => {
-        this.log("error sending messages to peers", err);
+      void this.sendMessages().catch((err2) => {
+        this.log("error sending messages to peers", err2);
       });
     }, this.sendMessagesDelay);
   }
@@ -31500,11 +31500,11 @@ var WantList = class extends TypedEventEmitter {
         for (const key of sent) {
           sentWants.add(key);
         }
-      } catch (err) {
-        this.log.error("error sending full wantlist to new peer", err);
+      } catch (err2) {
+        this.log.error("error sending full wantlist to new peer", err2);
       }
-    })).catch((err) => {
-      this.log.error("error sending messages", err);
+    })).catch((err2) => {
+      this.log.error("error sending messages", err2);
     });
     for (const [key, entry] of this.wants) {
       if (entry.cancel) {
@@ -31668,8 +31668,8 @@ var WantList = class extends TypedEventEmitter {
     try {
       await this.network.sendMessage(peerId, message5);
       this.peers.set(peerId, sentWants);
-    } catch (err) {
-      this.log.error("error sending full wantlist to new peer %p", peerId, err);
+    } catch (err2) {
+      this.log.error("error sending full wantlist to new peer %p", peerId, err2);
     }
   }
   /**
@@ -31728,9 +31728,9 @@ var Bitswap = class {
     this.network.findAndConnect(cid, {
       ...options2,
       signal
-    }).catch((err) => {
+    }).catch((err2) => {
       if (!controller.signal.aborted) {
-        this.log.error("error during finding and connect for cid %c", cid, err);
+        this.log.error("error during finding and connect for cid %c", cid, err2);
       }
     });
     try {
@@ -33699,8 +33699,8 @@ async function limitedResponse(response, byteLimit, options2) {
     if (contentLengthNumber > byteLimit) {
       log18?.error("content-length header (%d) is greater than the limit (%d)", contentLengthNumber, byteLimit);
       if (response.body != null) {
-        await response.body.cancel().catch((err) => {
-          log18?.error("error cancelling response body after content-length check - %e", err);
+        await response.body.cancel().catch((err2) => {
+          log18?.error("error cancelling response body after content-length check - %e", err2);
         });
       }
       throw new Error(`Content-Length header (${contentLengthNumber}) is greater than the limit (${byteLimit}).`);
@@ -33726,8 +33726,8 @@ async function limitedResponse(response, byteLimit, options2) {
       }
     }
   } finally {
-    reader.cancel().catch((err) => {
-      log18?.error("error cancelling reader - %e", err);
+    reader.cancel().catch((err2) => {
+      log18?.error("error cancelling reader - %e", err2);
     }).finally(() => {
       reader.releaseLock();
     });
@@ -33951,15 +33951,15 @@ var TrustlessGatewayBlockBroker = class {
         this.log.trace("got block for %c from %s", cid, gateway.url);
         try {
           await options2.validateFn?.(block);
-        } catch (err) {
-          this.log.error("failed to validate block for %c from %s", cid, gateway.url, err);
+        } catch (err2) {
+          this.log.error("failed to validate block for %c from %s", cid, gateway.url, err2);
           continue;
         }
         return block;
-      } catch (err) {
-        this.log.error("failed to get block for %c from %s", cid, gateway.url, err);
-        if (err instanceof Error) {
-          aggregateErrors.push(err);
+      } catch (err2) {
+        this.log.error("failed to get block for %c from %s", cid, gateway.url, err2);
+        if (err2 instanceof Error) {
+          aggregateErrors.push(err2);
         } else {
           aggregateErrors.push(new Error(`Unable to fetch raw block for CID ${cid} from gateway ${gateway.url}`));
         }
@@ -34516,16 +34516,16 @@ ${indent}`)}`;
   }
   return `${v.toString()}`;
 }
-function isAggregateError(err) {
-  return err instanceof AggregateError || err?.name === "AggregateError" && Array.isArray(err.errors);
+function isAggregateError(err2) {
+  return err2 instanceof AggregateError || err2?.name === "AggregateError" && Array.isArray(err2.errors);
 }
-function printError(err, indent = "") {
-  if (isAggregateError(err)) {
-    let output = formatError(err, indent);
-    if (err.errors.length > 0) {
+function printError(err2, indent = "") {
+  if (isAggregateError(err2)) {
+    let output = formatError(err2, indent);
+    if (err2.errors.length > 0) {
       indent = `${indent}    `;
       output += `
-${indent}${err.errors.map((err2) => `${printError(err2, `${indent}`)}`).join(`
+${indent}${err2.errors.map((err3) => `${printError(err3, `${indent}`)}`).join(`
 ${indent}`)}`;
     } else {
       output += `
@@ -34533,7 +34533,7 @@ ${indent}[Error list was empty]`;
     }
     return output.trim();
   }
-  return formatError(err, indent);
+  return formatError(err2, indent);
 }
 src_default.formatters.e = (v) => {
   if (v == null) {
@@ -37663,9 +37663,9 @@ function extractPublicKeyFromIPNSRecord(record) {
   if (record.pubKey != null) {
     try {
       pubKey = publicKeyFromProtobuf(record.pubKey);
-    } catch (err) {
-      log2.error(err);
-      throw err;
+    } catch (err2) {
+      log2.error(err2);
+      throw err2;
     }
   }
   if (pubKey != null) {
@@ -37823,7 +37823,7 @@ async function validate4(publicKey2, marshalledRecord) {
   try {
     const dataForSignature = ipnsRecordDataForV2Sig(record.data);
     isValid = await publicKey2.verify(dataForSignature, record.signatureV2);
-  } catch (err) {
+  } catch (err2) {
     isValid = false;
   }
   if (!isValid) {
@@ -38453,11 +38453,11 @@ var DelegatedRoutingV1HttpApiClientContentRouting = class {
     try {
       const record = await this.client.getIPNS(cid, options2);
       return marshalIPNSRecord(record);
-    } catch (err) {
-      if (err.name === "BadResponseError") {
+    } catch (err2) {
+      if (err2.name === "BadResponseError") {
         throw new NotFoundError("Not found");
       }
-      throw err;
+      throw err2;
     }
   }
 };
@@ -38653,8 +38653,8 @@ var DefaultDelegatedRoutingV1HttpApiClient = class {
           }
         }
       }
-    } catch (err) {
-      log5.error("getPeers errored:", err);
+    } catch (err2) {
+      log5.error("getPeers errored:", err2);
     } finally {
       signal.clear();
       onFinish.resolve();
@@ -38693,9 +38693,9 @@ var DefaultDelegatedRoutingV1HttpApiClient = class {
         await ipnsValidator(multihashToIPNSRoutingKey(libp2pKey.multihash), body);
       }
       return unmarshalIPNSRecord(body);
-    } catch (err) {
-      log5.error("getIPNS GET %s error:", resource, err);
-      throw err;
+    } catch (err2) {
+      log5.error("getIPNS GET %s error:", resource, err2);
+      throw err2;
     } finally {
       signal.clear();
       onFinish.resolve();
@@ -38723,9 +38723,9 @@ var DefaultDelegatedRoutingV1HttpApiClient = class {
       if (res.status !== 200) {
         throw new BadResponseError("PUT ipns response had status other than 200");
       }
-    } catch (err) {
-      log5.error("putIPNS PUT %s error:", resource, err.stack);
-      throw err;
+    } catch (err2) {
+      log5.error("putIPNS PUT %s error:", resource, err2.stack);
+      throw err2;
     } finally {
       signal.clear();
       onFinish.resolve();
@@ -38750,8 +38750,8 @@ var DefaultDelegatedRoutingV1HttpApiClient = class {
         Addrs: multiaddrs,
         Protocols: protocols2
       };
-    } catch (err) {
-      log5.error("could not conform record to peer schema", err);
+    } catch (err2) {
+      log5.error("could not conform record to peer schema", err2);
     }
   }
   #addFilterParams(url, filterAddrs, filterProtocols) {
@@ -40682,9 +40682,9 @@ var PersistentStore = class {
         release();
         this.maybeRemoveLock(peerId, lock);
       };
-    } catch (err) {
+    } catch (err2) {
       this.maybeRemoveLock(peerId, lock);
-      throw err;
+      throw err2;
     }
   }
   async getWriteLock(peerId, options2) {
@@ -40695,18 +40695,18 @@ var PersistentStore = class {
         release();
         this.maybeRemoveLock(peerId, lock);
       };
-    } catch (err) {
+    } catch (err2) {
       this.maybeRemoveLock(peerId, lock);
-      throw err;
+      throw err2;
     }
   }
   async has(peerId, options2) {
     try {
       await this.load(peerId, options2);
       return true;
-    } catch (err) {
-      if (err.name !== "NotFoundError") {
-        throw err;
+    } catch (err2) {
+      if (err2.name !== "NotFoundError") {
+        throw err2;
       }
     }
     return false;
@@ -40779,9 +40779,9 @@ var PersistentStore = class {
         peerPB,
         peer: pbToPeer(peerId, peerPB, this.maxAddressAge)
       };
-    } catch (err) {
-      if (err.name !== "NotFoundError") {
-        this.log.error("invalid peer data found in peer store - %e", err);
+    } catch (err2) {
+      if (err2.name !== "NotFoundError") {
+        this.log.error("invalid peer data found in peer store - %e", err2);
       }
     }
   }
@@ -40907,9 +40907,9 @@ var PersistentPeerStore = class {
     let peer;
     try {
       peer = await this.get(peerId, options2);
-    } catch (err) {
-      if (err.name !== "NotFoundError") {
-        throw err;
+    } catch (err2) {
+      if (err2.name !== "NotFoundError") {
+        throw err2;
       }
     }
     if (peer?.peerRecordEnvelope != null) {
@@ -41522,8 +41522,8 @@ var AddressManager = class {
     });
     this.components.peerStore.patch(this.components.peerId, {
       multiaddrs: addrs
-    }).catch((err) => {
-      this.log.error("error updating addresses", err);
+    }).catch((err2) => {
+      this.log.error("error updating addresses", err2);
     });
   }
   /**
@@ -42284,8 +42284,8 @@ async function safelyCloseConnectionIfUnused(connection, options2) {
   }
   try {
     await connection?.close(options2);
-  } catch (err) {
-    connection?.abort(err);
+  } catch (err2) {
+    connection?.abort(err2);
   }
 }
 
@@ -42332,8 +42332,8 @@ var ConnectionPruner = class {
     this.events.removeEventListener("connection:open", this.maybePruneConnections);
   }
   maybePruneConnections() {
-    this._maybePruneConnections().catch((err) => {
-      this.log.error("error while pruning connections %e", err);
+    this._maybePruneConnections().catch((err2) => {
+      this.log.error("error while pruning connections %e", err2);
     });
   }
   /**
@@ -42360,9 +42360,9 @@ var ConnectionPruner = class {
         peerValues.set(remotePeer, [...peer.tags.values()].reduce((acc, curr) => {
           return acc + curr.value;
         }, 0));
-      } catch (err) {
-        if (err.name !== "NotFoundError") {
-          this.log.error("error loading peer tags", err);
+      } catch (err2) {
+        if (err2.name !== "NotFoundError") {
+          this.log.error("error loading peer tags", err2);
         }
       }
     }
@@ -42801,12 +42801,12 @@ var DialQueue = class {
                 [LAST_DIAL_SUCCESS_KEY]: fromString4(Date.now().toString())
               }
             });
-          } catch (err) {
-            this.log.error("could not update last dial failure key for %p", peerId, err);
+          } catch (err2) {
+            this.log.error("could not update last dial failure key for %p", peerId, err2);
           }
           return conn;
-        } catch (err) {
-          this.log.error("dial failed to %a", address.multiaddr, err);
+        } catch (err2) {
+          this.log.error("dial failed to %a", address.multiaddr, err2);
           failedMultiaddrs.add(address.multiaddr.toString());
           if (peerId != null) {
             try {
@@ -42815,14 +42815,14 @@ var DialQueue = class {
                   [LAST_DIAL_FAILURE_KEY]: fromString4(Date.now().toString())
                 }
               });
-            } catch (err2) {
-              this.log.error("could not update last dial failure key for %p", peerId, err2);
+            } catch (err3) {
+              this.log.error("could not update last dial failure key for %p", peerId, err3);
             }
           }
           if (signal.aborted) {
-            throw new TimeoutError(err.message);
+            throw new TimeoutError(err2.message);
           }
-          errors.push(err);
+          errors.push(err2);
         }
       }
     }
@@ -42850,9 +42850,9 @@ var DialQueue = class {
           const peer = await this.components.peerStore.get(peerId);
           addrs.push(...peer.addresses);
           this.log("loaded multiaddrs for %p", peerId, addrs.map(({ multiaddr: multiaddr3 }) => multiaddr3.toString()));
-        } catch (err) {
-          if (err.name !== "NotFoundError") {
-            throw err;
+        } catch (err2) {
+          if (err2.name !== "NotFoundError") {
+            throw err2;
           }
         }
       }
@@ -42865,11 +42865,11 @@ var DialQueue = class {
             multiaddr: multiaddr3,
             isCertified: false
           })));
-        } catch (err) {
-          if (err.name === "NoPeerRoutersError") {
+        } catch (err2) {
+          if (err2.name === "NoPeerRoutersError") {
             this.log("no peer routers configured", peerId);
           } else {
-            this.log.error("looking up multiaddrs for %p in the peer routing failed - %e", peerId, err);
+            this.log.error("looking up multiaddrs for %p in the peer routing failed - %e", peerId, err2);
           }
         }
       }
@@ -42952,8 +42952,8 @@ var DialQueue = class {
         }) != null;
       }
       return true;
-    } catch (err) {
-      this.log.trace("error calculating if multiaddr(s) were dialable", err);
+    } catch (err2) {
+      this.log.trace("error calculating if multiaddr(s) were dialable", err2);
     }
     return false;
   }
@@ -43102,8 +43102,8 @@ var ReconnectQueue = class {
     this.retryInterval = init.retryInterval;
     this.events = components.events;
     components.events.addEventListener("peer:disconnect", (evt) => {
-      this.maybeReconnect(evt.detail).catch((err) => {
-        this.log.error("failed to maybe reconnect to %p - %e", evt.detail, err);
+      this.maybeReconnect(evt.detail).catch((err2) => {
+        this.log.error("failed to maybe reconnect to %p - %e", evt.detail, err2);
       });
     });
   }
@@ -43127,9 +43127,9 @@ var ReconnectQueue = class {
           await this.connectionManager.openConnection(peerId, {
             signal: options2?.signal
           });
-        } catch (err) {
-          this.log("reconnecting to %p attempt %d of %d failed - %e", peerId, attempt, this.retries, err);
-          throw err;
+        } catch (err2) {
+          this.log("reconnecting to %p attempt %d of %d failed - %e", peerId, attempt, this.retries, err2);
+          throw err2;
         }
       }, {
         signal: options2?.signal,
@@ -43139,8 +43139,8 @@ var ReconnectQueue = class {
       });
     }, {
       peerId
-    }).catch(async (err) => {
-      this.log.error("failed to reconnect to %p - %e", peerId, err);
+    }).catch(async (err2) => {
+      this.log.error("failed to reconnect to %p - %e", peerId, err2);
       const tags = {};
       [...peer.tags.keys()].forEach((key) => {
         if (key.startsWith(KEEP_ALIVE)) {
@@ -43153,8 +43153,8 @@ var ReconnectQueue = class {
       this.events.safeDispatchEvent("peer:reconnect-failure", {
         detail: peerId
       });
-    }).catch(async (err) => {
-      this.log.error("failed to remove keep-alive tag from %p - %e", peerId, err);
+    }).catch(async (err2) => {
+      this.log.error("failed to remove keep-alive tag from %p - %e", peerId, err2);
     });
   }
   start() {
@@ -43168,12 +43168,12 @@ var ReconnectQueue = class {
         ]
       });
       await Promise.all(keepAlivePeers.map(async (peer) => {
-        await this.connectionManager.openConnection(peer.id).catch((err) => {
-          this.log.error(err);
+        await this.connectionManager.openConnection(peer.id).catch((err2) => {
+          this.log.error(err2);
         });
       }));
-    }).catch((err) => {
-      this.log.error(err);
+    }).catch((err2) => {
+      this.log.error(err2);
     });
   }
   stop() {
@@ -43351,8 +43351,8 @@ var DefaultConnectionManager = class {
         tasks.push((async () => {
           try {
             await connection.close();
-          } catch (err) {
-            this.log.error(err);
+          } catch (err2) {
+            this.log.error(err2);
           }
         })());
       }
@@ -43379,8 +43379,8 @@ var DefaultConnectionManager = class {
     }
   }
   onConnect(evt) {
-    void this._onConnect(evt).catch((err) => {
-      this.log.error(err);
+    void this._onConnect(evt).catch((err2) => {
+      this.log.error(err2);
     });
   }
   /**
@@ -43492,8 +43492,8 @@ var DefaultConnectionManager = class {
     await Promise.all(connections.map(async (connection) => {
       try {
         await connection.close(options2);
-      } catch (err) {
-        connection.abort(err);
+      } catch (err2) {
+        connection.abort(err2);
       }
     }));
   }
@@ -43698,8 +43698,8 @@ var UnexpectedEOFError2 = class extends Error {
 // node_modules/it-byte-stream/dist/src/index.js
 function byteStream(duplex, opts) {
   const write6 = queuelessPushable();
-  duplex.sink(write6).catch(async (err) => {
-    await write6.end(err);
+  duplex.sink(write6).catch(async (err2) => {
+    await write6.end(err2);
   });
   duplex.sink = async (source2) => {
     for await (const buf of source2) {
@@ -43823,17 +43823,17 @@ var ConnectionMonitor = class {
             await bs.unwrap().close({
               signal
             });
-          } catch (err) {
-            if (err.name !== "UnsupportedProtocolError") {
-              throw err;
+          } catch (err2) {
+            if (err2.name !== "UnsupportedProtocolError") {
+              throw err2;
             }
             conn.rtt = (Date.now() - start2) / 2;
           }
-        }).catch((err) => {
-          this.log.error("error during heartbeat", err);
+        }).catch((err2) => {
+          this.log.error("error during heartbeat", err2);
           if (this.abortConnectionOnPingFailure) {
             this.log.error("aborting connection due to ping failure");
-            conn.abort(err);
+            conn.abort(err2);
           } else {
             this.log("connection ping failed, but not aborting due to abortConnectionOnPingFailure flag");
           }
@@ -44026,16 +44026,16 @@ async function* parallel(source, options2 = {}) {
           op.ok = true;
           op.value = result2;
           emitter.dispatchEvent(new CustomEvent2("task-complete"));
-        }, (err) => {
+        }, (err2) => {
           op.done = true;
-          op.err = err;
+          op.err = err2;
           emitter.dispatchEvent(new CustomEvent2("task-complete"));
         });
       }
       sourceFinished = true;
       emitter.dispatchEvent(new CustomEvent2("task-complete"));
-    } catch (err) {
-      sourceErr = err;
+    } catch (err2) {
+      sourceErr = err2;
       emitter.dispatchEvent(new CustomEvent2("task-complete"));
     }
   });
@@ -44156,8 +44156,8 @@ var DefaultPeerRouting = class {
     const source = src_default3(...this.routers.filter((router) => router.findPeer instanceof Function).map((router) => async function* () {
       try {
         yield await router.findPeer(id, options2);
-      } catch (err) {
-        self2.log.error(err);
+      } catch (err2) {
+        self2.log.error(err2);
       }
     }()));
     for await (const peer of source) {
@@ -44192,8 +44192,8 @@ var DefaultPeerRouting = class {
                 ...options2,
                 useCache: false
               });
-            } catch (err) {
-              self2.log.error("could not find peer multiaddrs", err);
+            } catch (err2) {
+              self2.log.error("could not find peer multiaddrs", err2);
               return;
             }
           }
@@ -44300,16 +44300,16 @@ var RandomWalk = class extends TypedEventEmitter {
             s2 = Date.now();
           }
           this.log("walk iteration for %b and %d walkers finished, found %d peers", data, this.walkers, found);
-        } catch (err) {
-          this.log.error("random walk errored", err);
+        } catch (err2) {
+          this.log.error("random walk errored", err2);
           this.safeDispatchEvent("walk:error", {
-            detail: err
+            detail: err2
           });
         }
       }
       this.log("no walkers left, ended walk");
-    }).catch((err) => {
-      this.log.error("random walk errored", err);
+    }).catch((err2) => {
+      this.log.error("random walk errored", err2);
     }).finally(() => {
       this.log("finished walk, found %d peers after %dms", found, Date.now() - start2);
       this.walking = false;
@@ -44454,11 +44454,11 @@ var Registrar = class {
           topology.onDisconnect?.(remotePeer);
         }
       }
-    }).catch((err) => {
-      if (err.name === "NotFoundError") {
+    }).catch((err2) => {
+      if (err2.name === "NotFoundError") {
         return;
       }
-      this.log.error("could not inform topologies of disconnecting peer %p", remotePeer, err);
+      this.log.error("could not inform topologies of disconnecting peer %p", remotePeer, err2);
     });
   }
   /**
@@ -44705,10 +44705,10 @@ var DefaultTransportManager = class {
           if (IP6.matches(addr)) {
             listenStats.ipv6.success++;
           }
-        }, (err) => {
-          this.log.error("transport %s could not listen on address %a - %e", key, addr, err);
-          listenStats.errors.set(addr.toString(), err);
-          throw err;
+        }, (err2) => {
+          this.log.error("transport %s could not listen on address %a - %e", key, addr, err2);
+          listenStats.errors.set(addr.toString(), err2);
+          throw err2;
         }));
       }
     }
@@ -44725,9 +44725,9 @@ var DefaultTransportManager = class {
       return;
     }
     throw new UnsupportedListenAddressesError(`Some configured addresses failed to be listened on, you may need to remove one or more listen addresses from your configuration or set \`transportManager.faultTolerance\` to NO_FATAL:
-${[...listenStats.errors.entries()].map(([addr, err]) => {
+${[...listenStats.errors.entries()].map(([addr, err2]) => {
       return `
-  ${addr}: ${`${err.stack ?? err}`.split("\n").join("\n  ")}
+  ${addr}: ${`${err2.stack ?? err2}`.split("\n").join("\n  ")}
 `;
     }).join("")}`);
   }
@@ -44811,11 +44811,11 @@ function lpStream(duplex, opts = {}) {
         }));
         try {
           dataLength = decodeLength(lengthBuffer);
-        } catch (err) {
-          if (err instanceof RangeError) {
+        } catch (err2) {
+          if (err2 instanceof RangeError) {
             continue;
           }
-          throw err;
+          throw err2;
         }
         if (dataLength < 0) {
           throw new InvalidMessageLengthError3("Invalid message length");
@@ -44959,8 +44959,8 @@ function optimisticSelect(stream, protocol, options2) {
           sentProtocol = true;
           sendingProtocol = false;
           doneSendingProtocol.resolve();
-          negotiate().catch((err) => {
-            options2.log.error("could not finish optimistic protocol negotiation of %s", protocol, err);
+          negotiate().catch((err2) => {
+            options2.log.error("could not finish optimistic protocol negotiation of %s", protocol, err2);
           });
         } else {
           yield buf;
@@ -45047,8 +45047,8 @@ function optimisticSelect(stream, protocol, options2) {
     const originalCloseRead = stream.closeRead.bind(stream);
     stream.closeRead = async (opts) => {
       if (!negotiated) {
-        await negotiate().catch((err) => {
-          options2.log.error("could not negotiate protocol before close read", err);
+        await negotiate().catch((err2) => {
+          options2.log.error("could not negotiate protocol before close read", err2);
         });
       }
       await originalCloseRead(opts);
@@ -45058,8 +45058,8 @@ function optimisticSelect(stream, protocol, options2) {
     const originalCloseWrite = stream.closeWrite.bind(stream);
     stream.closeWrite = async (opts) => {
       if (!negotiated) {
-        await negotiate().catch((err) => {
-          options2.log.error("could not negotiate protocol before close write", err);
+        await negotiate().catch((err2) => {
+          options2.log.error("could not negotiate protocol before close write", err2);
         });
       }
       await originalCloseWrite(opts);
@@ -45183,8 +45183,8 @@ var Connection = class {
       void Promise.all([
         this.muxer.sink(this.maConn.source),
         this.maConn.sink(this.muxer.source)
-      ]).catch((err) => {
-        this.log.error("error piping data through muxer - %e", err);
+      ]).catch((err2) => {
+        this.log.error("error piping data through muxer - %e", err2);
       });
     }
   }
@@ -45235,9 +45235,9 @@ var Connection = class {
       const outgoingLimit = findOutgoingStreamLimit(protocol, this.components.registrar, options2);
       const streamCount = countStreams(protocol, "outbound", this);
       if (streamCount >= outgoingLimit) {
-        const err = new TooManyOutboundProtocolStreamsError(`Too many outbound protocol streams for protocol "${protocol}" - ${streamCount}/${outgoingLimit}`);
-        muxedStream.abort(err);
-        throw err;
+        const err2 = new TooManyOutboundProtocolStreamsError(`Too many outbound protocol streams for protocol "${protocol}" - ${streamCount}/${outgoingLimit}`);
+        muxedStream.abort(err2);
+        throw err2;
       }
       await this.components.peerStore.merge(this.remotePeer, {
         protocols: [protocol]
@@ -45257,12 +45257,12 @@ var Connection = class {
       this.components.metrics?.trackProtocolStream(muxedStream, this);
       muxedStream.direction = "outbound";
       return muxedStream;
-    } catch (err) {
-      this.log.error("could not create new outbound stream on connection %s %a for protocols %s - %e", this.direction === "inbound" ? "from" : "to", this.remoteAddr, protocols2, err);
+    } catch (err2) {
+      this.log.error("could not create new outbound stream on connection %s %a for protocols %s - %e", this.direction === "inbound" ? "from" : "to", this.remoteAddr, protocols2, err2);
       if (muxedStream.timeline.close == null) {
-        muxedStream.abort(err);
+        muxedStream.abort(err2);
       }
-      throw err;
+      throw err2;
     }
   };
   onIncomingStream(muxedStream) {
@@ -45279,9 +45279,9 @@ var Connection = class {
       const incomingLimit = findIncomingStreamLimit(protocol, this.components.registrar);
       const streamCount = countStreams(protocol, "inbound", this);
       if (streamCount === incomingLimit) {
-        const err = new TooManyInboundProtocolStreamsError(`Too many inbound protocol streams for protocol "${protocol}" - limit ${incomingLimit}`);
-        muxedStream.abort(err);
-        throw err;
+        const err2 = new TooManyInboundProtocolStreamsError(`Too many inbound protocol streams for protocol "${protocol}" - limit ${incomingLimit}`);
+        muxedStream.abort(err2);
+        throw err2;
       }
       muxedStream.source = stream.source;
       muxedStream.sink = stream.sink;
@@ -45306,9 +45306,9 @@ var Connection = class {
         throw new LimitedConnectionError("Cannot open protocol stream on limited connection");
       }
       await handler({ connection: this, stream: muxedStream });
-    }).catch(async (err) => {
-      this.log.error("error handling incoming stream id %s - %e", muxedStream.id, err);
-      muxedStream.abort(err);
+    }).catch(async (err2) => {
+      this.log.error("error handling incoming stream id %s - %e", muxedStream.id, err2);
+      muxedStream.abort(err2);
     });
   }
   /**
@@ -45335,19 +45335,19 @@ var Connection = class {
       this.log.trace("updating timeline with close time");
       this.status = "closed";
       this.timeline.close = Date.now();
-    } catch (err) {
-      this.log.error("error encountered during graceful close of connection to %a", this.remoteAddr, err);
-      this.abort(err);
+    } catch (err2) {
+      this.log.error("error encountered during graceful close of connection to %a", this.remoteAddr, err2);
+      this.abort(err2);
     }
   }
-  abort(err) {
+  abort(err2) {
     if (this.status === "closed") {
       return;
     }
-    this.log.error("aborting connection to %a due to error", this.remoteAddr, err);
+    this.log.error("aborting connection to %a due to error", this.remoteAddr, err2);
     this.status = "closing";
-    this.muxer?.abort(err);
-    this.maConn.abort(err);
+    this.muxer?.abort(err2);
+    this.maConn.abort(err2);
     this.status = "closed";
     this.timeline.close = Date.now();
   }
@@ -45359,9 +45359,9 @@ function findIncomingStreamLimit(protocol, registrar) {
   try {
     const { options: options2 } = registrar.getHandler(protocol);
     return options2.maxInboundStreams;
-  } catch (err) {
-    if (err.name !== "UnhandledProtocolError") {
-      throw err;
+  } catch (err2) {
+    if (err2.name !== "UnhandledProtocolError") {
+      throw err2;
     }
   }
   return DEFAULT_MAX_INBOUND_STREAMS2;
@@ -45372,9 +45372,9 @@ function findOutgoingStreamLimit(protocol, registrar, options2 = {}) {
     if (options3.maxOutboundStreams != null) {
       return options3.maxOutboundStreams;
     }
-  } catch (err) {
-    if (err.name !== "UnhandledProtocolError") {
-      throw err;
+  } catch (err2) {
+    if (err2.name !== "UnhandledProtocolError") {
+      throw err2;
     }
   }
   return options2.maxOutboundStreams ?? DEFAULT_MAX_OUTBOUND_STREAMS2;
@@ -45464,14 +45464,14 @@ var Upgrader = class {
         ...opts,
         signal
       });
-    } catch (err) {
+    } catch (err2) {
       this.metrics.errors?.increment({
         inbound: true
       });
       this.metrics.inboundErrors?.increment({
-        [err.name ?? "Error"]: true
+        [err2.name ?? "Error"]: true
       });
-      throw err;
+      throw err2;
     } finally {
       signal.clear();
       if (accepted) {
@@ -45498,14 +45498,14 @@ var Upgrader = class {
         direction = "inbound";
       }
       return await this._performUpgrade(maConn, direction, opts);
-    } catch (err) {
+    } catch (err2) {
       this.metrics.errors?.increment({
         outbound: true
       });
       this.metrics.outboundErrors?.increment({
-        [err.name ?? "Error"]: true
+        [err2.name ?? "Error"]: true
       });
-      throw err;
+      throw err2;
     }
   }
   async _performUpgrade(maConn, direction, opts) {
@@ -45551,9 +45551,9 @@ var Upgrader = class {
         remotePeer = remotePeerId;
       }
       if (remotePeer.equals(this.components.peerId)) {
-        const err = new InvalidPeerIdError("Can not dial self");
-        maConn.abort(err);
-        throw err;
+        const err2 = new InvalidPeerIdError("Can not dial self");
+        maConn.abort(err2);
+        throw err2;
       }
       upgradedConn = encryptedConn;
       if (opts?.muxerFactory != null) {
@@ -45570,9 +45570,9 @@ var Upgrader = class {
         muxerFactory = multiplexed.muxerFactory;
         upgradedConn = multiplexed.stream;
       }
-    } catch (err) {
-      maConn.log.error("failed to upgrade inbound connection %s %a - %e", direction === "inbound" ? "from" : "to", maConn.remoteAddr, err);
-      throw err;
+    } catch (err2) {
+      maConn.log.error("failed to upgrade inbound connection %s %a - %e", direction === "inbound" ? "from" : "to", maConn.remoteAddr, err2);
+      throw err2;
     }
     await this.shouldBlockConnection(direction === "inbound" ? "denyInboundUpgradedConnection" : "denyOutboundUpgradedConnection", remotePeer, maConn);
     const conn = this._createConnection({
@@ -45603,15 +45603,15 @@ var Upgrader = class {
               if (connection.status === "open") {
                 await connection.close();
               }
-            } catch (err) {
-              connection.log.error("error closing connection after timeline close %e", err);
+            } catch (err2) {
+              connection.log.error("error closing connection after timeline close %e", err2);
             } finally {
               this.events.safeDispatchEvent("connection:close", {
                 detail: connection
               });
             }
-          })().catch((err) => {
-            connection.log.error("error thrown while dispatching connection:close event %e", err);
+          })().catch((err2) => {
+            connection.log.error("error thrown while dispatching connection:close event %e", err2);
           });
         }
         return Reflect.set(...args);
@@ -45653,9 +45653,9 @@ var Upgrader = class {
         ...await encrypter.secureInbound(stream, options2),
         protocol
       };
-    } catch (err) {
-      connection.log.error("encrypting inbound connection from %a failed", connection.remoteAddr, err);
-      throw new EncryptionFailedError(err.message);
+    } catch (err2) {
+      connection.log.error("encrypting inbound connection from %a failed", connection.remoteAddr, err2);
+      throw new EncryptionFailedError(err2.message);
     }
   }
   /**
@@ -45680,9 +45680,9 @@ var Upgrader = class {
         ...await encrypter.secureOutbound(stream, options2),
         protocol
       };
-    } catch (err) {
-      connection.log.error("encrypting outbound connection to %a failed", connection.remoteAddr, err);
-      throw new EncryptionFailedError(err.message);
+    } catch (err2) {
+      connection.log.error("encrypting outbound connection to %a failed", connection.remoteAddr, err2);
+      throw new EncryptionFailedError(err2.message);
     }
   }
   /**
@@ -45702,9 +45702,9 @@ var Upgrader = class {
       connection.log("selected %s as muxer protocol", protocol);
       const muxerFactory = muxers.get(protocol);
       return { stream, muxerFactory };
-    } catch (err) {
-      connection.log.error("error multiplexing outbound connection", err);
-      throw new MuxerUnavailableError(String(err));
+    } catch (err2) {
+      connection.log.error("error multiplexing outbound connection", err2);
+      throw new MuxerUnavailableError(String(err2));
     }
   }
   /**
@@ -45721,9 +45721,9 @@ var Upgrader = class {
       });
       const muxerFactory = muxers.get(protocol);
       return { stream, muxerFactory };
-    } catch (err) {
-      connection.log.error("error multiplexing inbound connection", err);
-      throw new MuxerUnavailableError(String(err));
+    } catch (err2) {
+      connection.log.error("error multiplexing inbound connection", err2);
+      throw new MuxerUnavailableError(String(err2));
     }
   }
   getConnectionEncrypters() {
@@ -45889,11 +45889,11 @@ var Libp2p = class extends TypedEventEmitter {
       this.status = "started";
       this.safeDispatchEvent("start", { detail: this });
       this.log("libp2p has started");
-    } catch (err) {
-      this.log.error("An error occurred starting libp2p", err);
+    } catch (err2) {
+      this.log.error("An error occurred starting libp2p", err2);
       this.status = "started";
       await this.stop();
-      throw err;
+      throw err2;
     }
   }
   /**
@@ -45965,9 +45965,9 @@ var Libp2p = class extends TypedEventEmitter {
       if (peerInfo.id.publicKey != null) {
         return peerInfo.id.publicKey;
       }
-    } catch (err) {
-      if (err.name !== "NotFoundError") {
-        throw err;
+    } catch (err2) {
+      if (err2.name !== "NotFoundError") {
+        throw err2;
       }
     }
     const peerKey = concat5([
@@ -46018,8 +46018,8 @@ var Libp2p = class extends TypedEventEmitter {
     }
     void this.components.peerStore.merge(peer.id, {
       multiaddrs: peer.multiaddrs
-    }).catch((err) => {
-      this.log.error(err);
+    }).catch((err2) => {
+      this.log.error(err2);
     });
   }
 };
@@ -48055,8 +48055,8 @@ var END_OF_CONTENT_NAME = "EndOfContent";
 var OCTET_STRING_NAME = "OCTET STRING";
 var BIT_STRING_NAME = "BIT STRING";
 function HexBlock(BaseClass) {
-  var _a3;
-  return _a3 = class Some extends BaseClass {
+  var _a4;
+  return _a4 = class Some extends BaseClass {
     get valueHex() {
       return this.valueHexView.slice().buffer;
     }
@@ -48064,10 +48064,10 @@ function HexBlock(BaseClass) {
       this.valueHexView = new Uint8Array(value2);
     }
     constructor(...args) {
-      var _b2;
+      var _b3;
       super(...args);
       const params = args[0] || {};
-      this.isHexOnly = (_b2 = params.isHexOnly) !== null && _b2 !== void 0 ? _b2 : false;
+      this.isHexOnly = (_b3 = params.isHexOnly) !== null && _b3 !== void 0 ? _b3 : false;
       this.valueHexView = params.valueHex ? pvtsutils.BufferSourceConverter.toUint8Array(params.valueHex) : EMPTY_VIEW;
     }
     fromBER(inputBuffer, inputOffset, inputLength, _context) {
@@ -48104,7 +48104,7 @@ function HexBlock(BaseClass) {
         valueHex: pvtsutils.Convert.ToHex(this.valueHexView)
       };
     }
-  }, _a3.NAME = "hexBlock", _a3;
+  }, _a4.NAME = "hexBlock", _a4;
 }
 var LocalBaseBlock = class {
   static blockName() {
@@ -48144,12 +48144,12 @@ var ValueBlock = class extends LocalBaseBlock {
 ValueBlock.NAME = "valueBlock";
 var LocalIdentificationBlock = class extends HexBlock(LocalBaseBlock) {
   constructor({ idBlock = {} } = {}) {
-    var _a3, _b2, _c2, _d;
+    var _a4, _b3, _c2, _d;
     super();
     if (idBlock) {
-      this.isHexOnly = (_a3 = idBlock.isHexOnly) !== null && _a3 !== void 0 ? _a3 : false;
+      this.isHexOnly = (_a4 = idBlock.isHexOnly) !== null && _a4 !== void 0 ? _a4 : false;
       this.valueHexView = idBlock.valueHex ? pvtsutils.BufferSourceConverter.toUint8Array(idBlock.valueHex) : EMPTY_VIEW;
-      this.tagClass = (_b2 = idBlock.tagClass) !== null && _b2 !== void 0 ? _b2 : -1;
+      this.tagClass = (_b3 = idBlock.tagClass) !== null && _b3 !== void 0 ? _b3 : -1;
       this.tagNumber = (_c2 = idBlock.tagNumber) !== null && _c2 !== void 0 ? _c2 : -1;
       this.isConstructed = (_d = idBlock.isConstructed) !== null && _d !== void 0 ? _d : false;
     } else {
@@ -48307,10 +48307,10 @@ var ORIGINAL_LOCAL_IDENTIFICATION_TO_BER = LocalIdentificationBlock.prototype.to
 var ORIGINAL_LOCAL_IDENTIFICATION_FROM_BER = LocalIdentificationBlock.prototype.fromBER;
 var LocalLengthBlock = class extends LocalBaseBlock {
   constructor({ lenBlock = {} } = {}) {
-    var _a3, _b2, _c2;
+    var _a4, _b3, _c2;
     super();
-    this.isIndefiniteForm = (_a3 = lenBlock.isIndefiniteForm) !== null && _a3 !== void 0 ? _a3 : false;
-    this.longFormUsed = (_b2 = lenBlock.longFormUsed) !== null && _b2 !== void 0 ? _b2 : false;
+    this.isIndefiniteForm = (_a4 = lenBlock.isIndefiniteForm) !== null && _a4 !== void 0 ? _a4 : false;
+    this.longFormUsed = (_b3 = lenBlock.longFormUsed) !== null && _b3 !== void 0 ? _b3 : false;
     this.length = (_c2 = lenBlock.length) !== null && _c2 !== void 0 ? _c2 : 0;
   }
   fromBER(inputBuffer, inputOffset, inputLength) {
@@ -48717,7 +48717,7 @@ function inspectNode(block, depth, registry3) {
   }
 }
 function buildNode(node, sizeOnly, registry3) {
-  var _a3, _b2;
+  var _a4, _b3;
   const id = Reflect.apply(registry3.originalIdentificationToBER, node.idBlock, [sizeOnly]);
   if (!(id instanceof ArrayBuffer) || id.byteLength === 0)
     throw TypeError("Built-in identifier encoding failed");
@@ -48727,7 +48727,7 @@ function buildNode(node, sizeOnly, registry3) {
   } else {
     payload = node.payload;
   }
-  const length15 = (payload instanceof Uint8Array ? payload.byteLength : payload.total) + ((_b2 = (_a3 = node.prefix) === null || _a3 === void 0 ? void 0 : _a3.byteLength) !== null && _b2 !== void 0 ? _b2 : 0);
+  const length15 = (payload instanceof Uint8Array ? payload.byteLength : payload.total) + ((_b3 = (_a4 = node.prefix) === null || _a4 === void 0 ? void 0 : _a4.byteLength) !== null && _b3 !== void 0 ? _b3 : 0);
   let len;
   if (node.indefinite) {
     len = Uint8Array.of(128).buffer;
@@ -48870,7 +48870,7 @@ var BaseBlock = class extends LocalBaseBlock {
 BaseBlock.NAME = "BaseBlock";
 var ORIGINAL_BASE_BLOCK_TO_BER = BaseBlock.prototype.toBER;
 function prepareIndefiniteForm(baseBlock) {
-  var _a3;
+  var _a4;
   if (baseBlock instanceof typeStore.Constructed) {
     for (const value2 of baseBlock.valueBlock.value) {
       if (prepareIndefiniteForm(value2)) {
@@ -48878,7 +48878,7 @@ function prepareIndefiniteForm(baseBlock) {
       }
     }
   }
-  return !!((_a3 = baseBlock.lenBlock) === null || _a3 === void 0 ? void 0 : _a3.isIndefiniteForm);
+  return !!((_a4 = baseBlock.lenBlock) === null || _a4 === void 0 ? void 0 : _a4.isIndefiniteForm);
 }
 var BaseStringBlock = class extends BaseBlock {
   getValue() {
@@ -49018,12 +49018,12 @@ var MAX_DEPTH_EXCEEDED_ERROR = "Maximum ASN.1 nesting depth exceeded";
 var MAX_NODES_EXCEEDED_ERROR = "Maximum ASN.1 node count exceeded";
 var MAX_CONTENT_LENGTH_EXCEEDED_ERROR = "Maximum ASN.1 content length exceeded";
 function createFromBerContext(options2 = {}) {
-  var _a3, _b2, _c2, _d;
+  var _a4, _b3, _c2, _d;
   return {
     depth: 0,
-    maxDepth: (_a3 = options2.maxDepth) !== null && _a3 !== void 0 ? _a3 : DEFAULT_MAX_DEPTH,
+    maxDepth: (_a4 = options2.maxDepth) !== null && _a4 !== void 0 ? _a4 : DEFAULT_MAX_DEPTH,
     nodesCount: 0,
-    maxNodes: (_b2 = options2.maxNodes) !== null && _b2 !== void 0 ? _b2 : DEFAULT_MAX_NODES,
+    maxNodes: (_b3 = options2.maxNodes) !== null && _b3 !== void 0 ? _b3 : DEFAULT_MAX_NODES,
     maxContentLength: (_c2 = options2.maxContentLength) !== null && _c2 !== void 0 ? _c2 : DEFAULT_MAX_CONTENT_LENGTH,
     parseEmbedded: (_d = options2.parseEmbedded) !== null && _d !== void 0 ? _d : true
   };
@@ -49585,8 +49585,8 @@ var ORIGINAL_LOCAL_OCTET_STRING_TO_BER = LocalOctetStringValueBlock.prototype.to
 var _a$r;
 var OctetString = class extends BaseBlock {
   constructor({ idBlock = {}, lenBlock = {}, ...parameters } = {}) {
-    var _b2, _c2;
-    (_b2 = parameters.isConstructed) !== null && _b2 !== void 0 ? _b2 : parameters.isConstructed = !!((_c2 = parameters.value) === null || _c2 === void 0 ? void 0 : _c2.length);
+    var _b3, _c2;
+    (_b3 = parameters.isConstructed) !== null && _b3 !== void 0 ? _b3 : parameters.isConstructed = !!((_c2 = parameters.value) === null || _c2 === void 0 ? void 0 : _c2.length);
     super({
       idBlock: {
         isConstructed: parameters.isConstructed,
@@ -49749,8 +49749,8 @@ var ORIGINAL_LOCAL_BIT_STRING_TO_BER = LocalBitStringValueBlock.prototype.toBER;
 var _a$q;
 var BitString = class extends BaseBlock {
   constructor({ idBlock = {}, lenBlock = {}, ...parameters } = {}) {
-    var _b2, _c2;
-    (_b2 = parameters.isConstructed) !== null && _b2 !== void 0 ? _b2 : parameters.isConstructed = !!((_c2 = parameters.value) === null || _c2 === void 0 ? void 0 : _c2.length);
+    var _b3, _c2;
+    (_b3 = parameters.isConstructed) !== null && _b3 !== void 0 ? _b3 : parameters.isConstructed = !!((_c2 = parameters.value) === null || _c2 === void 0 ? void 0 : _c2.length);
     super({
       idBlock: {
         isConstructed: parameters.isConstructed,
@@ -50866,9 +50866,9 @@ UTCTime.NAME = "UTCTime";
 var _a$5;
 var GeneralizedTime = class extends UTCTime {
   constructor(parameters = {}) {
-    var _b2;
+    var _b3;
     super(parameters);
-    (_b2 = this.millisecond) !== null && _b2 !== void 0 ? _b2 : this.millisecond = 0;
+    (_b3 = this.millisecond) !== null && _b3 !== void 0 ? _b3 : this.millisecond = 0;
     this.idBlock.tagClass = 1;
     this.idBlock.tagNumber = 24;
   }
@@ -51854,9 +51854,9 @@ var Keychain = class {
     try {
       const res = await this.components.datastore.get(datastoreName);
       return JSON.parse(toString9(res));
-    } catch (err) {
+    } catch (err2) {
       await randomDelay();
-      this.log.error("could not read key from datastore - %e", err);
+      this.log.error("could not read key from datastore - %e", err2);
       throw new NotFoundError3(`Key '${name15}' does not exist.`);
     }
   }
@@ -51872,9 +51872,9 @@ var Keychain = class {
         }
       }
       throw new InvalidParametersError4(`Key with id '${id}' does not exist.`);
-    } catch (err) {
+    } catch (err2) {
       await randomDelay();
-      throw err;
+      throw err2;
     }
   }
   async importKey(name15, key) {
@@ -51902,9 +51902,9 @@ var Keychain = class {
       }
       const dek = cached.dek;
       pem2 = await exportPrivateKey(key, dek, key.type === "RSA" ? "pkcs-8" : "libp2p-key");
-    } catch (err) {
+    } catch (err2) {
       await randomDelay();
-      throw err;
+      throw err2;
     }
     const keyInfo = {
       name: name15,
@@ -51931,9 +51931,9 @@ var Keychain = class {
       }
       const dek = cached.dek;
       return await importPrivateKey(pem2, dek);
-    } catch (err) {
+    } catch (err2) {
       await randomDelay();
-      throw err;
+      throw err2;
     }
   }
   async removeKey(name15) {
@@ -52001,9 +52001,9 @@ var Keychain = class {
       batch2.delete(oldInfoName);
       await batch2.commit();
       return keyInfo;
-    } catch (err) {
+    } catch (err2) {
       await randomDelay();
-      throw err;
+      throw err2;
     }
   }
   /**
@@ -52101,16 +52101,16 @@ ${indent}`)}`;
   }
   return `${v.toString()}`;
 }
-function isAggregateError2(err) {
-  return err instanceof AggregateError || err?.name === "AggregateError" && Array.isArray(err.errors);
+function isAggregateError2(err2) {
+  return err2 instanceof AggregateError || err2?.name === "AggregateError" && Array.isArray(err2.errors);
 }
-function printError2(err, indent = "") {
-  if (isAggregateError2(err)) {
-    let output = formatError2(err, indent);
-    if (err.errors.length > 0) {
+function printError2(err2, indent = "") {
+  if (isAggregateError2(err2)) {
+    let output = formatError2(err2, indent);
+    if (err2.errors.length > 0) {
       indent = `${indent}    `;
       output += `
-${indent}${err.errors.map((err2) => `${printError2(err2, `${indent}`)}`).join(`
+${indent}${err2.errors.map((err3) => `${printError2(err3, `${indent}`)}`).join(`
 ${indent}`)}`;
     } else {
       output += `
@@ -52118,7 +52118,7 @@ ${indent}[Error list was empty]`;
     }
     return output.trim();
   }
-  return formatError2(err, indent);
+  return formatError2(err2, indent);
 }
 src_default.formatters.e = (v) => {
   if (v == null) {
@@ -54088,16 +54088,16 @@ function calcWOpts(W, scalarBits) {
 }
 function calcOffsets(n, window2, wOpts) {
   const { windowSize, mask, maxNumber, shiftBy } = wOpts;
-  let wbits = Number(n & mask);
+  let wbits2 = Number(n & mask);
   let nextN = n >> shiftBy;
-  if (wbits > windowSize) {
-    wbits -= maxNumber;
+  if (wbits2 > windowSize) {
+    wbits2 -= maxNumber;
     nextN += _1n9;
   }
   const offsetStart = window2 * windowSize;
-  const offset = offsetStart + Math.abs(wbits) - 1;
-  const isZero = wbits === 0;
-  const isNeg = wbits < 0;
+  const offset = offsetStart + Math.abs(wbits2) - 1;
+  const isZero = wbits2 === 0;
+  const isNeg = wbits2 < 0;
   const isNegF = window2 % 2 !== 0;
   const offsetF = offsetStart;
   return { nextN, offset, isZero, isNeg, isNegF, offsetF };
@@ -54262,13 +54262,13 @@ function pippenger(c, fieldN, points, scalars) {
   if (plength !== slength)
     throw new Error("arrays of points and scalars must have equal length");
   const zero5 = c.ZERO;
-  const wbits = bitLen2(BigInt(plength));
+  const wbits2 = bitLen2(BigInt(plength));
   let windowSize = 1;
-  if (wbits > 12)
-    windowSize = wbits - 3;
-  else if (wbits > 4)
-    windowSize = wbits - 2;
-  else if (wbits > 0)
+  if (wbits2 > 12)
+    windowSize = wbits2 - 3;
+  else if (wbits2 > 4)
+    windowSize = wbits2 - 2;
+  else if (wbits2 > 0)
     windowSize = 2;
   const MASK = bitMask2(windowSize);
   const buckets = new Array(Number(MASK) + 1).fill(zero5);
@@ -54278,8 +54278,8 @@ function pippenger(c, fieldN, points, scalars) {
     buckets.fill(zero5);
     for (let j = 0; j < slength; j++) {
       const scalar = scalars[j];
-      const wbits2 = Number(scalar >> BigInt(i) & MASK);
-      buckets[wbits2] = buckets[wbits2].add(points[j]);
+      const wbits3 = Number(scalar >> BigInt(i) & MASK);
+      buckets[wbits3] = buckets[wbits3].add(points[j]);
     }
     let resI = zero5;
     for (let j = buckets.length - 1, sumI = zero5; j > 0; j--) {
@@ -54315,8 +54315,8 @@ function _createCurveFields(type, CURVE, curveOpts = {}, FpFnLE) {
   }
   const Fp3 = createField2(CURVE.p, curveOpts.Fp, FpFnLE);
   const Fn2 = createField2(CURVE.n, curveOpts.Fn, FpFnLE);
-  const _b2 = type === "weierstrass" ? "b" : "d";
-  const params = ["Gx", "Gy", "a", _b2];
+  const _b3 = type === "weierstrass" ? "b" : "d";
+  const params = ["Gx", "Gy", "a", _b3];
   for (const p of params) {
     if (!Fp3.isValid(CURVE[p]))
       throw new Error(`CURVE.${p} must be valid field element of CURVE.Fp`);
@@ -56521,8 +56521,8 @@ function isPromise4(thing) {
 function closeSource(source, log18) {
   const res = getIterator(source).return?.();
   if (isPromise4(res)) {
-    res.catch((err) => {
-      log18.error("could not cause iterator to return", err);
+    res.catch((err2) => {
+      log18.error("could not cause iterator to return", err2);
     });
   }
 }
@@ -56579,13 +56579,13 @@ var AbstractStream = class {
     this.onReset = init.onReset;
     this.onAbort = init.onAbort;
     this.source = this.streamSource = pushable({
-      onEnd: (err) => {
-        if (err != null) {
-          this.log.trace("source ended with error", err);
+      onEnd: (err2) => {
+        if (err2 != null) {
+          this.log.trace("source ended with error", err2);
         } else {
           this.log.trace("source ended");
         }
-        this.onSourceEnd(err);
+        this.onSourceEnd(err2);
       }
     });
     this.sink = this.sink.bind(this);
@@ -56634,23 +56634,23 @@ var AbstractStream = class {
         this.writeStatus = "closed";
       }
       this.onSinkEnd();
-    } catch (err) {
-      this.log.trace("sink ended with error, calling abort with error", err);
-      this.abort(err);
-      throw err;
+    } catch (err2) {
+      this.log.trace("sink ended with error, calling abort with error", err2);
+      this.abort(err2);
+      throw err2;
     } finally {
       this.log.trace("resolve sink end");
       this.sinkEnd.resolve();
     }
   }
-  onSourceEnd(err) {
+  onSourceEnd(err2) {
     if (this.timeline.closeRead != null) {
       return;
     }
     this.timeline.closeRead = Date.now();
     this.readStatus = "closed";
-    if (err != null && this.endErr == null) {
-      this.endErr = err;
+    if (err2 != null && this.endErr == null) {
+      this.endErr = err2;
     }
     this.onCloseRead?.();
     if (this.timeline.closeWrite != null) {
@@ -56667,14 +56667,14 @@ var AbstractStream = class {
       this.log.trace("source ended, waiting for sink to end");
     }
   }
-  onSinkEnd(err) {
+  onSinkEnd(err2) {
     if (this.timeline.closeWrite != null) {
       return;
     }
     this.timeline.closeWrite = Date.now();
     this.writeStatus = "closed";
-    if (err != null && this.endErr == null) {
-      this.endErr = err;
+    if (err2 != null && this.endErr == null) {
+      this.endErr = err2;
     }
     this.onCloseWrite?.();
     if (this.timeline.closeRead != null) {
@@ -56747,22 +56747,22 @@ var AbstractStream = class {
    * Close immediately for reading and writing and send a reset message (local
    * error)
    */
-  abort(err) {
+  abort(err2) {
     if (this.status === "closed" || this.status === "aborted" || this.status === "reset") {
       return;
     }
-    this.log("abort with error", err);
+    this.log("abort with error", err2);
     this.log("try to send reset to remote");
     const res = this.sendReset();
     if (isPromise5(res)) {
-      res.catch((err2) => {
-        this.log.error("error sending reset message", err2);
+      res.catch((err3) => {
+        this.log.error("error sending reset message", err3);
       });
     }
     this.status = "aborted";
     this.timeline.abort = Date.now();
-    this._closeSinkAndSource(err);
-    this.onAbort?.(err);
+    this._closeSinkAndSource(err2);
+    this.onAbort?.(err2);
   }
   /**
    * Receive a reset message - close immediately for reading and writing (remote
@@ -56772,28 +56772,28 @@ var AbstractStream = class {
     if (this.status === "closed" || this.status === "aborted" || this.status === "reset") {
       return;
     }
-    const err = new StreamResetError("stream reset");
+    const err2 = new StreamResetError("stream reset");
     this.status = "reset";
     this.timeline.reset = Date.now();
-    this._closeSinkAndSource(err);
+    this._closeSinkAndSource(err2);
     this.onReset?.();
   }
-  _closeSinkAndSource(err) {
-    this._closeSink(err);
-    this._closeSource(err);
+  _closeSinkAndSource(err2) {
+    this._closeSink(err2);
+    this._closeSource(err2);
   }
-  _closeSink(err) {
+  _closeSink(err2) {
     if (this.writeStatus === "writing") {
       this.log.trace("end sink source");
       this.sinkController.abort();
     }
-    this.onSinkEnd(err);
+    this.onSinkEnd(err2);
   }
-  _closeSource(err) {
+  _closeSource(err2) {
     if (this.readStatus !== "closing" && this.readStatus !== "closed") {
       this.log.trace("ending source with %d bytes to be read by consumer", this.streamSource.readableLength);
       this.readStatus = "closing";
-      this.streamSource.end(err);
+      this.streamSource.end(err2);
     }
   }
   /**
@@ -56881,9 +56881,9 @@ var YamuxStream = class extends AbstractStream {
   constructor(init) {
     super({
       ...init,
-      onEnd: (err) => {
+      onEnd: (err2) => {
         this.state = StreamState.Finished;
-        init.onEnd?.(err);
+        init.onEnd?.(err2);
       }
     });
     this.config = init.config;
@@ -57156,8 +57156,8 @@ var YamuxMuxer = class {
         if (iterator.return != null) {
           const res = iterator.return();
           if (isPromise6(res)) {
-            res.catch((err) => {
-              this.log?.("could not cause sink source to return", err);
+            res.catch((err2) => {
+              this.log?.("could not cause sink source to return", err2);
             });
           }
         }
@@ -57174,15 +57174,15 @@ var YamuxMuxer = class {
           this.closeController.signal.removeEventListener("abort", shutDownListener);
         }
         reason = GoAwayCode.NormalTermination;
-      } catch (err) {
-        if (PROTOCOL_ERRORS.has(err.name)) {
-          this.log?.error("protocol error in sink", err);
+      } catch (err2) {
+        if (PROTOCOL_ERRORS.has(err2.name)) {
+          this.log?.error("protocol error in sink", err2);
           reason = GoAwayCode.ProtocolError;
         } else {
-          this.log?.error("internal error in sink", err);
+          this.log?.error("internal error in sink", err2);
           reason = GoAwayCode.InternalError;
         }
-        error = err;
+        error = err2;
       }
       this.log?.trace("muxer sink ended");
       if (error != null) {
@@ -57302,18 +57302,18 @@ var YamuxMuxer = class {
       await Promise.all([...this._streams.values()].map(async (s2) => s2.close(options2)));
       this.sendGoAway(reason);
       this._closeMuxer();
-    } catch (err) {
-      this.abort(err);
+    } catch (err2) {
+      this.abort(err2);
     }
   }
-  abort(err, reason) {
+  abort(err2, reason) {
     if (this.closeController.signal.aborted) {
       return;
     }
     reason = reason ?? GoAwayCode.InternalError;
-    this.log?.error("muxer abort reason=%s error=%s", reason, err);
+    this.log?.error("muxer abort reason=%s error=%s", reason, err2);
     for (const stream of this._streams.values()) {
-      stream.abort(err);
+      stream.abort(err2);
     }
     this.sendGoAway(reason);
     this._closeMuxer();
@@ -57988,8 +57988,8 @@ var AutoNATService = class {
       return;
     }
     await this.components.registrar.handle(this.protocol, (data) => {
-      void this.handleIncomingAutonatStream(data).catch((err) => {
-        this.log.error("error handling incoming autonat stream - %e", err);
+      void this.handleIncomingAutonatStream(data).catch((err2) => {
+        this.log.error("error handling incoming autonat stream - %e", err2);
       });
     }, {
       maxInboundStreams: this.maxInboundStreams,
@@ -57997,8 +57997,8 @@ var AutoNATService = class {
     });
     this.topologyId = await this.components.registrar.register(this.protocol, {
       onConnect: (peerId, connection) => {
-        this.verifyExternalAddresses(connection).catch((err) => {
-          this.log.error("could not verify addresses - %e", err);
+        this.verifyExternalAddresses(connection).catch((err2) => {
+          this.log.error("could not verify addresses - %e", err2);
         });
       }
     });
@@ -58078,9 +58078,9 @@ var AutoNATService = class {
       await messages2.unwrap().unwrap().close({
         signal
       });
-    } catch (err) {
-      this.log.error("error handling incoming autonat stream - %e", err);
-      data.stream.abort(err);
+    } catch (err2) {
+      this.log.error("error handling incoming autonat stream - %e", err2);
+      data.stream.abort(err2);
     }
   }
   async handleAutonatMessage(message5, connection, options2) {
@@ -58111,8 +58111,8 @@ var AutoNATService = class {
     try {
       const digest8 = decode13(peer.id);
       peerId = peerIdFromMultihash(digest8);
-    } catch (err) {
-      this.log.error("invalid PeerId - %e", err);
+    } catch (err2) {
+      this.log.error("invalid PeerId - %e", err2);
       return {
         type: Message.MessageType.DIAL_RESPONSE,
         dialResponse: {
@@ -58189,9 +58189,9 @@ var AutoNATService = class {
             addr: connection2.remoteAddr.decapsulateCode(protocols("p2p").code).bytes
           }
         };
-      } catch (err) {
-        this.log.error("could not dial %p - %e", peerId, err);
-        errorMessage = err.message;
+      } catch (err2) {
+        this.log.error("could not dial %p - %e", peerId, err2);
+        errorMessage = err2.message;
       } finally {
         if (connection2 != null) {
           await connection2.close();
@@ -58338,9 +58338,9 @@ var AutoNATService = class {
     }, {
       peerId: connection.remotePeer,
       multiaddr: results.multiaddr
-    }).catch((err) => {
+    }).catch((err2) => {
       if (results?.result == null) {
-        this.log.error("error from %p verifying address %a - %e", connection.remotePeer, results?.multiaddr, err);
+        this.log.error("error from %p verifying address %a - %e", connection.remotePeer, results?.multiaddr, err2);
       }
     });
   }
@@ -58419,8 +58419,8 @@ var AutoNATService = class {
         await stream.close({
           signal
         });
-      } catch (err) {
-        stream.abort(err);
+      } catch (err2) {
+        stream.abort(err2);
       }
     }
   }
@@ -58499,7 +58499,7 @@ function makeMatchesFunction(partialMatch) {
     let ma;
     try {
       ma = multiaddr(a);
-    } catch (err) {
+    } catch (err2) {
       return false;
     }
     const out = partialMatch(ma.protoNames());
@@ -58569,7 +58569,7 @@ function base7(n) {
     let ma;
     try {
       ma = multiaddr(a);
-    } catch (err) {
+    } catch (err2) {
       return false;
     }
     const pnames = ma.protoNames();
@@ -58653,8 +58653,8 @@ var Bootstrap = class extends TypedEventEmitter {
     }
     this.log("Starting bootstrap node discovery, discovering peers after %s ms", this.timeout);
     this.timer = setTimeout(() => {
-      void this._discoverBootstrapPeers().catch((err) => {
-        this.log.error(err);
+      void this._discoverBootstrapPeers().catch((err2) => {
+        this.log.error(err2);
       });
     }, this.timeout);
   }
@@ -58679,8 +58679,8 @@ var Bootstrap = class extends TypedEventEmitter {
         return;
       }
       this.safeDispatchEvent("peer", { detail: peerData });
-      this.components.connectionManager.openConnection(peerData.id).catch((err) => {
-        this.log.error("could not dial bootstrap peer %p", peerData.id, err);
+      this.components.connectionManager.openConnection(peerData.id).catch((err2) => {
+        this.log.error("could not dial bootstrap peer %p", peerData.id, err2);
       });
     }
   }
@@ -59335,18 +59335,18 @@ function streamToMaConnection(props) {
     close(true);
   };
   const streamAbort = stream.abort.bind(stream);
-  stream.abort = (err) => {
-    streamAbort(err);
+  stream.abort = (err2) => {
+    streamAbort(err2);
     close(true);
   };
   const streamSink = stream.sink.bind(stream);
   stream.sink = async (source) => {
     try {
       await streamSink(pipe(source, (source2) => src_default6(source2, (buf) => onDataWrite?.(buf))));
-    } catch (err) {
-      maConn.log.error("errored - %e", err);
-      if (err.type !== "aborted") {
-        maConn.log.error("%s error in sink - %e", remoteAddr, err);
+    } catch (err2) {
+      maConn.log.error("errored - %e", err2);
+      if (err2.type !== "aborted") {
+        maConn.log.error("%s error in sink - %e", remoteAddr, err2);
       }
     } finally {
       closedWrite = true;
@@ -59505,15 +59505,15 @@ var RelayDiscovery = class extends TypedEventEmitter {
         queue.add(this.dialPeer, {
           peerId: peer.id,
           signal: this.discoveryController.signal
-        }).catch((err) => {
-          this.log.error("error opening connection to random peer %p", peer.id, err);
+        }).catch((err2) => {
+          this.log.error("error opening connection to random peer %p", peer.id, err2);
         });
       }
       this.log("stop random walk");
       await queue.onIdle();
-    }).catch((err) => {
+    }).catch((err2) => {
       if (!this.discoveryController.signal.aborted) {
-        this.log.error("failed when finding relays on the network", err);
+        this.log.error("failed when finding relays on the network", err2);
       }
     });
   }
@@ -59526,8 +59526,8 @@ var RelayDiscovery = class extends TypedEventEmitter {
   }
   onPeer(evt) {
     this.log.trace("maybe dialing discovered peer %p - %e", evt.detail.id);
-    this.maybeDialPeer(evt).catch((err) => {
-      this.log.trace("error dialing discovered peer %p - %e", evt.detail.id, err);
+    this.maybeDialPeer(evt).catch((err2) => {
+      this.log.trace("error dialing discovered peer %p - %e", evt.detail.id, err2);
     });
   }
   async maybeDialPeer(evt) {
@@ -59551,8 +59551,8 @@ var RelayDiscovery = class extends TypedEventEmitter {
     this.queue?.add(this.dialPeer, {
       peerId: evt.detail.id,
       signal: this.discoveryController.signal
-    }).catch((err) => {
-      this.log.error("error opening connection to discovered peer %p", evt.detail.id, err);
+    }).catch((err2) => {
+      this.log.error("error opening connection to discovered peer %p", evt.detail.id, err2);
     });
   }
   async dialPeer({ peerId, signal }) {
@@ -59723,8 +59723,8 @@ var ReservationStore = class extends TypedEventEmitter {
       if (reservation == null) {
         return;
       }
-      this.#removeReservation(evt.detail.remotePeer).catch((err) => {
-        this.log("could not remove relay %p - %e", evt.detail, err);
+      this.#removeReservation(evt.detail.remotePeer).catch((err2) => {
+        this.log("could not remove relay %p - %e", evt.detail, err2);
       });
     });
   }
@@ -59752,8 +59752,8 @@ var ReservationStore = class extends TypedEventEmitter {
       this.log("redialing %d old relays", relayPeers.length);
       await Promise.all(relayPeers.map(async (peer) => this.addRelay(peer.id, "discovered")));
       this.#checkReservationCount();
-    }).catch((err) => {
-      this.log.error(err);
+    }).catch((err2) => {
+      this.log.error(err2);
     });
   }
   stop() {
@@ -59835,11 +59835,11 @@ var ReservationStore = class extends TypedEventEmitter {
         const timeoutDuration = Math.min(Math.max(expiration - REFRESH_TIMEOUT, REFRESH_TIMEOUT_MIN), Math.pow(2, 31) - 1);
         const timeout = setTimeout(() => {
           this.log("refresh reservation to relay %p", peerId);
-          this.addRelay(peerId, type).catch(async (err) => {
-            this.log.error("could not refresh reservation to relay %p - %e", peerId, err);
+          this.addRelay(peerId, type).catch(async (err2) => {
+            this.log.error("could not refresh reservation to relay %p - %e", peerId, err2);
             await this.#removeReservation(peerId);
-          }).catch((err) => {
-            this.log.error("could not remove expired reservation to relay %p - %e", peerId, err);
+          }).catch((err2) => {
+            this.log.error("could not remove expired reservation to relay %p - %e", peerId, err2);
           });
         }, timeoutDuration);
         let res;
@@ -59881,17 +59881,17 @@ var ReservationStore = class extends TypedEventEmitter {
           detail: result2
         });
         return result2;
-      } catch (err) {
-        if (!(type === "discovered" && err.name === "HadEnoughRelaysError")) {
-          this.log.error("could not reserve slot on %p after %dms - %e", peerId, Date.now() - start2, err);
+      } catch (err2) {
+        if (!(type === "discovered" && err2.name === "HadEnoughRelaysError")) {
+          this.log.error("could not reserve slot on %p after %dms - %e", peerId, Date.now() - start2, err2);
         }
-        if (err.name === "DialError" || err.name === "UnsupportedProtocolError") {
+        if (err2.name === "DialError" || err2.name === "UnsupportedProtocolError") {
           this.relayFilter.add(peerId.toMultihash().bytes);
         }
-        this.#removeReservation(peerId).catch((err2) => {
-          this.log.error("could not remove reservation on %p after reserving slot failed - %e", peerId, err2);
+        this.#removeReservation(peerId).catch((err3) => {
+          this.log.error("could not remove reservation on %p after reserving slot failed - %e", peerId, err3);
         });
-        throw err;
+        throw err2;
       }
     }, {
       peerId
@@ -59932,9 +59932,9 @@ var ReservationStore = class extends TypedEventEmitter {
     try {
       this.log.trace("reading response from %p", connection.remotePeer);
       response = await hopstr.read(options2);
-    } catch (err) {
-      stream.abort(err);
-      throw err;
+    } catch (err2) {
+      stream.abort(err2);
+      throw err2;
     } finally {
       if (stream.status !== "closed") {
         await stream.close(options2);
@@ -60051,9 +60051,9 @@ var CircuitRelayTransport = class {
       filter: init.discoveryFilter ?? peerFilter(DEFAULT_DISCOVERY_FILTER_SIZE, DEFAULT_DISCOVERY_FILTER_ERROR_RATE)
     });
     this.discovery.addEventListener("relay:discover", (evt) => {
-      this.reservationStore.addRelay(evt.detail, "discovered").catch((err) => {
-        if (err.name !== "HadEnoughRelaysError" && err.name !== "RelayQueueFullError") {
-          this.log.error("could not add discovered relay %p", evt.detail, err);
+      this.reservationStore.addRelay(evt.detail, "discovered").catch((err2) => {
+        if (err2.name !== "HadEnoughRelaysError" && err2.name !== "RelayQueueFullError") {
+          this.log.error("could not add discovered relay %p", evt.detail, err2);
         }
       });
     });
@@ -60088,9 +60088,9 @@ var CircuitRelayTransport = class {
     setMaxListeners(Infinity, this.shutdownController.signal);
     await this.registrar.handle(RELAY_V2_STOP_CODEC, (data) => {
       const signal = this.upgrader.createInboundAbortSignal(this.shutdownController.signal);
-      void this.onStop(data, signal).catch((err) => {
-        this.log.error("error while handling STOP protocol", err);
-        data.stream.abort(err);
+      void this.onStop(data, signal).catch((err2) => {
+        this.log.error("error while handling STOP protocol", err2);
+        data.stream.abort(err2);
       }).finally(() => {
         signal.clear();
       });
@@ -60174,10 +60174,10 @@ var CircuitRelayTransport = class {
       });
       conn.log("outbound relayed connection established to %p with limits %o, over connection %s", conn.remotePeer, status.limit ?? "none", relayConnection.id);
       return conn;
-    } catch (err) {
-      this.log.error("circuit relay dial to destination %p via relay %p failed", destinationPeer, relayPeer, err);
-      stream?.abort(err);
-      throw err;
+    } catch (err2) {
+      this.log.error("circuit relay dial to destination %p via relay %p failed", destinationPeer, relayPeer, err2);
+      stream?.abort(err2);
+      throw err2;
     }
   }
   /**
@@ -60218,8 +60218,8 @@ var CircuitRelayTransport = class {
       try {
         this.log("dialed via relay we did not have a reservation on, start listening on that relay address");
         await this.transportManager.listen([connection.remoteAddr.encapsulate("/p2p-circuit")]);
-      } catch (err) {
-        this.log.error("failed to listen on a relay peer we were dialed via but did not have a reservation on", err);
+      } catch (err2) {
+        this.log.error("failed to listen on a relay peer we were dialed via but did not have a reservation on", err2);
       }
     }
     const pbstr = pbStream(stream).pb(StopMessage);
@@ -60447,15 +60447,15 @@ var DefaultDCUtRService = class {
         if (connection.direction !== "inbound") {
           return;
         }
-        this.upgradeInbound(connection).catch((err) => {
-          this.log.error("error during outgoing DCUtR attempt", err);
+        this.upgradeInbound(connection).catch((err2) => {
+          this.log.error("error during outgoing DCUtR attempt", err2);
         });
       }
     });
     await this.registrar.handle(multicodec, (data) => {
-      void this.handleIncomingUpgrade(data.stream, data.connection).catch((err) => {
-        this.log.error("error during incoming DCUtR attempt", err);
-        data.stream.abort(err);
+      void this.handleIncomingUpgrade(data.stream, data.connection).catch((err2) => {
+        this.log.error("error during incoming DCUtR attempt", err2);
+        data.stream.abort(err2);
       });
     }, {
       maxInboundStreams: this.maxInboundStreams,
@@ -60528,11 +60528,11 @@ var DefaultDCUtRService = class {
         this.log("DCUtR to %p succeeded to address %a, closing relayed connection", relayedConnection.remotePeer, conn.remoteAddr);
         await relayedConnection.close(options2);
         break;
-      } catch (err) {
-        this.log.error("error while attempting DCUtR on attempt %d of %d", i + 1, this.retries, err);
-        stream?.abort(err);
+      } catch (err2) {
+        this.log.error("error while attempting DCUtR on attempt %d of %d", i + 1, this.retries, err2);
+        stream?.abort(err2);
         if (i === this.retries) {
-          throw err;
+          throw err2;
         }
       } finally {
         if (stream != null) {
@@ -60572,8 +60572,8 @@ var DefaultDCUtRService = class {
           signal
         });
         return true;
-      } catch (err) {
-        this.log.error("unilateral connection upgrade to %p on addresses %a failed", relayedConnection.remotePeer, publicAddresses, err);
+      } catch (err2) {
+        this.log.error("unilateral connection upgrade to %p on addresses %a failed", relayedConnection.remotePeer, publicAddresses, err2);
       }
     } else {
       this.log("peer %p has no public addresses, not attempting unilateral connection upgrade", relayedConnection.remotePeer);
@@ -60626,9 +60626,9 @@ var DefaultDCUtRService = class {
       });
       this.log("DCUtR to %p succeeded via %a, closing relayed connection", relayedConnection.remotePeer, connection.remoteAddr);
       await relayedConnection.close(options2);
-    } catch (err) {
-      this.log.error("incoming DCUtR from %p failed", relayedConnection.remotePeer, err);
-      stream.abort(err);
+    } catch (err2) {
+      this.log.error("incoming DCUtR from %p failed", relayedConnection.remotePeer, err2);
+      stream.abort(err2);
     } finally {
       await stream.close(options2);
     }
@@ -60844,9 +60844,9 @@ async function consumeIdentifyMessage(peerStore, events, log18, connection, mess
     let existingPeer;
     try {
       existingPeer = await peerStore.get(peerRecord.peerId);
-    } catch (err) {
-      if (err.name !== "NotFoundError") {
-        throw err;
+    } catch (err2) {
+      if (err2.name !== "NotFoundError") {
+        throw err2;
       }
     }
     if (existingPeer != null) {
@@ -60954,8 +60954,8 @@ var AbstractIdentify = class {
       }
     });
     await this.registrar.handle(this.protocol, (data) => {
-      void this.handleProtocol(data).catch((err) => {
-        this.log.error(err);
+      void this.handleProtocol(data).catch((err2) => {
+        this.log.error(err2);
       });
     }, {
       maxInboundStreams: this.maxInboundStreams,
@@ -60986,8 +60986,8 @@ var IdentifyPush = class extends AbstractIdentify {
     this._push = debounce(this.sendPushMessage.bind(this), init.debounce ?? PUSH_DEBOUNCE_MS);
     if (init.runOnSelfUpdate ?? defaultValues6.runOnSelfUpdate) {
       components.events.addEventListener("self:peer:update", (evt) => {
-        this.push().catch((err) => {
-          this.log.error("error pushing updates to peers - %e", err);
+        this.push().catch((err2) => {
+          this.log.error("error pushing updates to peers - %e", err2);
         });
       });
     }
@@ -61048,9 +61048,9 @@ var IdentifyPush = class extends AbstractIdentify {
               await stream.close({
                 signal
               });
-            } catch (err) {
-              log18.error("could not push identify update to peer", err);
-              stream?.abort(err);
+            } catch (err2) {
+              log18.error("could not push identify update to peer", err2);
+              stream?.abort(err2);
             }
           };
         }
@@ -61058,8 +61058,8 @@ var IdentifyPush = class extends AbstractIdentify {
       await src_default2(parallel(pushToConnections(), {
         concurrency: this.concurrency
       }));
-    } catch (err) {
-      this.log.error("error pushing updates to peers - %e", err);
+    } catch (err2) {
+      this.log.error("error pushing updates to peers - %e", err2);
     }
   }
   /**
@@ -61081,9 +61081,9 @@ var IdentifyPush = class extends AbstractIdentify {
       const message5 = await pb.read(options2);
       await stream.close(options2);
       await consumeIdentifyMessage(this.peerStore, this.events, log18, connection, message5);
-    } catch (err) {
-      log18.error("received invalid message", err);
-      stream.abort(err);
+    } catch (err2) {
+      log18.error("received invalid message", err2);
+      stream.abort(err2);
       return;
     }
     log18.trace("handled push from %p", connection.remotePeer);
@@ -61101,11 +61101,11 @@ var Identify2 = class extends AbstractIdentify {
     if (init.runOnConnectionOpen ?? defaultValues6.runOnConnectionOpen) {
       components.events.addEventListener("connection:open", (evt) => {
         const connection = evt.detail;
-        this.identify(connection).catch((err) => {
-          if (err.name === UnsupportedProtocolError.name) {
+        this.identify(connection).catch((err2) => {
+          if (err2.name === UnsupportedProtocolError.name) {
             return;
           }
-          this.log.error("error during identify trigged by connection:open", err);
+          this.log.error("error during identify trigged by connection:open", err2);
         });
       });
     }
@@ -61134,9 +61134,9 @@ var Identify2 = class extends AbstractIdentify {
       const message5 = await pb.read(options2);
       await stream.close(options2);
       return message5;
-    } catch (err) {
-      stream?.abort(err);
-      throw err;
+    } catch (err2) {
+      stream?.abort(err2);
+      throw err2;
     }
   }
   async identify(connection, options2 = {}) {
@@ -61219,9 +61219,9 @@ var Identify2 = class extends AbstractIdentify {
       await stream.close({
         signal
       });
-    } catch (err) {
-      log18.error("could not respond to identify request", err);
-      stream.abort(err);
+    } catch (err2) {
+      log18.error("could not respond to identify request", err2);
+      stream.abort(err2);
     }
   }
 };
@@ -64476,11 +64476,11 @@ function timeOperationGenerator(fn, operationMetrics, type) {
     try {
       operationMetrics.queries?.increment({ [type]: true });
       yield* fn(...args);
-    } catch (err) {
+    } catch (err2) {
       errored = true;
       stopErrorTimer?.();
       operationMetrics.errors?.increment({ [type]: true });
-      throw err;
+      throw err2;
     } finally {
       operationMetrics.queries?.decrement({ [type]: true });
       if (!errored) {
@@ -64497,11 +64497,11 @@ function timeOperationMethod(fn, operationMetrics, type) {
     try {
       operationMetrics.queries?.increment({ [type]: true });
       return await fn(...args);
-    } catch (err) {
+    } catch (err2) {
       errored = true;
       stopErrorTimer?.();
       operationMetrics.errors?.increment({ [type]: true });
-      throw err;
+      throw err2;
     } finally {
       operationMetrics.queries?.decrement({ [type]: true });
       if (!errored) {
@@ -64568,8 +64568,8 @@ var ContentFetching = class {
           const dsKey = bufferToRecordKey(this.datastorePrefix, key);
           this.log(`Storing corrected record for key ${dsKey.toString()}`);
           await this.components.datastore.put(dsKey, fixupRec.subarray(), options2);
-        } catch (err) {
-          this.log.error("Failed error correcting self", err);
+        } catch (err2) {
+          this.log.error("Failed error correcting self", err2);
         }
         continue;
       }
@@ -64662,9 +64662,9 @@ var ContentFetching = class {
     let i = 0;
     try {
       i = bestRecord(this.selectors, key, records);
-    } catch (err) {
-      if (err.name !== "InvalidParametersError") {
-        throw err;
+    } catch (err2) {
+      if (err2.name !== "InvalidParametersError") {
+        throw err2;
       }
     }
     const best = records[i];
@@ -64700,8 +64700,8 @@ var ContentFetching = class {
           total: 0
         }
       }, options2);
-    } catch (err) {
-      this.log("error getting local value for %b", key, err);
+    } catch (err2) {
+      this.log("error getting local value for %b", key, err2);
     }
     const self2 = this;
     const getValueQuery = async function* ({ peer, signal, path }) {
@@ -64816,11 +64816,11 @@ var ContentRouting = class {
           }
           yield addProviderEvent;
         }
-      } catch (err) {
-        self2.log.error("error sending provide record to peer %p", event.peer.id, err);
+      } catch (err2) {
+        self2.log.error("error sending provide record to peer %p", event.peer.id, err2);
         yield queryErrorEvent({
           from: event.peer.id,
-          error: err,
+          error: err2,
           path: event.path
         }, options2);
       }
@@ -64851,12 +64851,12 @@ var ContentRouting = class {
           for await (const notifyEvent of publishProviderRecord(event)) {
             events.push(notifyEvent);
           }
-        }).catch((err) => {
-          this.log.error("error publishing provider record to peer - %e", err);
+        }).catch((err2) => {
+          this.log.error("error publishing provider record to peer - %e", err2);
         });
       });
-    }).catch((err) => {
-      events.end(err);
+    }).catch((err2) => {
+      events.end(err2);
     });
     yield* events;
     this.log("sent provider records to %d peers", sent);
@@ -64880,9 +64880,9 @@ var ContentRouting = class {
             id: peerId,
             multiaddrs: peer.addresses.map(({ multiaddr: multiaddr3 }) => multiaddr3)
           });
-        } catch (err) {
-          if (err.name !== "NotFoundError") {
-            throw err;
+        } catch (err2) {
+          if (err2.name !== "NotFoundError") {
+            throw err2;
           }
           this.log("no peer store entry for %p", peerId);
         }
@@ -65077,9 +65077,9 @@ var Network2 = class extends TypedEventEmitter {
       this.log("sending %s to %p", msg.type, to);
       yield sendQueryEvent({ to, type, path: options2.path }, options2);
       const response = await this._writeReadMessage(stream, msg, options2);
-      stream.close(options2).catch((err) => {
-        this.log.error("error closing stream to %p", to, err);
-        stream?.abort(err);
+      stream.close(options2).catch((err2) => {
+        this.log.error("error closing stream to %p", to, err2);
+        stream?.abort(err2);
       });
       yield peerResponseEvent({
         from: to,
@@ -65089,13 +65089,13 @@ var Network2 = class extends TypedEventEmitter {
         record: response.record == null ? void 0 : Libp2pRecord.deserialize(response.record),
         path: options2.path
       }, options2);
-    } catch (err) {
+    } catch (err2) {
       this.metrics.errors?.increment({ [type]: true });
-      stream?.abort(err);
+      stream?.abort(err2);
       if (options2.signal?.aborted !== true) {
-        this.log.error("could not send %s to %p - %e", msg.type, to, err);
+        this.log.error("could not send %s to %p - %e", msg.type, to, err2);
       }
-      yield queryErrorEvent({ from: to, error: err, path: options2.path }, options2);
+      yield queryErrorEvent({ from: to, error: err2, path: options2.path }, options2);
     } finally {
       this.timeout.cleanUp(signal);
     }
@@ -65126,15 +65126,15 @@ var Network2 = class extends TypedEventEmitter {
       this.log("sending %s to %p", msg.type, to);
       yield sendQueryEvent({ to, type, path: options2.path }, options2);
       await this._writeMessage(stream, msg, options2);
-      stream.close(options2).catch((err) => {
-        this.log.error("error closing stream to %p", to, err);
-        stream?.abort(err);
+      stream.close(options2).catch((err2) => {
+        this.log.error("error closing stream to %p", to, err2);
+        stream?.abort(err2);
       });
       yield peerResponseEvent({ from: to, messageType: type, path: options2.path }, options2);
-    } catch (err) {
+    } catch (err2) {
       this.metrics.errors?.increment({ [type]: true });
-      stream?.abort(err);
-      yield queryErrorEvent({ from: to, error: err, path: options2.path }, options2);
+      stream?.abort(err2);
+      yield queryErrorEvent({ from: to, error: err2, path: options2.path }, options2);
     } finally {
       this.timeout.cleanUp(signal);
     }
@@ -65306,18 +65306,18 @@ var PeerRouting = class {
       this.log("findPeerLocal found %p in routing table", peer);
       try {
         peerData = await this.components.peerStore.get(p, options2);
-      } catch (err) {
-        if (err.name !== "NotFoundError") {
-          throw err;
+      } catch (err2) {
+        if (err2.name !== "NotFoundError") {
+          throw err2;
         }
       }
     }
     if (peerData == null) {
       try {
         peerData = await this.components.peerStore.get(peer, options2);
-      } catch (err) {
-        if (err.name !== "NotFoundError") {
-          throw err;
+      } catch (err2) {
+        if (err2.name !== "NotFoundError") {
+          throw err2;
         }
       }
     }
@@ -65492,7 +65492,7 @@ var PeerRouting = class {
         if (event.record != null) {
           try {
             await this._verifyRecordOnline(event.record, options2);
-          } catch (err) {
+          } catch (err2) {
             const errMsg = "invalid record received, discarded";
             this.log(errMsg);
             yield queryErrorEvent({
@@ -65537,9 +65537,9 @@ var PeerRouting = class {
     for (const peerId of ids) {
       try {
         output.push(await this.components.peerStore.getInfo(peerId, options2));
-      } catch (err) {
-        if (err.name !== "NotFoundError") {
-          throw err;
+      } catch (err2) {
+        if (err2.name !== "NotFoundError") {
+          throw err2;
         }
       }
     }
@@ -65785,10 +65785,10 @@ async function* queryPath(options2) {
               }
             });
           }
-        } catch (err) {
+        } catch (err2) {
           events.push(queryErrorEvent({
             from: peer.id,
-            error: err,
+            error: err2,
             path: {
               index: path,
               queued: queue.queued,
@@ -65799,8 +65799,8 @@ async function* queryPath(options2) {
         }
       }, {
         distance: peerXor
-      }).catch((err) => {
-        log18.error("error during query - %e", err);
+      }).catch((err2) => {
+        log18.error("error during query - %e", err2);
       });
     };
     const kadId = await convertBuffer(key, {
@@ -65958,9 +65958,9 @@ var QueryManager = class {
         yield event;
       }
       queryFinished = true;
-    } catch (err) {
+    } catch (err2) {
       if (this.running) {
-        throw err;
+        throw err2;
       }
     } finally {
       if (!queryFinished) {
@@ -66034,8 +66034,8 @@ var QuerySelf = class {
     this.running = true;
     clearTimeout(this.timeoutId);
     this.timeoutId = setTimeout(() => {
-      this.querySelf().catch((err) => {
-        this.log.error("error running self-query", err);
+      this.querySelf().catch((err2) => {
+        this.log.error("error running self-query", err2);
       });
     }, this.initialInterval);
   }
@@ -66084,8 +66084,8 @@ var QuerySelf = class {
             duration
           }
         }));
-      } catch (err) {
-        this.log.error("self-query error", err);
+      } catch (err2) {
+        this.log.error("self-query error", err2);
       } finally {
         signal.clear();
         if (this.initialQuerySelfHasRun != null) {
@@ -66100,8 +66100,8 @@ var QuerySelf = class {
       return;
     }
     this.timeoutId = setTimeout(() => {
-      this.querySelf().catch((err) => {
-        this.log.error("error running self-query", err);
+      this.querySelf().catch((err2) => {
+        this.log.error("error running self-query", err2);
       });
     }, this.interval);
   }
@@ -66159,8 +66159,8 @@ var Reprovider = class extends TypedEventEmitter {
     this.timeout = setTimeout(() => {
       this.processRecords({
         signal: AbortSignal.timeout(REPROVIDE_TIMEOUT)
-      }).catch((err) => {
-        this.log.error("error running process to reprovide/cleanup - %e", err);
+      }).catch((err2) => {
+        this.log.error("error running process to reprovide/cleanup - %e", err2);
       });
     }, this.interval);
   }
@@ -66194,12 +66194,12 @@ var Reprovider = class extends TypedEventEmitter {
           }
           if (this.shouldReprovide(isSelf, expires)) {
             this.log("reproviding %c as it is within the reprovide threshold (%d)", cid, this.reprovideThreshold);
-            this.queueReprovide(cid).catch((err) => {
-              this.log.error("could not reprovide %c - %e", cid, err);
+            this.queueReprovide(cid).catch((err2) => {
+              this.log.error("could not reprovide %c - %e", cid, err2);
             });
           }
-        } catch (err) {
-          this.log.error("error processing datastore key %s - %e", entry.key, err.message);
+        } catch (err2) {
+          this.log.error("error processing datastore key %s - %e", entry.key, err2.message);
         }
       }
       this.log("reprovide/cleanup successful");
@@ -66210,8 +66210,8 @@ var Reprovider = class extends TypedEventEmitter {
         this.timeout = setTimeout(() => {
           this.processRecords({
             signal: AbortSignal.timeout(REPROVIDE_TIMEOUT)
-          }).catch((err) => {
-            this.log.error("error running re-provide - %e", err);
+          }).catch((err2) => {
+            this.log.error("error running re-provide - %e", err2);
           });
         }, this.interval);
       }
@@ -66258,8 +66258,8 @@ var Reprovider = class extends TypedEventEmitter {
     }, {
       signal: this.shutdownController?.signal,
       cid
-    }).catch((err) => {
-      this.log.error("could not re-provide key %c - %e", cid, err);
+    }).catch((err2) => {
+      this.log.error("could not re-provide key %c - %e", cid, err2);
     });
   }
   async reprovide(cid, options2) {
@@ -66305,8 +66305,8 @@ var ClosestPeers = class {
     this.newPeers = new PeerDistanceList(targetKadId, this.peerSetSize);
     this.routingTable.addEventListener("peer:ping", this.onPeerPing);
     this.timeout = setInterval(() => {
-      this.updatePeerTags().catch((err) => {
-        this.log.error("error updating peer tags - %e", err);
+      this.updatePeerTags().catch((err2) => {
+        this.log.error("error updating peer tags - %e", err2);
       });
     }, this.refreshInterval);
   }
@@ -66316,8 +66316,8 @@ var ClosestPeers = class {
     clearTimeout(this.timeout);
   }
   onPeerPing(event) {
-    this.newPeers?.add({ id: event.detail, multiaddrs: [] }).catch((err) => {
-      this.log.error("error adding peer to distance list - %e", err);
+    this.newPeers?.add({ id: event.detail, multiaddrs: [] }).catch((err2) => {
+      this.log.error("error adding peer to distance list - %e", err2);
     });
   }
   async updatePeerTags() {
@@ -66791,7 +66791,7 @@ var RoutingTable = class extends TypedEventEmitter {
               signal
             });
             peerStorePeers++;
-          } catch (err) {
+          } catch (err2) {
             this.log("failed to add peer %p to routing table, removing kad-dht peer tags - %e");
             await this.components.peerStore.merge(peer.id, {
               tags: {
@@ -66804,8 +66804,8 @@ var RoutingTable = class extends TypedEventEmitter {
         signal.clear();
       }
       this.log("added %d peer store peers to the routing table", peerStorePeers);
-    }).catch((err) => {
-      this.log.error("error adding %d, peer store peers to the routing table - %e", peerStorePeers, err);
+    }).catch((err2) => {
+      this.log.error("error adding %d, peer store peers to the routing table - %e", peerStorePeers, err2);
     });
   }
   async stop() {
@@ -66929,7 +66929,7 @@ var RoutingTable = class extends TypedEventEmitter {
           signal: signals
         });
       }
-    } catch (err) {
+    } catch (err2) {
       this.log.trace("tried to add peer %p but they were not online", contact.peerId);
       this.metrics?.kadBucketEvents.increment({ ping_new_contact_error: true });
       return false;
@@ -66948,9 +66948,9 @@ var RoutingTable = class extends TypedEventEmitter {
         detail: contact.peerId
       });
       return true;
-    } catch (err) {
-      this.log("error pinging old contact %p - %e", contact.peerId, err);
-      stream?.abort(err);
+    } catch (err2) {
+      this.log("error pinging old contact %p - %e", contact.peerId, err2);
+      stream?.abort(err2);
       return false;
     }
   }
@@ -83484,23 +83484,23 @@ var RoutingTableRefresh = class {
           for (let n = index + 1; n < lastCpl + 1; n++) {
             try {
               await this._refreshCommonPrefixLength(n, lastRefresh, force, options2);
-            } catch (err) {
-              this.log.error(err);
+            } catch (err2) {
+              this.log.error(err2);
             }
           }
         }
-      } catch (err) {
-        this.log.error(err);
+      } catch (err2) {
+        this.log.error(err2);
       }
-    })).catch((err) => {
-      this.log.error(err);
+    })).catch((err2) => {
+      this.log.error(err2);
     }).then(() => {
       this.refreshTimeoutId = setTimeout(this.refreshTable, this.refreshInterval);
       if (this.refreshTimeoutId.unref != null) {
         this.refreshTimeoutId.unref();
       }
-    }).catch((err) => {
-      this.log.error(err);
+    }).catch((err2) => {
+      this.log.error(err2);
     });
   }
   async _refreshCommonPrefixLength(cpl, lastRefresh, force, options2) {
@@ -83628,7 +83628,7 @@ var AddProviderHandler = class {
     let cid;
     try {
       cid = CID2.decode(msg.key);
-    } catch (err) {
+    } catch (err2) {
       throw new InvalidMessageError("Invalid CID");
     }
     if (msg.providers == null || msg.providers.length === 0) {
@@ -83710,9 +83710,9 @@ var FindNodeHandler = class {
         this.log("found %d peers close to %b for %p", response.closer.length, msg.key, peerId);
       }
       return response;
-    } catch (err) {
-      this.log("error during finding peers closer to %b for %p - %e", msg.key, peerId, err);
-      throw err;
+    } catch (err2) {
+      this.log("error during finding peers closer to %b for %p - %e", msg.key, peerId, err2);
+      throw err2;
     }
   }
 };
@@ -83741,7 +83741,7 @@ var GetProvidersHandler = class {
     let cid;
     try {
       cid = CID2.decode(msg.key);
-    } catch (err) {
+    } catch (err2) {
       throw new InvalidMessageError("Invalid CID");
     }
     this.log("%p asking for providers for %s", peerId, cid);
@@ -83814,9 +83814,9 @@ var GetValueHandler = class {
           throw new NotFoundError("No public key found in key book");
         }
         pubKey = publicKeyToProtobuf(peer.id.publicKey);
-      } catch (err) {
-        if (err.name !== "NotFoundError") {
-          throw err;
+      } catch (err2) {
+        if (err2.name !== "NotFoundError") {
+          throw err2;
         }
       }
       if (pubKey != null) {
@@ -83854,11 +83854,11 @@ var GetValueHandler = class {
     let rawRecord;
     try {
       rawRecord = await this.datastore.get(dsKey);
-    } catch (err) {
-      if (err.name === "NotFoundError") {
+    } catch (err2) {
+      if (err2.name === "NotFoundError") {
         return void 0;
       }
-      throw err;
+      throw err2;
     }
     const record = Libp2pRecord.deserialize(rawRecord);
     if (record.timeReceived == null || Date.now() - record.timeReceived.getTime() > PROVIDERS_VALIDITY) {
@@ -83909,8 +83909,8 @@ var PutValueHandler = class {
       const recordKey = bufferToRecordKey(this.datastorePrefix, deserializedRecord.key);
       await this.components.datastore.put(recordKey, deserializedRecord.serialize().subarray());
       this.log("put record for %b into datastore under key %k", key, recordKey);
-    } catch (err) {
-      this.log("did not put record for key %b into datastore %o", key, err);
+    } catch (err2) {
+      this.log("did not put record for key %b into datastore %o", key, err2);
     }
     return msg;
   }
@@ -83988,10 +83988,10 @@ var RPC = class {
                 signal
               });
             }
-          } catch (err) {
+          } catch (err2) {
             errored = true;
             stopErrorTimer?.();
-            throw err;
+            throw err2;
           } finally {
             if (!errored) {
               stopSuccessTimer?.();
@@ -84001,11 +84001,11 @@ var RPC = class {
           signal = AbortSignal.timeout(this.incomingMessageTimeout);
           signal.addEventListener("abort", abortListener);
         }
-      } catch (err) {
-        stream.abort(err);
+      } catch (err2) {
+        stream.abort(err2);
       }
-    }).catch((err) => {
-      this.log.error("error handling %s RPC message from %p - %e", message5, data.connection.remotePeer, err);
+    }).catch((err2) => {
+      this.log.error("error handling %s RPC message from %p - %e", message5, data.connection.remotePeer, err2);
     });
   }
 };
@@ -84273,8 +84273,8 @@ var KadDHT = class extends TypedEventEmitter {
     });
     this.network.addEventListener("peer", (evt) => {
       const peerData = evt.detail;
-      this.onPeerConnect(peerData).catch((err) => {
-        this.log.error("could not add %p to routing table", peerData.id, err);
+      this.onPeerConnect(peerData).catch((err2) => {
+        this.log.error("could not add %p to routing table", peerData.id, err2);
       });
       this.dispatchEvent(new CustomEvent("peer", {
         detail: peerData
@@ -84290,8 +84290,8 @@ var KadDHT = class extends TypedEventEmitter {
           protocols: peer.protocols
         };
         await this.onPeerConnect(peerData);
-      }).catch((err) => {
-        this.log.error("could not add %p to routing table - %e - %e", peerId, err);
+      }).catch((err2) => {
+        this.log.error("could not add %p to routing table - %e - %e", peerId, err2);
       });
     });
     this.dhtPeerRouting = new DHTPeerRouting(this);
@@ -84307,8 +84307,8 @@ var KadDHT = class extends TypedEventEmitter {
           } else if (mode === "server" && !hasPublicAddress) {
             await this.setMode("client");
           }
-        }).catch((err) => {
-          this.log.error("error setting dht server mode", err);
+        }).catch((err2) => {
+          this.log.error("error setting dht server mode", err2);
         });
       });
     }
@@ -84352,8 +84352,8 @@ var KadDHT = class extends TypedEventEmitter {
       await this.routingTable.add(peerData.id, {
         signal
       });
-    } catch (err) {
-      this.log.error("could not add %p to routing table", peerData.id, err);
+    } catch (err2) {
+      this.log.error("could not add %p to routing table", peerData.id, err2);
     }
   }
   /**
@@ -85407,9 +85407,9 @@ var Keychain2 = class {
     try {
       const res = await this.components.datastore.get(datastoreName);
       return JSON.parse(toString4(res));
-    } catch (err) {
+    } catch (err2) {
       await randomDelay2();
-      this.log.error(err);
+      this.log.error(err2);
       throw new NotFoundError(`Key '${name15}' does not exist.`);
     }
   }
@@ -85425,9 +85425,9 @@ var Keychain2 = class {
         }
       }
       throw new InvalidParametersError(`Key with id '${id}' does not exist.`);
-    } catch (err) {
+    } catch (err2) {
       await randomDelay2();
-      throw err;
+      throw err2;
     }
   }
   async importKey(name15, key) {
@@ -85455,9 +85455,9 @@ var Keychain2 = class {
       }
       const dek = cached.dek;
       pem2 = await exportPrivateKey2(key, dek, key.type === "RSA" ? "pkcs-8" : "libp2p-key");
-    } catch (err) {
+    } catch (err2) {
       await randomDelay2();
-      throw err;
+      throw err2;
     }
     const keyInfo = {
       name: name15,
@@ -85484,9 +85484,9 @@ var Keychain2 = class {
       }
       const dek = cached.dek;
       return await importPrivateKey2(pem2, dek);
-    } catch (err) {
+    } catch (err2) {
       await randomDelay2();
-      throw err;
+      throw err2;
     }
   }
   async removeKey(name15) {
@@ -85554,9 +85554,9 @@ var Keychain2 = class {
       batch2.delete(oldInfoName);
       await batch2.commit();
       return keyInfo;
-    } catch (err) {
+    } catch (err2) {
       await randomDelay2();
-      throw err;
+      throw err2;
     }
   }
   /**
@@ -85670,9 +85670,9 @@ var Decoder9 = class {
       if (this._headerInfo == null) {
         try {
           this._headerInfo = this._decodeHeader(this._buffer);
-        } catch (err) {
-          if (err.name === "InvalidMessageError") {
-            throw err;
+        } catch (err2) {
+          if (err2.name === "InvalidMessageError") {
+            throw err2;
           }
           break;
         }
@@ -85954,18 +85954,18 @@ var MplexStreamMuxer = class {
         signal
       });
       this.closeController.abort();
-    } catch (err) {
-      this.abort(err);
+    } catch (err2) {
+      this.abort(err2);
     }
   }
-  abort(err) {
+  abort(err2) {
     if (this.closeController.signal.aborted) {
       return;
     }
     this.streams.forEach((s2) => {
-      s2.abort(err);
+      s2.abort(err2);
     });
-    this.closeController.abort(err);
+    this.closeController.abort(err2);
   }
   /**
    * Called whenever an inbound stream is created
@@ -86019,9 +86019,9 @@ var MplexStreamMuxer = class {
           }
         }
         this._source.end();
-      } catch (err) {
-        this.log("error in sink", err);
-        this._source.end(err);
+      } catch (err2) {
+        this.log("error in sink", err2);
+        this._source.end(err2);
       } finally {
         this.closeController.signal.removeEventListener("abort", abortListener);
       }
@@ -86093,9 +86093,9 @@ var MplexStreamMuxer = class {
         default:
           this.log("unknown message type %s", type);
       }
-    } catch (err) {
-      this.log.error("error while processing message", err);
-      stream.abort(err);
+    } catch (err2) {
+      this.log.error("error while processing message", err2);
+      stream.abort(err2);
     }
   }
 };
@@ -86197,12 +86197,12 @@ var Ping = class {
         });
         pinged = true;
       }
-    }).catch((err) => {
-      if (pinged && err.name === "UnexpectedEOFError" && stream.readStatus !== "ready") {
+    }).catch((err2) => {
+      if (pinged && err2.name === "UnexpectedEOFError" && stream.readStatus !== "ready") {
         return;
       }
-      log18.error("ping from %p failed with error - %e", data.connection.remotePeer, err);
-      stream?.abort(err);
+      log18.error("ping from %p failed with error - %e", data.connection.remotePeer, err2);
+      stream?.abort(err2);
     }).finally(() => {
       const ms2 = Date.now() - start2;
       log18("ping from %p complete in %dms", data.connection.remotePeer, ms2);
@@ -86210,9 +86210,9 @@ var Ping = class {
       setMaxListeners(Infinity, signal);
       stream.close({
         signal
-      }).catch((err) => {
-        log18.error("error closing ping stream from %p - %e", data.connection.remotePeer, err);
-        stream?.abort(err);
+      }).catch((err2) => {
+        log18.error("error closing ping stream from %p - %e", data.connection.remotePeer, err2);
+        stream?.abort(err2);
       });
     });
   }
@@ -86251,10 +86251,10 @@ var Ping = class {
       }
       log18("ping %p complete in %dms", connection.remotePeer, ms2);
       return ms2;
-    } catch (err) {
-      log18.error("error while pinging %p", connection.remotePeer, err);
-      stream?.abort(err);
-      throw err;
+    } catch (err2) {
+      log18.error("error while pinging %p", connection.remotePeer, err2);
+      stream?.abort(err2);
+      throw err2;
     } finally {
       if (stream != null) {
         await stream.close(options2);
@@ -86529,8 +86529,8 @@ function detect(userAgent2) {
   return getNodeVersion();
 }
 function matchUserAgent(ua) {
-  return ua !== "" && userAgentRules.reduce(function(matched, _a3) {
-    var browser2 = _a3[0], regex = _a3[1];
+  return ua !== "" && userAgentRules.reduce(function(matched, _a4) {
+    var browser2 = _a4[0], regex = _a4[1];
     if (matched) {
       return matched;
     }
@@ -86565,7 +86565,7 @@ function parseUserAgent(ua) {
 }
 function detectOS(ua) {
   for (var ii = 0, count = operatingSystemRules.length; ii < count; ii++) {
-    var _a3 = operatingSystemRules[ii], os = _a3[0], regex = _a3[1];
+    var _a4 = operatingSystemRules[ii], os = _a4[0], regex = _a4[1];
     var match = regex.exec(ua);
     if (match) {
       return os;
@@ -86624,8 +86624,8 @@ function drainAndClose(channel, direction, drainTimeout = DATA_CHANNEL_DRAIN_TIM
     if (channel.readyState === "open") {
       channel.close();
     }
-  }).catch((err) => {
-    options2.log.error("error closing outbound stream", err);
+  }).catch((err2) => {
+    options2.log.error("error closing outbound stream", err2);
   });
 }
 async function getRtcConfiguration(config) {
@@ -86691,8 +86691,8 @@ var WebRTCMultiaddrConnection = class {
     this.timeline.close = Date.now();
     this.metrics?.increment({ close: true });
   }
-  abort(err) {
-    this.log.error("closing connection due to error", err);
+  abort(err2) {
+    this.log.error("closing connection due to error", err2);
     this.peerConnection.close();
     this.timeline.close = Date.now();
     this.metrics?.increment({ abort: true });
@@ -86725,7 +86725,7 @@ var WebRTCStream = class extends AbstractStream {
   closeController;
   constructor(init) {
     const originalOnEnd = init.onEnd;
-    init.onEnd = (err) => {
+    init.onEnd = (err2) => {
       this.log.trace('readable and writeable ends closed with status "%s"', this.status);
       void Promise.resolve(async () => {
         if (this.timeline.abort != null || this.timeline.reset !== null) {
@@ -86735,14 +86735,14 @@ var WebRTCStream = class extends AbstractStream {
           await pTimeout2(this.receiveFinAck.promise, {
             milliseconds: this.finAckTimeout
           });
-        } catch (err2) {
-          this.log.error("error receiving FIN_ACK", err2);
+        } catch (err3) {
+          this.log.error("error receiving FIN_ACK", err3);
         }
       }).then(() => {
         this.incomingData.end();
-        originalOnEnd?.(err);
-      }).catch((err2) => {
-        this.log.error("error ending stream", err2);
+        originalOnEnd?.(err2);
+      }).catch((err3) => {
+        this.log.error("error ending stream", err3);
       }).finally(() => {
         this.channel.close();
       });
@@ -86781,15 +86781,15 @@ var WebRTCStream = class extends AbstractStream {
       this.log.trace("received onclose event");
       this.closeController.abort();
       this.receiveFinAck.resolve();
-      void this.close().catch((err) => {
-        this.log.error("error closing stream after channel closed", err);
+      void this.close().catch((err2) => {
+        this.log.error("error closing stream after channel closed", err2);
       });
     };
     this.channel.onerror = (evt) => {
       this.log.trace("received onerror event");
       this.closeController.abort();
-      const err = evt.error;
-      this.abort(err);
+      const err2 = evt.error;
+      this.abort(err2);
     };
     this.channel.onmessage = async (event) => {
       const { data } = event;
@@ -86806,8 +86806,8 @@ var WebRTCStream = class extends AbstractStream {
           self2.sourcePush(new Uint8ArrayList2(message5));
         }
       }
-    }).catch((err) => {
-      this.log.error("error processing incoming data channel messages", err);
+    }).catch((err2) => {
+      this.log.error("error processing incoming data channel messages", err2);
     });
   }
   sendNewStream() {
@@ -86839,11 +86839,11 @@ var WebRTCStream = class extends AbstractStream {
       try {
         this.log('channel buffer is %d, wait for "bufferedamountlow" event', this.channel.bufferedAmount);
         await raceEvent(this.channel, "bufferedamountlow", signal);
-      } catch (err) {
+      } catch (err2) {
         if (timeout.aborted) {
           throw new TimeoutError(`Timed out waiting for DataChannel buffer to clear after ${this.bufferedAmountLowEventTimeout}ms`);
         }
-        throw err;
+        throw err2;
       } finally {
         signal.clear();
       }
@@ -86851,8 +86851,8 @@ var WebRTCStream = class extends AbstractStream {
     try {
       this.log.trace('sending message, channel state "%s"', this.channel.readyState);
       this.channel.send(data.subarray());
-    } catch (err) {
-      this.log.error("error while sending message", err);
+    } catch (err2) {
+      this.log.error("error while sending message", err2);
     }
   }
   async sendData(data) {
@@ -86872,8 +86872,8 @@ var WebRTCStream = class extends AbstractStream {
   async sendReset() {
     try {
       await this._sendFlag(Message3.Flag.RESET);
-    } catch (err) {
-      this.log.error("failed to send reset - %e", err);
+    } catch (err2) {
+      this.log.error("failed to send reset - %e", err2);
     } finally {
       this.channel.close();
     }
@@ -86891,8 +86891,8 @@ var WebRTCStream = class extends AbstractStream {
           errorMessage: "sending close-write was aborted before FIN_ACK was received",
           errorName: "FinAckNotReceivedError"
         });
-      } catch (err) {
-        this.log.error("failed to await FIN_ACK", err);
+      } catch (err2) {
+        this.log.error("failed to await FIN_ACK", err2);
       }
     } else {
       this.log.trace("sending FIN failed, not awaiting FIN_ACK");
@@ -86915,8 +86915,8 @@ var WebRTCStream = class extends AbstractStream {
       if (message5.flag === Message3.Flag.FIN) {
         this.remoteCloseWrite();
         this.log.trace("sending FIN_ACK");
-        void this._sendFlag(Message3.Flag.FIN_ACK).catch((err) => {
-          this.log.error("error sending FIN_ACK immediately", err);
+        void this._sendFlag(Message3.Flag.FIN_ACK).catch((err2) => {
+          this.log.error("error sending FIN_ACK immediately", err2);
         });
       }
       if (message5.flag === Message3.Flag.RESET) {
@@ -86945,8 +86945,8 @@ var WebRTCStream = class extends AbstractStream {
     try {
       await this._sendMessage(prefixedBuf, false);
       return true;
-    } catch (err) {
-      this.log.error("could not send flag %s - %e", flag.toString(), err);
+    } catch (err2) {
+      this.log.error("could not send flag %s - %e", flag.toString(), err2);
     }
     return false;
   }
@@ -86990,8 +86990,8 @@ var DataChannelMuxerFactory = class {
       const stream = createStream2({
         channel,
         direction: "inbound",
-        onEnd: (err) => {
-          bufferedStream.onEnd(err);
+        onEnd: (err2) => {
+          bufferedStream.onEnd(err2);
         },
         log: this.log,
         ...this.dataChannelOptions
@@ -87086,16 +87086,16 @@ var DataChannelMuxer = class {
   async close(options2) {
     try {
       await Promise.all(this.streams.map(async (stream) => stream.close(options2)));
-    } catch (err) {
-      this.abort(err);
+    } catch (err2) {
+      this.abort(err2);
     }
   }
   /**
    * Abort all tracked streams and stop the muxer
    */
-  abort(err) {
+  abort(err2) {
     for (const stream of this.streams) {
-      stream.abort(err);
+      stream.abort(err2);
     }
   }
   /**
@@ -87265,14 +87265,14 @@ var readCandidatesUntilConnected = async (pc, stream, options2) => {
       try {
         options2.onProgress?.(new CustomProgressEvent("webrtc:add-ice-candidate", candidate.candidate));
         await pc.addIceCandidate(candidate);
-      } catch (err) {
-        options2.log.error("%s bad candidate received", options2.direction, candidateInit, err);
+      } catch (err2) {
+        options2.log.error("%s bad candidate received", options2.direction, candidateInit, err2);
       }
     }
-  } catch (err) {
-    options2.log.error("%s error parsing ICE candidate", options2.direction, err);
+  } catch (err2) {
+    options2.log.error("%s error parsing ICE candidate", options2.direction, err2);
     if (options2.signal?.aborted === true && getConnectionState(pc) !== "connected") {
-      throw err;
+      throw err2;
     }
   }
 };
@@ -87336,15 +87336,15 @@ async function initiateConnection({ rtcConfiguration, dataChannel, signal, metri
         data
       }, {
         signal
-      }).catch((err) => {
-        log18.error("error sending ICE candidate", err);
+      }).catch((err2) => {
+        log18.error("error sending ICE candidate", err2);
       });
     };
     peerConnection.onicecandidateerror = (event) => {
       log18.error("initiator ICE candidate error", event);
     };
-    const offerSdp = await peerConnection.createOffer().catch((err) => {
-      log18.error("could not execute createOffer", err);
+    const offerSdp = await peerConnection.createOffer().catch((err2) => {
+      log18.error("could not execute createOffer", err2);
       throw new SDPHandshakeFailedError("Failed to set createOffer");
     });
     log18.trace("initiator send SDP offer %s", offerSdp.sdp);
@@ -87352,8 +87352,8 @@ async function initiateConnection({ rtcConfiguration, dataChannel, signal, metri
     await messageStream.write({ type: Message4.Type.SDP_OFFER, data: offerSdp.sdp }, {
       signal
     });
-    await peerConnection.setLocalDescription(offerSdp).catch((err) => {
-      log18.error("could not execute setLocalDescription", err);
+    await peerConnection.setLocalDescription(offerSdp).catch((err2) => {
+      log18.error("could not execute setLocalDescription", err2);
       throw new SDPHandshakeFailedError("Failed to set localDescription");
     });
     onProgress?.(new CustomProgressEvent("webrtc:read-sdp-answer"));
@@ -87366,8 +87366,8 @@ async function initiateConnection({ rtcConfiguration, dataChannel, signal, metri
     }
     log18.trace("initiator received SDP answer %s", answerMessage.data);
     const answerSdp = new RTCSessionDescription({ type: "answer", sdp: answerMessage.data });
-    await peerConnection.setRemoteDescription(answerSdp).catch((err) => {
-      log18.error("could not execute setRemoteDescription", err);
+    await peerConnection.setRemoteDescription(answerSdp).catch((err2) => {
+      log18.error("could not execute setRemoteDescription", err2);
       throw new SDPHandshakeFailedError("Failed to set remoteDescription");
     });
     log18.trace("initiator read candidates until connected");
@@ -87391,11 +87391,11 @@ async function initiateConnection({ rtcConfiguration, dataChannel, signal, metri
       peerConnection,
       muxerFactory
     };
-  } catch (err) {
-    log18.error("outgoing signaling error", err);
+  } catch (err2) {
+    log18.error("outgoing signaling error", err2);
     peerConnection.close();
-    stream.abort(err);
-    throw err;
+    stream.abort(err2);
+    throw err2;
   } finally {
     peerConnection.onicecandidate = null;
     peerConnection.onicecandidateerror = null;
@@ -87455,8 +87455,8 @@ async function handleIncomingStream({ peerConnection, stream, signal, connection
         data
       }, {
         signal
-      }).catch((err) => {
-        log18.error("error sending ICE candidate", err);
+      }).catch((err2) => {
+        log18.error("error sending ICE candidate", err2);
       });
     };
     log18.trace("recipient read SDP offer");
@@ -87471,20 +87471,20 @@ async function handleIncomingStream({ peerConnection, stream, signal, connection
       type: "offer",
       sdp: pbOffer.data
     });
-    await peerConnection.setRemoteDescription(offer).catch((err) => {
-      log18.error("could not execute setRemoteDescription", err);
+    await peerConnection.setRemoteDescription(offer).catch((err2) => {
+      log18.error("could not execute setRemoteDescription", err2);
       throw new SDPHandshakeFailedError("Failed to set remoteDescription");
     });
-    const answer = await peerConnection.createAnswer().catch((err) => {
-      log18.error("could not execute createAnswer", err);
+    const answer = await peerConnection.createAnswer().catch((err2) => {
+      log18.error("could not execute createAnswer", err2);
       throw new SDPHandshakeFailedError("Failed to create answer");
     });
     log18.trace("recipient send SDP answer %s", answer.sdp);
     await messageStream.write({ type: Message4.Type.SDP_ANSWER, data: answer.sdp }, {
       signal
     });
-    await peerConnection.setLocalDescription(answer).catch((err) => {
-      log18.error("could not execute setLocalDescription", err);
+    await peerConnection.setLocalDescription(answer).catch((err2) => {
+      log18.error("could not execute setLocalDescription", err2);
       throw new SDPHandshakeFailedError("Failed to set localDescription");
     });
     log18.trace("recipient read candidates until connected");
@@ -87493,13 +87493,13 @@ async function handleIncomingStream({ peerConnection, stream, signal, connection
       signal,
       log: log18
     });
-  } catch (err) {
+  } catch (err2) {
     if (getConnectionState(peerConnection) !== "connected") {
-      log18.error("error while handling signaling stream from peer %a", connection.remoteAddr, err);
+      log18.error("error while handling signaling stream from peer %a", connection.remoteAddr, err2);
       peerConnection.close();
-      throw err;
+      throw err2;
     } else {
-      log18("error while handling signaling stream from peer %a, ignoring as the RTCPeerConnection is already connected", connection.remoteAddr, err);
+      log18("error while handling signaling stream from peer %a, ignoring as the RTCPeerConnection is already connected", connection.remoteAddr, err2);
     }
   }
   const remoteAddress = multiaddr(`/webrtc/p2p/${connection.remoteAddr.getPeerId()}`);
@@ -87549,8 +87549,8 @@ var WebRTCTransport = class {
   async start() {
     await this.components.registrar.handle(SIGNALING_PROTOCOL, (data) => {
       const signal = this.components.upgrader.createInboundAbortSignal(this.shutdownController.signal);
-      this._onProtocol(data, signal).catch((err) => {
-        this.log.error("failed to handle incoming connect from %p", data.connection.remotePeer, err);
+      this._onProtocol(data, signal).catch((err2) => {
+        this.log.error("failed to handle incoming connect from %p", data.connection.remotePeer, err2);
       }).finally(() => {
         signal.clear();
       });
@@ -87647,17 +87647,17 @@ var WebRTCTransport = class {
         signal
       });
       this._closeOnShutdown(peerConnection, webRTCConn);
-    } catch (err) {
-      this.log.error("incoming signaling error", err);
+    } catch (err2) {
+      this.log.error("incoming signaling error", err2);
       peerConnection.close();
-      stream.abort(err);
-      throw err;
+      stream.abort(err2);
+      throw err2;
     }
   }
   _closeOnShutdown(pc, webRTCConn) {
     const shutDownListener = () => {
-      webRTCConn.close().catch((err) => {
-        this.log.error("could not close WebRTCMultiaddrConnection", err);
+      webRTCConn.close().catch((err2) => {
+        this.log.error("could not close WebRTCMultiaddrConnection", err2);
       });
     };
     this.shutdownController.signal.addEventListener("abort", shutDownListener);
@@ -89193,11 +89193,11 @@ var AsnParser = class {
         processed: true,
         value: value2
       };
-    } catch (err) {
-      if (err instanceof AsnSchemaValidationError && /Wrong values for Choice type/.test(err.message)) {
+    } catch (err2) {
+      if (err2 instanceof AsnSchemaValidationError && /Wrong values for Choice type/.test(err2.message)) {
         return { processed: false };
       }
-      throw err;
+      throw err2;
     }
   }
   static handleArrayTypes(asn1Schema, schema, target, options2) {
@@ -89296,11 +89296,11 @@ var AsnParser = class {
       if (this.isOptionalChoiceField(schemaItem)) {
         try {
           return this.fromASN(valueToProcess, schemaItemType, options2);
-        } catch (err) {
-          if (err instanceof AsnSchemaValidationError && /Wrong values for Choice type/.test(err.message)) {
+        } catch (err2) {
+          if (err2 instanceof AsnSchemaValidationError && /Wrong values for Choice type/.test(err2.message)) {
             return void 0;
           }
-          throw err;
+          throw err2;
         }
       } else {
         const parsedValue = this.fromASN(valueToProcess, schemaItemType, options2);
@@ -93384,7 +93384,7 @@ function composeErrorMessage(msg, e, indent) {
   })).join("\n");
 }
 function formatErrorCtor(ctor, paramIdx, error) {
-  var _a3 = __read(ctor.toString().match(/constructor\(([\w, ]+)\)/) || [], 2), _b2 = _a3[1], params = _b2 === void 0 ? null : _b2;
+  var _a4 = __read(ctor.toString().match(/constructor\(([\w, ]+)\)/) || [], 2), _b3 = _a4[1], params = _b3 === void 0 ? null : _b3;
   var dep = formatDependency(params, paramIdx);
   return composeErrorMessage("Cannot inject the dependency " + dep + ' of "' + ctor.name + '" constructor. Reason:', error);
 }
@@ -93538,11 +93538,11 @@ var InternalDependencyContainer = function() {
     throw new Error("Attempted to construct an undefined constructor. Could mean a circular dependency problem. Try using `delay` function.");
   };
   InternalDependencyContainer2.prototype.executePreResolutionInterceptor = function(token, resolutionType) {
-    var e_1, _a3;
+    var e_1, _a4;
     if (this.interceptors.preResolution.has(token)) {
       var remainingInterceptors = [];
       try {
-        for (var _b2 = __values(this.interceptors.preResolution.getAll(token)), _c2 = _b2.next(); !_c2.done; _c2 = _b2.next()) {
+        for (var _b3 = __values(this.interceptors.preResolution.getAll(token)), _c2 = _b3.next(); !_c2.done; _c2 = _b3.next()) {
           var interceptor = _c2.value;
           if (interceptor.options.frequency != "Once") {
             remainingInterceptors.push(interceptor);
@@ -93553,7 +93553,7 @@ var InternalDependencyContainer = function() {
         e_1 = { error: e_1_1 };
       } finally {
         try {
-          if (_c2 && !_c2.done && (_a3 = _b2.return)) _a3.call(_b2);
+          if (_c2 && !_c2.done && (_a4 = _b3.return)) _a4.call(_b3);
         } finally {
           if (e_1) throw e_1.error;
         }
@@ -93562,11 +93562,11 @@ var InternalDependencyContainer = function() {
     }
   };
   InternalDependencyContainer2.prototype.executePostResolutionInterceptor = function(token, result2, resolutionType) {
-    var e_2, _a3;
+    var e_2, _a4;
     if (this.interceptors.postResolution.has(token)) {
       var remainingInterceptors = [];
       try {
-        for (var _b2 = __values(this.interceptors.postResolution.getAll(token)), _c2 = _b2.next(); !_c2.done; _c2 = _b2.next()) {
+        for (var _b3 = __values(this.interceptors.postResolution.getAll(token)), _c2 = _b3.next(); !_c2.done; _c2 = _b3.next()) {
           var interceptor = _c2.value;
           if (interceptor.options.frequency != "Once") {
             remainingInterceptors.push(interceptor);
@@ -93577,7 +93577,7 @@ var InternalDependencyContainer = function() {
         e_2 = { error: e_2_1 };
       } finally {
         try {
-          if (_c2 && !_c2.done && (_a3 = _b2.return)) _a3.call(_b2);
+          if (_c2 && !_c2.done && (_a4 = _b3.return)) _a4.call(_b3);
         } finally {
           if (e_2) throw e_2.error;
         }
@@ -93652,10 +93652,10 @@ var InternalDependencyContainer = function() {
     this.interceptors.postResolution.clear();
   };
   InternalDependencyContainer2.prototype.clearInstances = function() {
-    var e_3, _a3;
+    var e_3, _a4;
     this.ensureNotDisposed();
     try {
-      for (var _b2 = __values(this._registry.entries()), _c2 = _b2.next(); !_c2.done; _c2 = _b2.next()) {
+      for (var _b3 = __values(this._registry.entries()), _c2 = _b3.next(); !_c2.done; _c2 = _b3.next()) {
         var _d = __read(_c2.value, 2), token = _d[0], registrations = _d[1];
         this._registry.setAll(token, registrations.filter(function(registration) {
           return !isValueProvider(registration.provider);
@@ -93668,21 +93668,21 @@ var InternalDependencyContainer = function() {
       e_3 = { error: e_3_1 };
     } finally {
       try {
-        if (_c2 && !_c2.done && (_a3 = _b2.return)) _a3.call(_b2);
+        if (_c2 && !_c2.done && (_a4 = _b3.return)) _a4.call(_b3);
       } finally {
         if (e_3) throw e_3.error;
       }
     }
   };
   InternalDependencyContainer2.prototype.createChildContainer = function() {
-    var e_4, _a3;
+    var e_4, _a4;
     this.ensureNotDisposed();
     var childContainer = new InternalDependencyContainer2(this);
     try {
-      for (var _b2 = __values(this._registry.entries()), _c2 = _b2.next(); !_c2.done; _c2 = _b2.next()) {
+      for (var _b3 = __values(this._registry.entries()), _c2 = _b3.next(); !_c2.done; _c2 = _b3.next()) {
         var _d = __read(_c2.value, 2), token = _d[0], registrations = _d[1];
-        if (registrations.some(function(_a4) {
-          var options2 = _a4.options;
+        if (registrations.some(function(_a5) {
+          var options2 = _a5.options;
           return options2.lifecycle === lifecycle_default.ContainerScoped;
         })) {
           childContainer._registry.setAll(token, registrations.map(function(registration) {
@@ -93700,7 +93700,7 @@ var InternalDependencyContainer = function() {
       e_4 = { error: e_4_1 };
     } finally {
       try {
-        if (_c2 && !_c2.done && (_a3 = _b2.return)) _a3.call(_b2);
+        if (_c2 && !_c2.done && (_a4 = _b3.return)) _a4.call(_b3);
       } finally {
         if (e_4) throw e_4.error;
       }
@@ -93728,8 +93728,8 @@ var InternalDependencyContainer = function() {
   InternalDependencyContainer2.prototype.dispose = function() {
     return __awaiter(this, void 0, void 0, function() {
       var promises;
-      return __generator(this, function(_a3) {
-        switch (_a3.label) {
+      return __generator(this, function(_a4) {
+        switch (_a4.label) {
           case 0:
             this.disposed = true;
             promises = [];
@@ -93741,7 +93741,7 @@ var InternalDependencyContainer = function() {
             });
             return [4, Promise.all(promises)];
           case 1:
-            _a3.sent();
+            _a4.sent();
             return [2];
         }
       });
@@ -93792,11 +93792,11 @@ var InternalDependencyContainer = function() {
   InternalDependencyContainer2.prototype.resolveParams = function(context, ctor) {
     var _this = this;
     return function(param, idx) {
-      var _a3, _b2, _c2;
+      var _a4, _b3, _c2;
       try {
         if (isTokenDescriptor(param)) {
           if (isTransformDescriptor(param)) {
-            return param.multiple ? (_a3 = _this.resolve(param.transform)).transform.apply(_a3, __spread([_this.resolveAll(param.token, new resolution_context_default(), param.isOptional)], param.transformArgs)) : (_b2 = _this.resolve(param.transform)).transform.apply(_b2, __spread([_this.resolve(param.token, context, param.isOptional)], param.transformArgs));
+            return param.multiple ? (_a4 = _this.resolve(param.transform)).transform.apply(_a4, __spread([_this.resolveAll(param.token, new resolution_context_default(), param.isOptional)], param.transformArgs)) : (_b3 = _this.resolve(param.transform)).transform.apply(_b3, __spread([_this.resolve(param.token, context, param.isOptional)], param.transformArgs));
           } else {
             return param.multiple ? _this.resolveAll(param.token, new resolution_context_default(), param.isOptional) : _this.resolve(param.token, context, param.isOptional);
           }
@@ -95133,13 +95133,13 @@ var Name3 = class _Name {
     }).join("+")).join(", ");
   }
   toJSON() {
-    var _a3;
+    var _a4;
     const json = [];
     for (const rdn of this.asn) {
       const jsonItem = {};
       for (const attr of rdn) {
         const type = this.getName(attr.type) || attr.type;
-        (_a3 = jsonItem[type]) !== null && _a3 !== void 0 ? _a3 : jsonItem[type] = [];
+        (_a4 = jsonItem[type]) !== null && _a4 !== void 0 ? _a4 : jsonItem[type] = [];
         jsonItem[type].push(attr.value.anyValue ? `#${import_pvtsutils.Convert.ToHex(attr.value.anyValue)}` : attr.value.toString());
       }
       json.push(jsonItem);
@@ -95244,10 +95244,10 @@ var Name3 = class _Name {
     return AsnConvert.serialize(this.asn);
   }
   async getThumbprint(...args) {
-    var _a3;
+    var _a4;
     let crypto3;
     let algorithm = "SHA-1";
-    if (args.length >= 1 && !((_a3 = args[0]) === null || _a3 === void 0 ? void 0 : _a3.subtle)) {
+    if (args.length >= 1 && !((_a4 = args[0]) === null || _a4 === void 0 ? void 0 : _a4.subtle)) {
       algorithm = args[0] || algorithm;
       crypto3 = args[1] || cryptoProvider.get();
     } else {
@@ -95562,11 +95562,11 @@ var PemConverter = class {
     }
   }
   static encodeStruct(pem2) {
-    var _a3;
+    var _a4;
     const upperCaseType = pem2.type.toLocaleUpperCase();
     const res = [];
     res.push(`-----BEGIN ${upperCaseType}-----`);
-    if ((_a3 = pem2.headers) === null || _a3 === void 0 ? void 0 : _a3.length) {
+    if ((_a4 = pem2.headers) === null || _a4 === void 0 ? void 0 : _a4.length) {
       for (const header of pem2.headers) {
         res.push(`${header.key}: ${header.value}`);
       }
@@ -95714,10 +95714,10 @@ var PublicKey2 = class _PublicKey extends PemData {
     }
   }
   async getThumbprint(...args) {
-    var _a3;
+    var _a4;
     let crypto3;
     let algorithm = "SHA-1";
-    if (args.length >= 1 && !((_a3 = args[0]) === null || _a3 === void 0 ? void 0 : _a3.subtle)) {
+    if (args.length >= 1 && !((_a4 = args[0]) === null || _a4 === void 0 ? void 0 : _a4.subtle)) {
       algorithm = args[0] || algorithm;
       crypto3 = args[1] || cryptoProvider.get();
     } else {
@@ -95975,14 +95975,14 @@ var ExtensionFactory = class {
 ExtensionFactory.items = /* @__PURE__ */ new Map();
 var CertificatePolicyExtension = class extends Extension2 {
   constructor(...args) {
-    var _a3;
+    var _a4;
     if (import_pvtsutils.BufferSourceConverter.isBufferSource(args[0])) {
       super(args[0]);
       const asnPolicies = AsnConvert.parse(this.value, CertificatePolicies);
       this.policies = asnPolicies.map((o) => o.policyIdentifier);
     } else {
       const policies = args[0];
-      const critical = (_a3 = args[1]) !== null && _a3 !== void 0 ? _a3 : false;
+      const critical = (_a4 = args[1]) !== null && _a4 !== void 0 ? _a4 : false;
       const value2 = new CertificatePolicies(policies.map((o) => new PolicyInformation({ policyIdentifier: o })));
       super(id_ce_certificatePolicies, critical, AsnConvert.serialize(value2));
       this.policies = policies;
@@ -95998,7 +95998,7 @@ CertificatePolicyExtension.NAME = "Certificate Policies";
 ExtensionFactory.register(id_ce_certificatePolicies, CertificatePolicyExtension);
 var CRLDistributionPointsExtension = class extends Extension2 {
   constructor(...args) {
-    var _a3;
+    var _a4;
     if (import_pvtsutils.BufferSourceConverter.isBufferSource(args[0])) {
       super(args[0]);
     } else if (Array.isArray(args[0]) && typeof args[0][0] === "string") {
@@ -96014,7 +96014,7 @@ var CRLDistributionPointsExtension = class extends Extension2 {
       const value2 = new CRLDistributionPoints(args[0]);
       super(id_ce_cRLDistributionPoints, args[1], AsnConvert.serialize(value2));
     }
-    (_a3 = this.distributionPoints) !== null && _a3 !== void 0 ? _a3 : this.distributionPoints = [];
+    (_a4 = this.distributionPoints) !== null && _a4 !== void 0 ? _a4 : this.distributionPoints = [];
   }
   onInit(asn) {
     super.onInit(asn);
@@ -96024,10 +96024,10 @@ var CRLDistributionPointsExtension = class extends Extension2 {
   toTextObject() {
     const obj = this.toTextObjectWithoutValue();
     obj["Distribution Point"] = this.distributionPoints.map((dp) => {
-      var _a3;
+      var _a4;
       const dpObj = {};
       if (dp.distributionPoint) {
-        dpObj[""] = (_a3 = dp.distributionPoint.fullName) === null || _a3 === void 0 ? void 0 : _a3.map((name15) => new GeneralName3(name15).toString()).join(", ");
+        dpObj[""] = (_a4 = dp.distributionPoint.fullName) === null || _a4 === void 0 ? void 0 : _a4.map((name15) => new GeneralName3(name15).toString()).join(", ");
       }
       if (dp.reasons) {
         dpObj["Reasons"] = dp.reasons.toString();
@@ -96043,7 +96043,7 @@ var CRLDistributionPointsExtension = class extends Extension2 {
 CRLDistributionPointsExtension.NAME = "CRL Distribution Points";
 var AuthorityInfoAccessExtension = class extends Extension2 {
   constructor(...args) {
-    var _a3, _b2, _c2, _d;
+    var _a4, _b3, _c2, _d;
     if (import_pvtsutils.BufferSourceConverter.isBufferSource(args[0])) {
       super(args[0]);
     } else if (args[0] instanceof AuthorityInfoAccessSyntax) {
@@ -96058,8 +96058,8 @@ var AuthorityInfoAccessExtension = class extends Extension2 {
       addAccessDescriptions(value2, params, id_ad_caRepository, "caRepository");
       super(id_pe_authorityInfoAccess, args[1], AsnConvert.serialize(value2));
     }
-    (_a3 = this.ocsp) !== null && _a3 !== void 0 ? _a3 : this.ocsp = [];
-    (_b2 = this.caIssuers) !== null && _b2 !== void 0 ? _b2 : this.caIssuers = [];
+    (_a4 = this.ocsp) !== null && _a4 !== void 0 ? _a4 : this.ocsp = [];
+    (_b3 = this.caIssuers) !== null && _b3 !== void 0 ? _b3 : this.caIssuers = [];
     (_c2 = this.timeStamping) !== null && _c2 !== void 0 ? _c2 : this.timeStamping = [];
     (_d = this.caRepository) !== null && _d !== void 0 ? _d : this.caRepository = [];
   }
@@ -96196,14 +96196,14 @@ var Attribute3 = class _Attribute extends AsnData {
 Attribute3.NAME = "Attribute";
 var ChallengePasswordAttribute = class extends Attribute3 {
   constructor(...args) {
-    var _a3;
+    var _a4;
     if (import_pvtsutils.BufferSourceConverter.isBufferSource(args[0])) {
       super(args[0]);
     } else {
       const value2 = new ChallengePassword({ printableString: args[0] });
       super(id_pkcs9_at_challengePassword, [AsnConvert.serialize(value2)]);
     }
-    (_a3 = this.password) !== null && _a3 !== void 0 ? _a3 : this.password = "";
+    (_a4 = this.password) !== null && _a4 !== void 0 ? _a4 : this.password = "";
   }
   onInit(asn) {
     super.onInit(asn);
@@ -96221,7 +96221,7 @@ var ChallengePasswordAttribute = class extends Attribute3 {
 ChallengePasswordAttribute.NAME = "Challenge Password";
 var ExtensionsAttribute = class extends Attribute3 {
   constructor(...args) {
-    var _a3;
+    var _a4;
     if (import_pvtsutils.BufferSourceConverter.isBufferSource(args[0])) {
       super(args[0]);
     } else {
@@ -96232,7 +96232,7 @@ var ExtensionsAttribute = class extends Attribute3 {
       }
       super(id_pkcs9_at_extensionRequest, [AsnConvert.serialize(value2)]);
     }
-    (_a3 = this.items) !== null && _a3 !== void 0 ? _a3 : this.items = [];
+    (_a4 = this.items) !== null && _a4 !== void 0 ? _a4 : this.items = [];
   }
   onInit(asn) {
     super.onInit(asn);
@@ -96999,7 +96999,7 @@ var X509CertificateGenerator = class {
     }, crypto3);
   }
   static async create(params, crypto3 = cryptoProvider.get()) {
-    var _a3;
+    var _a4;
     let spki;
     if (params.publicKey instanceof PublicKey2) {
       spki = params.publicKey.rawData;
@@ -97021,7 +97021,7 @@ var X509CertificateGenerator = class {
           notBefore,
           notAfter
         }),
-        extensions: new Extensions(((_a3 = params.extensions) === null || _a3 === void 0 ? void 0 : _a3.map((o) => AsnConvert.parse(o.rawData, Extension))) || []),
+        extensions: new Extensions(((_a4 = params.extensions) === null || _a4 === void 0 ? void 0 : _a4.map((o) => AsnConvert.parse(o.rawData, Extension))) || []),
         subjectPublicKeyInfo: AsnConvert.parse(spki, SubjectPublicKeyInfo)
       })
     });
@@ -97304,9 +97304,9 @@ async function connect(peerConnection, ufrag, options2) {
         case "failed":
         case "disconnected":
         case "closed":
-          maConn.close().catch((err) => {
-            options2.log.error("error closing connection", err);
-            maConn.abort(err);
+          maConn.close().catch((err2) => {
+            options2.log.error("error closing connection", err2);
+            maConn.abort(err2);
           });
           break;
         default:
@@ -97348,9 +97348,9 @@ async function connect(peerConnection, ufrag, options2) {
       muxerFactory,
       signal: options2.signal
     });
-  } catch (err) {
+  } catch (err2) {
     handshakeDataChannel.close();
-    throw err;
+    throw err2;
   }
 }
 
@@ -97451,9 +97451,9 @@ var WebRTCDirectTransport = class {
         remotePeerId: theirPeerId,
         privateKey: this.components.privateKey
       });
-    } catch (err) {
+    } catch (err2) {
       peerConnection.close();
-      throw err;
+      throw err2;
     }
   }
   /**
@@ -97508,9 +97508,9 @@ var WebRTCDirectTransport = class {
       }
       this.log.trace("checking for stored private key");
       this.privateKey = await keychain3.exportKey(keychainName);
-    } catch (err) {
-      if (err.name !== "NotFoundError") {
-        throw err;
+    } catch (err2) {
+      if (err2.name !== "NotFoundError") {
+        throw err2;
       }
       this.log.trace("generating private key");
       this.privateKey = await generateKeyPair("ECDSA", "P-256");
@@ -97537,9 +97537,9 @@ var WebRTCDirectTransport = class {
       }
       this.log.trace("checking for stored TLS certificate");
       cert = await this.loadCertificate(dsKey, keyPair);
-    } catch (err) {
-      if (err.name !== "NotFoundError") {
-        throw err;
+    } catch (err2) {
+      if (err2.name !== "NotFoundError") {
+        throw err2;
       }
       this.log.trace("generating new TLS certificate");
       cert = await this.createCertificate(dsKey, keyPair);
@@ -97556,8 +97556,8 @@ var WebRTCDirectTransport = class {
         this.emitter.safeDispatchEvent("certificate:renew", {
           detail: cert2
         });
-      }).catch((err) => {
-        this.log.error("could not renew certificate - %e", err);
+      }).catch((err2) => {
+        this.log.error("could not renew certificate - %e", err2);
       });
     }, renewTime);
     return {
@@ -97663,10 +97663,10 @@ var sink_default = (socket, options2) => {
     for await (const data of source) {
       try {
         await ready_default(socket);
-      } catch (err) {
-        if (err.message === "socket closed")
+      } catch (err2) {
+        if (err2.message === "socket closed")
           break;
-        throw err;
+        throw err2;
       }
       if (socket.readyState === socket.CLOSING || socket.readyState === socket.CLOSED) {
         break;
@@ -97679,8 +97679,8 @@ var sink_default = (socket, options2) => {
           if (event.wasClean || event.code === 1006) {
             resolve8();
           } else {
-            const err = Object.assign(new Error("ws error"), { event });
-            reject(err);
+            const err2 = Object.assign(new Error("ws error"), { event });
+            reject(err2);
           }
         });
         setTimeout(() => {
@@ -97894,9 +97894,9 @@ function socketToMaConn(stream, remoteAddr, options2) {
             }
           }
         }());
-      } catch (err) {
-        if (err.type !== "aborted") {
-          maConn.log.error(err);
+      } catch (err2) {
+        if (err2.type !== "aborted") {
+          maConn.log.error(err2);
         }
       }
     },
@@ -97920,16 +97920,16 @@ function socketToMaConn(stream, remoteAddr, options2) {
       options3.signal?.addEventListener("abort", listener);
       try {
         await stream.close();
-      } catch (err) {
-        maConn.log.error("error closing WebSocket gracefully - %e", err);
-        this.abort(err);
+      } catch (err2) {
+        maConn.log.error("error closing WebSocket gracefully - %e", err2);
+        this.abort(err2);
       } finally {
         options3.signal?.removeEventListener("abort", listener);
         maConn.timeline.close = Date.now();
       }
     },
-    abort(err) {
-      maConn.log.error("destroying WebSocket after error - %e", err);
+    abort(err2) {
+      maConn.log.error("destroying WebSocket after error - %e", err2);
       stream.destroy();
       maConn.timeline.close = Date.now();
       metrics?.increment({ [`${metricPrefix}error`]: true });
@@ -97999,22 +97999,22 @@ var WebSockets3 = class {
     const errorPromise = pDefer();
     const rawSocket = connect2(multiaddrToUri(ma), this.init);
     rawSocket.socket.addEventListener("error", () => {
-      const err = new ConnectionFailedError(`Could not connect to ${ma.toString()}`);
-      this.log.error("connection error:", err);
+      const err2 = new ConnectionFailedError(`Could not connect to ${ma.toString()}`);
+      this.log.error("connection error:", err2);
       this.metrics?.dialerEvents.increment({ error: true });
-      errorPromise.reject(err);
+      errorPromise.reject(err2);
     });
     try {
       options2.onProgress?.(new CustomProgressEvent("websockets:open-connection"));
       await raceSignal(Promise.race([rawSocket.connected(), errorPromise.promise]), options2.signal);
-    } catch (err) {
+    } catch (err2) {
       if (options2.signal?.aborted) {
         this.metrics?.dialerEvents.increment({ abort: true });
       }
-      rawSocket.close().catch((err2) => {
-        this.log.error("error closing raw socket", err2);
+      rawSocket.close().catch((err3) => {
+        this.log.error("error closing raw socket", err3);
       });
-      throw err;
+      throw err2;
     }
     this.log("connected %s", ma);
     this.metrics?.dialerEvents.increment({ connect: true });
@@ -98327,14 +98327,14 @@ function decode51(source, options2) {
             options2.onLength(dataLength);
           }
           mode = ReadMode2.DATA;
-        } catch (err) {
-          if (err instanceof RangeError) {
+        } catch (err2) {
+          if (err2 instanceof RangeError) {
             if (buffer5.byteLength > maxLengthLength) {
               throw new InvalidDataLengthLengthError3("Message length length too long");
             }
             break;
           }
-          throw err;
+          throw err2;
         }
       }
       if (mode === ReadMode2.DATA) {
@@ -98384,11 +98384,11 @@ decode51.fromReader = (reader, options2) => {
         if (value2 != null) {
           yield value2;
         }
-      } catch (err) {
-        if (err.code === "ERR_UNDER_READ") {
+      } catch (err2) {
+        if (err2.code === "ERR_UNDER_READ") {
           return { done: true, value: null };
         }
-        throw err;
+        throw err2;
       } finally {
         byteLength = 1;
       }
@@ -101007,8 +101007,8 @@ var OutboundStream = class {
     this.closeController = new AbortController();
     this.maxBufferSize = opts.maxBufferSize ?? Infinity;
     this.closeController.signal.addEventListener("abort", () => {
-      rawStream.close().catch((err) => {
-        rawStream.abort(err);
+      rawStream.close().catch((err2) => {
+        rawStream.abort(err2);
       });
     });
     pipe(this.pushable, this.rawStream).catch(errCallback);
@@ -101044,8 +101044,8 @@ var InboundStream = class {
     this.rawStream = rawStream;
     this.closeController = new AbortController();
     this.closeController.signal.addEventListener("abort", () => {
-      rawStream.close().catch((err) => {
-        rawStream.abort(err);
+      rawStream.close().catch((err2) => {
+        rawStream.abort(err2);
       });
     });
     this.source = pipe(this.rawStream, (source) => decode51(source, opts));
@@ -101758,8 +101758,8 @@ var GossipSub = class extends TypedEventEmitter {
     this.directPeerInitial = setTimeout(() => {
       Promise.resolve().then(async () => {
         await Promise.all(Array.from(this.direct).map(async (id) => this.connect(id)));
-      }).catch((err) => {
-        this.log(err);
+      }).catch((err2) => {
+        this.log(err2);
       });
     }, GossipsubDirectConnectInitialDelay);
     if (this.opts.tagMeshPeers) {
@@ -101901,15 +101901,15 @@ var GossipSub = class extends TypedEventEmitter {
     const priorInboundStream = this.streamsInbound.get(id);
     if (priorInboundStream !== void 0) {
       this.log("replacing existing inbound steam %s", id);
-      priorInboundStream.close().catch((err) => {
-        this.log.error(err);
+      priorInboundStream.close().catch((err2) => {
+        this.log.error(err2);
       });
     }
     this.log("create inbound stream %s", id);
     const inboundStream = new InboundStream(stream, { maxDataLength: this.opts.maxInboundDataLength });
     this.streamsInbound.set(id, inboundStream);
-    this.pipePeerReadStream(peerId, inboundStream.source).catch((err) => {
-      this.log(err);
+    this.pipePeerReadStream(peerId, inboundStream.source).catch((err2) => {
+      this.log(err2);
     });
   }
   /**
@@ -101947,11 +101947,11 @@ var GossipSub = class extends TypedEventEmitter {
     if (outboundStream != null) {
       this.metrics?.peersPerProtocol.inc({ protocol: outboundStream.protocol }, -1);
     }
-    outboundStream?.close().catch((err) => {
-      this.log.error(err);
+    outboundStream?.close().catch((err2) => {
+      this.log.error(err2);
     });
-    inboundStream?.close().catch((err) => {
-      this.log.error(err);
+    inboundStream?.close().catch((err2) => {
+      this.log.error(err2);
     });
     this.streamsOutbound.delete(id);
     this.streamsInbound.delete(id);
@@ -102033,14 +102033,14 @@ var GossipSub = class extends TypedEventEmitter {
             if (this.opts.awaitRpcHandler) {
               try {
                 await this.handleReceivedRpc(peerId, rpc);
-              } catch (err) {
+              } catch (err2) {
                 this.metrics?.onRpcRecvError();
-                this.log(err);
+                this.log(err2);
               }
             } else {
-              this.handleReceivedRpc(peerId, rpc).catch((err) => {
+              this.handleReceivedRpc(peerId, rpc).catch((err2) => {
                 this.metrics?.onRpcRecvError();
-                this.log(err);
+                this.log(err2);
               });
             }
           } catch (e) {
@@ -102049,17 +102049,17 @@ var GossipSub = class extends TypedEventEmitter {
           }
         }
       });
-    } catch (err) {
+    } catch (err2) {
       this.metrics?.onPeerReadStreamError();
-      this.handlePeerReadStreamError(err, peerId);
+      this.handlePeerReadStreamError(err2, peerId);
     }
   }
   /**
    * Handle error when read stream pipe throws, less of the functional use but more
    * to for testing purposes to spy on the error handling
    * */
-  handlePeerReadStreamError(err, peerId) {
-    this.log.error(err);
+  handlePeerReadStreamError(err2, peerId) {
+    this.log.error(err2);
     this.onPeerDisconnected(peerId);
   }
   /**
@@ -102109,9 +102109,9 @@ var GossipSub = class extends TypedEventEmitter {
       if (this.allowedTopics != null && !this.allowedTopics.has(message5.topic)) {
         continue;
       }
-      const handleReceivedMessagePromise = this.handleReceivedMessage(from18, message5).catch((err) => {
+      const handleReceivedMessagePromise = this.handleReceivedMessage(from18, message5).catch((err2) => {
         this.metrics?.onMsgRecvError(message5.topic);
-        this.log(err);
+        this.log(err2);
       });
       if (this.opts.awaitRpcMessageHandler) {
         await handleReceivedMessagePromise;
@@ -102731,8 +102731,8 @@ var GossipSub = class extends TypedEventEmitter {
       Promise.all(Array.from(meshPeers).map(async (id) => {
         this.log("LEAVE: Remove mesh link to %s in %s", id, topic);
         await this.sendPrune(id, topic);
-      })).catch((err) => {
-        this.log("Error sending prunes to mesh peers", err);
+      })).catch((err2) => {
+        this.log("Error sending prunes to mesh peers", err2);
       });
       this.mesh.delete(topic);
     }
@@ -103210,9 +103210,9 @@ var GossipSub = class extends TypedEventEmitter {
       let peerInfo;
       try {
         peerInfo = await this.components.peerStore.get(id2);
-      } catch (err) {
-        if (err.name !== "NotFoundError") {
-          throw err;
+      } catch (err2) {
+        if (err2.name !== "NotFoundError") {
+          throw err2;
         }
       }
       return {
@@ -103228,8 +103228,8 @@ var GossipSub = class extends TypedEventEmitter {
   }
   runHeartbeat = () => {
     const timer = this.metrics?.heartbeatDuration.startTimer();
-    this.heartbeat().catch((err) => {
-      this.log("Error running heartbeat", err);
+    this.heartbeat().catch((err2) => {
+      this.log("Error running heartbeat", err2);
     }).finally(() => {
       if (timer != null) {
         timer();
@@ -103555,8 +103555,8 @@ var GossipSub = class extends TypedEventEmitter {
           value: 100
         }
       }
-    }).catch((err) => {
-      this.log.error("Error tagging peer %s with topic %s", peerId, topic, err);
+    }).catch((err2) => {
+      this.log.error("Error tagging peer %s with topic %s", peerId, topic, err2);
     });
   };
   untagMeshPeer = (evt) => {
@@ -103565,8 +103565,8 @@ var GossipSub = class extends TypedEventEmitter {
       tags: {
         [topic]: void 0
       }
-    }).catch((err) => {
-      this.log.error("Error untagging peer %s with topic %s", peerId, topic, err);
+    }).catch((err2) => {
+      this.log.error("Error untagging peer %s with topic %s", peerId, topic, err2);
     });
   };
 };
@@ -106283,8 +106283,8 @@ var PubSubPeerDiscovery = class extends TypedEventEmitter {
           multiaddrs: peer.addrs.map((b) => multiaddr2(b))
         }
       });
-    } catch (err) {
-      this.log.error("error handling incoming message", err);
+    } catch (err2) {
+      this.log.error("error handling incoming message", err2);
     }
   }
 };
@@ -106370,7 +106370,7 @@ var src_default13 = batch;
 async function* parallelBatch(source, size = 1) {
   for await (const tasks of src_default13(source, size)) {
     const things = tasks.map(async (p) => {
-      return p().then((value2) => ({ ok: true, value: value2 }), (err) => ({ ok: false, err }));
+      return p().then((value2) => ({ ok: true, value: value2 }), (err2) => ({ ok: false, err: err2 }));
     });
     for (let i = 0; i < things.length; i++) {
       const result2 = await things[i];
@@ -110155,8 +110155,8 @@ var findShardCid = async (node, name15, blockstore, context, options2) => {
     let dir;
     try {
       dir = UnixFS.unmarshal(node.Data);
-    } catch (err) {
-      throw new NotUnixFSError2(err.message);
+    } catch (err2) {
+      throw new NotUnixFSError2(err2.message);
     }
     if (dir.type !== "hamt-sharded-directory") {
       throw new NotUnixFSError2("not a HAMT");
@@ -110261,8 +110261,8 @@ async function walkDAG(blockstore, node, queue, streamPosition, start2, end, opt
   let file;
   try {
     file = UnixFS.unmarshal(node.Data);
-  } catch (err) {
-    throw new NotUnixFSError2(err.message);
+  } catch (err2) {
+    throw new NotUnixFSError2(err2.message);
   }
   if (file.data != null) {
     const data = file.data;
@@ -110351,8 +110351,8 @@ var fileContent = (cid, node, unixfs2, path, resolve8, depth, blockstore) => {
     options2.onProgress?.(new CustomProgressEvent("unixfs:exporter:walk:file", {
       cid
     }));
-    void walkDAG(blockstore, node, queue, 0n, start2, end, options2).catch((err) => {
-      queue.end(err);
+    void walkDAG(blockstore, node, queue, 0n, start2, end, options2).catch((err2) => {
+      queue.end(err2);
     });
     for await (const buf of queue) {
       if (buf == null) {
@@ -110399,8 +110399,8 @@ async function* listDirectory(node, path, resolve8, depth, blockstore, options2)
   let dir;
   try {
     dir = UnixFS.unmarshal(node.Data);
-  } catch (err) {
-    throw new NotUnixFSError2(err.message);
+  } catch (err2) {
+    throw new NotUnixFSError2(err2.message);
   }
   if (dir.fanout == null) {
     throw new NotUnixFSError2("missing fanout");
@@ -110490,8 +110490,8 @@ var unixFsResolver = async (cid, name15, path, toResolve, resolve8, depth, block
   }
   try {
     unixfs2 = UnixFS.unmarshal(node.Data);
-  } catch (err) {
-    throw new NotUnixFSError2(err.message);
+  } catch (err2) {
+    throw new NotUnixFSError2(err2.message);
   }
   if (path == null) {
     path = name15;
@@ -111918,9 +111918,9 @@ async function inspectDag(cid, blockstore, isFile, filter2, options2) {
     } else {
       throw new UnknownError(`${cid.toString()} was neither DAG_PB nor RAW`);
     }
-  } catch (err) {
-    if (err.name !== "NotFoundError" || options2.offline !== true) {
-      throw err;
+  } catch (err2) {
+    if (err2.name !== "NotFoundError" || options2.offline !== true) {
+      throw err2;
     }
   }
   return results;
@@ -112089,6 +112089,713 @@ var UnixFS2 = class {
 // node_modules/@helia/unixfs/dist/src/index.js
 function unixfs(helia) {
   return new UnixFS2(helia);
+}
+
+// node_modules/fflate/esm/browser.js
+var u8 = Uint8Array;
+var u16 = Uint16Array;
+var i32 = Int32Array;
+var fleb = new u8([
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  1,
+  1,
+  1,
+  1,
+  2,
+  2,
+  2,
+  2,
+  3,
+  3,
+  3,
+  3,
+  4,
+  4,
+  4,
+  4,
+  5,
+  5,
+  5,
+  5,
+  0,
+  /* unused */
+  0,
+  0,
+  /* impossible */
+  0
+]);
+var fdeb = new u8([
+  0,
+  0,
+  0,
+  0,
+  1,
+  1,
+  2,
+  2,
+  3,
+  3,
+  4,
+  4,
+  5,
+  5,
+  6,
+  6,
+  7,
+  7,
+  8,
+  8,
+  9,
+  9,
+  10,
+  10,
+  11,
+  11,
+  12,
+  12,
+  13,
+  13,
+  /* unused */
+  0,
+  0
+]);
+var clim = new u8([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
+var freb = function(eb, start2) {
+  var b = new u16(31);
+  for (var i = 0; i < 31; ++i) {
+    b[i] = start2 += 1 << eb[i - 1];
+  }
+  var r = new i32(b[30]);
+  for (var i = 1; i < 30; ++i) {
+    for (var j = b[i]; j < b[i + 1]; ++j) {
+      r[j] = j - b[i] << 5 | i;
+    }
+  }
+  return { b, r };
+};
+var _a3 = freb(fleb, 2);
+var fl = _a3.b;
+var revfl = _a3.r;
+fl[28] = 258, revfl[258] = 28;
+var _b2 = freb(fdeb, 0);
+var fd = _b2.b;
+var revfd = _b2.r;
+var rev = new u16(32768);
+for (i = 0; i < 32768; ++i) {
+  x = (i & 43690) >> 1 | (i & 21845) << 1;
+  x = (x & 52428) >> 2 | (x & 13107) << 2;
+  x = (x & 61680) >> 4 | (x & 3855) << 4;
+  rev[i] = ((x & 65280) >> 8 | (x & 255) << 8) >> 1;
+}
+var x;
+var i;
+var hMap = function(cd, mb, r) {
+  var s2 = cd.length;
+  var i = 0;
+  var l = new u16(mb);
+  for (; i < s2; ++i) {
+    if (cd[i])
+      ++l[cd[i] - 1];
+  }
+  var le = new u16(mb);
+  for (i = 1; i < mb; ++i) {
+    le[i] = le[i - 1] + l[i - 1] << 1;
+  }
+  var co;
+  if (r) {
+    co = new u16(1 << mb);
+    var rvb = 15 - mb;
+    for (i = 0; i < s2; ++i) {
+      if (cd[i]) {
+        var sv = i << 4 | cd[i];
+        var r_1 = mb - cd[i];
+        var v = le[cd[i] - 1]++ << r_1;
+        for (var m2 = v | (1 << r_1) - 1; v <= m2; ++v) {
+          co[rev[v] >> rvb] = sv;
+        }
+      }
+    }
+  } else {
+    co = new u16(s2);
+    for (i = 0; i < s2; ++i) {
+      if (cd[i]) {
+        co[i] = rev[le[cd[i] - 1]++] >> 15 - cd[i];
+      }
+    }
+  }
+  return co;
+};
+var flt = new u8(288);
+for (i = 0; i < 144; ++i)
+  flt[i] = 8;
+var i;
+for (i = 144; i < 256; ++i)
+  flt[i] = 9;
+var i;
+for (i = 256; i < 280; ++i)
+  flt[i] = 7;
+var i;
+for (i = 280; i < 288; ++i)
+  flt[i] = 8;
+var i;
+var fdt = new u8(32);
+for (i = 0; i < 32; ++i)
+  fdt[i] = 5;
+var i;
+var flm = /* @__PURE__ */ hMap(flt, 9, 0);
+var fdm = /* @__PURE__ */ hMap(fdt, 5, 0);
+var shft = function(p) {
+  return (p + 7) / 8 | 0;
+};
+var slc = function(v, s2, e) {
+  if (s2 == null || s2 < 0)
+    s2 = 0;
+  if (e == null || e > v.length)
+    e = v.length;
+  return new u8(v.subarray(s2, e));
+};
+var ec = [
+  "unexpected EOF",
+  "invalid block type",
+  "invalid length/literal",
+  "invalid distance",
+  "stream finished",
+  "no stream handler",
+  ,
+  // determined by compression function
+  "no callback",
+  "invalid UTF-8 data",
+  "extra field too long",
+  "date not in range 1980-2099",
+  "filename too long",
+  "stream finishing",
+  "invalid zip data"
+  // determined by unknown compression method
+];
+var err = function(ind, msg, nt) {
+  var e = new Error(msg || ec[ind]);
+  e.code = ind;
+  if (Error.captureStackTrace)
+    Error.captureStackTrace(e, err);
+  if (!nt)
+    throw e;
+  return e;
+};
+var wbits = function(d2, p, v) {
+  v <<= p & 7;
+  var o = p / 8 | 0;
+  d2[o] |= v;
+  d2[o + 1] |= v >> 8;
+};
+var wbits16 = function(d2, p, v) {
+  v <<= p & 7;
+  var o = p / 8 | 0;
+  d2[o] |= v;
+  d2[o + 1] |= v >> 8;
+  d2[o + 2] |= v >> 16;
+};
+var hTree = function(d2, mb) {
+  var t = [];
+  for (var i = 0; i < d2.length; ++i) {
+    if (d2[i])
+      t.push({ s: i, f: d2[i] });
+  }
+  var s2 = t.length;
+  var t2 = t.slice();
+  if (!s2)
+    return { t: et, l: 0 };
+  if (s2 == 1) {
+    var v = new u8(t[0].s + 1);
+    v[t[0].s] = 1;
+    return { t: v, l: 1 };
+  }
+  t.sort(function(a, b) {
+    return a.f - b.f;
+  });
+  t.push({ s: -1, f: 25001 });
+  var l = t[0], r = t[1], i0 = 0, i1 = 1, i2 = 2;
+  t[0] = { s: -1, f: l.f + r.f, l, r };
+  while (i1 != s2 - 1) {
+    l = t[t[i0].f < t[i2].f ? i0++ : i2++];
+    r = t[i0 != i1 && t[i0].f < t[i2].f ? i0++ : i2++];
+    t[i1++] = { s: -1, f: l.f + r.f, l, r };
+  }
+  var maxSym = t2[0].s;
+  for (var i = 1; i < s2; ++i) {
+    if (t2[i].s > maxSym)
+      maxSym = t2[i].s;
+  }
+  var tr = new u16(maxSym + 1);
+  var mbt = ln(t[i1 - 1], tr, 0);
+  if (mbt > mb) {
+    var i = 0, dt = 0;
+    var lft = mbt - mb, cst = 1 << lft;
+    t2.sort(function(a, b) {
+      return tr[b.s] - tr[a.s] || a.f - b.f;
+    });
+    for (; i < s2; ++i) {
+      var i2_1 = t2[i].s;
+      if (tr[i2_1] > mb) {
+        dt += cst - (1 << mbt - tr[i2_1]);
+        tr[i2_1] = mb;
+      } else
+        break;
+    }
+    dt >>= lft;
+    while (dt > 0) {
+      var i2_2 = t2[i].s;
+      if (tr[i2_2] < mb)
+        dt -= 1 << mb - tr[i2_2]++ - 1;
+      else
+        ++i;
+    }
+    for (; i >= 0 && dt; --i) {
+      var i2_3 = t2[i].s;
+      if (tr[i2_3] == mb) {
+        --tr[i2_3];
+        ++dt;
+      }
+    }
+    mbt = mb;
+  }
+  return { t: new u8(tr), l: mbt };
+};
+var ln = function(n, l, d2) {
+  return n.s == -1 ? Math.max(ln(n.l, l, d2 + 1), ln(n.r, l, d2 + 1)) : l[n.s] = d2;
+};
+var lc = function(c) {
+  var s2 = c.length;
+  while (s2 && !c[--s2])
+    ;
+  var cl = new u16(++s2);
+  var cli = 0, cln = c[0], cls = 1;
+  var w2 = function(v) {
+    cl[cli++] = v;
+  };
+  for (var i = 1; i <= s2; ++i) {
+    if (c[i] == cln && i != s2)
+      ++cls;
+    else {
+      if (!cln && cls > 2) {
+        for (; cls > 138; cls -= 138)
+          w2(32754);
+        if (cls > 2) {
+          w2(cls > 10 ? cls - 11 << 5 | 28690 : cls - 3 << 5 | 12305);
+          cls = 0;
+        }
+      } else if (cls > 3) {
+        w2(cln), --cls;
+        for (; cls > 6; cls -= 6)
+          w2(8304);
+        if (cls > 2)
+          w2(cls - 3 << 5 | 8208), cls = 0;
+      }
+      while (cls--)
+        w2(cln);
+      cls = 1;
+      cln = c[i];
+    }
+  }
+  return { c: cl.subarray(0, cli), n: s2 };
+};
+var clen = function(cf, cl) {
+  var l = 0;
+  for (var i = 0; i < cl.length; ++i)
+    l += cf[i] * cl[i];
+  return l;
+};
+var wfblk = function(out, pos, dat) {
+  var s2 = dat.length;
+  var o = shft(pos + 2);
+  out[o] = s2 & 255;
+  out[o + 1] = s2 >> 8;
+  out[o + 2] = out[o] ^ 255;
+  out[o + 3] = out[o + 1] ^ 255;
+  for (var i = 0; i < s2; ++i)
+    out[o + i + 4] = dat[i];
+  return (o + 4 + s2) * 8;
+};
+var wblk = function(dat, out, final, syms, lf, df, eb, li, bs, bl, p) {
+  wbits(out, p++, final);
+  ++lf[256];
+  var _a4 = hTree(lf, 15), dlt = _a4.t, mlb = _a4.l;
+  var _b3 = hTree(df, 15), ddt = _b3.t, mdb = _b3.l;
+  var _c2 = lc(dlt), lclt = _c2.c, nlc = _c2.n;
+  var _d = lc(ddt), lcdt = _d.c, ndc = _d.n;
+  var lcfreq = new u16(19);
+  for (var i = 0; i < lclt.length; ++i)
+    ++lcfreq[lclt[i] & 31];
+  for (var i = 0; i < lcdt.length; ++i)
+    ++lcfreq[lcdt[i] & 31];
+  var _e = hTree(lcfreq, 7), lct = _e.t, mlcb = _e.l;
+  var nlcc = 19;
+  for (; nlcc > 4 && !lct[clim[nlcc - 1]]; --nlcc)
+    ;
+  var flen = bl + 5 << 3;
+  var ftlen = clen(lf, flt) + clen(df, fdt) + eb;
+  var dtlen = clen(lf, dlt) + clen(df, ddt) + eb + 14 + 3 * nlcc + clen(lcfreq, lct) + 2 * lcfreq[16] + 3 * lcfreq[17] + 7 * lcfreq[18];
+  if (bs >= 0 && flen <= ftlen && flen <= dtlen)
+    return wfblk(out, p, dat.subarray(bs, bs + bl));
+  var lm, ll, dm, dl;
+  wbits(out, p, 1 + (dtlen < ftlen)), p += 2;
+  if (dtlen < ftlen) {
+    lm = hMap(dlt, mlb, 0), ll = dlt, dm = hMap(ddt, mdb, 0), dl = ddt;
+    var llm = hMap(lct, mlcb, 0);
+    wbits(out, p, nlc - 257);
+    wbits(out, p + 5, ndc - 1);
+    wbits(out, p + 10, nlcc - 4);
+    p += 14;
+    for (var i = 0; i < nlcc; ++i)
+      wbits(out, p + 3 * i, lct[clim[i]]);
+    p += 3 * nlcc;
+    var lcts = [lclt, lcdt];
+    for (var it = 0; it < 2; ++it) {
+      var clct = lcts[it];
+      for (var i = 0; i < clct.length; ++i) {
+        var len = clct[i] & 31;
+        wbits(out, p, llm[len]), p += lct[len];
+        if (len > 15)
+          wbits(out, p, clct[i] >> 5 & 127), p += clct[i] >> 12;
+      }
+    }
+  } else {
+    lm = flm, ll = flt, dm = fdm, dl = fdt;
+  }
+  for (var i = 0; i < li; ++i) {
+    var sym = syms[i];
+    if (sym > 255) {
+      var len = sym >> 18 & 31;
+      wbits16(out, p, lm[len + 257]), p += ll[len + 257];
+      if (len > 7)
+        wbits(out, p, sym >> 23 & 31), p += fleb[len];
+      var dst = sym & 31;
+      wbits16(out, p, dm[dst]), p += dl[dst];
+      if (dst > 3)
+        wbits16(out, p, sym >> 5 & 8191), p += fdeb[dst];
+    } else {
+      wbits16(out, p, lm[sym]), p += ll[sym];
+    }
+  }
+  wbits16(out, p, lm[256]);
+  return p + ll[256];
+};
+var deo = /* @__PURE__ */ new i32([65540, 131080, 131088, 131104, 262176, 1048704, 1048832, 2114560, 2117632]);
+var et = /* @__PURE__ */ new u8(0);
+var dflt = function(dat, lvl, plvl, pre, post, st) {
+  var s2 = st.z || dat.length;
+  var o = new u8(pre + s2 + 5 * (1 + Math.ceil(s2 / 7e3)) + post);
+  var w2 = o.subarray(pre, o.length - post);
+  var lst = st.l;
+  var pos = (st.r || 0) & 7;
+  if (lvl) {
+    if (pos)
+      w2[0] = st.r >> 3;
+    var opt = deo[lvl - 1];
+    var n = opt >> 13, c = opt & 8191;
+    var msk_1 = (1 << plvl) - 1;
+    var prev = st.p || new u16(32768), head = st.h || new u16(msk_1 + 1);
+    var bs1_1 = Math.ceil(plvl / 3), bs2_1 = 2 * bs1_1;
+    var hsh = function(i2) {
+      return (dat[i2] ^ dat[i2 + 1] << bs1_1 ^ dat[i2 + 2] << bs2_1) & msk_1;
+    };
+    var syms = new i32(25e3);
+    var lf = new u16(288), df = new u16(32);
+    var lc_1 = 0, eb = 0, i = st.i || 0, li = 0, wi = st.w || 0, bs = 0;
+    for (; i + 2 < s2; ++i) {
+      var hv = hsh(i);
+      var imod = i & 32767, pimod = head[hv];
+      prev[imod] = pimod;
+      head[hv] = imod;
+      if (wi <= i) {
+        var rem = s2 - i;
+        if ((lc_1 > 7e3 || li > 24576) && (rem > 423 || !lst)) {
+          pos = wblk(dat, w2, 0, syms, lf, df, eb, li, bs, i - bs, pos);
+          li = lc_1 = eb = 0, bs = i;
+          for (var j = 0; j < 286; ++j)
+            lf[j] = 0;
+          for (var j = 0; j < 30; ++j)
+            df[j] = 0;
+        }
+        var l = 2, d2 = 0, ch_1 = c, dif = imod - pimod & 32767;
+        if (rem > 2 && hv == hsh(i - dif)) {
+          var maxn = Math.min(n, rem) - 1;
+          var maxd = Math.min(32767, i);
+          var ml = Math.min(258, rem);
+          while (dif <= maxd && --ch_1 && imod != pimod) {
+            if (dat[i + l] == dat[i + l - dif]) {
+              var nl = 0;
+              for (; nl < ml && dat[i + nl] == dat[i + nl - dif]; ++nl)
+                ;
+              if (nl > l) {
+                l = nl, d2 = dif;
+                if (nl > maxn)
+                  break;
+                var mmd = Math.min(dif, nl - 2);
+                var md = 0;
+                for (var j = 0; j < mmd; ++j) {
+                  var ti = i - dif + j & 32767;
+                  var pti = prev[ti];
+                  var cd = ti - pti & 32767;
+                  if (cd > md)
+                    md = cd, pimod = ti;
+                }
+              }
+            }
+            imod = pimod, pimod = prev[imod];
+            dif += imod - pimod & 32767;
+          }
+        }
+        if (d2) {
+          syms[li++] = 268435456 | revfl[l] << 18 | revfd[d2];
+          var lin = revfl[l] & 31, din = revfd[d2] & 31;
+          eb += fleb[lin] + fdeb[din];
+          ++lf[257 + lin];
+          ++df[din];
+          wi = i + l;
+          ++lc_1;
+        } else {
+          syms[li++] = dat[i];
+          ++lf[dat[i]];
+        }
+      }
+    }
+    for (i = Math.max(i, wi); i < s2; ++i) {
+      syms[li++] = dat[i];
+      ++lf[dat[i]];
+    }
+    pos = wblk(dat, w2, lst, syms, lf, df, eb, li, bs, i - bs, pos);
+    if (!lst) {
+      st.r = pos & 7 | w2[pos / 8 | 0] << 3;
+      pos -= 7;
+      st.h = head, st.p = prev, st.i = i, st.w = wi;
+    }
+  } else {
+    for (var i = st.w || 0; i < s2 + lst; i += 65535) {
+      var e = i + 65535;
+      if (e >= s2) {
+        w2[pos / 8 | 0] = lst;
+        e = s2;
+      }
+      pos = wfblk(w2, pos + 1, dat.subarray(i, e));
+    }
+    st.i = s2;
+  }
+  return slc(o, 0, pre + shft(pos) + post);
+};
+var crct = /* @__PURE__ */ function() {
+  var t = new Int32Array(256);
+  for (var i = 0; i < 256; ++i) {
+    var c = i, k = 9;
+    while (--k)
+      c = (c & 1 && -306674912) ^ c >>> 1;
+    t[i] = c;
+  }
+  return t;
+}();
+var crc = function() {
+  var c = -1;
+  return {
+    p: function(d2) {
+      var cr = c;
+      for (var i = 0; i < d2.length; ++i)
+        cr = crct[cr & 255 ^ d2[i]] ^ cr >>> 8;
+      c = cr;
+    },
+    d: function() {
+      return ~c;
+    }
+  };
+};
+var dopt = function(dat, opt, pre, post, st) {
+  if (!st) {
+    st = { l: 1 };
+    if (opt.dictionary) {
+      var dict = opt.dictionary.subarray(-32768);
+      var newDat = new u8(dict.length + dat.length);
+      newDat.set(dict);
+      newDat.set(dat, dict.length);
+      dat = newDat;
+      st.w = dict.length;
+    }
+  }
+  return dflt(dat, opt.level == null ? 6 : opt.level, opt.mem == null ? st.l ? Math.ceil(Math.max(8, Math.min(13, Math.log(dat.length))) * 1.5) : 20 : 12 + opt.mem, pre, post, st);
+};
+var mrg = function(a, b) {
+  var o = {};
+  for (var k in a)
+    o[k] = a[k];
+  for (var k in b)
+    o[k] = b[k];
+  return o;
+};
+var wbytes = function(d2, b, v) {
+  for (; v; ++b)
+    d2[b] = v, v >>>= 8;
+};
+function deflateSync(data, opts) {
+  return dopt(data, opts || {}, 0, 0);
+}
+var fltn = function(d2, p, t, o) {
+  for (var k in d2) {
+    var val = d2[k], n = p + k, op = o;
+    if (Array.isArray(val))
+      op = mrg(o, val[1]), val = val[0];
+    if (ArrayBuffer.isView(val))
+      t[n] = [val, op];
+    else {
+      t[n += "/"] = [new u8(0), op];
+      fltn(val, n, t, o);
+    }
+  }
+};
+var te = typeof TextEncoder != "undefined" && /* @__PURE__ */ new TextEncoder();
+var td = typeof TextDecoder != "undefined" && /* @__PURE__ */ new TextDecoder();
+var tds = 0;
+try {
+  td.decode(et, { stream: true });
+  tds = 1;
+} catch (e) {
+}
+function strToU8(str, latin1) {
+  if (latin1) {
+    var ar_1 = new u8(str.length);
+    for (var i = 0; i < str.length; ++i)
+      ar_1[i] = str.charCodeAt(i);
+    return ar_1;
+  }
+  if (te)
+    return te.encode(str);
+  var l = str.length;
+  var ar = new u8(str.length + (str.length >> 1));
+  var ai = 0;
+  var w2 = function(v) {
+    ar[ai++] = v;
+  };
+  for (var i = 0; i < l; ++i) {
+    if (ai + 5 > ar.length) {
+      var n = new u8(ai + 8 + (l - i << 1));
+      n.set(ar);
+      ar = n;
+    }
+    var c = str.charCodeAt(i);
+    if (c < 128 || latin1)
+      w2(c);
+    else if (c < 2048)
+      w2(192 | c >> 6), w2(128 | c & 63);
+    else if (c > 55295 && c < 57344)
+      c = 65536 + (c & 1023 << 10) | str.charCodeAt(++i) & 1023, w2(240 | c >> 18), w2(128 | c >> 12 & 63), w2(128 | c >> 6 & 63), w2(128 | c & 63);
+    else
+      w2(224 | c >> 12), w2(128 | c >> 6 & 63), w2(128 | c & 63);
+  }
+  return slc(ar, 0, ai);
+}
+var exfl = function(ex) {
+  var le = 0;
+  if (ex) {
+    for (var k in ex) {
+      var l = ex[k].length;
+      if (l > 65535)
+        err(9);
+      le += l + 4;
+    }
+  }
+  return le;
+};
+var wzh = function(d2, b, f, fn, u, c, ce, co) {
+  var fl2 = fn.length, ex = f.extra, col = co && co.length;
+  var exl = exfl(ex);
+  wbytes(d2, b, ce != null ? 33639248 : 67324752), b += 4;
+  if (ce != null)
+    d2[b++] = 20, d2[b++] = f.os;
+  d2[b] = 20, b += 2;
+  d2[b++] = f.flag << 1 | (c < 0 && 8), d2[b++] = u && 8;
+  d2[b++] = f.compression & 255, d2[b++] = f.compression >> 8;
+  var dt = new Date(f.mtime == null ? Date.now() : f.mtime), y2 = dt.getFullYear() - 1980;
+  if (y2 < 0 || y2 > 119)
+    err(10);
+  wbytes(d2, b, y2 << 25 | dt.getMonth() + 1 << 21 | dt.getDate() << 16 | dt.getHours() << 11 | dt.getMinutes() << 5 | dt.getSeconds() >> 1), b += 4;
+  if (c != -1) {
+    wbytes(d2, b, f.crc);
+    wbytes(d2, b + 4, c < 0 ? -c - 2 : c);
+    wbytes(d2, b + 8, f.size);
+  }
+  wbytes(d2, b + 12, fl2);
+  wbytes(d2, b + 14, exl), b += 16;
+  if (ce != null) {
+    wbytes(d2, b, col);
+    wbytes(d2, b + 6, f.attrs);
+    wbytes(d2, b + 10, ce), b += 14;
+  }
+  d2.set(fn, b);
+  b += fl2;
+  if (exl) {
+    for (var k in ex) {
+      var exf = ex[k], l = exf.length;
+      wbytes(d2, b, +k);
+      wbytes(d2, b + 2, l);
+      d2.set(exf, b + 4), b += 4 + l;
+    }
+  }
+  if (col)
+    d2.set(co, b), b += col;
+  return b;
+};
+var wzf = function(o, b, c, d2, e) {
+  wbytes(o, b, 101010256);
+  wbytes(o, b + 8, c);
+  wbytes(o, b + 10, c);
+  wbytes(o, b + 12, d2);
+  wbytes(o, b + 16, e);
+};
+function zipSync(data, opts) {
+  if (!opts)
+    opts = {};
+  var r = {};
+  var files = [];
+  fltn(data, "", r, opts);
+  var o = 0;
+  var tot = 0;
+  for (var fn in r) {
+    var _a4 = r[fn], file = _a4[0], p = _a4[1];
+    var compression = p.level == 0 ? 0 : 8;
+    var f = strToU8(fn), s2 = f.length;
+    var com = p.comment, m2 = com && strToU8(com), ms2 = m2 && m2.length;
+    var exl = exfl(p.extra);
+    if (s2 > 65535)
+      err(11);
+    var d2 = compression ? deflateSync(file, p) : file, l = d2.length;
+    var c = crc();
+    c.p(file);
+    files.push(mrg(p, {
+      size: file.length,
+      crc: c.d(),
+      c: d2,
+      f,
+      m: m2,
+      u: s2 != fn.length || m2 && com.length != ms2,
+      o,
+      compression
+    }));
+    o += 30 + s2 + exl + l;
+    tot += 76 + 2 * (s2 + exl) + (ms2 || 0) + l;
+  }
+  var out = new u8(tot + 22), oe = o, cdl = tot - o;
+  for (var i = 0; i < files.length; ++i) {
+    var f = files[i];
+    wzh(out, f.o, f, f.f, f.u, f.c.length);
+    var badd = 30 + f.f.length + exfl(f.extra);
+    out.set(f.c, f.o + badd);
+    wzh(out, o, f, f.f, f.u, f.c.length, f.o, f.m), o += 16 + badd + (f.m ? f.m.length : 0);
+  }
+  wzf(out, o, files.length, cdl, oe);
+  return out;
 }
 
 // js/ipfs-node.js
@@ -112367,6 +113074,54 @@ async function onGossipMessage(data) {
   });
   if (state.git.seen.length > 100) state.git.seen.length = 100;
 }
+async function collectTree(cid, prefix, files) {
+  const stat2 = await heliaUnixfs.stat(cid);
+  if (stat2.type === "file") {
+    const chunks = [];
+    for await (const chunk of heliaUnixfs.cat(cid)) chunks.push(chunk);
+    const total = chunks.reduce((n, c) => n + c.length, 0);
+    const bytes = new Uint8Array(total);
+    let off = 0;
+    for (const c of chunks) {
+      bytes.set(c, off);
+      off += c.length;
+    }
+    files.set(prefix, bytes);
+    return;
+  }
+  for await (const entry of heliaUnixfs.ls(cid)) {
+    const child = prefix ? `${prefix}/${entry.name}` : entry.name;
+    await collectTree(entry.cid, child, files);
+  }
+}
+function downloadBytes(bytes, filename) {
+  const blob = new Blob([bytes], { type: "application/octet-stream" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5e3);
+}
+async function opGitClone(arg) {
+  const cidStr = String(arg?.cid || "");
+  if (!cidStr) throw new Error("empty cid");
+  const name15 = String(arg?.text || "").trim() || `repo-${cidStr.slice(0, 8)}`;
+  const files = /* @__PURE__ */ new Map();
+  await collectTree(CID2.parse(cidStr), "", files);
+  if (files.size === 0) throw new Error("empty tree");
+  const isBare = files.has("HEAD") && (files.has("packed-refs") || [...files.keys()].some((k) => k.startsWith("refs/")));
+  const entries = {};
+  for (const [path, bytes] of files) {
+    entries[`${name15}/${isBare ? ".git/" : ""}${path}`] = bytes;
+  }
+  const zipped = zipSync(entries);
+  const zipName = `${name15}.zip`;
+  downloadBytes(zipped, zipName);
+  return { fileCount: files.size, zipName, bytes: zipped.length, bareRepo: isBare };
+}
 async function advertiseServe(arg) {
   const libp2p = heliaNode?.libp2p;
   const pubsub = libp2p?.services?.pubsub;
@@ -112570,7 +113325,8 @@ var ops = {
   providers: opProviders,
   shareAddr: async () => opShareAddr(),
   "services.set": async (a) => opServicesSet(a),
-  "git.advertise": advertiseServe
+  "git.advertise": advertiseServe,
+  "git.clone": opGitClone
 };
 window.__ipfsCmd = (id, op, arg) => {
   const fn = ops[op];
@@ -112582,9 +113338,9 @@ window.__ipfsCmd = (id, op, arg) => {
   return true;
 };
 if (typeof window !== "undefined" && window.document) {
-  boot().catch((err) => {
+  boot().catch((err2) => {
     state.node.status = "error";
-    statusLine(`node failed: ${err.message || err}`);
+    statusLine(`node failed: ${err2.message || err2}`);
   });
 }
 /*! Bundled license information:

@@ -46,6 +46,7 @@ import {
   publicKeyToProtobuf
 } from '@libp2p/crypto/keys';
 import { peerIdFromPrivateKey, peerIdFromPublicKey } from '@libp2p/peer-id';
+import { zipSync } from 'fflate';
 
 // ---- repo identity (parity: main.js lines 27-41) ---------------------------
 
@@ -348,6 +349,68 @@ async function onGossipMessage(data) {
   if (state.git.seen.length > 100) state.git.seen.length = 100;
 }
 
+// ---- git clone ----------------------------------------------------------------
+//
+// Browser libp2p nodes cannot listen, so the /ipfs-gh-pages/git/1
+// upload-pack handler from docs/git-over-ipfs.md cannot serve inbound here
+// — that transport lands with a listening node. What works through this app
+// today: fetch a bare-repo-shaped CID tree from IPFS and hand back a zip
+// that materializes a real git repo (the tree goes in as .git/), plus the
+// serve-envelope advertisement so peers learn the clone address.
+
+async function collectTree(cid, prefix, files) {
+  const stat = await heliaUnixfs.stat(cid);
+  if (stat.type === 'file') {
+    const chunks = [];
+    for await (const chunk of heliaUnixfs.cat(cid)) chunks.push(chunk);
+    const total = chunks.reduce((n, c) => n + c.length, 0);
+    const bytes = new Uint8Array(total);
+    let off = 0;
+    for (const c of chunks) {
+      bytes.set(c, off);
+      off += c.length;
+    }
+    files.set(prefix, bytes);
+    return;
+  }
+  for await (const entry of heliaUnixfs.ls(cid)) {
+    const child = prefix ? `${prefix}/${entry.name}` : entry.name;
+    await collectTree(entry.cid, child, files);
+  }
+}
+
+function downloadBytes(bytes, filename) {
+  const blob = new Blob([bytes], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+async function opGitClone(arg) {
+  const cidStr = String(arg?.cid || '');
+  if (!cidStr) throw new Error('empty cid');
+  const name = String(arg?.text || '').trim() || `repo-${cidStr.slice(0, 8)}`;
+  const files = new Map();
+  await collectTree(CID.parse(cidStr), '', files);
+  if (files.size === 0) throw new Error('empty tree');
+  // Bare-repo shape (docs.ipfs.tech host-git-repo layout): HEAD + refs.
+  const isBare = files.has('HEAD') &&
+    (files.has('packed-refs') || [...files.keys()].some((k) => k.startsWith('refs/')));
+  const entries = {};
+  for (const [path, bytes] of files) {
+    entries[`${name}/${isBare ? '.git/' : ''}${path}`] = bytes;
+  }
+  const zipped = zipSync(entries);
+  const zipName = `${name}.zip`;
+  downloadBytes(zipped, zipName);
+  return { fileCount: files.size, zipName, bytes: zipped.length, bareRepo: isBare };
+}
+
 async function advertiseServe(arg) {
   const libp2p = heliaNode?.libp2p;
   const pubsub = libp2p?.services?.pubsub;
@@ -578,7 +641,8 @@ const ops = {
   providers: opProviders,
   shareAddr: async () => opShareAddr(),
   'services.set': async (a) => opServicesSet(a),
-  'git.advertise': advertiseServe
+  'git.advertise': advertiseServe,
+  'git.clone': opGitClone
 };
 
 // ---- command channel (Rust -> JS) --------------------------------------------
