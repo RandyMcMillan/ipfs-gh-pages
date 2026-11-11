@@ -22,7 +22,7 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 - Bundle build: `./scripts/bundle.sh --build` (runs build-ipfs-js.mjs + build-repo-files.mjs + trunk + cargo bundle)
 - JS bundle only: `node scripts/build-ipfs-js.mjs` (inject repo identity via --define)
 - Web app: `npm run dev` / `npm run build` (installs consumer.example.yml → actions-test/.github/workflows/deploy.yml in lockstep via `install:consumer-example`, then rebuilds actions-test.car — snapshot the submodule before releasing)
-- Tests: `npm run test:all` — unit, car, index-merge (5), index-walk (3), line-comments (4), blame (6), cid-links (4), interop-vectors (3+1 skip), pinata-pin (5), stego-fixtures (6), git-notes-bridge (7), check-gitlink (7), install-consumer-example (5), git-objects (14), git-upload-pack (4), git-clone-smart (2), git-pull-smart (2), then CDP suite (incl. cdp-git-bridge, cdp-cid-links, cdp-interop-vector)
+- Tests: `npm run test:all` — unit, car, index-merge (5), index-walk (3), line-comments (4), blame (6), cid-links (4), interop-vectors (3+1 skip), pinata-pin (5), rehost-service (9), stego-fixtures (6), git-notes-bridge (7), check-gitlink (7), install-consumer-example (5), git-objects (14), git-upload-pack (4), git-clone-smart (2), git-pull-smart (2), then CDP suite (incl. cdp-git-bridge, cdp-cid-links, cdp-interop-vector)
 - Release (ONLY when user orders): `npm run release <semver>` — refuses on dirty tree; snapshot `actions-test.car` first if `npm run build` ran
 - Sign/release app: `scripts/sign-app.sh`, `scripts/release-app.sh [--notarize]`
 
@@ -40,7 +40,7 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 ## Next (in priority order)
 
 1. **markdown rendering like GitHub** (`docs/markdown-rendering.md`): concern DOCUMENTED, DECISION PENDING (image policy / iframe sandbox / CSP timing / bundle budget) — do not implement until decided.
-2. **IPFS rehost service** (`docs/ipfs-rehost-service.md`): PLAN — decentralized camo (fetch-once → content-addressed URLs); tiers: browser-native / node service / desktop daemon; feeds the markdown image-policy decision (#1) as the "rehost" option.
+2. **IPFS rehost service** (`docs/ipfs-rehost-service.md`): phase 1 SHIPPED — `scripts/rehost-service.mjs` (camo rules + in-process CID + optional Kubo pin + cache, 9 tests). Remaining: renderer wiring (needs the markdown image-policy decision), tier-2 desktop op, chain index.
 3. **libp2p git transport** (`/ipfs-gh-pages/git/1`): for cross-machine clone; blocked on having a LISTENING libp2p node (browser can't); the in-process upload-pack is the same logic wrapped in a stream later.
 
 ## Backlog (research TODOs, gist refs)

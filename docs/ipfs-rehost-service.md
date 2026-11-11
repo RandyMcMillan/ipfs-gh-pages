@@ -80,13 +80,15 @@ configuration and needs no public instance at all.
 
 ## Build phases
 
-1. **`scripts/rehost-service.mjs`** — the tier-1 service: `POST /rehost`,
-   camo's rules ported (MIME whitelist, size cap, redirect depth,
-   timeout, cookie strip, Via self-guard, SSRF guard rejecting
-   private/loopback ranges), Kubo RPC add with block-put fallback,
-   URL→CID JSON cache, optional HMAC minting. Tests spin a fixture
-   origin: round trip, MIME/size/redirect/SSRF rejections, HMAC
-   accept/reject.
+1. ~~**`scripts/rehost-service.mjs`**~~ SHIPPED (tier 1): `POST /rehost`
+   (+ `GET ?url=`), camo's rules ported (MIME whitelist, 5 MB declared +
+   streamed cap, 4-redirect depth, 10 s timeout, cookie strip, Via
+   self-guard, SSRF guard — private/loopback refused unless
+   `REHOST_ALLOW_PRIVATE=1`, optional `CAMO_KEY` HMAC minting), CID
+   computed in-process (@helia/unixfs raw-leaf CIDv1), optional Kubo
+   pin, URL→CID JSON cache. Tests `tests/rehost-service.test.mjs` (9):
+   fixture origin, byte-identical round trip, every rejection class,
+   cache, HMAC. Run: `PORT=8081 node scripts/rehost-service.mjs`.
 2. **`js/rehost.js` + renderer wiring** — `rehostAndRewrite(imgUrl)`
    with localStorage cache; used by the markdown renderer when the
    image policy is "rehost"; graceful fallback to the policy's other
