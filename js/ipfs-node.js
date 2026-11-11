@@ -47,6 +47,7 @@ import {
 } from '@libp2p/crypto/keys';
 import { peerIdFromPrivateKey, peerIdFromPublicKey } from '@libp2p/peer-id';
 import { zipSync } from 'fflate';
+import { GitStore } from './git-objects.js';
 
 // ---- repo identity (parity: main.js lines 27-41) ---------------------------
 
@@ -457,6 +458,37 @@ async function opGitClone(arg) {
   return { fileCount: files.size, zipName, bytes: zipped.length, bareRepo: isBare };
 }
 
+// Phase 9 step 1 (docs/git-over-ipfs.md): inspect a git repo published as
+// a bare-repo-shaped CID tree. Stores are cached per CID; cap the cache
+// so long sessions don't hold every cloned repo in memory.
+const gitStores = new Map();
+
+async function gitStoreForCid(cidStr) {
+  const cached = gitStores.get(cidStr);
+  if (cached) return cached;
+  const files = new Map();
+  await collectTree(CID.parse(cidStr), '', files);
+  const store = new GitStore(files);
+  if (gitStores.size > 8) gitStores.delete(gitStores.keys().next().value);
+  gitStores.set(cidStr, store);
+  return store;
+}
+
+async function opGitRefs(arg) {
+  const cid = String(arg?.cid || '');
+  if (!cid) throw new Error('empty cid');
+  const store = await gitStoreForCid(cid);
+  return store.refs();
+}
+
+async function opGitCatFile(arg) {
+  const cid = String(arg?.cid || '');
+  const sha = String(arg?.sha || arg?.text || '').trim();
+  if (!cid || !sha) throw new Error('usage: git.catFile <cid> <sha>');
+  const store = await gitStoreForCid(cid);
+  return store.catFile(sha);
+}
+
 async function advertiseServe(arg) {
   const libp2p = heliaNode?.libp2p;
   const pubsub = libp2p?.services?.pubsub;
@@ -827,6 +859,8 @@ const ops = {
   'services.set': async (a) => opServicesSet(a),
   'git.advertise': advertiseServe,
   'git.clone': opGitClone,
+  'git.refs': opGitRefs,
+  'git.catFile': opGitCatFile,
   'repo.publishAll': opRepoPublishAll,
   'pin.remote.list': opPinRemoteList,
   'pin.remote.add': opPinRemoteAdd,

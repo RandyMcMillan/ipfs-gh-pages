@@ -501,15 +501,22 @@ impl<'a> App<'a> {
         } else if head == "services" {
             ("services.set", format!("{{\"services\":{rest_joined}}}"))
         } else {
-            // Every op reads the fields it needs; supplying the rest as all
-            // three covers addr/cid/text-shaped arguments.
-            (
-                head,
+            // Every op reads the fields it needs: t0 as addr/cid, t1 as
+            // sha, the whole remainder as text/rootCid.
+            let arg = if rest.len() == 1 {
                 format!(
                     "{{\"addr\":\"{0}\",\"cid\":\"{0}\",\"text\":\"{0}\",\"rootCid\":\"{0}\"}}",
                     Self::json_escape(&rest_joined)
-                ),
-            )
+                )
+            } else {
+                format!(
+                    "{{\"addr\":\"{0}\",\"cid\":\"{0}\",\"sha\":\"{1}\",\"text\":\"{2}\",\"rootCid\":\"{2}\"}}",
+                    rest.first().map(|t| Self::json_escape(t)).unwrap_or_default(),
+                    rest.get(1).map(|t| Self::json_escape(t)).unwrap_or_default(),
+                    Self::json_escape(&rest_joined)
+                )
+            };
+            (head, arg)
         };
         if let Some(id) = ipfs::cmd(op, &arg) {
             self.pending = Some((id, InputTarget::RawCommand));

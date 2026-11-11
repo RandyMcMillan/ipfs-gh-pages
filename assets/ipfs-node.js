@@ -193,13 +193,13 @@ var require_eventemitter3 = __commonJS({
 // node_modules/hashlru/index.js
 var require_hashlru = __commonJS({
   "node_modules/hashlru/index.js"(exports, module) {
-    module.exports = function(max) {
-      if (!max) throw Error("hashlru must have a max value, of type number, greater than 0");
+    module.exports = function(max2) {
+      if (!max2) throw Error("hashlru must have a max value, of type number, greater than 0");
       var size = 0, cache10 = /* @__PURE__ */ Object.create(null), _cache = /* @__PURE__ */ Object.create(null);
       function update(key, value2) {
         cache10[key] = value2;
         size++;
-        if (size >= max) {
+        if (size >= max2) {
           size = 0;
           _cache = cache10;
           cache10 = /* @__PURE__ */ Object.create(null);
@@ -3951,7 +3951,7 @@ function decode(string9, alphabetIdx, bitsPerChar, name15) {
     --end;
   }
   const out = new Uint8Array(end * bitsPerChar / 8 | 0);
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   let written = 0;
   for (let i = 0; i < end; ++i) {
@@ -3960,13 +3960,13 @@ function decode(string9, alphabetIdx, bitsPerChar, name15) {
       throw new SyntaxError(`Non-${name15} character`);
     }
     buffer5 = buffer5 << bitsPerChar | value2;
-    bits += bitsPerChar;
-    if (bits >= 8) {
-      bits -= 8;
-      out[written++] = 255 & buffer5 >> bits;
+    bits2 += bitsPerChar;
+    if (bits2 >= 8) {
+      bits2 -= 8;
+      out[written++] = 255 & buffer5 >> bits2;
     }
   }
-  if (bits >= bitsPerChar || (255 & buffer5 << 8 - bits) !== 0) {
+  if (bits2 >= bitsPerChar || (255 & buffer5 << 8 - bits2) !== 0) {
     throw new SyntaxError("Unexpected end of data");
   }
   return out;
@@ -3975,18 +3975,18 @@ function encode(data, alphabet8, bitsPerChar) {
   const pad2 = alphabet8[alphabet8.length - 1] === "=";
   const mask = (1 << bitsPerChar) - 1;
   let out = "";
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   for (let i = 0; i < data.length; ++i) {
     buffer5 = buffer5 << 8 | data[i];
-    bits += 8;
-    while (bits > bitsPerChar) {
-      bits -= bitsPerChar;
-      out += alphabet8[mask & buffer5 >> bits];
+    bits2 += 8;
+    while (bits2 > bitsPerChar) {
+      bits2 -= bitsPerChar;
+      out += alphabet8[mask & buffer5 >> bits2];
     }
   }
-  if (bits !== 0) {
-    out += alphabet8[mask & buffer5 << bitsPerChar - bits];
+  if (bits2 !== 0) {
+    out += alphabet8[mask & buffer5 << bitsPerChar - bits2];
   }
   if (pad2) {
     while ((out.length * bitsPerChar & 7) !== 0) {
@@ -5869,7 +5869,7 @@ function decode2(string9, alphabetIdx, bitsPerChar, name15) {
     --end;
   }
   const out = new Uint8Array(end * bitsPerChar / 8 | 0);
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   let written = 0;
   for (let i = 0; i < end; ++i) {
@@ -5878,13 +5878,13 @@ function decode2(string9, alphabetIdx, bitsPerChar, name15) {
       throw new SyntaxError(`Non-${name15} character`);
     }
     buffer5 = buffer5 << bitsPerChar | value2;
-    bits += bitsPerChar;
-    if (bits >= 8) {
-      bits -= 8;
-      out[written++] = 255 & buffer5 >> bits;
+    bits2 += bitsPerChar;
+    if (bits2 >= 8) {
+      bits2 -= 8;
+      out[written++] = 255 & buffer5 >> bits2;
     }
   }
-  if (bits >= bitsPerChar || (255 & buffer5 << 8 - bits) !== 0) {
+  if (bits2 >= bitsPerChar || (255 & buffer5 << 8 - bits2) !== 0) {
     throw new SyntaxError("Unexpected end of data");
   }
   return out;
@@ -5893,18 +5893,18 @@ function encode2(data, alphabet8, bitsPerChar) {
   const pad2 = alphabet8[alphabet8.length - 1] === "=";
   const mask = (1 << bitsPerChar) - 1;
   let out = "";
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   for (let i = 0; i < data.length; ++i) {
     buffer5 = buffer5 << 8 | data[i];
-    bits += 8;
-    while (bits > bitsPerChar) {
-      bits -= bitsPerChar;
-      out += alphabet8[mask & buffer5 >> bits];
+    bits2 += 8;
+    while (bits2 > bitsPerChar) {
+      bits2 -= bitsPerChar;
+      out += alphabet8[mask & buffer5 >> bits2];
     }
   }
-  if (bits !== 0) {
-    out += alphabet8[mask & buffer5 << bitsPerChar - bits];
+  if (bits2 !== 0) {
+    out += alphabet8[mask & buffer5 << bitsPerChar - bits2];
   }
   if (pad2) {
     while ((out.length * bitsPerChar & 7) !== 0) {
@@ -16996,7 +16996,7 @@ function decode19(string9, alphabetIdx, bitsPerChar, name15) {
     --end;
   }
   const out = new Uint8Array(end * bitsPerChar / 8 | 0);
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   let written = 0;
   for (let i = 0; i < end; ++i) {
@@ -17005,13 +17005,13 @@ function decode19(string9, alphabetIdx, bitsPerChar, name15) {
       throw new SyntaxError(`Non-${name15} character`);
     }
     buffer5 = buffer5 << bitsPerChar | value2;
-    bits += bitsPerChar;
-    if (bits >= 8) {
-      bits -= 8;
-      out[written++] = 255 & buffer5 >> bits;
+    bits2 += bitsPerChar;
+    if (bits2 >= 8) {
+      bits2 -= 8;
+      out[written++] = 255 & buffer5 >> bits2;
     }
   }
-  if (bits >= bitsPerChar || (255 & buffer5 << 8 - bits) !== 0) {
+  if (bits2 >= bitsPerChar || (255 & buffer5 << 8 - bits2) !== 0) {
     throw new SyntaxError("Unexpected end of data");
   }
   return out;
@@ -17020,18 +17020,18 @@ function encode17(data, alphabet8, bitsPerChar) {
   const pad2 = alphabet8[alphabet8.length - 1] === "=";
   const mask = (1 << bitsPerChar) - 1;
   let out = "";
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   for (let i = 0; i < data.length; ++i) {
     buffer5 = buffer5 << 8 | data[i];
-    bits += 8;
-    while (bits > bitsPerChar) {
-      bits -= bitsPerChar;
-      out += alphabet8[mask & buffer5 >> bits];
+    bits2 += 8;
+    while (bits2 > bitsPerChar) {
+      bits2 -= bitsPerChar;
+      out += alphabet8[mask & buffer5 >> bits2];
     }
   }
-  if (bits !== 0) {
-    out += alphabet8[mask & buffer5 << bitsPerChar - bits];
+  if (bits2 !== 0) {
+    out += alphabet8[mask & buffer5 << bitsPerChar - bits2];
   }
   if (pad2) {
     while ((out.length * bitsPerChar & 7) !== 0) {
@@ -19424,7 +19424,7 @@ function decode24(string9, alphabetIdx, bitsPerChar, name15) {
     --end;
   }
   const out = new Uint8Array(end * bitsPerChar / 8 | 0);
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   let written = 0;
   for (let i = 0; i < end; ++i) {
@@ -19433,13 +19433,13 @@ function decode24(string9, alphabetIdx, bitsPerChar, name15) {
       throw new SyntaxError(`Non-${name15} character`);
     }
     buffer5 = buffer5 << bitsPerChar | value2;
-    bits += bitsPerChar;
-    if (bits >= 8) {
-      bits -= 8;
-      out[written++] = 255 & buffer5 >> bits;
+    bits2 += bitsPerChar;
+    if (bits2 >= 8) {
+      bits2 -= 8;
+      out[written++] = 255 & buffer5 >> bits2;
     }
   }
-  if (bits >= bitsPerChar || (255 & buffer5 << 8 - bits) !== 0) {
+  if (bits2 >= bitsPerChar || (255 & buffer5 << 8 - bits2) !== 0) {
     throw new SyntaxError("Unexpected end of data");
   }
   return out;
@@ -19448,18 +19448,18 @@ function encode20(data, alphabet8, bitsPerChar) {
   const pad2 = alphabet8[alphabet8.length - 1] === "=";
   const mask = (1 << bitsPerChar) - 1;
   let out = "";
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   for (let i = 0; i < data.length; ++i) {
     buffer5 = buffer5 << 8 | data[i];
-    bits += 8;
-    while (bits > bitsPerChar) {
-      bits -= bitsPerChar;
-      out += alphabet8[mask & buffer5 >> bits];
+    bits2 += 8;
+    while (bits2 > bitsPerChar) {
+      bits2 -= bitsPerChar;
+      out += alphabet8[mask & buffer5 >> bits2];
     }
   }
-  if (bits !== 0) {
-    out += alphabet8[mask & buffer5 << bitsPerChar - bits];
+  if (bits2 !== 0) {
+    out += alphabet8[mask & buffer5 << bitsPerChar - bits2];
   }
   if (pad2) {
     while ((out.length * bitsPerChar & 7) !== 0) {
@@ -21401,37 +21401,37 @@ function bytesToHex(bytes) {
   abytes(bytes);
   if (hasHexBuiltin)
     return bytes.toHex();
-  let hex2 = "";
+  let hex3 = "";
   for (let i = 0; i < bytes.length; i++) {
-    hex2 += hexes[bytes[i]];
+    hex3 += hexes[bytes[i]];
   }
-  return hex2;
+  return hex3;
 }
 function asciiToBase16(ch) {
   return ch >= 48 && ch <= 57 ? ch - 48 : ch >= 65 && ch <= 70 ? ch - (65 - 10) : ch >= 97 && ch <= 102 ? ch - (97 - 10) : void 0;
 }
-function hexToBytes(hex2) {
-  if (typeof hex2 !== "string")
-    throw new TypeError("hex string expected, got " + typeof hex2);
+function hexToBytes(hex3) {
+  if (typeof hex3 !== "string")
+    throw new TypeError("hex string expected, got " + typeof hex3);
   if (hasHexBuiltin) {
     try {
-      return Uint8Array.fromHex(hex2);
+      return Uint8Array.fromHex(hex3);
     } catch (error) {
       if (error instanceof SyntaxError)
         throw new RangeError(error.message);
       throw error;
     }
   }
-  const hl = hex2.length;
+  const hl = hex3.length;
   const al = hl / 2;
   if (hl % 2)
     throw new RangeError("hex string expected, got unpadded hex of length " + hl);
   const array = new Uint8Array(al);
   for (let ai = 0, hi = 0; ai < al; ai++, hi += 2) {
-    const n1 = asciiToBase16(hex2.charCodeAt(hi));
-    const n2 = asciiToBase16(hex2.charCodeAt(hi + 1));
+    const n1 = asciiToBase16(hex3.charCodeAt(hi));
+    const n2 = asciiToBase16(hex3.charCodeAt(hi + 1));
     if (n1 === void 0 || n2 === void 0) {
-      const char = hex2[hi] + hex2[hi + 1];
+      const char = hex3[hi] + hex3[hi + 1];
       throw new RangeError('hex string expected, got non-hex character "' + char + '" at index ' + hi);
     }
     array[ai] = n1 * 16 + n2;
@@ -22086,7 +22086,7 @@ function afunction(value2, title) {
 }
 var bytesToHex2 = bytesToHex;
 var concatBytes2 = (...arrays) => concatBytes(...arrays);
-var hexToBytes2 = (hex2) => hexToBytes(hex2);
+var hexToBytes2 = (hex3) => hexToBytes(hex3);
 var isBytes2 = isBytes;
 var randomBytes2 = (bytesLength) => randomBytes(bytesLength);
 var _0n = /* @__PURE__ */ BigInt(0);
@@ -22116,13 +22116,13 @@ function asafenumber(value2, title = "") {
   }
 }
 function numberToHexUnpadded(num) {
-  const hex2 = abignumber(num).toString(16);
-  return hex2.length & 1 ? "0" + hex2 : hex2;
+  const hex3 = abignumber(num).toString(16);
+  return hex3.length & 1 ? "0" + hex3 : hex3;
 }
-function hexToNumber(hex2) {
-  if (typeof hex2 !== "string")
-    throw new TypeError("hex string expected, got " + typeof hex2);
-  return hex2 === "" ? _0n : BigInt("0x" + hex2);
+function hexToNumber(hex3) {
+  if (typeof hex3 !== "string")
+    throw new TypeError("hex string expected, got " + typeof hex3);
+  return hex3 === "" ? _0n : BigInt("0x" + hex3);
 }
 function bytesToNumberBE(bytes) {
   return hexToNumber(bytesToHex(bytes));
@@ -22136,10 +22136,10 @@ function numberToBytesBE(n, len) {
     throw new Error("zero output length is invalid");
   n = abignumber(n);
   const expectedLen = len * 2;
-  const hex2 = n.toString(16);
-  if (hex2.length > expectedLen)
+  const hex3 = n.toString(16);
+  if (hex3.length > expectedLen)
     throw new RangeError("number is too large");
-  return hexToBytes(hex2.padStart(expectedLen, "0"));
+  return hexToBytes(hex3.padStart(expectedLen, "0"));
 }
 function numberToBytesLE(n, len) {
   return numberToBytesBE(n, len).reverse();
@@ -22150,12 +22150,12 @@ function copyBytes(bytes) {
 function isPosBig(n) {
   return typeof n === "bigint" && _0n <= n;
 }
-function inRange(n, min, max) {
-  return isPosBig(n) && isPosBig(min) && isPosBig(max) && min <= n && n < max;
+function inRange(n, min, max2) {
+  return isPosBig(n) && isPosBig(min) && isPosBig(max2) && min <= n && n < max2;
 }
-function aInRange(title, n, min, max) {
-  if (!inRange(n, min, max))
-    throw new RangeError("expected valid " + title + ": " + min + " <= n < " + max + ", got " + n);
+function aInRange(title, n, min, max2) {
+  if (!inRange(n, min, max2))
+    throw new RangeError("expected valid " + title + ": " + min + " <= n < " + max2 + ", got " + n);
 }
 function bitLen(n) {
   if (n < _0n)
@@ -22531,10 +22531,10 @@ function nLength(n, nBitLength) {
     throw new Error("invalid n length: expected positive n, got " + n);
   if (nBitLength !== void 0 && nBitLength < 1)
     throw new Error("invalid n length: expected positive bit length, got " + nBitLength);
-  const bits = bitLen(n);
-  if (nBitLength !== void 0 && nBitLength < bits)
-    throw new Error(`invalid n length: expected nBitLength (${nBitLength}) >= bitLen(n) (${bits})`);
-  const _nBitLength = nBitLength !== void 0 ? nBitLength : bits;
+  const bits2 = bitLen(n);
+  if (nBitLength !== void 0 && nBitLength < bits2)
+    throw new Error(`invalid n length: expected nBitLength (${nBitLength}) >= bitLen(n) (${bits2})`);
+  const _nBitLength = nBitLength !== void 0 ? nBitLength : bits2;
   const nByteLength = Math.ceil(_nBitLength / 8);
   return { nBitLength: _nBitLength, nByteLength };
 }
@@ -22727,9 +22727,9 @@ function normalizeZ(c, points) {
   const invertedZs = FpInvertBatch(c.Fp, points.map((p) => p.Z));
   return points.map((p, i) => c.fromAffine(p.toAffine(invertedZs[i])));
 }
-function validateW(W, bits, min = 1) {
-  if (!Number.isSafeInteger(W) || W < min || W > bits)
-    throw new Error("invalid window size, expected [" + min + ".." + bits + "], got W=" + W);
+function validateW(W, bits2, min = 1) {
+  if (!Number.isSafeInteger(W) || W < min || W > bits2)
+    throw new Error("invalid window size, expected [" + min + ".." + bits2 + "], got W=" + W);
 }
 function validateTableBytes(numPoints, fpBytes) {
   const bytes = numPoints * (4 * fpBytes + 128);
@@ -22814,12 +22814,12 @@ function signedWindowDigits(n, W, windows) {
   return d2;
 }
 function wnafWalk(zero5, tables, digits) {
-  let max = 0;
+  let max2 = 0;
   for (const d2 of digits)
-    max = Math.max(max, d2.length);
+    max2 = Math.max(max2, d2.length);
   let acc = zero5;
-  for (let bit = max - 1; bit >= 0; bit--) {
-    if (bit !== max - 1)
+  for (let bit = max2 - 1; bit >= 0; bit--) {
+    if (bit !== max2 - 1)
       acc = acc.double();
     for (let i = 0; i < digits.length; i++) {
       const w2 = digits[i][bit];
@@ -22858,8 +22858,8 @@ var ScalarMultiplier = class {
    * @param W - window size
    * @param bits - scalar bitlength the table must cover
    */
-  buildWnafTable(point, W, bits) {
-    const windows = Math.ceil(bits / W) + 1;
+  buildWnafTable(point, W, bits2) {
+    const windows = Math.ceil(bits2 / W) + 1;
     const half = 2 ** (W - 1);
     const comp = [];
     let base13 = point;
@@ -22871,7 +22871,7 @@ var ScalarMultiplier = class {
       }
       base13 = comp[comp.length - 1].double();
     }
-    return { W, bits, windows, comp };
+    return { W, bits: bits2, windows, comp };
   }
   /**
    * Implements ec multiplication using precomputed signed fixed-window wNAF tables.
@@ -22906,11 +22906,11 @@ var ScalarMultiplier = class {
   // Cache key is point identity plus (W, bits); at most two entries exist per point (public-width
   // `Fn.BITS` and blinded `Fn.BITS + BLIND_BITS`). Callers must not reuse the same point with
   // incompatible `transform(...)` layouts and expect a separate cache entry.
-  getWnafPrecomputes(W, point, bits, transform) {
+  getWnafPrecomputes(W, point, bits2, transform) {
     let entries = this.wnafPrecomputes.get(point);
-    let comp = entries?.find((entry) => entry.W === W && entry.bits === bits);
+    let comp = entries?.find((entry) => entry.W === W && entry.bits === bits2);
     if (!comp) {
-      comp = this.buildWnafTable(point, W, bits);
+      comp = this.buildWnafTable(point, W, bits2);
       if (typeof transform === "function")
         comp = { ...comp, comp: transform(comp.comp) };
       if (!entries) {
@@ -22936,11 +22936,11 @@ var ScalarMultiplier = class {
   // Constant-time dispatch shared by mulCT / mulCTBlinded. Un-precomputed points (W===1, e.g.
   // ECDH peer keys) skip building a throwaway cached table in favor of a small fixed-window
   // multiply. `n` must be < 2^bits.
-  runCT(point, n, bits, transform) {
+  runCT(point, n, bits2, transform) {
     const W = getWindowSize(point);
     if (W === 1)
-      return this.fixedWindowCT(point, n, bits);
-    return this.wnafCachedCT(this.getWnafPrecomputes(W, point, bits, transform), n);
+      return this.fixedWindowCT(point, n, bits2);
+    return this.wnafCachedCT(this.getWnafPrecomputes(W, point, bits2, transform), n);
   }
   mulCT(point, scalar, transform) {
     this.validateMulInput(point, scalar);
@@ -22950,13 +22950,13 @@ var ScalarMultiplier = class {
     this.validateMulInput(point, scalar);
     if (this.randomBytes === void 0)
       throw new Error("randomBytes is required for scalar blinding");
-    const bits = this.Point.Fn.BITS + BLIND_BITS;
+    const bits2 = this.Point.Fn.BITS + BLIND_BITS;
     const blind = this.randomBytes(BLIND_BYTES);
     if (!isBytes2(blind) || blind.length !== BLIND_BYTES)
       throw new Error("randomBytes returned invalid byte array");
     blind[0] = blind[0] & 63 | 128;
     const n = scalar + bytesToNumberBE(blind) * this.Point.Fn.ORDER;
-    return this.runCT(point, n, bits, transform);
+    return this.runCT(point, n, bits2, transform);
   }
   /**
    * Constant-time multiplication `n*point` for an un-precomputed point, via a small fixed window.
@@ -22973,7 +22973,7 @@ var ScalarMultiplier = class {
    * @returns real point `p`; `f` duplicates it only to match {@link wnafCachedCT}'s return shape
    * (this path needs no fake accumulator — its op-count is already scalar-independent).
    */
-  fixedWindowCT(point, n, bits) {
+  fixedWindowCT(point, n, bits2) {
     const W = FW_WINDOW;
     const size = 1 << W;
     const mask = bitMask(W);
@@ -22981,7 +22981,7 @@ var ScalarMultiplier = class {
     table[0] = this.ZERO;
     for (let i = 1; i < size; i++)
       table[i] = table[i - 1].add(point);
-    const windows = Math.ceil(bits / W);
+    const windows = Math.ceil(bits2 / W);
     let acc = this.ZERO;
     for (let window2 = windows - 1; window2 >= 0; window2--) {
       if (window2 !== windows - 1)
@@ -23181,8 +23181,8 @@ function edwards(params, extraOpts = {}) {
       const lastByte = bytes[len - 1];
       normed[len - 1] = lastByte & ~128;
       const y2 = bytesToNumberLE(normed);
-      const max = zip215 ? MASK : Fp3.ORDER;
-      aInRange("point.y", y2, _0n4, max);
+      const max2 = zip215 ? MASK : Fp3.ORDER;
+      aInRange("point.y", y2, _0n4, max2);
       const y22 = Fp3.sqr(y2);
       const u = Fp3.sub(y22, Fp3.ONE);
       const v = Fp3.sub(Fp3.mulN(d2, y22), a);
@@ -23197,8 +23197,8 @@ function edwards(params, extraOpts = {}) {
         x = Fp3.neg(x);
       return Point.fromAffine({ x, y: y2 });
     }
-    static fromHex(hex2, zip215 = false) {
-      return Point.fromBytes(hexToBytes2(hex2), zip215);
+    static fromHex(hex3, zip215 = false) {
+      return Point.fromBytes(hexToBytes2(hex3), zip215);
     }
     get x() {
       return this.toAffine().x;
@@ -24373,19 +24373,19 @@ var Uint8ArrayReader = class {
     return this;
   }
   readLongVarint() {
-    const bits = new LongBits(0, 0);
+    const bits2 = new LongBits(0, 0);
     let i = 0;
     if (this.len - this.pos > 4) {
       for (; i < 4; ++i) {
-        bits.lo = (bits.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
+        bits2.lo = (bits2.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
-      bits.lo = (bits.lo | (this.buf[this.pos] & 127) << 28) >>> 0;
-      bits.hi = (bits.hi | (this.buf[this.pos] & 127) >> 4) >>> 0;
+      bits2.lo = (bits2.lo | (this.buf[this.pos] & 127) << 28) >>> 0;
+      bits2.hi = (bits2.hi | (this.buf[this.pos] & 127) >> 4) >>> 0;
       if (this.buf[this.pos++] < 128) {
-        return bits;
+        return bits2;
       }
       i = 0;
     } else {
@@ -24393,19 +24393,19 @@ var Uint8ArrayReader = class {
         if (this.pos >= this.len) {
           throw indexOutOfRange(this);
         }
-        bits.lo = (bits.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
+        bits2.lo = (bits2.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
-      bits.lo = (bits.lo | (this.buf[this.pos++] & 127) << i * 7) >>> 0;
-      return bits;
+      bits2.lo = (bits2.lo | (this.buf[this.pos++] & 127) << i * 7) >>> 0;
+      return bits2;
     }
     if (this.len - this.pos > 4) {
       for (; i < 5; ++i) {
-        bits.hi = (bits.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
+        bits2.hi = (bits2.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
     } else {
@@ -24413,9 +24413,9 @@ var Uint8ArrayReader = class {
         if (this.pos >= this.len) {
           throw indexOutOfRange(this);
         }
-        bits.hi = (bits.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
+        bits2.hi = (bits2.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
     }
@@ -24671,8 +24671,8 @@ var Uint8ArrayWriter = class {
    * Writes an unsigned 64 bit value as a varint
    */
   uint64(value2) {
-    const bits = LongBits.fromBigInt(value2);
-    return this._push(writeVarint64, bits.length(), bits);
+    const bits2 = LongBits.fromBigInt(value2);
+    return this._push(writeVarint64, bits2.length(), bits2);
   }
   /**
    * Writes an unsigned 64 bit value as a varint
@@ -24708,15 +24708,15 @@ var Uint8ArrayWriter = class {
    * Writes a signed 64 bit value as a varint, zig-zag encoded
    */
   sint64(value2) {
-    const bits = LongBits.fromBigInt(value2).zzEncode();
-    return this._push(writeVarint64, bits.length(), bits);
+    const bits2 = LongBits.fromBigInt(value2).zzEncode();
+    return this._push(writeVarint64, bits2.length(), bits2);
   }
   /**
    * Writes a signed 64 bit value as a varint, zig-zag encoded
    */
   sint64Number(value2) {
-    const bits = LongBits.fromNumber(value2).zzEncode();
-    return this._push(writeVarint64, bits.length(), bits);
+    const bits2 = LongBits.fromNumber(value2).zzEncode();
+    return this._push(writeVarint64, bits2.length(), bits2);
   }
   /**
    * Writes a signed 64 bit value as a varint, zig-zag encoded
@@ -24746,15 +24746,15 @@ var Uint8ArrayWriter = class {
    * Writes an unsigned 64 bit value as fixed 64 bits
    */
   fixed64(value2) {
-    const bits = LongBits.fromBigInt(value2);
-    return this._push(writeFixed32, 4, bits.lo)._push(writeFixed32, 4, bits.hi);
+    const bits2 = LongBits.fromBigInt(value2);
+    return this._push(writeFixed32, 4, bits2.lo)._push(writeFixed32, 4, bits2.hi);
   }
   /**
    * Writes an unsigned 64 bit value as fixed 64 bits
    */
   fixed64Number(value2) {
-    const bits = LongBits.fromNumber(value2);
-    return this._push(writeFixed32, 4, bits.lo)._push(writeFixed32, 4, bits.hi);
+    const bits2 = LongBits.fromNumber(value2);
+    return this._push(writeFixed32, 4, bits2.lo)._push(writeFixed32, 4, bits2.hi);
   }
   /**
    * Writes an unsigned 64 bit value as fixed 64 bits
@@ -25398,11 +25398,11 @@ function jwkToRSAPrivateKey(jwk) {
   const digest8 = create4(SHA2_256_CODE, hash);
   return new RSAPrivateKey(keys.privateKey, new RSAPublicKey(keys.publicKey, digest8));
 }
-async function generateRSAKeyPair(bits) {
-  if (bits > MAX_RSA_KEY_SIZE) {
+async function generateRSAKeyPair(bits2) {
+  if (bits2 > MAX_RSA_KEY_SIZE) {
     throw new InvalidParametersError2("Key size is too large");
   }
-  const keys = await generateRSAKey(bits);
+  const keys = await generateRSAKey(bits2);
   const hash = sha2564(PublicKey.encode({
     Type: KeyType.RSA,
     Data: jwkToPkix(keys.publicKey)
@@ -25425,10 +25425,10 @@ function jwkToJWKKeyPair(key) {
 }
 
 // node_modules/@libp2p/crypto/dist/src/keys/rsa/index.browser.js
-async function generateRSAKey(bits, options2) {
+async function generateRSAKey(bits2, options2) {
   const pair2 = await webcrypto_default.get().subtle.generateKey({
     name: "RSASSA-PKCS1-v1_5",
-    modulusLength: bits,
+    modulusLength: bits2,
     publicExponent: new Uint8Array([1, 0, 1]),
     hash: { name: "SHA-256" }
   }, true, ["sign", "verify"]);
@@ -25632,12 +25632,12 @@ var _DER = {
       abignumber(num);
       if (num < _0n5)
         throw new E("integer: negative integers are not allowed");
-      let hex2 = numberToHexUnpadded(num);
-      if (Number.parseInt(hex2[0], 16) & 8)
-        hex2 = "00" + hex2;
-      if (hex2.length & 1)
+      let hex3 = numberToHexUnpadded(num);
+      if (Number.parseInt(hex3[0], 16) & 8)
+        hex3 = "00" + hex3;
+      if (hex3.length & 1)
         throw new E("unexpected DER parsing assertion: unpadded hex");
-      return hex2;
+      return hex3;
     },
     decode(data) {
       const { Err: E } = _DER;
@@ -25894,8 +25894,8 @@ function weierstrass(params, extraOpts = {}) {
       P.assertValidity();
       return P;
     }
-    static fromHex(hex2) {
-      return Point.fromBytes(hexToBytes2(hex2));
+    static fromHex(hex3) {
+      return Point.fromBytes(hexToBytes2(hex3));
     }
     get x() {
       return this.toAffine().x;
@@ -26336,8 +26336,8 @@ function ecdsa(Point, hash, ecdsaOpts = {}) {
       const s2 = bytes.subarray(L, L * 2);
       return new Signature(Fn2.fromBytes(r), Fn2.fromBytes(s2), recid);
     }
-    static fromHex(hex2, format14) {
-      return this.fromBytes(hexToBytes2(hex2), format14);
+    static fromHex(hex3, format14) {
+      return this.fromBytes(hexToBytes2(hex3), format14);
     }
     assertRecovery() {
       const { recovery } = this;
@@ -26706,7 +26706,7 @@ function generateSecp256k1PrivateKey() {
 }
 
 // node_modules/@libp2p/crypto/dist/src/keys/index.js
-async function generateKeyPair(type, bits) {
+async function generateKeyPair(type, bits2) {
   if (type === "Ed25519") {
     return generateEd25519KeyPair();
   }
@@ -26714,10 +26714,10 @@ async function generateKeyPair(type, bits) {
     return generateSecp256k1KeyPair();
   }
   if (type === "RSA") {
-    return generateRSAKeyPair(toBits(bits));
+    return generateRSAKeyPair(toBits(bits2));
   }
   if (type === "ECDSA") {
-    return generateECDSAKeyPair(toCurve(bits));
+    return generateECDSAKeyPair(toCurve(bits2));
   }
   throw new UnsupportedKeyTypeError2();
 }
@@ -26795,11 +26795,11 @@ function privateKeyToProtobuf(key) {
     Data: key.raw
   });
 }
-function toBits(bits) {
-  if (bits == null) {
+function toBits(bits2) {
+  if (bits2 == null) {
     return 2048;
   }
-  return parseInt(bits, 10);
+  return parseInt(bits2, 10);
 }
 function toCurve(curve) {
   if (curve === "P-256" || curve == null) {
@@ -27546,11 +27546,11 @@ var fnv1a2 = {
   }
 };
 function numberToBuffer(num) {
-  let hex2 = num.toString(16);
-  if (hex2.length % 2 === 1) {
-    hex2 = `0${hex2}`;
+  let hex3 = num.toString(16);
+  if (hex3.length % 2 === 1) {
+    hex3 = `0${hex3}`;
   }
-  return fromString4(hex2, "base16");
+  return fromString4(hex3, "base16");
 }
 
 // node_modules/@libp2p/utils/dist/src/filters/fingerprint.js
@@ -27587,8 +27587,8 @@ var Fingerprint = class {
 };
 
 // node_modules/@libp2p/utils/dist/src/filters/utils.js
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
+function getRandomInt(min, max2) {
+  return Math.floor(Math.random() * (max2 - min)) + min;
 }
 
 // node_modules/@libp2p/utils/dist/src/filters/bucket.js
@@ -29188,19 +29188,19 @@ var Uint8ArrayReader2 = class {
     return this;
   }
   readLongVarint() {
-    const bits = new LongBits2(0, 0);
+    const bits2 = new LongBits2(0, 0);
     let i = 0;
     if (this.len - this.pos > 4) {
       for (; i < 4; ++i) {
-        bits.lo = (bits.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
+        bits2.lo = (bits2.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
-      bits.lo = (bits.lo | (this.buf[this.pos] & 127) << 28) >>> 0;
-      bits.hi = (bits.hi | (this.buf[this.pos] & 127) >> 4) >>> 0;
+      bits2.lo = (bits2.lo | (this.buf[this.pos] & 127) << 28) >>> 0;
+      bits2.hi = (bits2.hi | (this.buf[this.pos] & 127) >> 4) >>> 0;
       if (this.buf[this.pos++] < 128) {
-        return bits;
+        return bits2;
       }
       i = 0;
     } else {
@@ -29208,19 +29208,19 @@ var Uint8ArrayReader2 = class {
         if (this.pos >= this.len) {
           throw indexOutOfRange2(this);
         }
-        bits.lo = (bits.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
+        bits2.lo = (bits2.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
-      bits.lo = (bits.lo | (this.buf[this.pos++] & 127) << i * 7) >>> 0;
-      return bits;
+      bits2.lo = (bits2.lo | (this.buf[this.pos++] & 127) << i * 7) >>> 0;
+      return bits2;
     }
     if (this.len - this.pos > 4) {
       for (; i < 5; ++i) {
-        bits.hi = (bits.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
+        bits2.hi = (bits2.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
     } else {
@@ -29228,9 +29228,9 @@ var Uint8ArrayReader2 = class {
         if (this.pos >= this.len) {
           throw indexOutOfRange2(this);
         }
-        bits.hi = (bits.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
+        bits2.hi = (bits2.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
     }
@@ -29486,8 +29486,8 @@ var Uint8ArrayWriter2 = class {
    * Writes an unsigned 64 bit value as a varint
    */
   uint64(value2) {
-    const bits = LongBits2.fromBigInt(value2);
-    return this._push(writeVarint642, bits.length(), bits);
+    const bits2 = LongBits2.fromBigInt(value2);
+    return this._push(writeVarint642, bits2.length(), bits2);
   }
   /**
    * Writes an unsigned 64 bit value as a varint
@@ -29523,15 +29523,15 @@ var Uint8ArrayWriter2 = class {
    * Writes a signed 64 bit value as a varint, zig-zag encoded
    */
   sint64(value2) {
-    const bits = LongBits2.fromBigInt(value2).zzEncode();
-    return this._push(writeVarint642, bits.length(), bits);
+    const bits2 = LongBits2.fromBigInt(value2).zzEncode();
+    return this._push(writeVarint642, bits2.length(), bits2);
   }
   /**
    * Writes a signed 64 bit value as a varint, zig-zag encoded
    */
   sint64Number(value2) {
-    const bits = LongBits2.fromNumber(value2).zzEncode();
-    return this._push(writeVarint642, bits.length(), bits);
+    const bits2 = LongBits2.fromNumber(value2).zzEncode();
+    return this._push(writeVarint642, bits2.length(), bits2);
   }
   /**
    * Writes a signed 64 bit value as a varint, zig-zag encoded
@@ -29561,15 +29561,15 @@ var Uint8ArrayWriter2 = class {
    * Writes an unsigned 64 bit value as fixed 64 bits
    */
   fixed64(value2) {
-    const bits = LongBits2.fromBigInt(value2);
-    return this._push(writeFixed322, 4, bits.lo)._push(writeFixed322, 4, bits.hi);
+    const bits2 = LongBits2.fromBigInt(value2);
+    return this._push(writeFixed322, 4, bits2.lo)._push(writeFixed322, 4, bits2.hi);
   }
   /**
    * Writes an unsigned 64 bit value as fixed 64 bits
    */
   fixed64Number(value2) {
-    const bits = LongBits2.fromNumber(value2);
-    return this._push(writeFixed322, 4, bits.lo)._push(writeFixed322, 4, bits.hi);
+    const bits2 = LongBits2.fromNumber(value2);
+    return this._push(writeFixed322, 4, bits2.lo)._push(writeFixed322, 4, bits2.hi);
   }
   /**
    * Writes an unsigned 64 bit value as fixed 64 bits
@@ -32304,10 +32304,10 @@ function positive(value2) {
     throw new ValidationError("Value must be a positive integer, or zero");
   }
 }
-function maxValue(max) {
+function maxValue(max2) {
   return (value2) => {
-    if (value2 > max) {
-      throw new ValidationError(`Value must be smaller than or equal to ${max}`);
+    if (value2 > max2) {
+      throw new ValidationError(`Value must be smaller than or equal to ${max2}`);
     }
   };
 }
@@ -33048,11 +33048,11 @@ function simpleMaskLength(mask) {
   return ones;
 }
 function maskToHex(mask) {
-  let hex2 = "0x";
+  let hex3 = "0x";
   for (const byte of mask) {
-    hex2 += (byte >> 4).toString(16) + (byte & 15).toString(16);
+    hex3 += (byte >> 4).toString(16) + (byte & 15).toString(16);
   }
-  return hex2;
+  return hex3;
 }
 
 // node_modules/@chainsafe/netmask/dist/src/ip.js
@@ -33130,12 +33130,12 @@ function parseCidr(s2) {
     mask
   };
 }
-function cidrMask(ones, bits) {
-  if (bits !== 8 * IPv4Len && bits !== 8 * IPv6Len)
+function cidrMask(ones, bits2) {
+  if (bits2 !== 8 * IPv4Len && bits2 !== 8 * IPv6Len)
     throw new Error("Invalid CIDR mask");
-  if (ones < 0 || ones > bits)
+  if (ones < 0 || ones > bits2)
     throw new Error("Invalid CIDR mask");
-  const l = bits / 8;
+  const l = bits2 / 8;
   const m2 = new Uint8Array(l);
   for (let i = 0; i < l; i++) {
     if (ones >= 8) {
@@ -34296,7 +34296,7 @@ function decode31(string9, alphabetIdx, bitsPerChar, name15) {
     --end;
   }
   const out = new Uint8Array(end * bitsPerChar / 8 | 0);
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   let written = 0;
   for (let i = 0; i < end; ++i) {
@@ -34305,13 +34305,13 @@ function decode31(string9, alphabetIdx, bitsPerChar, name15) {
       throw new SyntaxError(`Non-${name15} character`);
     }
     buffer5 = buffer5 << bitsPerChar | value2;
-    bits += bitsPerChar;
-    if (bits >= 8) {
-      bits -= 8;
-      out[written++] = 255 & buffer5 >> bits;
+    bits2 += bitsPerChar;
+    if (bits2 >= 8) {
+      bits2 -= 8;
+      out[written++] = 255 & buffer5 >> bits2;
     }
   }
-  if (bits >= bitsPerChar || (255 & buffer5 << 8 - bits) !== 0) {
+  if (bits2 >= bitsPerChar || (255 & buffer5 << 8 - bits2) !== 0) {
     throw new SyntaxError("Unexpected end of data");
   }
   return out;
@@ -34320,18 +34320,18 @@ function encode26(data, alphabet8, bitsPerChar) {
   const pad2 = alphabet8[alphabet8.length - 1] === "=";
   const mask = (1 << bitsPerChar) - 1;
   let out = "";
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   for (let i = 0; i < data.length; ++i) {
     buffer5 = buffer5 << 8 | data[i];
-    bits += 8;
-    while (bits > bitsPerChar) {
-      bits -= bitsPerChar;
-      out += alphabet8[mask & buffer5 >> bits];
+    bits2 += 8;
+    while (bits2 > bitsPerChar) {
+      bits2 -= bitsPerChar;
+      out += alphabet8[mask & buffer5 >> bits2];
     }
   }
-  if (bits !== 0) {
-    out += alphabet8[mask & buffer5 << bitsPerChar - bits];
+  if (bits2 !== 0) {
+    out += alphabet8[mask & buffer5 << bitsPerChar - bits2];
   }
   if (pad2) {
     while ((out.length * bitsPerChar & 7) !== 0) {
@@ -35084,19 +35084,19 @@ var Uint8ArrayReader3 = class {
     return this;
   }
   readLongVarint() {
-    const bits = new LongBits3(0, 0);
+    const bits2 = new LongBits3(0, 0);
     let i = 0;
     if (this.len - this.pos > 4) {
       for (; i < 4; ++i) {
-        bits.lo = (bits.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
+        bits2.lo = (bits2.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
-      bits.lo = (bits.lo | (this.buf[this.pos] & 127) << 28) >>> 0;
-      bits.hi = (bits.hi | (this.buf[this.pos] & 127) >> 4) >>> 0;
+      bits2.lo = (bits2.lo | (this.buf[this.pos] & 127) << 28) >>> 0;
+      bits2.hi = (bits2.hi | (this.buf[this.pos] & 127) >> 4) >>> 0;
       if (this.buf[this.pos++] < 128) {
-        return bits;
+        return bits2;
       }
       i = 0;
     } else {
@@ -35104,19 +35104,19 @@ var Uint8ArrayReader3 = class {
         if (this.pos >= this.len) {
           throw indexOutOfRange3(this);
         }
-        bits.lo = (bits.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
+        bits2.lo = (bits2.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
-      bits.lo = (bits.lo | (this.buf[this.pos++] & 127) << i * 7) >>> 0;
-      return bits;
+      bits2.lo = (bits2.lo | (this.buf[this.pos++] & 127) << i * 7) >>> 0;
+      return bits2;
     }
     if (this.len - this.pos > 4) {
       for (; i < 5; ++i) {
-        bits.hi = (bits.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
+        bits2.hi = (bits2.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
     } else {
@@ -35124,9 +35124,9 @@ var Uint8ArrayReader3 = class {
         if (this.pos >= this.len) {
           throw indexOutOfRange3(this);
         }
-        bits.hi = (bits.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
+        bits2.hi = (bits2.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
     }
@@ -35382,8 +35382,8 @@ var Uint8ArrayWriter3 = class {
    * Writes an unsigned 64 bit value as a varint
    */
   uint64(value2) {
-    const bits = LongBits3.fromBigInt(value2);
-    return this._push(writeVarint643, bits.length(), bits);
+    const bits2 = LongBits3.fromBigInt(value2);
+    return this._push(writeVarint643, bits2.length(), bits2);
   }
   /**
    * Writes an unsigned 64 bit value as a varint
@@ -35419,15 +35419,15 @@ var Uint8ArrayWriter3 = class {
    * Writes a signed 64 bit value as a varint, zig-zag encoded
    */
   sint64(value2) {
-    const bits = LongBits3.fromBigInt(value2).zzEncode();
-    return this._push(writeVarint643, bits.length(), bits);
+    const bits2 = LongBits3.fromBigInt(value2).zzEncode();
+    return this._push(writeVarint643, bits2.length(), bits2);
   }
   /**
    * Writes a signed 64 bit value as a varint, zig-zag encoded
    */
   sint64Number(value2) {
-    const bits = LongBits3.fromNumber(value2).zzEncode();
-    return this._push(writeVarint643, bits.length(), bits);
+    const bits2 = LongBits3.fromNumber(value2).zzEncode();
+    return this._push(writeVarint643, bits2.length(), bits2);
   }
   /**
    * Writes a signed 64 bit value as a varint, zig-zag encoded
@@ -35457,15 +35457,15 @@ var Uint8ArrayWriter3 = class {
    * Writes an unsigned 64 bit value as fixed 64 bits
    */
   fixed64(value2) {
-    const bits = LongBits3.fromBigInt(value2);
-    return this._push(writeFixed323, 4, bits.lo)._push(writeFixed323, 4, bits.hi);
+    const bits2 = LongBits3.fromBigInt(value2);
+    return this._push(writeFixed323, 4, bits2.lo)._push(writeFixed323, 4, bits2.hi);
   }
   /**
    * Writes an unsigned 64 bit value as fixed 64 bits
    */
   fixed64Number(value2) {
-    const bits = LongBits3.fromNumber(value2);
-    return this._push(writeFixed323, 4, bits.lo)._push(writeFixed323, 4, bits.hi);
+    const bits2 = LongBits3.fromNumber(value2);
+    return this._push(writeFixed323, 4, bits2.lo)._push(writeFixed323, 4, bits2.hi);
   }
   /**
    * Writes an unsigned 64 bit value as fixed 64 bits
@@ -46399,7 +46399,7 @@ function decode33(string9, alphabetIdx, bitsPerChar, name15) {
     --end;
   }
   const out = new Uint8Array(end * bitsPerChar / 8 | 0);
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   let written = 0;
   for (let i = 0; i < end; ++i) {
@@ -46408,13 +46408,13 @@ function decode33(string9, alphabetIdx, bitsPerChar, name15) {
       throw new SyntaxError(`Non-${name15} character`);
     }
     buffer5 = buffer5 << bitsPerChar | value2;
-    bits += bitsPerChar;
-    if (bits >= 8) {
-      bits -= 8;
-      out[written++] = 255 & buffer5 >> bits;
+    bits2 += bitsPerChar;
+    if (bits2 >= 8) {
+      bits2 -= 8;
+      out[written++] = 255 & buffer5 >> bits2;
     }
   }
-  if (bits >= bitsPerChar || (255 & buffer5 << 8 - bits) !== 0) {
+  if (bits2 >= bitsPerChar || (255 & buffer5 << 8 - bits2) !== 0) {
     throw new SyntaxError("Unexpected end of data");
   }
   return out;
@@ -46423,18 +46423,18 @@ function encode28(data, alphabet8, bitsPerChar) {
   const pad2 = alphabet8[alphabet8.length - 1] === "=";
   const mask = (1 << bitsPerChar) - 1;
   let out = "";
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   for (let i = 0; i < data.length; ++i) {
     buffer5 = buffer5 << 8 | data[i];
-    bits += 8;
-    while (bits > bitsPerChar) {
-      bits -= bitsPerChar;
-      out += alphabet8[mask & buffer5 >> bits];
+    bits2 += 8;
+    while (bits2 > bitsPerChar) {
+      bits2 -= bitsPerChar;
+      out += alphabet8[mask & buffer5 >> bits2];
     }
   }
-  if (bits !== 0) {
-    out += alphabet8[mask & buffer5 << bitsPerChar - bits];
+  if (bits2 !== 0) {
+    out += alphabet8[mask & buffer5 << bitsPerChar - bits2];
   }
   if (pad2) {
     while ((out.length * bitsPerChar & 7) !== 0) {
@@ -49774,12 +49774,12 @@ var BitString = class extends BaseBlock {
     if (this.valueBlock.isConstructed || this.valueBlock.value && this.valueBlock.value.length) {
       return Constructed.prototype.onAsciiEncoding.call(this);
     } else {
-      const bits = [];
+      const bits2 = [];
       const valueHex = this.valueBlock.valueHexView;
       for (const byte of valueHex) {
-        bits.push(byte.toString(2).padStart(8, "0"));
+        bits2.push(byte.toString(2).padStart(8, "0"));
       }
-      const bitsStr = bits.join("");
+      const bitsStr = bits2.join("");
       const name15 = this.constructor.NAME;
       const value2 = bitsStr.substring(0, bitsStr.length - this.valueBlock.unusedBits);
       return `${name15} : ${value2}`;
@@ -49960,8 +49960,8 @@ var Integer = class extends BaseBlock {
     assertBigInt();
     const bigIntValue = BigInt(value2);
     const writer = new ViewWriter();
-    const hex2 = bigIntValue.toString(16).replace(/^-/, "");
-    const view = new Uint8Array(pvtsutils.Convert.FromHex(hex2));
+    const hex3 = bigIntValue.toString(16).replace(/^-/, "");
+    const view = new Uint8Array(pvtsutils.Convert.FromHex(hex3));
     if (bigIntValue < 0) {
       const first2 = new Uint8Array(view.length + (view[0] & 128 ? 1 : 0));
       first2[0] |= 128;
@@ -50069,13 +50069,13 @@ var LocalSidValueBlock = class extends HexBlock(ValueBlock) {
   }
   set valueBigInt(value2) {
     assertBigInt();
-    let bits = BigInt(value2).toString(2);
-    while (bits.length % 7) {
-      bits = "0" + bits;
+    let bits2 = BigInt(value2).toString(2);
+    while (bits2.length % 7) {
+      bits2 = "0" + bits2;
     }
-    const bytes = new Uint8Array(bits.length / 7);
+    const bytes = new Uint8Array(bits2.length / 7);
     for (let i = 0; i < bytes.length; i++) {
-      bytes[i] = parseInt(bits.slice(i * 7, i * 7 + 7), 2) + (i + 1 < bytes.length ? 128 : 0);
+      bytes[i] = parseInt(bits2.slice(i * 7, i * 7 + 7), 2) + (i + 1 < bytes.length ? 128 : 0);
     }
     this.fromBER(bytes.buffer, 0, bytes.length);
   }
@@ -51766,8 +51766,8 @@ function validateKeyName(name15) {
 }
 async function randomDelay() {
   const min = 200;
-  const max = 1e3;
-  const delay3 = Math.random() * (max - min) + min;
+  const max2 = 1e3;
+  const delay3 = Math.random() * (max2 - min) + min;
   await new Promise((resolve8) => setTimeout(resolve8, delay3));
 }
 function DsName(name15) {
@@ -53029,11 +53029,11 @@ function bytesToHex3(bytes) {
   abytes4(bytes);
   if (hasHexBuiltin2)
     return bytes.toHex();
-  let hex2 = "";
+  let hex3 = "";
   for (let i = 0; i < bytes.length; i++) {
-    hex2 += hexes2[bytes[i]];
+    hex3 += hexes2[bytes[i]];
   }
-  return hex2;
+  return hex3;
 }
 var asciis = { _0: 48, _9: 57, A: 65, F: 70, a: 97, f: 102 };
 function asciiToBase162(ch) {
@@ -53045,21 +53045,21 @@ function asciiToBase162(ch) {
     return ch - (asciis.a - 10);
   return;
 }
-function hexToBytes3(hex2) {
-  if (typeof hex2 !== "string")
-    throw new Error("hex string expected, got " + typeof hex2);
+function hexToBytes3(hex3) {
+  if (typeof hex3 !== "string")
+    throw new Error("hex string expected, got " + typeof hex3);
   if (hasHexBuiltin2)
-    return Uint8Array.fromHex(hex2);
-  const hl = hex2.length;
+    return Uint8Array.fromHex(hex3);
+  const hl = hex3.length;
   const al = hl / 2;
   if (hl % 2)
     throw new Error("hex string expected, got unpadded hex of length " + hl);
   const array = new Uint8Array(al);
   for (let ai = 0, hi = 0; ai < al; ai++, hi += 2) {
-    const n1 = asciiToBase162(hex2.charCodeAt(hi));
-    const n2 = asciiToBase162(hex2.charCodeAt(hi + 1));
+    const n1 = asciiToBase162(hex3.charCodeAt(hi));
+    const n2 = asciiToBase162(hex3.charCodeAt(hi + 1));
     if (n1 === void 0 || n2 === void 0) {
-      const char = hex2[hi] + hex2[hi + 1];
+      const char = hex3[hi] + hex3[hi + 1];
       throw new Error('hex string expected, got non-hex character "' + char + '" at index ' + hi);
     }
     array[ai] = n1 * 16 + n2;
@@ -53645,10 +53645,10 @@ function _abytes2(value2, length15, title = "") {
   }
   return value2;
 }
-function hexToNumber2(hex2) {
-  if (typeof hex2 !== "string")
-    throw new Error("hex string expected, got " + typeof hex2);
-  return hex2 === "" ? _0n7 : BigInt("0x" + hex2);
+function hexToNumber2(hex3) {
+  if (typeof hex3 !== "string")
+    throw new Error("hex string expected, got " + typeof hex3);
+  return hex3 === "" ? _0n7 : BigInt("0x" + hex3);
 }
 function bytesToNumberBE2(bytes) {
   return hexToNumber2(bytesToHex3(bytes));
@@ -53663,16 +53663,16 @@ function numberToBytesBE2(n, len) {
 function numberToBytesLE2(n, len) {
   return numberToBytesBE2(n, len).reverse();
 }
-function ensureBytes(title, hex2, expectedLength) {
+function ensureBytes(title, hex3, expectedLength) {
   let res;
-  if (typeof hex2 === "string") {
+  if (typeof hex3 === "string") {
     try {
-      res = hexToBytes3(hex2);
+      res = hexToBytes3(hex3);
     } catch (e) {
       throw new Error(title + " must be hex string or Uint8Array, cause: " + e);
     }
-  } else if (isBytes4(hex2)) {
-    res = Uint8Array.from(hex2);
+  } else if (isBytes4(hex3)) {
+    res = Uint8Array.from(hex3);
   } else {
     throw new Error(title + " must be hex string or Uint8Array");
   }
@@ -53693,12 +53693,12 @@ function copyBytes3(bytes) {
   return Uint8Array.from(bytes);
 }
 var isPosBig2 = (n) => typeof n === "bigint" && _0n7 <= n;
-function inRange2(n, min, max) {
-  return isPosBig2(n) && isPosBig2(min) && isPosBig2(max) && min <= n && n < max;
+function inRange2(n, min, max2) {
+  return isPosBig2(n) && isPosBig2(min) && isPosBig2(max2) && min <= n && n < max2;
 }
-function aInRange2(title, n, min, max) {
-  if (!inRange2(n, min, max))
-    throw new Error("expected valid " + title + ": " + min + " <= n < " + max + ", got " + n);
+function aInRange2(title, n, min, max2) {
+  if (!inRange2(n, min, max2))
+    throw new Error("expected valid " + title + ": " + min + " <= n < " + max2 + ", got " + n);
 }
 function bitLen2(n) {
   let len;
@@ -54073,9 +54073,9 @@ function normalizeZ2(c, points) {
   const invertedZs = FpInvertBatch2(c.Fp, points.map((p) => p.Z));
   return points.map((p, i) => c.fromAffine(p.toAffine(invertedZs[i])));
 }
-function validateW2(W, bits) {
-  if (!Number.isSafeInteger(W) || W <= 0 || W > bits)
-    throw new Error("invalid window size, expected [1.." + bits + "], got W=" + W);
+function validateW2(W, bits2) {
+  if (!Number.isSafeInteger(W) || W <= 0 || W > bits2)
+    throw new Error("invalid window size, expected [1.." + bits2 + "], got W=" + W);
 }
 function calcWOpts(W, scalarBits) {
   validateW2(W, scalarBits);
@@ -54129,11 +54129,11 @@ function assert0(n) {
 }
 var wNAF = class {
   // Parametrized with a given Point class (not individual point)
-  constructor(Point, bits) {
+  constructor(Point, bits2) {
     this.BASE = Point.BASE;
     this.ZERO = Point.ZERO;
     this.Fn = Point.Fn;
-    this.bits = bits;
+    this.bits = bits2;
   }
   // non-const time multiplication ladder
   _unsafeLadder(elm, n, p = this.ZERO) {
@@ -54426,8 +54426,8 @@ function edwards2(params, extraOpts = {}) {
       const lastByte = bytes[len - 1];
       normed[len - 1] = lastByte & ~128;
       const y2 = bytesToNumberLE2(normed);
-      const max = zip215 ? MASK : Fp3.ORDER;
-      aInRange2("point.y", y2, _0n10, max);
+      const max2 = zip215 ? MASK : Fp3.ORDER;
+      aInRange2("point.y", y2, _0n10, max2);
       const y22 = modP(y2 * y2);
       const u = modP(y22 - _1n10);
       const v = modP(d2 * y22 - a);
@@ -55137,8 +55137,8 @@ var _RistrettoPoint = class __RistrettoPoint extends PrimeEdwardsPoint2 {
     return new __RistrettoPoint(ep);
   }
   /** @deprecated use `import { ristretto255_hasher } from '@noble/curves/ed25519.js';` */
-  static hashToCurve(hex2) {
-    return ristretto255_map(ensureBytes("ristrettoHash", hex2, 64));
+  static hashToCurve(hex3) {
+    return ristretto255_map(ensureBytes("ristrettoHash", hex3, 64));
   }
   static fromBytes(bytes) {
     abytes4(bytes, 32);
@@ -55171,8 +55171,8 @@ var _RistrettoPoint = class __RistrettoPoint extends PrimeEdwardsPoint2 {
    * Described in [RFC9496](https://www.rfc-editor.org/rfc/rfc9496#name-decode).
    * @param hex Ristretto-encoded 32 bytes. Not every 32-byte string is valid ristretto encoding
    */
-  static fromHex(hex2) {
-    return __RistrettoPoint.fromBytes(ensureBytes("ristrettoHex", hex2, 32));
+  static fromHex(hex3) {
+    return __RistrettoPoint.fromBytes(ensureBytes("ristrettoHex", hex3, 32));
   }
   static msm(points, scalars) {
     return pippenger(__RistrettoPoint, ed255192.Point.Fn, points, scalars);
@@ -61851,19 +61851,19 @@ var Uint8ArrayReader4 = class {
     return this;
   }
   readLongVarint() {
-    const bits = new LongBits4(0, 0);
+    const bits2 = new LongBits4(0, 0);
     let i = 0;
     if (this.len - this.pos > 4) {
       for (; i < 4; ++i) {
-        bits.lo = (bits.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
+        bits2.lo = (bits2.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
-      bits.lo = (bits.lo | (this.buf[this.pos] & 127) << 28) >>> 0;
-      bits.hi = (bits.hi | (this.buf[this.pos] & 127) >> 4) >>> 0;
+      bits2.lo = (bits2.lo | (this.buf[this.pos] & 127) << 28) >>> 0;
+      bits2.hi = (bits2.hi | (this.buf[this.pos] & 127) >> 4) >>> 0;
       if (this.buf[this.pos++] < 128) {
-        return bits;
+        return bits2;
       }
       i = 0;
     } else {
@@ -61871,19 +61871,19 @@ var Uint8ArrayReader4 = class {
         if (this.pos >= this.len) {
           throw indexOutOfRange4(this);
         }
-        bits.lo = (bits.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
+        bits2.lo = (bits2.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
-      bits.lo = (bits.lo | (this.buf[this.pos++] & 127) << i * 7) >>> 0;
-      return bits;
+      bits2.lo = (bits2.lo | (this.buf[this.pos++] & 127) << i * 7) >>> 0;
+      return bits2;
     }
     if (this.len - this.pos > 4) {
       for (; i < 5; ++i) {
-        bits.hi = (bits.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
+        bits2.hi = (bits2.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
     } else {
@@ -61891,9 +61891,9 @@ var Uint8ArrayReader4 = class {
         if (this.pos >= this.len) {
           throw indexOutOfRange4(this);
         }
-        bits.hi = (bits.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
+        bits2.hi = (bits2.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
         if (this.buf[this.pos++] < 128) {
-          return bits;
+          return bits2;
         }
       }
     }
@@ -62340,7 +62340,7 @@ function decode38(string9, alphabetIdx, bitsPerChar, name15) {
     --end;
   }
   const out = new Uint8Array(end * bitsPerChar / 8 | 0);
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   let written = 0;
   for (let i = 0; i < end; ++i) {
@@ -62349,13 +62349,13 @@ function decode38(string9, alphabetIdx, bitsPerChar, name15) {
       throw new SyntaxError(`Non-${name15} character`);
     }
     buffer5 = buffer5 << bitsPerChar | value2;
-    bits += bitsPerChar;
-    if (bits >= 8) {
-      bits -= 8;
-      out[written++] = 255 & buffer5 >> bits;
+    bits2 += bitsPerChar;
+    if (bits2 >= 8) {
+      bits2 -= 8;
+      out[written++] = 255 & buffer5 >> bits2;
     }
   }
-  if (bits >= bitsPerChar || (255 & buffer5 << 8 - bits) !== 0) {
+  if (bits2 >= bitsPerChar || (255 & buffer5 << 8 - bits2) !== 0) {
     throw new SyntaxError("Unexpected end of data");
   }
   return out;
@@ -62364,18 +62364,18 @@ function encode32(data, alphabet8, bitsPerChar) {
   const pad2 = alphabet8[alphabet8.length - 1] === "=";
   const mask = (1 << bitsPerChar) - 1;
   let out = "";
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   for (let i = 0; i < data.length; ++i) {
     buffer5 = buffer5 << 8 | data[i];
-    bits += 8;
-    while (bits > bitsPerChar) {
-      bits -= bitsPerChar;
-      out += alphabet8[mask & buffer5 >> bits];
+    bits2 += 8;
+    while (bits2 > bitsPerChar) {
+      bits2 -= bitsPerChar;
+      out += alphabet8[mask & buffer5 >> bits2];
     }
   }
-  if (bits !== 0) {
-    out += alphabet8[mask & buffer5 << bitsPerChar - bits];
+  if (bits2 !== 0) {
+    out += alphabet8[mask & buffer5 << bitsPerChar - bits2];
   }
   if (pad2) {
     while ((out.length * bitsPerChar & 7) !== 0) {
@@ -63418,8 +63418,8 @@ var Uint8ArrayWriter4 = class {
    * Writes an unsigned 64 bit value as a varint
    */
   uint64(value2) {
-    const bits = LongBits4.fromBigInt(value2);
-    return this._push(writeVarint644, bits.length(), bits);
+    const bits2 = LongBits4.fromBigInt(value2);
+    return this._push(writeVarint644, bits2.length(), bits2);
   }
   /**
    * Writes an unsigned 64 bit value as a varint
@@ -63455,15 +63455,15 @@ var Uint8ArrayWriter4 = class {
    * Writes a signed 64 bit value as a varint, zig-zag encoded
    */
   sint64(value2) {
-    const bits = LongBits4.fromBigInt(value2).zzEncode();
-    return this._push(writeVarint644, bits.length(), bits);
+    const bits2 = LongBits4.fromBigInt(value2).zzEncode();
+    return this._push(writeVarint644, bits2.length(), bits2);
   }
   /**
    * Writes a signed 64 bit value as a varint, zig-zag encoded
    */
   sint64Number(value2) {
-    const bits = LongBits4.fromNumber(value2).zzEncode();
-    return this._push(writeVarint644, bits.length(), bits);
+    const bits2 = LongBits4.fromNumber(value2).zzEncode();
+    return this._push(writeVarint644, bits2.length(), bits2);
   }
   /**
    * Writes a signed 64 bit value as a varint, zig-zag encoded
@@ -63493,15 +63493,15 @@ var Uint8ArrayWriter4 = class {
    * Writes an unsigned 64 bit value as fixed 64 bits
    */
   fixed64(value2) {
-    const bits = LongBits4.fromBigInt(value2);
-    return this._push(writeFixed324, 4, bits.lo)._push(writeFixed324, 4, bits.hi);
+    const bits2 = LongBits4.fromBigInt(value2);
+    return this._push(writeFixed324, 4, bits2.lo)._push(writeFixed324, 4, bits2.hi);
   }
   /**
    * Writes an unsigned 64 bit value as fixed 64 bits
    */
   fixed64Number(value2) {
-    const bits = LongBits4.fromNumber(value2);
-    return this._push(writeFixed324, 4, bits.lo)._push(writeFixed324, 4, bits.hi);
+    const bits2 = LongBits4.fromNumber(value2);
+    return this._push(writeFixed324, 4, bits2.lo)._push(writeFixed324, 4, bits2.hi);
   }
   /**
    * Writes an unsigned 64 bit value as fixed 64 bits
@@ -85331,8 +85331,8 @@ function validateKeyName2(name15) {
 }
 async function randomDelay2() {
   const min = 200;
-  const max = 1e3;
-  const delay3 = Math.random() * (max - min) + min;
+  const max2 = 1e3;
+  const delay3 = Math.random() * (max2 - min) + min;
   await new Promise((resolve8) => setTimeout(resolve8, delay3));
 }
 function DsName2(name15) {
@@ -88642,14 +88642,14 @@ var BitString2 = class {
     return parseInt(res, 2);
   }
   fromNumber(value2) {
-    let bits = value2.toString(2);
-    const octetSize = bits.length + 7 >> 3;
-    this.unusedBits = (octetSize << 3) - bits.length;
+    let bits2 = value2.toString(2);
+    const octetSize = bits2.length + 7 >> 3;
+    this.unusedBits = (octetSize << 3) - bits2.length;
     const octets = new Uint8Array(octetSize);
-    bits = bits.padStart(octetSize << 3, "0").split("").reverse().join("");
+    bits2 = bits2.padStart(octetSize << 3, "0").split("").reverse().join("");
     let index = 0;
     while (index < octetSize) {
-      octets[index] = parseInt(bits.slice(index << 3, (index << 3) + 8), 2);
+      octets[index] = parseInt(bits2.slice(index << 3, (index << 3) + 8), 2);
       index++;
     }
     this.value = octets.buffer;
@@ -94867,8 +94867,8 @@ var TextConverter = class {
         if (j === 8) {
           row.push("");
         }
-        const hex2 = view[i++].toString(16).padStart(2, "0");
-        row.push(hex2);
+        const hex3 = view[i++].toString(16).padStart(2, "0");
+        row.push(hex3);
       }
       res.push(`${pad2}${row.join(" ")}`);
     }
@@ -95292,7 +95292,7 @@ var GeneralName3 = class extends AsnData {
           if (!matches) {
             throw new Error("Cannot parse GUID value. Value doesn't match to regular expression");
           }
-          const hex2 = matches.slice(1).map((o, i) => {
+          const hex3 = matches.slice(1).map((o, i) => {
             if (i < 3) {
               return import_pvtsutils.Convert.ToHex(new Uint8Array(import_pvtsutils.Convert.FromHex(o)).reverse());
             }
@@ -95301,7 +95301,7 @@ var GeneralName3 = class extends AsnData {
           name15 = new GeneralName({
             otherName: new OtherName({
               typeId: id_GUID,
-              value: AsnConvert.serialize(new OctetString2(import_pvtsutils.Convert.FromHex(hex2)))
+              value: AsnConvert.serialize(new OctetString2(import_pvtsutils.Convert.FromHex(hex3)))
             })
           });
           break;
@@ -103915,7 +103915,7 @@ function decode52(string9, alphabetIdx, bitsPerChar, name15) {
     --end;
   }
   const out = new Uint8Array(end * bitsPerChar / 8 | 0);
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   let written = 0;
   for (let i = 0; i < end; ++i) {
@@ -103924,13 +103924,13 @@ function decode52(string9, alphabetIdx, bitsPerChar, name15) {
       throw new SyntaxError(`Non-${name15} character`);
     }
     buffer5 = buffer5 << bitsPerChar | value2;
-    bits += bitsPerChar;
-    if (bits >= 8) {
-      bits -= 8;
-      out[written++] = 255 & buffer5 >> bits;
+    bits2 += bitsPerChar;
+    if (bits2 >= 8) {
+      bits2 -= 8;
+      out[written++] = 255 & buffer5 >> bits2;
     }
   }
-  if (bits >= bitsPerChar || (255 & buffer5 << 8 - bits) !== 0) {
+  if (bits2 >= bitsPerChar || (255 & buffer5 << 8 - bits2) !== 0) {
     throw new SyntaxError("Unexpected end of data");
   }
   return out;
@@ -103939,18 +103939,18 @@ function encode46(data, alphabet8, bitsPerChar) {
   const pad2 = alphabet8[alphabet8.length - 1] === "=";
   const mask = (1 << bitsPerChar) - 1;
   let out = "";
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   for (let i = 0; i < data.length; ++i) {
     buffer5 = buffer5 << 8 | data[i];
-    bits += 8;
-    while (bits > bitsPerChar) {
-      bits -= bitsPerChar;
-      out += alphabet8[mask & buffer5 >> bits];
+    bits2 += 8;
+    while (bits2 > bitsPerChar) {
+      bits2 -= bitsPerChar;
+      out += alphabet8[mask & buffer5 >> bits2];
     }
   }
-  if (bits !== 0) {
-    out += alphabet8[mask & buffer5 << bitsPerChar - bits];
+  if (bits2 !== 0) {
+    out += alphabet8[mask & buffer5 << bitsPerChar - bits2];
   }
   if (pad2) {
     while ((out.length * bitsPerChar & 7) !== 0) {
@@ -105577,10 +105577,10 @@ function positive2(value2) {
     throw new ValidationError2("Value must be a positive integer, or zero");
   }
 }
-function maxValue2(max) {
+function maxValue2(max2) {
   return (value2) => {
-    if (value2 > max) {
-      throw new ValidationError2(`Value must be smaller than or equal to ${max}`);
+    if (value2 > max2) {
+      throw new ValidationError2(`Value must be smaller than or equal to ${max2}`);
     }
   };
 }
@@ -107983,7 +107983,7 @@ function decode60(string9, alphabetIdx, bitsPerChar, name15) {
     --end;
   }
   const out = new Uint8Array(end * bitsPerChar / 8 | 0);
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   let written = 0;
   for (let i = 0; i < end; ++i) {
@@ -107992,13 +107992,13 @@ function decode60(string9, alphabetIdx, bitsPerChar, name15) {
       throw new SyntaxError(`Non-${name15} character`);
     }
     buffer5 = buffer5 << bitsPerChar | value2;
-    bits += bitsPerChar;
-    if (bits >= 8) {
-      bits -= 8;
-      out[written++] = 255 & buffer5 >> bits;
+    bits2 += bitsPerChar;
+    if (bits2 >= 8) {
+      bits2 -= 8;
+      out[written++] = 255 & buffer5 >> bits2;
     }
   }
-  if (bits >= bitsPerChar || (255 & buffer5 << 8 - bits) !== 0) {
+  if (bits2 >= bitsPerChar || (255 & buffer5 << 8 - bits2) !== 0) {
     throw new SyntaxError("Unexpected end of data");
   }
   return out;
@@ -108007,18 +108007,18 @@ function encode51(data, alphabet8, bitsPerChar) {
   const pad2 = alphabet8[alphabet8.length - 1] === "=";
   const mask = (1 << bitsPerChar) - 1;
   let out = "";
-  let bits = 0;
+  let bits2 = 0;
   let buffer5 = 0;
   for (let i = 0; i < data.length; ++i) {
     buffer5 = buffer5 << 8 | data[i];
-    bits += 8;
-    while (bits > bitsPerChar) {
-      bits -= bitsPerChar;
-      out += alphabet8[mask & buffer5 >> bits];
+    bits2 += 8;
+    while (bits2 > bitsPerChar) {
+      bits2 -= bitsPerChar;
+      out += alphabet8[mask & buffer5 >> bits2];
     }
   }
-  if (bits !== 0) {
-    out += alphabet8[mask & buffer5 << bitsPerChar - bits];
+  if (bits2 !== 0) {
+    out += alphabet8[mask & buffer5 << bitsPerChar - bits2];
   }
   if (pad2) {
     while ((out.length * bitsPerChar & 7) !== 0) {
@@ -109183,8 +109183,8 @@ var ConsumableBuffer = class {
   totalBits() {
     return this._value.length * 8;
   }
-  take(bits) {
-    let pendingBits = bits;
+  take(bits2) {
+    let pendingBits = bits2;
     let result2 = 0;
     while (pendingBits > 0 && this._haveBits()) {
       const byte = this._value[this._currentBytePos];
@@ -109201,8 +109201,8 @@ var ConsumableBuffer = class {
     }
     return result2;
   }
-  untake(bits) {
-    this._currentBitPos += bits;
+  untake(bits2) {
+    this._currentBitPos += bits2;
     while (this._currentBitPos > 7) {
       this._currentBitPos -= 8;
       this._currentBytePos += 1;
@@ -109249,8 +109249,8 @@ var InfiniteHash = class {
     this._currentBufferIndex = 0;
     this._buffers = [];
   }
-  async take(bits) {
-    let pendingBits = bits;
+  async take(bits2) {
+    let pendingBits = bits2;
     while (this._availableBits < pendingBits) {
       await this._produceMoreBits();
     }
@@ -109268,8 +109268,8 @@ var InfiniteHash = class {
     }
     return result2;
   }
-  untake(bits) {
-    let pendingBits = bits;
+  untake(bits2) {
+    let pendingBits = bits2;
     while (pendingBits > 0) {
       const hash = this._buffers[this._currentBufferIndex];
       const availableForUntake = Math.min(hash.totalBits() - hash.availableBits(), pendingBits);
@@ -110685,8 +110685,8 @@ var InfiniteHash2 = class {
     this._currentBufferIndex = 0;
     this._buffers = [];
   }
-  async take(bits) {
-    let pendingBits = bits;
+  async take(bits2) {
+    let pendingBits = bits2;
     while (this._availableBits < pendingBits) {
       await this._produceMoreBits();
     }
@@ -110704,8 +110704,8 @@ var InfiniteHash2 = class {
     }
     return result2;
   }
-  untake(bits) {
-    let pendingBits = bits;
+  untake(bits2) {
+    let pendingBits = bits2;
     while (pendingBits > 0) {
       const hash = this._buffers[this._currentBufferIndex];
       const availableForUntake = Math.min(hash.totalBits() - hash.availableBits(), pendingBits);
@@ -110762,8 +110762,8 @@ var ConsumableBuffer2 = class {
   totalBits() {
     return this._value.length * 8;
   }
-  take(bits) {
-    let pendingBits = bits;
+  take(bits2) {
+    let pendingBits = bits2;
     let result2 = 0;
     while (pendingBits > 0 && this._haveBits()) {
       const byte = this._value[this._currentBytePos];
@@ -110780,8 +110780,8 @@ var ConsumableBuffer2 = class {
     }
     return result2;
   }
-  untake(bits) {
-    this._currentBitPos += bits;
+  untake(bits2) {
+    this._currentBitPos += bits2;
     while (this._currentBitPos > 7) {
       this._currentBitPos -= 8;
       this._currentBytePos += 1;
@@ -111184,9 +111184,9 @@ function estimateNodeSize(node) {
   }
   return size;
 }
-async function estimateShardSize(node, current, max, blockstore, options2) {
-  if (current > max) {
-    return max;
+async function estimateShardSize(node, current, max2, blockstore, options2) {
+  if (current > max2) {
+    return max2;
   }
   if (node.Data == null) {
     return current;
@@ -111203,7 +111203,7 @@ async function estimateShardSize(node, current, max, blockstore, options2) {
     if (link.Hash.code === code7) {
       const block = await blockstore.get(link.Hash, options2);
       const node2 = decode23(block);
-      current += await estimateShardSize(node2, current, max, blockstore, options2);
+      current += await estimateShardSize(node2, current, max2, blockstore, options2);
     }
   }
   return current;
@@ -112250,7 +112250,25 @@ for (i = 0; i < 32; ++i)
   fdt[i] = 5;
 var i;
 var flm = /* @__PURE__ */ hMap(flt, 9, 0);
+var flrm = /* @__PURE__ */ hMap(flt, 9, 1);
 var fdm = /* @__PURE__ */ hMap(fdt, 5, 0);
+var fdrm = /* @__PURE__ */ hMap(fdt, 5, 1);
+var max = function(a) {
+  var m2 = a[0];
+  for (var i = 1; i < a.length; ++i) {
+    if (a[i] > m2)
+      m2 = a[i];
+  }
+  return m2;
+};
+var bits = function(d2, p, m2) {
+  var o = p / 8 | 0;
+  return (d2[o] | d2[o + 1] << 8) >> (p & 7) & m2;
+};
+var bits16 = function(d2, p) {
+  var o = p / 8 | 0;
+  return (d2[o] | d2[o + 1] << 8 | d2[o + 2] << 16) >> (p & 7);
+};
 var shft = function(p) {
   return (p + 7) / 8 | 0;
 };
@@ -112287,6 +112305,147 @@ var err = function(ind, msg, nt) {
   if (!nt)
     throw e;
   return e;
+};
+var inflt = function(dat, st, buf, dict) {
+  var sl = dat.length, dl = dict ? dict.length : 0;
+  if (!sl || st.f && !st.l)
+    return buf || new u8(0);
+  var noBuf = !buf;
+  var resize = noBuf || st.i != 2;
+  var noSt = st.i;
+  if (noBuf)
+    buf = new u8(sl * 3);
+  var cbuf = function(l2) {
+    var bl = buf.length;
+    if (l2 > bl) {
+      var nbuf = new u8(Math.max(bl * 2, l2));
+      nbuf.set(buf);
+      buf = nbuf;
+    }
+  };
+  var final = st.f || 0, pos = st.p || 0, bt = st.b || 0, lm = st.l, dm = st.d, lbt = st.m, dbt = st.n;
+  var tbts = sl * 8;
+  do {
+    if (!lm) {
+      final = bits(dat, pos, 1);
+      var type = bits(dat, pos + 1, 3);
+      pos += 3;
+      if (!type) {
+        var s2 = shft(pos) + 4, l = dat[s2 - 4] | dat[s2 - 3] << 8, t = s2 + l;
+        if (t > sl) {
+          if (noSt)
+            err(0);
+          break;
+        }
+        if (resize)
+          cbuf(bt + l);
+        buf.set(dat.subarray(s2, t), bt);
+        st.b = bt += l, st.p = pos = t * 8, st.f = final;
+        continue;
+      } else if (type == 1)
+        lm = flrm, dm = fdrm, lbt = 9, dbt = 5;
+      else if (type == 2) {
+        var hLit = bits(dat, pos, 31) + 257, hcLen = bits(dat, pos + 10, 15) + 4;
+        var tl = hLit + bits(dat, pos + 5, 31) + 1;
+        pos += 14;
+        var ldt = new u8(tl);
+        var clt = new u8(19);
+        for (var i = 0; i < hcLen; ++i) {
+          clt[clim[i]] = bits(dat, pos + i * 3, 7);
+        }
+        pos += hcLen * 3;
+        var clb = max(clt), clbmsk = (1 << clb) - 1;
+        var clm = hMap(clt, clb, 1);
+        for (var i = 0; i < tl; ) {
+          var r = clm[bits(dat, pos, clbmsk)];
+          pos += r & 15;
+          var s2 = r >> 4;
+          if (s2 < 16) {
+            ldt[i++] = s2;
+          } else {
+            var c = 0, n = 0;
+            if (s2 == 16)
+              n = 3 + bits(dat, pos, 3), pos += 2, c = ldt[i - 1];
+            else if (s2 == 17)
+              n = 3 + bits(dat, pos, 7), pos += 3;
+            else if (s2 == 18)
+              n = 11 + bits(dat, pos, 127), pos += 7;
+            while (n--)
+              ldt[i++] = c;
+          }
+        }
+        var lt = ldt.subarray(0, hLit), dt = ldt.subarray(hLit);
+        lbt = max(lt);
+        dbt = max(dt);
+        lm = hMap(lt, lbt, 1);
+        dm = hMap(dt, dbt, 1);
+      } else
+        err(1);
+      if (pos > tbts) {
+        if (noSt)
+          err(0);
+        break;
+      }
+    }
+    if (resize)
+      cbuf(bt + 131072);
+    var lms = (1 << lbt) - 1, dms = (1 << dbt) - 1;
+    var lpos = pos;
+    for (; ; lpos = pos) {
+      var c = lm[bits16(dat, pos) & lms], sym = c >> 4;
+      pos += c & 15;
+      if (pos > tbts) {
+        if (noSt)
+          err(0);
+        break;
+      }
+      if (!c)
+        err(2);
+      if (sym < 256)
+        buf[bt++] = sym;
+      else if (sym == 256) {
+        lpos = pos, lm = null;
+        break;
+      } else {
+        var add4 = sym - 254;
+        if (sym > 264) {
+          var i = sym - 257, b = fleb[i];
+          add4 = bits(dat, pos, (1 << b) - 1) + fl[i];
+          pos += b;
+        }
+        var d2 = dm[bits16(dat, pos) & dms], dsym = d2 >> 4;
+        if (!d2)
+          err(3);
+        pos += d2 & 15;
+        var dt = fd[dsym];
+        if (dsym > 3) {
+          var b = fdeb[dsym];
+          dt += bits16(dat, pos) & (1 << b) - 1, pos += b;
+        }
+        if (pos > tbts) {
+          if (noSt)
+            err(0);
+          break;
+        }
+        if (resize)
+          cbuf(bt + 131072);
+        var end = bt + add4;
+        if (bt < dt) {
+          var shift = dl - dt, dend = Math.min(dt, end);
+          if (shift + bt < 0)
+            err(3);
+          for (; bt < dend; ++bt)
+            buf[bt] = dict[shift + bt];
+        }
+        for (; bt < end; ++bt)
+          buf[bt] = buf[bt - dt];
+      }
+    }
+    st.l = lm, st.p = lpos, st.b = bt, st.f = final;
+    if (lm)
+      final = 1, st.m = lbt, st.d = dm, st.n = dbt;
+  } while (!final);
+  return bt != buf.length && noBuf ? slc(buf, 0, bt) : buf.subarray(0, bt);
 };
 var wbits = function(d2, p, v) {
   v <<= p & 7;
@@ -112639,8 +112798,18 @@ var wbytes = function(d2, b, v) {
   for (; v; ++b)
     d2[b] = v, v >>>= 8;
 };
+var zls = function(d2, dict) {
+  if ((d2[0] & 15) != 8 || d2[0] >> 4 > 7 || (d2[0] << 8 | d2[1]) % 31)
+    err(6, "invalid zlib data");
+  if ((d2[1] >> 5 & 1) == +!dict)
+    err(6, "invalid zlib data: " + (d2[1] & 32 ? "need" : "unexpected") + " dictionary");
+  return (d2[1] >> 3 & 4) + 2;
+};
 function deflateSync(data, opts) {
   return dopt(data, opts || {}, 0, 0);
+}
+function unzlibSync(data, opts) {
+  return inflt(data.subarray(zls(data, opts && opts.dictionary), -4), { i: 2 }, opts && opts.out, opts && opts.dictionary);
 }
 var fltn = function(d2, p, t, o) {
   for (var k in d2) {
@@ -112798,8 +112967,248 @@ function zipSync(data, opts) {
   return out;
 }
 
+// js/git-objects.js
+var textDecoder13 = new TextDecoder();
+function hex2(bytes) {
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+function parseLooseObject(bytes) {
+  const raw = unzlibSync(bytes);
+  const nul = raw.indexOf(0);
+  const header = textDecoder13.decode(raw.subarray(0, nul));
+  const sp = header.indexOf(" ");
+  return { type: header.slice(0, sp), data: raw.subarray(nul + 1) };
+}
+function parsePackIdx(idxBytes) {
+  const view = new DataView(idxBytes.buffer, idxBytes.byteOffset, idxBytes.byteLength);
+  if (view.getUint32(0) !== 4285812579) throw new Error("not a pack idx v2 (bad magic)");
+  if (view.getUint32(4) !== 2) throw new Error("unsupported pack idx version");
+  const fanoutBase = 8;
+  const count = view.getUint32(fanoutBase + 255 * 4);
+  const shaBase = fanoutBase + 256 * 4;
+  const crcBase = shaBase + count * 20;
+  const offBase = crcBase + count * 4;
+  const largeBase = offBase + count * 4;
+  const shas = [];
+  const offsetOf = /* @__PURE__ */ new Map();
+  for (let i = 0; i < count; i++) {
+    const sha8 = hex2(idxBytes.subarray(shaBase + i * 20, shaBase + i * 20 + 20));
+    let off = view.getUint32(offBase + i * 4);
+    if (off & 2147483648) {
+      off = view.getUint32(largeBase + (off & 2147483647) * 8) * 4294967296 + view.getUint32(largeBase + (off & 2147483647) * 8 + 4);
+    }
+    shas.push(sha8);
+    offsetOf.set(sha8, off);
+  }
+  return { shas, offsetOf };
+}
+function readVarintSize(pack, offset) {
+  let b = pack[offset];
+  let type = b >> 4 & 7;
+  let size = b & 15;
+  let shift = 4;
+  let pos = offset + 1;
+  while (b & 128) {
+    b = pack[pos++];
+    size |= (b & 127) << shift;
+    shift += 7;
+  }
+  return { type, size, dataStart: pos };
+}
+function readPackObject(pack, offset, idx, cache10 = /* @__PURE__ */ new Map()) {
+  if (cache10.has(offset)) return cache10.get(offset);
+  const { type, size, dataStart } = readVarintSize(pack, offset);
+  let result2;
+  if (type >= 1 && type <= 4) {
+    const data = unzlibSync(pack.subarray(dataStart));
+    if (data.length !== size) throw new Error(`pack entry size mismatch: header ${size}, got ${data.length}`);
+    const types2 = { 1: "commit", 2: "tree", 3: "blob", 4: "tag" };
+    result2 = { type: types2[type], data };
+  } else if (type === 6) {
+    let b = pack[dataStart];
+    let baseDist = b & 127;
+    let pos = dataStart + 1;
+    while (b & 128) {
+      b = pack[pos++];
+      baseDist = baseDist + 1 << 7 | b & 127;
+    }
+    const base13 = readPackObject(pack, offset - baseDist, idx, cache10);
+    const delta = unzlibSync(pack.subarray(pos));
+    if (delta.length !== size) throw new Error(`delta size mismatch: header ${size}, got ${delta.length}`);
+    result2 = { type: base13.type, data: applyDelta(base13.data, delta) };
+  } else if (type === 7) {
+    const baseSha = hex2(pack.subarray(dataStart, dataStart + 20));
+    const baseOffset = idx.offsetOf.get(baseSha);
+    if (baseOffset === void 0) throw new Error(`REF_DELTA base ${baseSha} not in pack idx`);
+    const base13 = readPackObject(pack, baseOffset, idx, cache10);
+    const delta = unzlibSync(pack.subarray(dataStart + 20));
+    if (delta.length !== size) throw new Error(`delta size mismatch: header ${size}, got ${delta.length}`);
+    result2 = { type: base13.type, data: applyDelta(base13.data, delta) };
+  } else {
+    throw new Error(`unknown pack entry type ${type} at offset ${offset}`);
+  }
+  cache10.set(offset, result2);
+  return result2;
+}
+function applyDelta(base13, delta) {
+  let pos = 0;
+  const readVarint = () => {
+    let v = 0;
+    let shift = 0;
+    for (; ; ) {
+      const b = delta[pos++];
+      v |= (b & 127) << shift;
+      shift += 7;
+      if (!(b & 128)) return v;
+    }
+  };
+  const srcSize = readVarint();
+  if (srcSize !== base13.length) throw new Error(`delta base size mismatch: ${srcSize} vs ${base13.length}`);
+  const outSize = readVarint();
+  const chunks = [];
+  let outLen = 0;
+  while (pos < delta.length) {
+    const cmd = delta[pos++];
+    if (cmd & 128) {
+      let copyOff = 0;
+      let copyLen = 0;
+      for (let i = 0; i < 4; i++) if (cmd & 1 << i) copyOff |= delta[pos++] << 8 * i;
+      for (let i = 0; i < 3; i++) if (cmd & 16 << i) copyLen |= delta[pos++] << 8 * i;
+      if (copyLen === 0) copyLen = 65536;
+      chunks.push(base13.subarray(copyOff, copyOff + copyLen));
+      outLen += copyLen;
+    } else if (cmd !== 0) {
+      chunks.push(delta.subarray(pos, pos + cmd));
+      outLen += cmd;
+      pos += cmd;
+    } else {
+      throw new Error("delta cmd 0 is reserved");
+    }
+  }
+  if (outLen !== outSize) throw new Error(`delta result size mismatch: ${outLen} vs ${outSize}`);
+  const out = new Uint8Array(outLen);
+  let off = 0;
+  for (const c of chunks) {
+    out.set(c, off);
+    off += c.length;
+  }
+  return out;
+}
+function parseRefsFileTree(files) {
+  const refs = /* @__PURE__ */ new Map();
+  for (const [path, bytes] of files) {
+    if (!path.startsWith("refs/")) continue;
+    const sha8 = textDecoder13.decode(bytes).trim();
+    if (/^[0-9a-f]{40}$/.test(sha8)) refs.set(path, sha8);
+  }
+  const packed = files.get("packed-refs");
+  if (packed) {
+    for (const line of textDecoder13.decode(packed).split("\n")) {
+      if (!line || line.startsWith("#") || line.startsWith("^")) continue;
+      const sp = line.indexOf(" ");
+      if (sp > 0) {
+        const sha8 = line.slice(0, sp).trim();
+        const name15 = line.slice(sp + 1).trim();
+        if (/^[0-9a-f]{40}$/.test(sha8) && !refs.has(name15)) refs.set(name15, sha8);
+      }
+    }
+  }
+  return refs;
+}
+function parseTree(data) {
+  const entries = [];
+  let pos = 0;
+  while (pos < data.length) {
+    const sp = data.indexOf(32, pos);
+    const mode = textDecoder13.decode(data.subarray(pos, sp));
+    const nul = data.indexOf(0, sp + 1);
+    const name15 = textDecoder13.decode(data.subarray(sp + 1, nul));
+    const sha8 = hex2(data.subarray(nul + 1, nul + 21));
+    const type = mode === "40000" || mode === "040000" ? "tree" : mode === "160000" ? "commit" : "blob";
+    entries.push({ mode, type, sha: sha8, name: name15 });
+    pos = nul + 21;
+  }
+  return entries;
+}
+var GitStore = class {
+  constructor(files) {
+    this.files = files;
+    this.packs = [];
+    this.looseCache = /* @__PURE__ */ new Map();
+    for (const [path] of files) {
+      if (path.endsWith(".idx")) {
+        const packBytes = files.get(`${path.slice(0, -4)}.pack`);
+        if (packBytes) this.packs.push({ idx: parsePackIdx(files.get(path)), pack: packBytes });
+      }
+    }
+  }
+  readRaw(sha8) {
+    if (!/^[0-9a-f]{40}$/.test(sha8)) throw new Error(`not a sha1: ${sha8}`);
+    if (this.looseCache.has(sha8)) return this.looseCache.get(sha8);
+    const loose = this.files.get(`objects/${sha8.slice(0, 2)}/${sha8.slice(2)}`);
+    let result2 = null;
+    if (loose) {
+      result2 = parseLooseObject(loose);
+    } else {
+      for (const p of this.packs) {
+        const offset = p.idx.offsetOf.get(sha8);
+        if (offset !== void 0) {
+          result2 = readPackObject(p.pack, offset, p.idx);
+          break;
+        }
+      }
+    }
+    this.looseCache.set(sha8, result2);
+    return result2;
+  }
+  // { head: { ref, sha }, refs: [{ name, sha }], detached: bool }
+  refs() {
+    const headBytes = this.files.get("HEAD");
+    if (!headBytes) throw new Error("not a git repo: HEAD missing");
+    const headText = textDecoder13.decode(headBytes).trim();
+    let headRef = null;
+    let headSha = null;
+    if (headText.startsWith("ref:")) {
+      headRef = headText.slice(4).trim();
+      headSha = this.resolveRef(headRef);
+    } else if (/^[0-9a-f]{40}$/.test(headText)) {
+      headSha = headText;
+    }
+    const refs = [...parseRefsFileTree(this.files)].map(([name15, sha8]) => ({ name: name15, sha: sha8 })).sort((a, b) => a.name.localeCompare(b.name));
+    return { head: { ref: headRef, sha: headSha }, refs, detached: !headRef };
+  }
+  resolveRef(name15) {
+    const loose = this.files.get(name15);
+    if (loose) {
+      const sha8 = textDecoder13.decode(loose).trim();
+      if (/^[0-9a-f]{40}$/.test(sha8)) return sha8;
+    }
+    const packed = this.files.get("packed-refs");
+    if (packed) {
+      for (const line of textDecoder13.decode(packed).split("\n")) {
+        if (line.endsWith(` ${name15}`)) return line.slice(0, 40);
+      }
+    }
+    return null;
+  }
+  // { type, size, text?, entries? } for commit/tag/tree/blob
+  catFile(sha8) {
+    const raw = this.readRaw(sha8);
+    if (!raw) throw new Error(`object not found: ${sha8}`);
+    const out = { type: raw.type, size: raw.data.length };
+    if (raw.type === "commit" || raw.type === "tag") {
+      out.text = textDecoder13.decode(raw.data);
+    } else if (raw.type === "tree") {
+      out.entries = parseTree(raw.data);
+    } else if (raw.type === "blob") {
+      out.text = textDecoder13.decode(raw.data);
+    }
+    return out;
+  }
+};
+
 // js/ipfs-node.js
-var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "2.4.0" };
+var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "2.5.0" };
 var { repoOwner, repoName } = (() => {
   const host = window.location.hostname;
   const m2 = host.match(/^([^.]+)\.github\.io$/);
@@ -113156,6 +113565,30 @@ async function opGitClone(arg) {
   downloadBytes(zipped, zipName);
   return { fileCount: files.size, zipName, bytes: zipped.length, bareRepo: isBare };
 }
+var gitStores = /* @__PURE__ */ new Map();
+async function gitStoreForCid(cidStr) {
+  const cached = gitStores.get(cidStr);
+  if (cached) return cached;
+  const files = /* @__PURE__ */ new Map();
+  await collectTree(CID2.parse(cidStr), "", files);
+  const store = new GitStore(files);
+  if (gitStores.size > 8) gitStores.delete(gitStores.keys().next().value);
+  gitStores.set(cidStr, store);
+  return store;
+}
+async function opGitRefs(arg) {
+  const cid = String(arg?.cid || "");
+  if (!cid) throw new Error("empty cid");
+  const store = await gitStoreForCid(cid);
+  return store.refs();
+}
+async function opGitCatFile(arg) {
+  const cid = String(arg?.cid || "");
+  const sha8 = String(arg?.sha || arg?.text || "").trim();
+  if (!cid || !sha8) throw new Error("usage: git.catFile <cid> <sha>");
+  const store = await gitStoreForCid(cid);
+  return store.catFile(sha8);
+}
 async function advertiseServe(arg) {
   const libp2p = heliaNode?.libp2p;
   const pubsub = libp2p?.services?.pubsub;
@@ -113479,6 +113912,8 @@ var ops = {
   "services.set": async (a) => opServicesSet(a),
   "git.advertise": advertiseServe,
   "git.clone": opGitClone,
+  "git.refs": opGitRefs,
+  "git.catFile": opGitCatFile,
   "repo.publishAll": opRepoPublishAll,
   "pin.remote.list": opPinRemoteList,
   "pin.remote.add": opPinRemoteAdd,
