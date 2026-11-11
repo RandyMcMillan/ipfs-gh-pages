@@ -2945,6 +2945,47 @@ let pendingIssueAnchor = null;
 const CHAIN_KEY = 'repo-index-chain';
 const LAMPORT_KEY = 'repo-index-lamport';
 
+// Phase 10: the index tip gets its OWN IPNS name (one name holds one
+// value; the branch pointer already uses the repo key — docs/issues-car.md
+// "the index tip, published at an IPNS name"). Same key derivation and
+// localStorage scheme as the branch key, so interop identity adoption
+// (docs/interop.md) carries the index name across surfaces too.
+let ipnsIndexKeyPromise = null;
+function getIpnsIndexKey() {
+  if (!ipnsIndexKeyPromise) {
+    ipnsIndexKeyPromise = (async () => {
+      const storageKey = `ipns-index-key:${repoFullName}`;
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        try {
+          return privateKeyFromRaw(base64ToUint8Array(stored));
+        } catch {}
+      }
+      const key = await generateKeyPair('Ed25519');
+      localStorage.setItem(storageKey, uint8ArrayToBase64(key.raw));
+      return key;
+    })();
+  }
+  return ipnsIndexKeyPromise;
+}
+
+function indexIpnsName() {
+  return getIpnsIndexKey().then((key) => `/ipns/${peerIdFromPrivateKey(key)}`);
+}
+
+// Publish the chain tip to the index IPNS name. Fire-and-forget: IPNS
+// publishing is slow (DHT put) and must never block issue creation.
+function publishIndexTip(tipCid) {
+  if (!heliaNode || !tipCid) return;
+  (async () => {
+    try {
+      const key = await getIpnsIndexKey();
+      await ipns(heliaNode).publish(key, CID.parse(String(tipCid)));
+      window.__indexIpnsLastPublish = Date.now();
+    } catch {}
+  })();
+}
+
 function loadChainTip() {
   try { return JSON.parse(localStorage.getItem(CHAIN_KEY) || 'null'); } catch { return null; }
 }
@@ -2987,6 +3028,7 @@ async function extendChain(addedCids) {
   try {
     localStorage.setItem(CHAIN_KEY, JSON.stringify({ cid, height, lamport, added: addedCids.length }));
   } catch {}
+  publishIndexTip(cid);
   renderChainStatus();
   return cid;
 }
@@ -3006,6 +3048,9 @@ function renderChainStatus() {
   meta.className = 'f6 color-fg-muted';
   meta.style.wordBreak = 'break-all';
   meta.textContent = `Index chain: height ${tip.height} · tip ${tip.cid}`;
+  indexIpnsName().then((name) => {
+    meta.textContent += ` · index name ${name} (resolves while a publisher is online)`;
+  }).catch(() => {});
   const pre = document.createElement('pre');
   pre.style.margin = '0.2rem 0 0 0';
   const code = document.createElement('code');
@@ -3013,6 +3058,68 @@ function renderChainStatus() {
   pre.appendChild(code);
   el.appendChild(meta);
   el.appendChild(pre);
+}
+
+// Phase 10 cross-surface sync (docs/interop.md step 4): resolve our index
+// IPNS name; if a remote tip wins the fork-choice rule (greater height,
+// tie -> greater lamport), adopt it, then walk its `added` note CIDs
+// (bounded) merging fetched issues into the local list so they render.
+// Signature verification happens when an issue is opened.
+async function syncIndexFromIpns() {
+  if (!heliaNode) return;
+  try {
+    const name = await indexIpnsName();
+    const result = await ipns(heliaNode).resolve(name, { timeout: 8000 }).catch(() => null);
+    if (!result) return;
+    const remoteCid = result.value || result.path || result;
+    const remoteStr = remoteCid.toString().replace(/^\/ipfs\//, '');
+    const local = loadChainTip();
+    if (!remoteStr || (local && remoteStr === local.cid)) return;
+    const remoteEntry = await getDagJson(CID.parse(remoteStr));
+    const remoteWins = !local
+      || (Number(remoteEntry.height) || 0) > (local.height || 0)
+      || ((Number(remoteEntry.height) || 0) === (local.height || 0)
+          && (Number(remoteEntry.lamport) || 0) > (local.lamport || 0));
+    if (!remoteWins) return;
+    localStorage.setItem(CHAIN_KEY, JSON.stringify({
+      cid: remoteStr,
+      height: Number(remoteEntry.height) || 0,
+      lamport: Number(remoteEntry.lamport) || 0,
+      added: Array.isArray(remoteEntry.added) ? remoteEntry.added.length : 0
+    }));
+    try {
+      localStorage.setItem(LAMPORT_KEY, String(Number(remoteEntry.lamport) || 0));
+    } catch {}
+
+    // Merge issues referenced by the winning chain (bounded walk back).
+    const issues = loadIssues();
+    const known = new Set(issues.map((i) => i.cid));
+    let cursor = remoteEntry;
+    let walked = 0;
+    while (cursor && walked < 50) {
+      for (const noteCid of cursor.added || []) {
+        if (known.has(noteCid)) continue;
+        try {
+          const note = await getDagJson(CID.parse(noteCid));
+          if (note && note.ns === 'issues' && note.type === 'issue' && note.title) {
+            issues.unshift({ cid: noteCid, title: note.title, timestamp: note.timestamp });
+            known.add(noteCid);
+          }
+        } catch {}
+      }
+      const prev = Array.isArray(cursor.prev) ? cursor.prev[0] : null;
+      if (!prev || known.size > 200) break;
+      try {
+        cursor = await getDagJson(CID.parse(prev));
+      } catch { break; }
+      walked++;
+    }
+    if (walked > 0 || issues.length !== loadIssues().length) {
+      localStorage.setItem(ISSUES_KEY, JSON.stringify(issues.slice(0, 200)));
+    }
+    renderChainStatus();
+    renderIssues();
+  } catch {}
 }
 
 function renderIssues() {
@@ -3256,6 +3363,14 @@ if (issueReplyBtn) {
 }
 renderIssues();
 renderChainStatus();
+// Phase 10: adopt a winning remote index tip (cross-surface issues).
+// Runs once the Helia node is up; resolves quietly when offline.
+const syncIndexWhenReady = setInterval(() => {
+  if (window.__heliaNode) {
+    clearInterval(syncIndexWhenReady);
+    syncIndexFromIpns();
+  }
+}, 2000);
 
 // DESIGN IDIOM — single-click copy (keep this pattern; see the matching
 // block in index.html's CSS): EVERY command displayed anywhere on the page
