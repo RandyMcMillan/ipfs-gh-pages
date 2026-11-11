@@ -89,10 +89,13 @@ configuration and needs no public instance at all.
    pin, URL→CID JSON cache. Tests `tests/rehost-service.test.mjs` (9):
    fixture origin, byte-identical round trip, every rejection class,
    cache, HMAC. Run: `PORT=8081 node scripts/rehost-service.mjs`.
-2. **`js/rehost.js` + renderer wiring** — `rehostAndRewrite(imgUrl)`
-   with localStorage cache; used by the markdown renderer when the
-   image policy is "rehost"; graceful fallback to the policy's other
-   mode on failure.
+2. ~~**`js/rehost.js`**~~ SHIPPED (module): `shouldRehost` (plain remote
+   http(s) only — ipfs://, data:, and relative URLs are already
+   content-addressed/inline/local), `rehostedSrc` (gateway form for src),
+   `rehostAndRewrite` (POST → `{cid, src, ipfsUri}` or null on any
+   failure — the caller falls back), injectable fetch/cache, unit-tested
+   (tests/rehost.test.mjs, 5). The renderer wiring itself lands with the
+   markdown image-policy decision.
 3. **Tier 2** — `rehost` op in the rust interop server (rust fetches,
    the bridge adds), so the desktop app is a self-contained rehoster.
 4. **Index on the issues chain** — `rehost` notes, signed, synced via
