@@ -1,11 +1,13 @@
 // The one e2e test flow used by CI, the published action, and local runs:
 // ensure Chrome (CHROME_PATH), start the dev server unless TEST_URL points
-// elsewhere, run the full suite, tear down. A global timeout turns a wedged
-// suite into a failure instead of a hung job. A server already answering on
-// the port is reused, not replaced. The global timeout is a backstop above
-// the sum of every suite's bounded waits (~18 min worst case): healthy cold
-// CI runs take well under it, and a true hang (previously 55+ min) is caught.
+// elsewhere, run the full suite, tear down. Suites run as individual
+// spawns with per-suite timeouts so a wedged suite fails WITH ITS NAME in
+// the log (the old single-chain run only died at the global watchdog —
+// exit 124, no evidence). A server already answering on the port is
+// reused, not replaced. The global timeout remains as a backstop above
+// the sum of every suite's bounded waits.
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
 import { ensureChrome } from './ci-chrome.mjs';
 
 const HOST = process.env.E2E_HOST || '127.0.0.1';
@@ -13,6 +15,13 @@ const PORT = Number(process.env.E2E_PORT || 5173);
 const BASE = `http://${HOST}:${PORT}`;
 const READY_TIMEOUT_MS = Number(process.env.E2E_READY_TIMEOUT_MS || 60000);
 const GLOBAL_TIMEOUT_MS = Number(process.env.E2E_TIMEOUT_MS || 35 * 60 * 1000);
+const UNIT_TIMEOUT_MS = Number(process.env.E2E_UNIT_TIMEOUT_MS || 3 * 60 * 1000);
+const CDP_TIMEOUT_MS = Number(process.env.E2E_CDP_TIMEOUT_MS || 8 * 60 * 1000);
+
+// The suite list mirrors package.json's test:all — parsed from it, never
+// duplicated, so the two can never drift.
+const PKG = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url)));
+const SUITES = PKG.scripts['test:all'].split('&&').map((s) => s.trim()).filter(Boolean);
 
 function killTree(pid) {
   try { process.kill(-pid, 'SIGKILL'); } catch {}
@@ -58,16 +67,37 @@ if (!process.env.TEST_URL) {
 const env = { ...process.env, CHROME_PATH: chromePath };
 if (!env.TEST_URL) env.TEST_URL = BASE;
 
-const tests = spawn('npm', ['run', 'test:all'], { stdio: 'inherit', detached: true, env });
+function runSuite(cmd, timeoutMs) {
+  return new Promise((resolve) => {
+    console.log(`[test:ci] suite start (max ${Math.round(timeoutMs / 1000)}s): ${cmd}`);
+    const child = spawn(cmd, { shell: true, stdio: 'inherit', detached: true, env });
+    const timer = setTimeout(() => {
+      console.error(`[test:ci] SUITE TIMED OUT after ${timeoutMs}ms — killing: ${cmd}`);
+      killTree(child.pid);
+      resolve(124);
+    }, timeoutMs);
+    child.on('exit', (code) => {
+      clearTimeout(timer);
+      resolve(code ?? 1);
+    });
+  });
+}
+
 const watchdog = setTimeout(() => {
   console.error(`[test:ci] global timeout ${GLOBAL_TIMEOUT_MS}ms exceeded — killing the suite`);
-  killTree(tests.pid);
   if (serverProc && !serverReused) killTree(serverProc.pid);
   process.exit(124);
 }, GLOBAL_TIMEOUT_MS);
 
-tests.on('exit', (code) => {
-  clearTimeout(watchdog);
-  if (serverProc && !serverReused) killTree(serverProc.pid);
-  process.exit(code ?? 1);
-});
+let exitCode = 0;
+for (const cmd of SUITES) {
+  const timeoutMs = cmd.includes('cdp-') ? CDP_TIMEOUT_MS : UNIT_TIMEOUT_MS;
+  const code = await runSuite(cmd, timeoutMs);
+  if (code !== 0) {
+    exitCode = code;
+    break;
+  }
+}
+clearTimeout(watchdog);
+if (serverProc && !serverReused) killTree(serverProc.pid);
+process.exit(exitCode);
