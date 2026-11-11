@@ -7,7 +7,13 @@
 // "Virtual submodule support" block in vite.config.js's repoFilesPlugin).
 // This script's per-submodule CARs are a transport convenience for
 // `ipfs dag import` on Kubo; the app's file set comes only from the plugin.
-// Usage: node scripts/build-car.mjs [outDir]   (default: <repo>/dist)
+// Usage: node scripts/build-car.mjs [outDir] [--index-tip <cid> ...]
+//   (outDir default: <repo>/dist)
+// --index-tip (repeatable) or INDEX_TIPS=<cid,cid> bundles the issues
+// tracker (docs/issues-car.md phase 6): the index DAG + all reachable
+// notes/comments are merged into dist/ipfs-gh-pages.car, whose roots then
+// are the repo root PLUS each index tip. Without a tip the CAR is repo-only,
+// exactly as before.
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
@@ -15,6 +21,8 @@ import { createHelia } from 'helia';
 import { unixfs } from '@helia/unixfs';
 import { car } from '@helia/car';
 import { CarWriter } from '@ipld/car/writer';
+import { CID } from 'multiformats/cid';
+import { collectIndexBlocks } from './index-walk.mjs';
 
 // helia/@ipld/car use Promise.withResolvers (Node 22+); CI builds on Node 20.
 if (typeof Promise.withResolvers !== 'function') {
@@ -26,7 +34,55 @@ if (typeof Promise.withResolvers !== 'function') {
 }
 
 const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
-const outDir = path.resolve(process.env.OUT_DIR || process.argv[2] || path.join(root, 'dist'));
+
+// Positional args: [outDir] plus --index-tip <cid> (repeatable). --index-tip
+// also falls back to INDEX_TIPS=<cid,cid>. Values stay strings until the walk
+// parses them.
+const positionalArgs = [];
+const indexTips = [];
+{
+  const argv = process.argv.slice(2);
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === '--index-tip' && argv[i + 1]) { indexTips.push(argv[i + 1]); i++; }
+    else if (!argv[i].startsWith('--')) positionalArgs.push(argv[i]);
+  }
+  if (indexTips.length === 0 && process.env.INDEX_TIPS) {
+    indexTips.push(...process.env.INDEX_TIPS.split(',').map((s) => s.trim()).filter(Boolean));
+  }
+}
+const outDir = path.resolve(process.env.OUT_DIR || positionalArgs[0] || path.join(root, 'dist'));
+const parsedIndexTips = indexTips.map((t) => {
+  try { return CID.parse(t); } catch { console.warn(`Ignoring unparsable --index-tip: ${t}`); return null; }
+}).filter(Boolean);
+
+// Block sources for the index walk, in resolution order
+// (docs/optional-services.md): the local Kubo RPC first — the app hands users
+// `ipfs pin add <tip>`, so a release build on the maintainer's machine finds
+// everything pinned there — then trustless gateways. Best effort: an
+// unreachable source is skipped, never fatal.
+const KUBO_RPC = (process.env.KUBO_RPC || 'http://127.0.0.1:5001').replace(/\/$/, '');
+const INDEX_GATEWAYS = (process.env.INDEX_GATEWAYS || 'https://ipfs.io')
+  .split(',').map((s) => s.trim()).filter(Boolean);
+
+async function fetchBlockKubo(cid) {
+  const res = await fetch(`${KUBO_RPC}/api/v0/block/get?arg=${cid}`, { method: 'POST', signal: AbortSignal.timeout(5000) });
+  if (!res.ok) return null;
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+async function fetchBlockGateway(gateway, cid) {
+  const res = await fetch(`${gateway}/ipfs/${cid}?format=raw`, { signal: AbortSignal.timeout(10000) });
+  if (!res.ok) return null;
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+async function fetchIndexBlock(cid) {
+  try { const bytes = await fetchBlockKubo(cid); if (bytes) return bytes; } catch {}
+  for (const gateway of INDEX_GATEWAYS) {
+    try { const bytes = await fetchBlockGateway(gateway, cid); if (bytes) return bytes; } catch {}
+  }
+  return null;
+}
 
 function listFiles(dir) {
   let files = [];
@@ -52,13 +108,14 @@ function listFiles(dir) {
     .map((f) => ({ path: f, content: new Uint8Array(fs.readFileSync(path.join(dir, f))) }));
 }
 
-async function exportCar(helia, rootCid) {
-  const { writer, out } = await CarWriter.create([rootCid]);
+async function exportCar(helia, roots) {
+  const rootArray = Array.isArray(roots) ? roots : [roots];
+  const { writer, out } = await CarWriter.create(rootArray);
   const chunks = [];
   const collect = (async () => {
     for await (const chunk of out) chunks.push(chunk);
   })();
-  await car(helia).export(rootCid, writer);
+  await car(helia).export(rootArray, writer);
   await collect;
   const total = chunks.reduce((n, c) => n + c.length, 0);
   const bytes = new Uint8Array(total);
@@ -73,13 +130,13 @@ async function exportCar(helia, rootCid) {
 const helia = await createHelia();
 const heliaUnixfs = unixfs(helia);
 
-async function buildCar(dir, outFile) {
+async function buildCar(dir, outFile, extraRoots = []) {
   const candidates = listFiles(dir);
   let rootCid = null;
   for await (const entry of heliaUnixfs.addAll(candidates, { wrapWithDirectory: true })) {
     rootCid = entry.cid;
   }
-  const bytes = await exportCar(helia, rootCid);
+  const bytes = await exportCar(helia, [rootCid, ...extraRoots]);
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   fs.writeFileSync(outFile, bytes);
   console.log(`Wrote ${outFile} (${(bytes.length / 1024).toFixed(1)} kB, ${candidates.length} files)`);
@@ -87,8 +144,27 @@ async function buildCar(dir, outFile) {
   return rootCid;
 }
 
-// Main repo CAR.
-const mainRoot = await buildCar(root, path.join(outDir, 'ipfs-gh-pages.car'));
+// Main repo CAR. With index tips the CAR also carries the issues tracker
+// (docs/issues-car.md phase 6): walk each tip's chain + notes into the
+// blockstore, then export with roots = repo root + tips. A tip whose DAG
+// did not fully resolve is not added as a root (export traversal would
+// fail) — its resolved blocks are still bundled.
+const bundledTips = [];
+if (parsedIndexTips.length > 0) {
+  let staged = 0;
+  for (const tip of parsedIndexTips) {
+    const walk = await collectIndexBlocks(helia, [tip], fetchIndexBlock);
+    staged += walk.collected;
+    if (walk.missing.length > 0) {
+      console.warn(`Index tip ${tip}: ${walk.missing.length} block(s) unresolved, not a CAR root:`);
+      for (const m of walk.missing) console.warn(`  ${m}`);
+    } else {
+      bundledTips.push(tip);
+    }
+  }
+  console.log(`Issues index: ${staged} block(s) staged, ${bundledTips.length}/${parsedIndexTips.length} tip(s) rooted`);
+}
+const mainRoot = await buildCar(root, path.join(outDir, 'ipfs-gh-pages.car'), bundledTips);
 console.log('Seed it on any Kubo:');
 console.log('ipfs dag import --pin ipfs-gh-pages.car');
 
