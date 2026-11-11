@@ -1,0 +1,47 @@
+name: Deployed page interop smoke
+
+# Post-deploy smoke: two isolated browser nodes on the DEPLOYED Pages URL
+# must discover each other over repo-gossip (the interop signal), and the
+# local-service probe must fail gracefully when no app listens on :5050.
+
+on:
+  workflow_run:
+    workflows: ["Deploy Helia App to GitHub Pages"]
+    types: [completed]
+  workflow_dispatch:
+  schedule:
+    # Every 6 hours at :37 — catches Pages/content drift between releases.
+    - cron: '37 */6 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  interop:
+    # Only smoke the deployed page when the deploy actually succeeded.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/test-setup
+
+      - name: Run deployed interop smoke
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          REPO="${GITHUB_REPOSITORY#*/}"
+          TEST_URL="https://${OWNER}.github.io/${REPO}/"
+          echo "Smoking ${TEST_URL}"
+          for attempt in 1 2 3; do
+            echo "== attempt ${attempt} =="
+            if node tests/cdp-deployed-interop.mjs; then
+              exit 0
+            fi
+          done
+          echo "deployed interop smoke failed after 3 attempts" >&2
+          exit 1
