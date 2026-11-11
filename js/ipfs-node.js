@@ -729,6 +729,85 @@ async function opRepoPublishAll() {
   };
 }
 
+// Pinning services resolution (docs/ipfs-uri-providers.md): registry
+// pinning entries may be bare endpoint URLs or {endpoint, token} objects
+// (Pinning Services API uses Bearer auth).
+function resolvePinningServices() {
+  const out = [];
+  for (const svc of loadServices()) {
+    for (const p of svc.pinning || []) {
+      if (typeof p === 'string') {
+        out.push({ service: svc.name || '(unnamed)', endpoint: p, token: null });
+      } else if (p && typeof p.endpoint === 'string') {
+        out.push({ service: svc.name || '(unnamed)', endpoint: p.endpoint, token: p.token || null });
+      }
+    }
+  }
+  return out;
+}
+
+async function pinningRequest(svc, path, init = {}) {
+  const headers = { ...(init.headers || {}) };
+  if (svc.token) headers.authorization = `Bearer ${svc.token}`;
+  const res = await fetch(`${svc.endpoint}${path}`, { ...init, headers });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`${svc.service}: HTTP ${res.status}: ${text}`);
+  return text;
+}
+
+async function opPinRemoteList() {
+  const services = resolvePinningServices();
+  if (!services.length) throw new Error('no pinning services configured — :services [{...,"pinning":[...]}]');
+  const results = [];
+  for (const svc of services) {
+    try {
+      results.push({ service: svc.service, pins: await pinningRequest(svc, '/pins') });
+    } catch (err) {
+      results.push({ service: svc.service, error: String(err.message || err) });
+    }
+  }
+  return { results };
+}
+
+async function opPinRemoteAdd(arg) {
+  const cid = String(arg?.cid || '');
+  if (!cid) throw new Error('empty cid');
+  const services = resolvePinningServices();
+  if (!services.length) throw new Error('no pinning services configured');
+  const body = JSON.stringify({ cid, name: arg?.text || undefined });
+  const results = [];
+  for (const svc of services) {
+    try {
+      results.push({ service: svc.service, result: await pinningRequest(svc, '/pins', { method: 'POST', headers: { 'content-type': 'application/json' }, body }) });
+    } catch (err) {
+      results.push({ service: svc.service, error: String(err.message || err) });
+    }
+  }
+  return { cid, results };
+}
+
+async function opIdentityExport() {
+  const key = await getIpnsBranchKey();
+  return {
+    repo: repoFullName,
+    peerId: peerIdFromPrivateKey(key).toString(),
+    publicKey: uint8ArrayToBase64(publicKeyToProtobuf(key.publicKey)),
+    key: uint8ArrayToBase64(key.raw)
+  };
+}
+
+// Import a base64 Ed25519 raw key (the 'key' field of an identity.export
+// bundle or the interop well-known payload) as this surface's identity.
+async function opIdentityImport(arg) {
+  const b64 = String(arg?.text || arg?.key || '').trim();
+  if (!b64) throw new Error('empty key — pass the base64 key');
+  privateKeyFromRaw(base64ToUint8Array(b64)); // validates before storing
+  localStorage.setItem(`ipns-branch-key:${repoFullName}`, b64);
+  ipnsBranchKeyPromise = null; // force re-read
+  const key = await getIpnsBranchKey();
+  return { imported: peerIdFromPrivateKey(key).toString() };
+}
+
 const ops = {
   refresh: async () => { refreshNodeState(); return state.node; },
   fetch: opFetch,
@@ -748,7 +827,11 @@ const ops = {
   'services.set': async (a) => opServicesSet(a),
   'git.advertise': advertiseServe,
   'git.clone': opGitClone,
-  'repo.publishAll': opRepoPublishAll
+  'repo.publishAll': opRepoPublishAll,
+  'pin.remote.list': opPinRemoteList,
+  'pin.remote.add': opPinRemoteAdd,
+  'identity.export': opIdentityExport,
+  'identity.import': opIdentityImport
 };
 
 // ---- command channel (Rust -> JS) --------------------------------------------

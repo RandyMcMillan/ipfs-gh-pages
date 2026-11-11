@@ -966,6 +966,38 @@ function getIpnsBranchKey() {
   return ipnsBranchKeyPromise;
 }
 
+// Interop probe (docs/interop.md): the rust app serves its bridge's
+// identity bundle on the fixed loopback port 5050. Loopback fetch from an
+// https page is not mixed-content-blocked, so the Pages deployment can
+// reach it. Silent adopt when this origin has no key yet; when keys
+// differ, expose the bundle as window.__pendingIdentityAdoption for the
+// UI instead of deciding for the user.
+async function probeInteropIdentity() {
+  try {
+    const res = await fetch('http://127.0.0.1:5050/well-known/identity');
+    if (!res.ok) return;
+    const bundle = await res.json();
+    if (!bundle || typeof bundle.key !== 'string' || !bundle.key) return;
+    const storageKey = `ipns-branch-key:${repoFullName}`;
+    if (!localStorage.getItem(storageKey)) {
+      localStorage.setItem(storageKey, bundle.key);
+      ipnsBranchKeyPromise = null; // re-read on next getIpnsBranchKey()
+      window.__identityAdopted = bundle.peerId || null;
+      console.log(`interop: adopted local identity ${bundle.peerId}`);
+      return;
+    }
+    if (bundle.peerId) {
+      const localKey = await getIpnsBranchKey();
+      if (peerIdFromPrivateKey(localKey).toString() !== bundle.peerId) {
+        window.__pendingIdentityAdoption = bundle;
+        console.log('interop: local identity differs; see window.__pendingIdentityAdoption');
+      }
+    }
+  } catch {
+    // no local rust app running — the normal case for most visitors
+  }
+}
+
 async function publishBranchPointer(rootCid) {
 
   const field = document.getElementById('code-ipns-field');
@@ -1114,6 +1146,11 @@ async function initHelia() {
     }
 
     const peerId = heliaNode.libp2p.peerId.toString();
+
+    // Interop (docs/interop.md): if the local rust app publishes an
+    // identity on 127.0.0.1:5050, adopt it when we have no key yet, or
+    // surface it for the UI when it differs from ours.
+    probeInteropIdentity();
 
     statusEl.textContent = 'Online & Connected to Peer-to-Peer Network';
     peerIdEl.textContent = peerId;
