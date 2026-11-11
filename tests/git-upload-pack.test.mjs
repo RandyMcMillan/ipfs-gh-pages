@@ -25,7 +25,7 @@ const git = (args, cwd, opts = {}) =>
     'git',
     ['-c', 'maintenance.auto=false', '-c', 'gc.auto=0', ...args],
     { cwd, encoding: 'utf8', env: { ...process.env, GIT_TERMINAL_PROMPT: '0' }, ...opts }
-  );
+  ).trim();
 
 const src = fs.mkdtempSync(path.join(os.tmpdir(), 'upk-src-'));
 const cloneDest = path.join(os.tmpdir(), `upk-clone-${Date.now()}`);
@@ -44,6 +44,10 @@ git(['add', '.'], src);
 git(['commit', '-q', '-m', 'two'], src);
 git(['tag', '-a', '-m', 'v1', 'v1'], src);
 git(['branch', 'side'], src);
+// A git note on the first commit (docs/issues-car.md: the annotation
+// layer is notes-shaped) — refs/notes/commits must advertise, fetch, and
+// resolve through our machinery.
+git(['notes', 'add', '-m', 'reviewed by test', 'HEAD~1'], src);
 
 let store = buildStore();
 
@@ -119,6 +123,33 @@ test('real git clone through our upload-pack', async () => {
     git(['rev-parse', 'origin/side'], cloneDest),
     git(['rev-parse', 'side'], src),
     'branch fetched as remote-tracking ref'
+  );
+  // The notes ref is advertised (fetching it is the next test — clone
+  // itself only maps branches/tags by default).
+  const advertised = store.refs();
+  assert.ok(
+    advertised.refs.some((r) => r.name === 'refs/notes/commits'),
+    'refs/notes/commits advertised'
+  );
+});
+
+test('git notes fetch through our upload-pack; note resolves in the clone', async () => {
+  const firstCommit = git(['rev-parse', 'HEAD~1'], src);
+  // Notes refs are outside the default clone refspec — fetch explicitly.
+  await execFileP(
+    'git',
+    ['-c', 'maintenance.auto=false', '-c', 'gc.auto=0', 'fetch', '-q', 'origin',
+     'refs/notes/commits:refs/notes/commits'],
+    { cwd: cloneDest, encoding: 'utf8', env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } }
+  );
+  git(['fsck', '--strict'], cloneDest);
+  const note = git(['notes', 'show', firstCommit], cloneDest);
+  assert.equal(note.trim(), 'reviewed by test', 'note content round-trips');
+  // The notes machinery agrees with the source.
+  assert.equal(
+    git(['notes', 'show', firstCommit], src).trim(),
+    note.trim(),
+    'note matches source'
   );
 });
 
