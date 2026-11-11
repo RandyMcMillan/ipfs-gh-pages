@@ -157,14 +157,23 @@ async function refreshRepoMetadata() {
   }
   try {
     const headers = { accept: 'application/vnd.github+json' };
-    const [repoRes, langRes] = await Promise.all([
+    const [repoRes, langRes, branchRes] = await Promise.all([
       fetch(`https://api.github.com/repos/${repoFullName}`, { headers }),
-      fetch(`https://api.github.com/repos/${repoFullName}/languages`, { headers })
+      fetch(`https://api.github.com/repos/${repoFullName}/languages`, { headers }),
+      // Exact branch count in one tiny request: per_page=1 + the Link
+      // header's last page (no Link → the array itself is 0 or 1).
+      fetch(`https://api.github.com/repos/${repoFullName}/branches?per_page=1`, { headers })
     ]);
     if (!repoRes.ok) return;
     const repo = await repoRes.json();
     const languages = langRes.ok ? await langRes.json() : null;
-    const meta = { fetchedAt: Date.now(), repo, languages };
+    let branches = null;
+    if (branchRes.ok) {
+      const link = branchRes.headers.get('link');
+      const last = link && link.match(/[?&]page=(\d+)>;\s*rel="last"/);
+      branches = last ? parseInt(last[1], 10) : (await branchRes.json()).length;
+    }
+    const meta = { fetchedAt: Date.now(), repo, languages, branches };
     try { localStorage.setItem(cacheKey, JSON.stringify(meta)); } catch (e) {}
     applyRepoMetadata(meta);
   } catch (e) {
@@ -181,6 +190,10 @@ function applyRepoMetadata(meta) {
   setCount('gh-watch-count', repo.subscribers_count);
   setCount('gh-fork-count', repo.forks_count);
   setCount('gh-star-count', repo.stargazers_count);
+  if (typeof meta.branches === 'number') {
+    const el = document.getElementById('gh-branches-count');
+    if (el) el.textContent = `${meta.branches} Branch${meta.branches === 1 ? '' : 'es'}`;
+  }
 
   if (repo.description) {
     const desc = document.getElementById('about-description');

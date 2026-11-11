@@ -149,6 +149,12 @@ vlog('Checking metadata wiring...');
 await new Promise((r) => setTimeout(r, 3000));
 check('star counter wired', (await evalJson(`document.getElementById('gh-star-count')?.textContent`)) !== undefined);
 check('language bar wired', (await evalJson(`document.querySelectorAll('#lang-bar span').length`)) >= 1);
+// Branch count is a live value, never hardcoded (any-repo plugin): when
+// the API answers, the element shows "N Branch(es)"; offline it stays the
+// neutral "Branches" fallback — never a fake count.
+const branchesText = await evalJson(`document.getElementById('gh-branches-count')?.textContent || ''`);
+check('branches count is a live value or neutral fallback',
+  /^(\d+ Branch(es)?|Branches)$/.test(branchesText.trim()), branchesText);
 
 // Objective-2 mapping: reference table and Kubo chips render with live values.
 vlog('Checking IPFS ↔ Kubo mapping...');
