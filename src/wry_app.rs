@@ -34,6 +34,7 @@ use tao::{
     keyboard::{Key, ModifiersState},
     window::{Window, WindowBuilder},
 };
+use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 #[cfg(any(
     target_os = "linux",
     target_os = "dragonfly",
@@ -75,16 +76,19 @@ pub fn run(cli: &Cli) -> Result<(), Box<dyn Error>> {
     let quit_item = MenuItem::new(
         "Quit",
         true,
-        Some(Accelerator::new(Some(CMD_OR_CTRL), Code::KeyQ)),
+        Some(Accelerator::new(CMD_OR_CTRL, Code::KeyQ)),
     );
     app_menu
         .append_items(&[&about_item, &PredefinedMenuItem::separator(), &quit_item])
         .unwrap();
     menu_bar.append(&app_menu).unwrap();
 
-    let window = WindowBuilder::new()
-        .with_title("ipfs-gh-pages")
-        .build(&event_loop)?;
+    let mut window_builder = WindowBuilder::new().with_title("ipfs-gh-pages");
+    if cli.systray {
+        // Start hidden; the tray icon is the entry point.
+        window_builder = window_builder.with_visible(false);
+    }
+    let window = window_builder.build(&event_loop)?;
 
     #[cfg(target_os = "windows")]
     unsafe {
@@ -111,8 +115,32 @@ pub fn run(cli: &Cli) -> Result<(), Box<dyn Error>> {
         .with_url(&app_source.url)
         .build(&window)?;
 
+    // System tray: dedicated items (Show / Quit) that reuse the existing
+    // MenuEvent handler. The TrayIcon must stay alive — it is moved into
+    // the event loop closure.
+    let tray_show_item = MenuItem::new("Show ipfs-gh-pages", true, None);
+    let tray_quit_item = MenuItem::new("Quit", true, None);
+    let _tray: Option<TrayIcon> = if cli.systray {
+        let tray_menu = Menu::new();
+        tray_menu.append_items(&[
+            &tray_show_item,
+            &PredefinedMenuItem::separator(),
+            &tray_quit_item,
+        ])?;
+        Some(
+            TrayIconBuilder::new()
+                .with_menu(Box::new(tray_menu))
+                .with_tooltip("ipfs-gh-pages")
+                .with_icon(tray_icon()?)
+                .build()?,
+        )
+    } else {
+        None
+    };
+
     let mut modifiers = ModifiersState::default();
     let mut about_window: Option<(Window, WebView)> = None;
+    let systray_mode = cli.systray;
 
     event_loop.run(move |event, window_target, control_flow| {
         *control_flow = ControlFlow::Wait;
@@ -142,6 +170,9 @@ pub fn run(cli: &Cli) -> Result<(), Box<dyn Error>> {
                     .is_some_and(|(window, _)| window.id() == window_id)
                 {
                     about_window = None; // dropping the webview+window closes it
+                } else if systray_mode {
+                    // Hide to the tray; the app keeps running and serving.
+                    window.set_visible(false);
                 } else {
                     stop_server(&app_source.server, control_flow);
                 }
@@ -154,13 +185,23 @@ pub fn run(cli: &Cli) -> Result<(), Box<dyn Error>> {
                             Err(err) => eprintln!("failed to open About window: {err}"),
                         }
                     }
-                } else if event.id() == quit_item.id() {
+                } else if event.id() == quit_item.id() || event.id() == tray_quit_item.id() {
                     stop_server(&app_source.server, control_flow);
+                } else if event.id() == tray_show_item.id() {
+                    window.set_visible(true);
+                    window.set_focus();
                 }
             }
             _ => {}
         }
     });
+}
+
+fn tray_icon() -> Result<Icon, Box<dyn Error>> {
+    let img = image::load_from_memory(include_bytes!("../icons/icon.png"))?;
+    let rgba = img.to_rgba8();
+    let (width, height) = rgba.dimensions();
+    Ok(Icon::from_rgba(rgba.into_raw(), width, height)?)
 }
 
 // macOS-style About panel: small fixed window, wry webview rendering

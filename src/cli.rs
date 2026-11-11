@@ -39,4 +39,9 @@ pub struct Cli {
     /// envelopes so peers know which working tree a node serves
     #[arg(long, value_name = "PATH")]
     pub repo: Option<String>,
+
+    /// Start hidden as a system tray icon (window close hides to tray;
+    /// quit from the tray or the Quit menu item / Ctrl+C / Cmd+Q)
+    #[arg(long)]
+    pub systray: bool,
 }
