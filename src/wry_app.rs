@@ -123,9 +123,29 @@ pub fn run(cli: &Cli) -> Result<(), Box<dyn Error>> {
         menu_bar.init_for_nsapp();
     }
 
-    let _webview = create_webview(&window)?
-        .with_url(&app_source.url)
-        .build(&window)?;
+    let webview_builder = create_webview(&window)?.with_url(&app_source.url);
+    // wry 0.55: the webview attaches to the tao window's GTK vbox on unix
+    // (WebViewBuilderExtUnix::build_gtk — proper embedding + resize, works
+    // on Wayland); elsewhere the generic HasWindowHandle build covers it.
+    #[cfg(any(
+        target_os = "linux",
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "openbsd",
+        target_os = "netbsd"
+    ))]
+    let _webview = {
+        use wry::WebViewBuilderExtUnix;
+        webview_builder.build_gtk(window.default_vbox().unwrap())?
+    };
+    #[cfg(not(any(
+        target_os = "linux",
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "openbsd",
+        target_os = "netbsd"
+    )))]
+    let _webview = webview_builder.build(&window)?;
 
     // System tray: dedicated items (Show / Quit) that reuse the existing
     // MenuEvent handler. The TrayIcon must stay alive — it is moved into
@@ -750,24 +770,10 @@ fn write_response(
     Ok(())
 }
 
-#[cfg(any(
-    target_os = "linux",
-    target_os = "dragonfly",
-    target_os = "freebsd",
-    target_os = "openbsd",
-    target_os = "netbsd"
-))]
-fn create_webview(_window: &Window) -> Result<wry::WebViewBuilder<'_>, wry::Error> {
-    Ok(WebViewBuilder::new_gtk(window.default_vbox().unwrap()))
-}
-
-#[cfg(not(any(
-    target_os = "linux",
-    target_os = "dragonfly",
-    target_os = "freebsd",
-    target_os = "openbsd",
-    target_os = "netbsd"
-)))]
+// wry 0.55: one constructor on every platform — WebViewBuilder::new().
+// (The old WebViewBuilder::new_gtk(vbox) constructor is gone; unix
+// attachment moved to WebViewBuilderExtUnix::build_gtk at build time,
+// which the call site does per-platform.)
 fn create_webview(_window: &Window) -> Result<wry::WebViewBuilder<'_>, wry::Error> {
     Ok(WebViewBuilder::new())
 }
