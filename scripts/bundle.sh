@@ -6,13 +6,15 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 usage() {
   cat <<'EOF'
-Usage: scripts/bundle.sh [--build] [--run] [--test] [--install [PATH]]
+Usage: scripts/bundle.sh [--build] [--run] [--test] [--install [PATH]] [-- <app args>...]
 
 Builds the macOS app bundle for ipfs-gh-pages.
 --run opens the bundled macOS app.
 --test opens the bundled macOS app, curls the bundled index.html, and verifies the HTML.
 --install copies the .app to PATH (default: /Applications, or ~/Applications
   if /Applications is not writable). Builds first if the bundle is missing.
+Anything after -- is passed to the app binary (e.g. -- --systray). When args
+are present the binary is launched directly (open(1) cannot forward them).
 EOF
 }
 
@@ -21,6 +23,7 @@ run=false
 test=false
 install=false
 install_path=""
+forward_args=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -49,6 +52,12 @@ while [[ $# -gt 0 ]]; do
       install=true
       install_path="${1#*=}"
       shift
+      ;;
+    --)
+      # Everything after -- is forwarded to the app binary.
+      shift
+      forward_args+=("$@")
+      break
       ;;
     -h|--help)
       usage
@@ -98,13 +107,23 @@ ensure_bundle() {
 
 run_bundle() {
   local app_path
+  local binary
+
   app_path="$(bundle_app_path)"
   if [[ -z "$app_path" ]]; then
     echo "Missing bundled app; run scripts/bundle.sh --build first." >&2
     exit 1
   fi
 
-  open "$app_path"
+  binary="$app_path/Contents/MacOS/${bundle_name}"
+  if [[ ${#forward_args[@]} -gt 0 ]]; then
+    # open(1) cannot forward arguments — launch the binary directly, in the
+    # background so --run stays non-blocking like open.
+    "$binary" "${forward_args[@]}" &
+    echo "Started ${bundle_name} (pid $!) with args: ${forward_args[*]}"
+  else
+    open "$app_path"
+  fi
 }
 
 test_bundle() {
