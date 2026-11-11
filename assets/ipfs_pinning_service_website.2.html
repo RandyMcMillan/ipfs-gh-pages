@@ -1,0 +1,374 @@
+<!-- ... existing code ... -->
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
+                    <a href="#features" class="hover:text-teal-400 transition-colors">Features</a>
+                    <a href="#nostr-auth" class="hover:text-purple-400 transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-key text-xs text-purple-400"></i> Nostr Auth
+                    </a>
+                    <a href="#pricing" class="hover:text-teal-400 transition-colors">Pricing</a>
+                    <a href="#demo" class="hover:text-teal-400 transition-colors flex items-center gap-1.5">
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+                        </span>
+                        Live Demo
+                    </a>
+                    <a href="#api" class="hover:text-teal-400 transition-colors">API Docs</a>
+                </nav>
+
+                <!-- Actions -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <button onclick="connectNip07()" class="flex items-center gap-2 text-xs sm:text-sm font-semibold text-purple-300 bg-purple-950/60 hover:bg-purple-900/60 border border-purple-800/80 px-3.5 py-2 rounded-xl transition-all">
+                        <i class="fa-solid fa-bolt text-purple-400"></i>
+                        <span id="navNostrBtnText">NIP-07 Login</span>
+                    </button>
+                    <a href="#demo" class="relative group overflow-hidden rounded-xl bg-gradient-to-r from-teal-400 to-blue-500 p-px text-xs sm:text-sm font-semibold text-slate-950 transition-all hover:shadow-lg hover:shadow-teal-500/25">
+                        <span class="block px-4 py-2 rounded-[11px] bg-[#07090e] text-white group-hover:bg-transparent group-hover:text-slate-950 transition-colors duration-200">
+                            Get API Key
+                        </span>
+                    </a>
+                </div>
+<!-- ... existing code ... -->
+        <!-- FEATURES SECTION -->
+<!-- ... existing code ... -->
+        <!-- NOSTR AUTH & NIP-07 / NIP-98 SECTION -->
+        <section id="nostr-auth" class="py-20 relative bg-slate-950/80 border-t border-slate-800/80">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/30 bg-purple-950/40 text-purple-300 text-xs font-mono mb-4">
+                        <i class="fa-solid fa-shield-halved text-purple-400"></i> NIP-07 & NIP-98 Protocols Supported
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Decentralized Nostr Authentication</h2>
+                    <p class="text-slate-400 mt-3 text-sm sm:text-base">
+                        Authenticate pinning requests using your Nostr identity. Sign IPFS requests with NIP-07 extension keypairs or NIP-98 HTTP Auth tokens—no email or centralized account required.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    <!-- Left: Nostr Login & Key Authentication Panel -->
+                    <div class="lg:col-span-6 glass-panel p-6 sm:p-8 rounded-2xl border-purple-500/30 glow-purple space-y-6">
+                        
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg border border-purple-500/30">
+                                    <i class="fa-solid fa-key"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-white">Nostr Identity Gateway</h3>
+                                    <p class="text-xs text-slate-400">Authenticate via browser extension or keypair</p>
+                                </div>
+                            </div>
+                            <span id="nostrAuthState" class="text-[10px] font-mono px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">UNAUTHENTICATED</span>
+                        </div>
+
+                        <!-- Login Method Tabs -->
+                        <div class="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-xl border border-slate-800 text-xs font-medium">
+                            <button id="nostrTabExt" onclick="setNostrTab('ext')" class="py-2 rounded-lg bg-purple-600 text-white font-semibold transition-all">
+                                <i class="fa-solid fa-puzzle-piece mr-1.5"></i> NIP-07 Extension
+                            </button>
+                            <button id="nostrTabKey" onclick="setNostrTab('key')" class="py-2 rounded-lg text-slate-400 hover:text-white transition-all">
+                                <i class="fa-solid fa-fingerprint mr-1.5"></i> npub / nsec Key
+                            </button>
+                        </div>
+
+                        <!-- Tab 1: Extension (NIP-07) -->
+                        <div id="nostrExtPanel" class="space-y-4">
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Connect with your installed Nostr extension (Alby, nos2x, Spring, etc.). The extension signs your authentication payloads securely without exposing private keys.
+                            </p>
+
+                            <button onclick="connectNip07()" class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:brightness-110 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20">
+                                <i class="fa-solid fa-plug text-purple-200"></i>
+                                <span id="nip07ConnectBtnText">Connect NIP-07 Extension</span>
+                            </button>
+
+                            <div id="nip07Details" class="hidden p-4 rounded-xl bg-slate-900/80 border border-purple-500/30 text-xs space-y-2 font-mono">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500">npub:</span>
+                                    <span id="nip07NpubDisplay" class="text-purple-300 truncate max-w-[220px]"></span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500">hex pubkey:</span>
+                                    <span id="nip07HexDisplay" class="text-slate-400 truncate max-w-[220px]"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: Manual Keypair (npub / nsec) -->
+                        <div id="nostrKeyPanel" class="hidden space-y-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Nostr Public Key (npub / hex)</label>
+                                <input type="text" id="nostrNpubInput" placeholder="npub180cvv07tjdrx9w754005m9gch..." class="w-full px-3 py-2.5 rounded-lg glass-input text-white text-xs font-mono focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Optional Secret Key (nsec1...) - local demo only</label>
+                                <input type="password" id="nostrNsecInput" placeholder="nsec1..." class="w-full px-3 py-2.5 rounded-lg glass-input text-white text-xs font-mono focus:outline-none">
+                            </div>
+                            <button onclick="authenticateKeypair()" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/30 font-bold text-sm transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-key"></i> Authenticate Keypair
+                            </button>
+                        </div>
+
+                        <!-- NIP-98 HTTP Auth Header Generator -->
+                        <div class="pt-4 border-t border-slate-800 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-white flex items-center gap-1.5">
+                                    <i class="fa-solid fa-code text-teal-400"></i> Generate NIP-98 HTTP Auth Header
+                                </span>
+                                <span class="text-[10px] text-slate-500 font-mono">Kind 27235 Event</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400">
+                                Produce a NIP-98 Authorization header (<code class="text-teal-300">Nostr &lt;base64-event&gt;</code>) for authenticating HTTP requests to our IPFS Pinning endpoints.
+                            </p>
+                            <button onclick="generateNip98Header()" class="w-full py-2.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/30 font-mono text-xs transition-colors flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-shield-cat"></i> Sign NIP-98 Auth Header
+                            </button>
+                            <div id="nip98Output" class="hidden p-3 rounded-lg bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300 break-all select-all"></div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right: Nostr Relay Network Monitor Widget -->
+                    <div class="lg:col-span-6 space-y-6">
+                        
+                        <div class="glass-panel p-6 sm:p-8 rounded-2xl border-slate-800 space-y-6">
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-lg border border-teal-500/30">
+                                        <i class="fa-solid fa-network-wired"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-bold text-white">Nostr Relay Pool Status</h3>
+                                        <p class="text-xs text-slate-400">Real-time web-socket relay connectivity</p>
+                                    </div>
+                                </div>
+                                <button onclick="pingRelays()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors">
+                                    <i class="fa-solid fa-rotate-right mr-1"></i> Refresh
+                                </button>
+                            </div>
+
+                            <!-- Relay List -->
+                            <div class="space-y-3 font-mono text-xs" id="nostrRelayList">
+                                <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
+                                        <span class="text-slate-200">wss://relay.damus.io</span>
+                                    </div>
+                                    <span class="text-teal-400 text-[11px]">Connected • 32ms</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
+                                        <span class="text-slate-200">wss://nos.lol</span>
+                                    </div>
+                                    <span class="text-teal-400 text-[11px]">Connected • 45ms</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
+                                        <span class="text-slate-200">wss://relay.snort.social</span>
+                                    </div>
+                                    <span class="text-teal-400 text-[11px]">Connected • 28ms</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-purple-400 animate-pulse"></span>
+                                        <span class="text-slate-200">wss://pinpoint-relay.io (Dedicated)</span>
+                                    </div>
+                                    <span class="text-purple-400 text-[11px]">Active • 12ms</span>
+                                </div>
+                            </div>
+
+                            <!-- Nostr Pin Broadcast Notice -->
+                            <div class="p-4 rounded-xl bg-purple-950/30 border border-purple-800/40 text-xs space-y-1.5">
+                                <div class="flex items-center gap-2 text-purple-300 font-semibold">
+                                    <i class="fa-solid fa-bullhorn"></i> Relay Pin Event Publishing
+                                </div>
+                                <p class="text-slate-400 leading-relaxed text-[11px]">
+                                    When pinning files through PinPoint, optionally publish a Nostr event (Kind 30063 / Data Item) to announce your IPFS CIDs across decentralised Nostr relays.
+                                </p>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- INTERACTIVE PRICING CALCULATOR -->
+<!-- ... existing code ... -->
+                        <!-- Snippet Code Displays -->
+                        <div class="p-5 bg-[#080b11] font-mono text-xs overflow-x-auto min-h-[260px]">
+                            
+                            <!-- cURL -->
+                            <pre id="code-curl" class="text-slate-300 leading-relaxed">
+<span class="text-purple-400">curl</span> -X POST https://api.pinpoint-ipfs.io/v3/pins \
+  -H <span class="text-teal-300">"Authorization: Nostr &lt;NIP-98_BASE64_TOKEN&gt;"</span> \
+  -H <span class="text-teal-300">"Content-Type: application/json"</span> \
+  -d '{
+    <span class="text-blue-400">"cid"</span>: <span class="text-teal-300">"bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi"</span>,
+    <span class="text-blue-400">"name"</span>: <span class="text-teal-300">"My Decentralized Asset"</span>,
+    <span class="text-blue-400">"origins"</span>: [<span class="text-teal-300">"/ip4/192.0.2.1/tcp/4001/p2p/QmPeerId"</span>]
+  }'</pre>
+
+                            <!-- JavaScript -->
+                            <pre id="code-js" class="hidden text-slate-300 leading-relaxed">
+<span class="text-purple-400">import</span> { PinPointClient } <span class="text-purple-400">from</span> <span class="text-teal-300">'@pinpoint/ipfs-sdk'</span>;
+
+<span class="text-purple-400">const</span> client = <span class="text-purple-400">new</span> PinPointClient({ 
+  nostrSigner: window.nostr <span class="text-slate-500">// NIP-07 extension</span>
+});
+
+<span class="text-purple-400">async function</span> <span class="text-blue-400 font-bold">pinContentWithNostr</span>() {
+  <span class="text-purple-400">const</span> response = <span class="text-purple-400">await</span> client.pins.add({
+    cid: <span class="text-teal-300">'bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi'</span>,
+    name: <span class="text-teal-300">'My Nostr NFT Asset'</span>
+  });
+  
+  console.log(<span class="text-teal-300">'Nostr Pinned Status:'</span>, response.status);
+}</pre>
+<!-- ... existing code ... -->
+    <!-- INTERACTIVE JAVASCRIPT LOGIC -->
+    <script>
+        // ... existing code ...
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Nostr Authentication & NIP-07 / NIP-98 Scripting
+        let activeNostrPubkey = null;
+
+        function setNostrTab(tab) {
+            const tabExt = document.getElementById('nostrTabExt');
+            const tabKey = document.getElementById('nostrTabKey');
+            const panelExt = document.getElementById('nostrExtPanel');
+            const panelKey = document.getElementById('nostrKeyPanel');
+
+            if (tab === 'ext') {
+                tabExt.className = "py-2 rounded-lg bg-purple-600 text-white font-semibold transition-all";
+                tabKey.className = "py-2 rounded-lg text-slate-400 hover:text-white transition-all";
+                panelExt.classList.remove('hidden');
+                panelKey.classList.add('hidden');
+            } else {
+                tabKey.className = "py-2 rounded-lg bg-purple-600 text-white font-semibold transition-all";
+                tabExt.className = "py-2 rounded-lg text-slate-400 hover:text-white transition-all";
+                panelKey.classList.remove('hidden');
+                panelExt.classList.add('hidden');
+            }
+        }
+
+        async function connectNip07() {
+            const btnText = document.getElementById('nip07ConnectBtnText');
+            const navBtnText = document.getElementById('navNostrBtnText');
+            const detailsBox = document.getElementById('nip07Details');
+            const npubDisp = document.getElementById('nip07NpubDisplay');
+            const hexDisp = document.getElementById('nip07HexDisplay');
+            const stateBadge = document.getElementById('nostrAuthState');
+
+            if (typeof window.nostr !== 'undefined') {
+                try {
+                    btnText.innerText = "Connecting to extension...";
+                    const pubkey = await window.nostr.getPublicKey();
+                    activeNostrPubkey = pubkey;
+
+                    // Mock npub formatting
+                    const mockNpub = "npub1" + pubkey.substring(0, 16) + "..." + pubkey.substring(pubkey.length - 6);
+
+                    npubDisp.innerText = mockNpub;
+                    hexDisp.innerText = pubkey;
+                    detailsBox.classList.remove('hidden');
+
+                    btnText.innerText = "NIP-07 Connected!";
+                    navBtnText.innerText = mockNpub.substring(0, 10) + "...";
+                    stateBadge.className = "text-[10px] font-mono px-2.5 py-1 rounded-full bg-purple-950 text-purple-300 border border-purple-700";
+                    stateBadge.innerText = "CONNECTED (NIP-07)";
+                } catch (err) {
+                    btnText.innerText = "Connect NIP-07 Extension";
+                    alert("Extension connection rejected: " + err.message);
+                }
+            } else {
+                // Fallback simulation if no NIP-07 extension detected
+                const simPubkey = "3bf05415ce009006143a4a4e8b3e18654d3863807a18763b29497342621b7d74";
+                activeNostrPubkey = simPubkey;
+                const mockNpub = "npub180cvv07tjdrx9w754005m9gch82...demo";
+
+                npubDisp.innerText = mockNpub;
+                hexDisp.innerText = simPubkey;
+                detailsBox.classList.remove('hidden');
+
+                btnText.innerText = "Simulated NIP-07 Active";
+                navBtnText.innerText = "npub180cvv0...";
+                stateBadge.className = "text-[10px] font-mono px-2.5 py-1 rounded-full bg-purple-950 text-purple-300 border border-purple-700";
+                stateBadge.innerText = "CONNECTED (DEMO KEY)";
+            }
+        }
+
+        function authenticateKeypair() {
+            const inputVal = document.getElementById('nostrNpubInput').value.trim();
+            const stateBadge = document.getElementById('nostrAuthState');
+            const navBtnText = document.getElementById('navNostrBtnText');
+
+            if (!inputVal) {
+                alert("Please enter a valid npub or public key hash.");
+                return;
+            }
+
+            activeNostrPubkey = inputVal;
+            stateBadge.className = "text-[10px] font-mono px-2.5 py-1 rounded-full bg-purple-950 text-purple-300 border border-purple-700";
+            stateBadge.innerText = "AUTHENTICATED (KEY)";
+            navBtnText.innerText = inputVal.substring(0, 10) + "...";
+            alert("Nostr Public Key Authenticated!");
+        }
+
+        async function generateNip98Header() {
+            const outputBox = document.getElementById('nip98Output');
+            outputBox.classList.remove('hidden');
+            outputBox.innerText = "Signing NIP-98 (Kind 27235) HTTP Auth Event...";
+
+            const pubkey = activeNostrPubkey || "3bf05415ce009006143a4a4e8b3e18654d3863807a18763b29497342621b7d74";
+            const mockEvent = {
+                kind: 27235,
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [
+                    ["u", "https://api.pinpoint-ipfs.io/v3/pins"],
+                    ["method", "POST"]
+                ],
+                content: "",
+                pubkey: pubkey
+            };
+
+            if (typeof window.nostr !== 'undefined' && window.nostr.signEvent) {
+                try {
+                    const signedEv = await window.nostr.signEvent(mockEvent);
+                    const b64Token = btoa(JSON.stringify(signedEv));
+                    outputBox.innerText = "Authorization: Nostr " + b64Token;
+                    return;
+                } catch (e) {
+                    console.log("Using fallback NIP-98 simulation", e);
+                }
+            }
+
+            // Fallback base64 token payload
+            mockEvent.sig = "4a88f7023023e1a88b594b92b67d98d28929947a1122aef9120489";
+            const b64Token = btoa(JSON.stringify(mockEvent));
+            outputBox.innerText = "Authorization: Nostr " + b64Token;
+        }
+
+        function pingRelays() {
+            const list = document.getElementById('nostrRelayList');
+            list.style.opacity = "0.5";
+            setTimeout(() => {
+                list.style.opacity = "1";
+            }, 400);
+        }
+
+        // Hero Quick Pin Simulation
+// ... existing code ...
