@@ -529,6 +529,28 @@ let blobCurrentBytes = null;
 let blobCurrentCid = null;
 let blobCurrentPath = null;
 
+// Expand the repo tree to a directory: reveal every ancestor nested list
+// so the target row is visible, then scroll to it and flash it. Folded
+// chains (".github/workflows" as one row) match by prefix.
+function expandTreeTo(dirPath) {
+  if (!fileTreeEl) return;
+  const rows = [...fileTreeEl.querySelectorAll('li.row[data-path]')];
+  const target = rows.find((li) => li.dataset.path === dirPath)
+    || rows.find((li) => li.dataset.path.startsWith(dirPath + '/'));
+  if (!target) return;
+  let el = target;
+  while (el && el !== fileTreeEl) {
+    if (el.classList && el.classList.contains('nested')) el.hidden = false;
+    el = el.parentElement;
+  }
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const nameEl = target.querySelector('.cell-name');
+  if (nameEl) {
+    nameEl.style.backgroundColor = 'var(--color-accent-subtle)';
+    setTimeout(() => { nameEl.style.backgroundColor = ''; }, 1200);
+  }
+}
+
 function showFileBlob(path) {
   const b64 = repoFiles[path];
   if (!b64 || !blobView || !treeView) return;
@@ -541,8 +563,29 @@ function showFileBlob(path) {
   const repoLink = document.getElementById('blob-repo-link');
   repoLink.textContent = repoName;
   const pathEl = document.getElementById('blob-path');
-  const dir = path.split('/').slice(0, -1).join('/');
-  pathEl.textContent = dir ? ` / ${dir} / ${path.split('/').pop()}` : ` / ${path.split('/').pop()}`;
+  // Breadcrumb: every directory segment links to its place in the tree
+  // (GitHub-style); the file name stays plain text.
+  pathEl.innerHTML = '';
+  const parts = path.split('/');
+  parts.forEach((part, i) => {
+    const isFile = i === parts.length - 1;
+    const segPath = parts.slice(0, i + 1).join('/');
+    if (isFile) {
+      const span = document.createElement('span');
+      span.textContent = ` / ${part}`;
+      pathEl.appendChild(span);
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = '#/code'; // the tree endpoint; the click also expands the folder
+    a.textContent = ` / ${part}`;
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      hideFileBlob();
+      expandTreeTo(segPath);
+    });
+    pathEl.appendChild(a);
+  });
   document.getElementById('blob-meta').textContent = `${formatSize(bytes.length)}`;
 
   const codeEl = document.getElementById('blob-code');
@@ -1185,6 +1228,7 @@ function renderRepoTable(nodes, depth = 0) {
   for (const node of sorted) {
     const li = document.createElement('li');
     li.className = 'row';
+    li.dataset.path = node.path;
 
     const cells = document.createElement('div');
     cells.className = 'cells';

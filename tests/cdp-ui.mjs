@@ -136,6 +136,37 @@ await evalJson(`document.querySelector('a.tab-link[data-tab-route="code"]').clic
 await new Promise((r) => setTimeout(r, 300));
 check('Code tab press escapes the file view to the tree', await evalJson(`document.getElementById('blob-view').hidden && !document.getElementById('tree-view').hidden && document.getElementById('tab-files').classList.contains('active')`));
 
+// Breadcrumb segments link to their place in the tree: open
+// assets/repo-head.txt, click the "assets" segment, land on that folder.
+vlog('Checking breadcrumb segment links...');
+await evalJson(`(() => {
+  const rows = [...document.querySelectorAll('#file-tree li.row')];
+  const dir = rows.find((x) => x.querySelector('.cell-name span').textContent === 'assets');
+  if (dir) dir.querySelector('.cell-name').click();
+  return Boolean(dir);
+})()`);
+await new Promise((r) => setTimeout(r, 300));
+await evalJson(`(() => {
+  const rows = [...document.querySelectorAll('#file-tree li.row')];
+  const f = rows.find((x) => x.querySelector('.cell-name span').textContent === 'repo-head.txt');
+  if (f) f.querySelector('.cell-name').click();
+  return Boolean(f);
+})()`);
+await new Promise((r) => setTimeout(r, 400));
+check('blob opens for assets/repo-head.txt', await evalJson(`!document.getElementById('blob-view').hidden`));
+check('breadcrumb renders a link for the assets directory', await evalJson(`[...document.querySelectorAll('#blob-path a')].some((a) => a.textContent.trim() === '/ assets')`));
+await evalJson(`(() => {
+  const a = [...document.querySelectorAll('#blob-path a')].find((x) => x.textContent.trim() === '/ assets');
+  if (a) a.click();
+  return Boolean(a);
+})()`);
+await new Promise((r) => setTimeout(r, 400));
+check('clicking the assets segment returns to the tree at that folder', await evalJson(`(() => {
+  if (!document.getElementById('blob-view').hidden) return false;
+  const row = [...document.querySelectorAll('#file-tree li.row')].find((x) => x.dataset.path === 'assets');
+  return Boolean(row) && row.getBoundingClientRect().height > 0;
+})()`));
+
 // Commit bar carries real build-time data.
 vlog('Checking the commit bar...');
 const commitMsg = await evalJson(`document.getElementById('commit-msg').textContent`);
