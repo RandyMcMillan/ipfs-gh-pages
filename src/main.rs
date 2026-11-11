@@ -90,6 +90,18 @@ fn browser_main() -> Result<(), Box<dyn Error>> {
                 }
                 return;
             }
+            if app_state.cmd_open {
+                match event.code {
+                    KeyCode::Enter => app_state.submit_cmd(),
+                    KeyCode::Esc => app_state.cmd_open = false,
+                    KeyCode::Backspace => {
+                        app_state.cmd_buffer.pop();
+                    }
+                    KeyCode::Char(c) => app_state.cmd_buffer.push(c),
+                    _ => {}
+                }
+                return;
+            }
             match event.code {
                 KeyCode::Right => {
                     app_state.on_right();

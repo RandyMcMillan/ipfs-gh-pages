@@ -16,7 +16,17 @@ use tachyonfx::Duration;
 use crate::app::App;
 
 pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
-    let chunks = Layout::vertical([Constraint::Length(3), Constraint::Min(0)]).split(frame.area());
+    let show_cmd_bar = app.cmd_open || !app.cmd_output.is_empty();
+    let chunks = if show_cmd_bar {
+        Layout::vertical([
+            Constraint::Length(3),
+            Constraint::Min(3),
+            Constraint::Length(1),
+        ])
+        .split(frame.area())
+    } else {
+        Layout::vertical([Constraint::Length(3), Constraint::Min(0)]).split(frame.area())
+    };
     let tabs = app
         .tabs
         .titles
@@ -57,6 +67,23 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
     let area = frame.area();
     app.effects
         .process_effects(elapsed, frame.buffer_mut(), area);
+
+    if show_cmd_bar {
+        let bar = if app.cmd_open {
+            format!(":{}_", app.cmd_buffer)
+        } else {
+            // Last result, one line; the full value stays available via the
+            // tab outputs for structured results.
+            let trimmed = app.cmd_output.trim();
+            let flat: String = trimmed.chars().filter(|c| *c != '\n').collect();
+            flat
+        };
+        let rect = if chunks.len() > 2 { chunks[2] } else { area };
+        frame.render_widget(
+            Paragraph::new(bar).style(Style::default().fg(Color::LightGreen)),
+            rect,
+        );
+    }
 }
 
 fn draw_first_tab(frame: &mut Frame, app: &mut App, area: Rect) {

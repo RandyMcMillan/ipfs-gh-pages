@@ -236,6 +236,8 @@ pub enum InputTarget {
     GitClone,
     GitAdvertise,
     RepoPublish,
+    /// The `:`-bar command line — head word = bridge op, rest = argument.
+    RawCommand,
 }
 
 pub struct App<'a> {
@@ -274,6 +276,12 @@ pub struct App<'a> {
     pub publish_output: String,
     /// Repo publish result (root CID + commands).
     pub repo_output: String,
+    /// Vim-style `:` command bar (any bridge op, any tab). A true PTY
+    /// terminal is impossible here — the TUI renders from wasm, which
+    /// cannot spawn processes — so this is the in-app command line.
+    pub cmd_open: bool,
+    pub cmd_buffer: String,
+    pub cmd_output: String,
 }
 
 #[derive(Clone, Copy, Debug, Default, Ord, PartialOrd, Eq, PartialEq)]
@@ -363,6 +371,9 @@ impl<'a> App<'a> {
             fetch_output: String::new(),
             publish_output: String::new(),
             repo_output: String::new(),
+            cmd_open: false,
+            cmd_buffer: String::new(),
+            cmd_output: String::new(),
         }
     }
 
@@ -391,6 +402,11 @@ impl<'a> App<'a> {
             }
             't' => {
                 self.show_chart = !self.show_chart;
+            }
+            ':' | '\\' => {
+                // Vim-style command bar, available on every tab.
+                self.cmd_open = true;
+                self.cmd_buffer.clear();
             }
             'c' if self.tabs.index == 5 => self.start_input(InputTarget::Connect),
             'f' if self.tabs.index == 6 => self.start_input(InputTarget::Fetch),
@@ -453,6 +469,56 @@ impl<'a> App<'a> {
         out
     }
 
+    /// Submit the `:`-bar command: first word is the bridge op, the rest is
+    /// its argument. `kubo <method> [args]` (or bare `rpc`) routes to the
+    /// generic RPC op. Result lands in cmd_output.
+    pub fn submit_cmd(&mut self) {
+        let line = self.cmd_buffer.trim().to_string();
+        self.cmd_open = false;
+        self.cmd_buffer.clear();
+        if line.is_empty() {
+            return;
+        }
+        let mut parts = line.split_whitespace();
+        let head = parts.next().unwrap_or("");
+        let rest: Vec<&str> = parts.collect();
+        let rest_joined = rest.join(" ");
+        let (op, arg) = if head == "kubo" || head == "rpc" {
+            let method = rest.first().copied().unwrap_or("");
+            let args: Vec<String> = rest
+                .iter()
+                .skip(1)
+                .map(|p| format!("\"{}\"", Self::json_escape(p)))
+                .collect();
+            (
+                "kubo.rpc",
+                format!(
+                    "{{\"method\":\"{}\",\"args\":[{}]}}",
+                    Self::json_escape(method),
+                    args.join(",")
+                ),
+            )
+        } else if head == "services" {
+            ("services.set", format!("{{\"services\":{rest_joined}}}"))
+        } else {
+            // Every op reads the fields it needs; supplying the rest as all
+            // three covers addr/cid/text-shaped arguments.
+            (
+                head,
+                format!(
+                    "{{\"addr\":\"{0}\",\"cid\":\"{0}\",\"text\":\"{0}\",\"rootCid\":\"{0}\"}}",
+                    Self::json_escape(&rest_joined)
+                ),
+            )
+        };
+        if let Some(id) = ipfs::cmd(op, &arg) {
+            self.pending = Some((id, InputTarget::RawCommand));
+            self.cmd_output = format!("{line} -> working...");
+        } else {
+            self.cmd_output = "bridge unavailable (window.__ipfsCmd missing)".to_string();
+        }
+    }
+
     /// Submit the input buffer as a bridge command and arm result pickup.
     pub fn submit_input(&mut self) {
         // Generic Kubo RPC: "<method> [arg...]" — the whole API surface
@@ -497,6 +563,7 @@ impl<'a> App<'a> {
             InputTarget::GitClone => "git.clone",
             InputTarget::GitAdvertise => "git.advertise",
             InputTarget::RepoPublish => "repo.publishAll",
+            InputTarget::RawCommand => "raw-command",
         };
         if let Some(id) = ipfs::cmd(op, &arg) {
             self.pending = Some((id, self.input_target));
@@ -552,6 +619,10 @@ impl<'a> App<'a> {
                         format!("cloned to {zip} ({bytes} bytes, bare repo: {bare})")
                     }
                     InputTarget::GitAdvertise => format!("advertised: {value}"),
+                    InputTarget::RawCommand => {
+                        self.cmd_output = value;
+                        String::new()
+                    }
                     InputTarget::RepoPublish => {
                         // One fact per line, full values.
                         let root = ipfs::json_field(&value, "rootCid").unwrap_or_default();
