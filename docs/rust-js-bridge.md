@@ -1,12 +1,12 @@
 # Plan: expose ipfs-gh-pages JS functionality to the Rust ratzilla TUI
 
-Status: bridge backend + TUI phases 1-8 and 11 implemented (commits
-752f78e .. eadf686). All ops are live behind __ipfsState/__ipfsCmd:
-tabs IPFS, Peers, Fetch, Publish, Chat, Kubo, Services, Git (clone CID
-to zip + serve advertisement), Repo (publish whole tree -> root CID +
-advert). Phase 9 (live smart-protocol clone) is blocked on a listening
-libp2p node — browsers cannot listen; lands with the desktop/kubo node
-work. Phase 10 (issues CAR remainder) is web-app work in main.js.
+# Plan: expose ipfs-gh-pages JS functionality to the Rust ratzilla TUI
+
+Status: bridge backend + TUI phases 1-8 and 11 DONE; phase 9 (git clone)
+DONE incl. isomorphic-git live clone + incremental pull; phase 10 OPENED
+(index IPNS name, cross-surface sync, multi-parent merge via
+js/index-merge.js, bridge issues.create/issues.sync, TUI Issues tab).
+See docs/STATUS.md for the restart handoff.
 
 ## The core constraint
 
