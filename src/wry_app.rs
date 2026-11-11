@@ -355,14 +355,28 @@ fn app_source(cli: &Cli) -> Result<AppSource, Box<dyn Error>> {
     }
 
     if let Some(index) = bundled_index_path(cli)? {
-        let (server, port) =
-            spawn_bundled_server(index.parent().unwrap().to_path_buf(), &cli.host, cli.port)?;
+        let config_json = format!(
+            "{{\"kubo\":{},\"repo\":{}}}",
+            cli.kubo
+                .as_deref()
+                .map(json_str)
+                .unwrap_or_else(|| "null".into()),
+            cli.repo
+                .as_deref()
+                .map(json_str)
+                .unwrap_or_else(|| "null".into()),
+        );
+        let (server, port) = spawn_bundled_server(
+            index.parent().unwrap().to_path_buf(),
+            &cli.host,
+            cli.port,
+            config_json,
+        )?;
         return Ok(AppSource {
             url: format!("http://{}:{}", cli.host, port),
             server: Arc::new(Mutex::new(Some(ServerHandle::Bundled(server)))),
         });
     }
-
     let server = Arc::new(Mutex::new(Some(ServerHandle::Trunk(spawn_trunk_serve()?))));
     wait_for_server()?;
 
@@ -395,10 +409,25 @@ fn bundled_index_path(cli: &Cli) -> Result<Option<PathBuf>, io::Error> {
     Ok(None)
 }
 
+fn json_str(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 2);
+    for ch in s.chars() {
+        match ch {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    format!("\"{out}\"")
+}
+
 fn spawn_bundled_server(
     dist_root: PathBuf,
     host: &str,
     port: u16,
+    config_json: String,
 ) -> Result<(BundledServer, u16), io::Error> {
     // Port 0: let the OS pick a free port so the desktop app never fights
     // trunk serve, vite, or anything else for 8080.
@@ -412,7 +441,7 @@ fn spawn_bundled_server(
         while !shutdown_flag.load(Ordering::SeqCst) {
             match listener.accept() {
                 Ok((stream, _)) => {
-                    let _ = handle_http_request(stream, &dist_root);
+                    let _ = handle_http_request(stream, &dist_root, &config_json);
                 }
                 Err(err) if err.kind() == io::ErrorKind::WouldBlock => {
                     thread::sleep(Duration::from_millis(20));
@@ -434,6 +463,7 @@ fn spawn_bundled_server(
 fn handle_http_request(
     mut stream: std::net::TcpStream,
     dist_root: &PathBuf,
+    config_json: &str,
 ) -> Result<(), io::Error> {
     stream.set_nonblocking(false)?;
     let mut buffer = [0_u8; 4096];
@@ -445,7 +475,20 @@ fn handle_http_request(
         .and_then(|line| line.split_whitespace().nth(1))
         .unwrap_or("/");
 
-    let file_path = match path.split('?').next().unwrap_or("/") {
+    let clean_path = path.split('?').next().unwrap_or("/");
+    // CLI config for the JS bridge (--kubo / --repo). Served at both path
+    // spellings so a trunk-style './assets/' relative fetch also resolves.
+    if clean_path == "/config.json" || clean_path == "/assets/config.json" {
+        write_response(
+            &mut stream,
+            "200 OK",
+            "application/json; charset=utf-8",
+            config_json.as_bytes(),
+        )?;
+        return Ok(());
+    }
+
+    let file_path = match clean_path {
         "/" | "/index.html" | "/index-rust.html" => dist_root.join("index-rust.html"),
         other => safe_dist_path(dist_root, other),
     };

@@ -244,12 +244,18 @@ fn draw_kubo_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         chunks[0],
     );
     let footer = if app.input_active {
-        format!(
-            "pin CID: > {}_   (Enter pins, Esc cancels)",
-            app.input_buffer
-        )
+        match app.input_target {
+            crate::app::InputTarget::KuboRpc => {
+                format!("rpc: > {}_   (Enter calls, Esc cancels)", app.input_buffer)
+            }
+            _ => format!(
+                "pin CID: > {}_   (Enter pins, Esc cancels)",
+                app.input_buffer
+            ),
+        }
     } else {
-        "d = detect (ports 5001-5010)   p = pin CID".to_string()
+        "d = detect   p = pin CID   k = any RPC (e.g. \"pin/ls\", \"swarm/peers\", \"repo/stat\")"
+            .to_string()
     };
     frame.render_widget(
         Paragraph::new(footer).style(Style::default().fg(Color::DarkGray)),

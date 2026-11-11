@@ -231,6 +231,7 @@ pub enum InputTarget {
     Chat,
     KuboDetect,
     KuboPin,
+    KuboRpc,
     ServicesSet,
     GitClone,
     GitAdvertise,
@@ -402,6 +403,7 @@ impl<'a> App<'a> {
                 }
             }
             'p' if self.tabs.index == 9 => self.start_input(InputTarget::KuboPin),
+            'k' if self.tabs.index == 9 => self.start_input(InputTarget::KuboRpc),
             's' if self.tabs.index == 10 => self.start_input(InputTarget::ServicesSet),
             'c' if self.tabs.index == 11 => self.start_input(InputTarget::GitClone),
             'a' if self.tabs.index == 11 => self.start_input(InputTarget::GitAdvertise),
@@ -453,6 +455,28 @@ impl<'a> App<'a> {
 
     /// Submit the input buffer as a bridge command and arm result pickup.
     pub fn submit_input(&mut self) {
+        // Generic Kubo RPC: "<method> [arg...]" — the whole API surface
+        // through one bridge op.
+        if self.input_target == InputTarget::KuboRpc {
+            let mut parts = self.input_buffer.split_whitespace();
+            let method = parts.next().unwrap_or("");
+            let args: Vec<String> = parts
+                .map(|p| format!("\"{}\"", Self::json_escape(p)))
+                .collect();
+            let arg = format!(
+                "{{\"method\":\"{}\",\"args\":[{}]}}",
+                Self::json_escape(method),
+                args.join(",")
+            );
+            if let Some(id) = ipfs::cmd("kubo.rpc", &arg) {
+                self.pending = Some((id, InputTarget::KuboRpc));
+                self.last_result = "working...".to_string();
+            } else {
+                self.last_result = "bridge unavailable (window.__ipfsCmd missing)".to_string();
+            }
+            self.cancel_input();
+            return;
+        }
         // arg carries every field the ops understand; each op reads what it
         // needs. `services` is the raw buffer (must be a JSON array) and is
         // only meaningful for the services.set target.
@@ -468,6 +492,7 @@ impl<'a> App<'a> {
             InputTarget::Chat => "chatSend",
             InputTarget::KuboDetect => "kuboDetect",
             InputTarget::KuboPin => "kuboPin",
+            InputTarget::KuboRpc => "kubo.rpc",
             InputTarget::ServicesSet => "services.set",
             InputTarget::GitClone => "git.clone",
             InputTarget::GitAdvertise => "git.advertise",
@@ -514,6 +539,11 @@ impl<'a> App<'a> {
                     InputTarget::Connect => "connected".to_string(),
                     InputTarget::KuboDetect => format!("kubo: {value}"),
                     InputTarget::KuboPin => format!("pinned: {value}"),
+                    InputTarget::KuboRpc => {
+                        let method = ipfs::json_field(&value, "method").unwrap_or_default();
+                        let response = ipfs::json_field(&value, "response").unwrap_or(value);
+                        format!("{method}: {response}")
+                    }
                     InputTarget::ServicesSet => format!("services: {value}"),
                     InputTarget::GitClone => {
                         let zip = ipfs::json_field(&value, "zipName").unwrap_or_default();

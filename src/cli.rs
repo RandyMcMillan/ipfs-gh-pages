@@ -29,4 +29,14 @@ pub struct Cli {
     /// server (e.g. a `trunk serve` dev instance)
     #[arg(long, value_name = "URL")]
     pub url: Option<String>,
+
+    /// Kubo RPC API endpoint (e.g. http://127.0.0.1:5001). When set, the
+    /// bridge uses it instead of probing ports 5001-5010.
+    #[arg(long, value_name = "URL")]
+    pub kubo: Option<String>,
+
+    /// Path of the git repo this app represents — recorded in serve
+    /// envelopes so peers know which working tree a node serves
+    #[arg(long, value_name = "PATH")]
+    pub repo: Option<String>,
 }

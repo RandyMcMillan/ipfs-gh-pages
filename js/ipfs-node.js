@@ -231,9 +231,23 @@ let heliaNode = null;
 let heliaStrings = null;
 let heliaUnixfs = null;
 const chatSeen = new Set();
+// CLI-injected config (served as config.json by the embedded server;
+// absent under trunk dev serve -> defaults).
+const config = { kubo: null, repo: null };
+
+async function loadConfig() {
+  try {
+    const res = await fetch('config.json');
+    if (!res.ok) return;
+    const parsed = await res.json();
+    if (typeof parsed.kubo === 'string' && parsed.kubo) config.kubo = parsed.kubo;
+    if (typeof parsed.repo === 'string' && parsed.repo) config.repo = parsed.repo;
+  } catch {}
+}
 
 async function boot() {
   statusLine('starting...');
+  await loadConfig();
   state.services.configured = loadServices().map((s) => s.name || '(unnamed)');
   state.services.endpoints = {
     gateways: resolveEndpoints('gateways'),
@@ -418,6 +432,7 @@ async function advertiseServe(arg) {
   const envelope = await signFields({
     op: 'serve',
     repo: repoFullName,
+    repoPath: config.repo || undefined,
     head: arg?.head || null,
     rootCid: arg?.rootCid || null,
     addrs: arg?.addrs || [],
@@ -426,6 +441,7 @@ async function advertiseServe(arg) {
   state.git.serving = {
     signer: envelope.signer,
     repo: repoFullName,
+    repoPath: config.repo || null,
     head: envelope.head,
     rootCid: envelope.rootCid,
     addrs: envelope.addrs,
@@ -548,8 +564,13 @@ async function opKuboDetect(arg) {
   const host = String(arg?.host || '127.0.0.1');
   const portStart = Number(arg?.portStart || 5001);
   const portEnd = Number(arg?.portEnd || 5010);
+  // CLI-configured endpoint wins; probe the range only if it fails.
+  const candidates = [];
+  if (config.kubo) candidates.push(config.kubo);
   for (let port = portStart; port <= portEnd; port++) {
-    const endpoint = `http://${host}:${port}`;
+    candidates.push(`http://${host}:${port}`);
+  }
+  for (const endpoint of candidates) {
     try {
       const res = await fetch(`${endpoint}/api/v0/id?stream-channels=true`, { method: 'POST' });
       if (!res.ok) continue;
@@ -562,11 +583,29 @@ async function opKuboDetect(arg) {
       };
       return state.kubo;
     } catch {
-      // not on this port
+      // not on this endpoint
     }
   }
   state.kubo = { status: 'offline', endpoint: null, peerId: null, addresses: [] };
   return state.kubo;
+}
+
+// Generic Kubo RPC passthrough — this one op is the ENTIRE Kubo API
+// surface: any /api/v0/<method> with positional args. Full API support
+// without a per-method wrapper.
+async function opKuboRpc(arg) {
+  if (state.kubo.status !== 'online') throw new Error('kubo not detected — run kuboDetect first');
+  const method = String(arg?.method || '').replace(/^\/+|\/+$/g, '');
+  if (!method) throw new Error('empty method');
+  const args = Array.isArray(arg?.args) ? arg.args.map((a) => String(a)) : [];
+  const query = args.map((a) => `arg=${encodeURIComponent(a)}`).join('&');
+  const res = await fetch(
+    `${state.kubo.endpoint}/api/v0/${method}?stream-channels=true${query ? `&${query}` : ''}`,
+    { method: 'POST' }
+  );
+  const text = await res.text();
+  if (!res.ok) throw new Error(`kubo ${method}: HTTP ${res.status}: ${text}`);
+  return { method, response: text };
 }
 
 async function opKuboPin(arg) {
@@ -671,6 +710,7 @@ const ops = {
   unblock: async (a) => opUnblock(a),
   kuboDetect: opKuboDetect,
   kuboPin: opKuboPin,
+  'kubo.rpc': opKuboRpc,
   providers: opProviders,
   shareAddr: async () => opShareAddr(),
   'services.set': async (a) => opServicesSet(a),

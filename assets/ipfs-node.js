@@ -30963,8 +30963,8 @@ var TrackedPeerMap = class extends PeerMap {
     this.metric.update(this.size);
   }
 };
-function trackedPeerMap(config) {
-  const { name: name15, metrics } = config;
+function trackedPeerMap(config2) {
+  const { name: name15, metrics } = config2;
   let map3;
   if (metrics != null) {
     map3 = new TrackedPeerMap({ name: name15, metrics });
@@ -31354,8 +31354,8 @@ var TrackedMap = class extends Map {
     this.metric.update(this.size);
   }
 };
-function trackedMap(config) {
-  const { name: name15, metrics } = config;
+function trackedMap(config2) {
+  const { name: name15, metrics } = config2;
   let map3;
   if (metrics != null) {
     map3 = new TrackedMap({ name: name15, metrics });
@@ -39406,20 +39406,20 @@ function cloneOptionObject(object) {
   });
   return result2;
 }
-var mergeKeys = (merged, source, keys, config) => {
+var mergeKeys = (merged, source, keys, config2) => {
   keys.forEach((key) => {
-    if (typeof source[key] === "undefined" && config.ignoreUndefined) {
+    if (typeof source[key] === "undefined" && config2.ignoreUndefined) {
       return;
     }
     if (key in merged && merged[key] !== Object.getPrototypeOf(merged)) {
-      defineProperty(merged, key, merge2(merged[key], source[key], config));
+      defineProperty(merged, key, merge2(merged[key], source[key], config2));
     } else {
       defineProperty(merged, key, clone(source[key]));
     }
   });
   return merged;
 };
-var concatArrays = (merged, source, config) => {
+var concatArrays = (merged, source, config2) => {
   let result2 = merged.slice(0, 0);
   let resultIndex = 0;
   [merged, source].forEach((array) => {
@@ -39435,21 +39435,21 @@ var concatArrays = (merged, source, config) => {
         defineProperty(result2, resultIndex++, clone(array[k]));
       }
     }
-    result2 = mergeKeys(result2, array, getEnumerableOwnPropertyKeys(array).filter((key) => !indices.includes(key)), config);
+    result2 = mergeKeys(result2, array, getEnumerableOwnPropertyKeys(array).filter((key) => !indices.includes(key)), config2);
   });
   return result2;
 };
-function merge2(merged, source, config) {
-  if (config.concatArrays && Array.isArray(merged) && Array.isArray(source)) {
-    return concatArrays(merged, source, config);
+function merge2(merged, source, config2) {
+  if (config2.concatArrays && Array.isArray(merged) && Array.isArray(source)) {
+    return concatArrays(merged, source, config2);
   }
   if (!isPlainObject(source) || !isPlainObject(merged)) {
     return clone(source);
   }
-  return mergeKeys(merged, source, getEnumerableOwnPropertyKeys(source), config);
+  return mergeKeys(merged, source, getEnumerableOwnPropertyKeys(source), config2);
 }
 function mergeOptions(...options2) {
-  const config = merge2(clone(defaultMergeOptions), this !== globalThis2 && this || {}, defaultMergeOptions);
+  const config2 = merge2(clone(defaultMergeOptions), this !== globalThis2 && this || {}, defaultMergeOptions);
   let merged = { _: {} };
   for (const option of options2) {
     if (option === void 0) {
@@ -39458,7 +39458,7 @@ function mergeOptions(...options2) {
     if (!isPlainObject(option)) {
       throw new TypeError("`" + option + "` is not an Option Object");
     }
-    merged = merge2(merged, { _: option }, config);
+    merged = merge2(merged, { _: option }, config2);
   }
   return merged._;
 }
@@ -56344,26 +56344,26 @@ var defaultConfig = {
   maxStreamWindowSize: MAX_STREAM_WINDOW,
   maxMessageSize: 64 * 1024
 };
-function verifyConfig(config) {
-  if (config.keepAliveInterval <= 0) {
+function verifyConfig(config2) {
+  if (config2.keepAliveInterval <= 0) {
     throw new InvalidParametersError("keep-alive interval must be positive");
   }
-  if (config.maxInboundStreams < 0) {
+  if (config2.maxInboundStreams < 0) {
     throw new InvalidParametersError("max inbound streams must be larger or equal 0");
   }
-  if (config.maxOutboundStreams < 0) {
+  if (config2.maxOutboundStreams < 0) {
     throw new InvalidParametersError("max outbound streams must be larger or equal 0");
   }
-  if (config.initialStreamWindowSize < INITIAL_STREAM_WINDOW) {
+  if (config2.initialStreamWindowSize < INITIAL_STREAM_WINDOW) {
     throw new InvalidParametersError("InitialStreamWindowSize must be larger or equal 256 kB");
   }
-  if (config.maxStreamWindowSize < config.initialStreamWindowSize) {
+  if (config2.maxStreamWindowSize < config2.initialStreamWindowSize) {
     throw new InvalidParametersError("MaxStreamWindowSize must be larger than the InitialStreamWindowSize");
   }
-  if (config.maxStreamWindowSize > 2 ** 32 - 1) {
+  if (config2.maxStreamWindowSize > 2 ** 32 - 1) {
     throw new InvalidParametersError("MaxStreamWindowSize must be less than equal MAX_UINT32");
   }
-  if (config.maxMessageSize < 1024) {
+  if (config2.maxMessageSize < 1024) {
     throw new InvalidParametersError("MaxMessageSize must be greater than a kilobyte");
   }
 }
@@ -86628,17 +86628,17 @@ function drainAndClose(channel, direction, drainTimeout = DATA_CHANNEL_DRAIN_TIM
     options2.log.error("error closing outbound stream", err2);
   });
 }
-async function getRtcConfiguration(config) {
-  config = config ?? {};
-  if (typeof config === "function") {
-    config = await config();
+async function getRtcConfiguration(config2) {
+  config2 = config2 ?? {};
+  if (typeof config2 === "function") {
+    config2 = await config2();
   }
-  config.iceServers = config.iceServers ?? DEFAULT_ICE_SERVERS.map((url) => ({
+  config2.iceServers = config2.iceServers ?? DEFAULT_ICE_SERVERS.map((url) => ({
     urls: [
       url
     ]
   }));
-  return config;
+  return config2;
 }
 var genUfrag = (len = 32) => {
   return UFRAG_PREFIX + [...Array(len)].map(() => UFRAG_ALPHABET.at(Math.floor(Math.random() * UFRAG_ALPHABET.length))).join("");
@@ -112952,8 +112952,20 @@ var heliaNode = null;
 var heliaStrings = null;
 var heliaUnixfs = null;
 var chatSeen = /* @__PURE__ */ new Set();
+var config = { kubo: null, repo: null };
+async function loadConfig() {
+  try {
+    const res = await fetch("config.json");
+    if (!res.ok) return;
+    const parsed = await res.json();
+    if (typeof parsed.kubo === "string" && parsed.kubo) config.kubo = parsed.kubo;
+    if (typeof parsed.repo === "string" && parsed.repo) config.repo = parsed.repo;
+  } catch {
+  }
+}
 async function boot() {
   statusLine("starting...");
+  await loadConfig();
   state.services.configured = loadServices().map((s2) => s2.name || "(unnamed)");
   state.services.endpoints = {
     gateways: resolveEndpoints("gateways"),
@@ -113129,6 +113141,7 @@ async function advertiseServe(arg) {
   const envelope = await signFields({
     op: "serve",
     repo: repoFullName,
+    repoPath: config.repo || void 0,
     head: arg?.head || null,
     rootCid: arg?.rootCid || null,
     addrs: arg?.addrs || [],
@@ -113137,6 +113150,7 @@ async function advertiseServe(arg) {
   state.git.serving = {
     signer: envelope.signer,
     repo: repoFullName,
+    repoPath: config.repo || null,
     head: envelope.head,
     rootCid: envelope.rootCid,
     addrs: envelope.addrs,
@@ -113244,8 +113258,12 @@ async function opKuboDetect(arg) {
   const host = String(arg?.host || "127.0.0.1");
   const portStart = Number(arg?.portStart || 5001);
   const portEnd = Number(arg?.portEnd || 5010);
+  const candidates = [];
+  if (config.kubo) candidates.push(config.kubo);
   for (let port = portStart; port <= portEnd; port++) {
-    const endpoint = `http://${host}:${port}`;
+    candidates.push(`http://${host}:${port}`);
+  }
+  for (const endpoint of candidates) {
     try {
       const res = await fetch(`${endpoint}/api/v0/id?stream-channels=true`, { method: "POST" });
       if (!res.ok) continue;
@@ -113262,6 +113280,20 @@ async function opKuboDetect(arg) {
   }
   state.kubo = { status: "offline", endpoint: null, peerId: null, addresses: [] };
   return state.kubo;
+}
+async function opKuboRpc(arg) {
+  if (state.kubo.status !== "online") throw new Error("kubo not detected \u2014 run kuboDetect first");
+  const method = String(arg?.method || "").replace(/^\/+|\/+$/g, "");
+  if (!method) throw new Error("empty method");
+  const args = Array.isArray(arg?.args) ? arg.args.map((a) => String(a)) : [];
+  const query = args.map((a) => `arg=${encodeURIComponent(a)}`).join("&");
+  const res = await fetch(
+    `${state.kubo.endpoint}/api/v0/${method}?stream-channels=true${query ? `&${query}` : ""}`,
+    { method: "POST" }
+  );
+  const text = await res.text();
+  if (!res.ok) throw new Error(`kubo ${method}: HTTP ${res.status}: ${text}`);
+  return { method, response: text };
 }
 async function opKuboPin(arg) {
   const cid = String(arg?.cid || "");
@@ -113351,6 +113383,7 @@ var ops = {
   unblock: async (a) => opUnblock(a),
   kuboDetect: opKuboDetect,
   kuboPin: opKuboPin,
+  "kubo.rpc": opKuboRpc,
   providers: opProviders,
   shareAddr: async () => opShareAddr(),
   "services.set": async (a) => opServicesSet(a),
