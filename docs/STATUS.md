@@ -68,7 +68,8 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 - Optional services (`docs/optional-services.md`) are accelerants, never dependencies; resolution: configured → public defaults → p2p.
 - PUSH ORDER (AGENTS.md): submodule branch/tag on ITS remote FIRST, superproject second — a gitlink pointing at an unpushed commit breaks CI checkout ("upload-pack: not our ref <sha>"). Guard: `node scripts/check-gitlink.mjs`; enforced in `.githooks/pre-push`, `release.mjs`, and the CI workflows (guard step before submodule checkout).
 - `Action packaging smoke test` rust-smoke job: FIXED — was the ubuntu-latest migration dropping glib preinstalls; now pins `ubuntu-24.04` and apt-installs `libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev` (wry 0.55 / webkit2gtk-sys 2.0 pkg-config set).
+- NEVER put `${{ secrets.* }}` in action.yml (even in an input description): `secrets` is not a valid context in action metadata — every `uses: ./` step fails in seconds (run 43093477485). Describe secrets in prose; reference them only in workflow files. Guard: tests/action-metadata.test.mjs.
 
 ## Standing orders
 
-Interrupt = full stop. Commit = snapshot (release only via `npm run release` or explicit order). One topic per commit. Never push without an explicit order. Full values, never truncate. Every command its own line, yellow, single-click copy (web app). Tests live in `tests/`. Bump version + tag + push after every confirmed phase.
+Interrupt = full stop. Commit = snapshot (release only via `npm run release` or explicit order). One topic per commit. Never push without an explicit order. Full values, never truncate. Every command its own line, yellow, single-click copy (web app). Tests live in `tests/`. Bump version + tag + push after every confirmed phase. After any push, check CI in the BACKGROUND (https://github.com/RandyMcMillan/ipfs-gh-pages/actions) and report when it lands — never block on sleeps.

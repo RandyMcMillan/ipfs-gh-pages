@@ -28,7 +28,7 @@ inputs:
     required: false
     default: 'false'
   pinata-jwt:
-    description: 'Optional Pinata JWT (pass a repo secret, e.g. ${{ secrets.PINATA_JWT }}). Pins the built CAR to Pinata public IPFS; empty = skipped.'
+    description: 'Optional Pinata JWT (pass it as a repo secret, e.g. the PINATA_JWT secret). Pins the built CAR to Pinata public IPFS; empty = skipped.'
     required: false
     default: ''
 
