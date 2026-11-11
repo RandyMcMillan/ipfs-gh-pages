@@ -12,7 +12,7 @@
     "build": "vite build && node scripts/build-car.mjs",
     "preview": "vite preview",
     "test": "npm run test:all",
-    "test:all": "node --test tests/unit.test.mjs && node --test tests/car.test.mjs && node --test tests/git-objects.test.mjs && node --test tests/git-upload-pack.test.mjs && node --test tests/git-clone-smart.test.mjs && node tests/cdp-test.mjs && node tests/cdp-eval.mjs && node tests/cdp-zip.mjs && node tests/cdp-download.mjs && node tests/cdp-connect.mjs && (node tests/cdp-share-link.mjs || node tests/cdp-share-link.mjs || node tests/cdp-share-link.mjs) && node tests/cdp-ui.mjs && node tests/cdp-ipns-chip.mjs && node tests/cdp-issues.mjs",
+    "test:all": "node --test tests/unit.test.mjs && node --test tests/car.test.mjs && node --test tests/git-objects.test.mjs && node --test tests/git-upload-pack.test.mjs && node --test tests/git-clone-smart.test.mjs && node --test tests/git-pull-smart.test.mjs && node tests/cdp-test.mjs && node tests/cdp-eval.mjs && node tests/cdp-zip.mjs && node tests/cdp-download.mjs && node tests/cdp-connect.mjs && (node tests/cdp-share-link.mjs || node tests/cdp-share-link.mjs || node tests/cdp-share-link.mjs) && node tests/cdp-ui.mjs && node tests/cdp-ipns-chip.mjs && node tests/cdp-issues.mjs",
     "test:verbose": "VERBOSE=1 npm run test:all",
     "test:deployed": "TEST_URL=https://randymcmillan.github.io/ipfs-gh-pages/ npm run test:all",
     "test:unit": "node --test tests/unit.test.mjs",

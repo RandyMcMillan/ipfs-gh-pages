@@ -493,8 +493,8 @@ async function opGitCatFile(arg) {
 // Live clone (docs/git-over-ipfs.md phase 9 step 3): isomorphic-git over
 // lightning-fs (IndexedDB), with the smart-HTTP transport routed to the
 // in-process upload-pack for the fetched store. The clone persists in the
-// browser across sessions; use git.cloneSmart(cid) again after a publish
-// to incremental-fetch.
+// browser across sessions; git.pullSmart(cid) after a re-publish fetches
+// incrementally (the haves path proven in step 2).
 let isoGit = null;
 let LightningFS = null;
 async function isoGitModules() {
@@ -507,10 +507,29 @@ async function isoGitModules() {
   return { git: isoGit.default || isoGit, LightningFS: LightningFS.default || LightningFS };
 }
 
+const CLONES_KEY = 'git-clones';
+function loadClones() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(CLONES_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+function recordClone(entry) {
+  const list = loadClones().filter((c) => c.name !== entry.name);
+  list.unshift({ ...entry, updatedAt: new Date().toISOString() });
+  localStorage.setItem(CLONES_KEY, JSON.stringify(list.slice(0, 20)));
+}
+
+function cloneName(arg) {
+  return (String(arg?.text || '').trim() || `repo-${String(arg?.cid || '').slice(0, 8)}`).split(/\s+/)[0];
+}
+
 async function opGitCloneSmart(arg) {
   const cid = String(arg?.cid || '');
   if (!cid) throw new Error('empty cid');
-  const name = (String(arg?.text || '').trim() || `repo-${cid.slice(0, 8)}`).split(/\s+/)[0];
+  const name = cloneName(arg);
   const store = await gitStoreForCid(cid);
   const { git, LightningFS: LFS } = await isoGitModules();
   const fs = new LFS(name);
@@ -524,7 +543,39 @@ async function opGitCloneSmart(arg) {
   });
   const branches = await git.listBranches({ fs, dir: '/repo' });
   const tags = await git.listTags({ fs, dir: '/repo' });
+  recordClone({ name, cid, branches, tags });
   return { cid, name, branches, tags };
+}
+
+async function opGitPullSmart(arg) {
+  const cid = String(arg?.cid || '');
+  if (!cid) throw new Error('empty cid');
+  const name = cloneName(arg);
+  const { git, LightningFS: LFS } = await isoGitModules();
+  const fs = new LFS(name);
+  try {
+    await fs.promises.stat('/repo/HEAD');
+  } catch {
+    throw new Error(`no clone named "${name}" — run git.cloneSmart <cid> first`);
+  }
+  const store = await gitStoreForCid(cid);
+  const before = await git.resolveRef({ fs, dir: '/repo', ref: 'HEAD' }).catch(() => null);
+  await git.pull({
+    fs,
+    http: makeSmartHttp(store),
+    dir: '/repo',
+    url: `http://ipfs.local/${cid}.git`,
+    corsProxy: undefined,
+    singleBranch: false,
+    author: { name: 'ipfs-gh-pages', email: 'pull@ipfs-gh-pages.local' }
+  });
+  const after = await git.resolveRef({ fs, dir: '/repo', ref: 'HEAD' });
+  recordClone({ name, cid });
+  return { name, cid, before, after, advanced: before !== after };
+}
+
+function opGitClones() {
+  return { clones: loadClones() };
 }
 
 async function advertiseServe(arg) {
@@ -900,6 +951,8 @@ const ops = {
   'git.refs': opGitRefs,
   'git.catFile': opGitCatFile,
   'git.cloneSmart': opGitCloneSmart,
+  'git.pullSmart': opGitPullSmart,
+  'git.clones': opGitClones,
   'repo.publishAll': opRepoPublishAll,
   'pin.remote.list': opPinRemoteList,
   'pin.remote.add': opPinRemoteAdd,
