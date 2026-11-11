@@ -772,6 +772,92 @@
     .blob-code .line:hover .lc {
       background: var(--color-canvas-subtle);
     }
+    /* Line comments (docs/issues-car.md phase 9): annotated-line tint plus
+       a gutter marker. The marker glyph/count is the non-color indicator —
+       the tint alone never carries the meaning. */
+    .blob-code .line-commented .lc {
+      background: var(--color-attention-subtle, #fff8c5);
+    }
+    .blob-code .line-commented .ln {
+      background: var(--color-attention-subtle, #fff8c5);
+    }
+    .blob-code .line-flash .lc,
+    .blob-code .line-flash .ln {
+      background: var(--color-attention-muted, #ffd33d);
+    }
+    .blob-code .ln-marker {
+      appearance: none;
+      border: none;
+      background: none;
+      padding: 0 0 0 0.3rem;
+      cursor: pointer;
+      font: inherit;
+      color: var(--color-fg-muted);
+    }
+    .blob-code .ln-marker:hover {
+      color: var(--color-fg-default);
+      text-decoration: underline;
+    }
+    .line-comment-bar {
+      position: fixed;
+      z-index: 1000;
+      background: var(--color-canvas-default);
+      border: 1px solid var(--color-border-default);
+      border-radius: 6px;
+      padding: 0.2rem;
+      box-shadow: var(--color-shadow-medium, 0 8px 24px rgba(140, 149, 159, 0.4));
+    }
+    .line-comment-composer {
+      border: 1px solid var(--color-border-default);
+      border-bottom: none;
+      background: var(--color-canvas-default);
+      padding: 0.5rem 0.75rem;
+    }
+    .line-comment-composer .line-comment-heading {
+      font-size: 0.8rem;
+      color: var(--color-fg-muted);
+      margin-bottom: 0.4rem;
+      word-break: break-all;
+    }
+    .line-comment-panel {
+      margin-top: 0.5rem;
+      border: 1px solid var(--color-border-default);
+      border-radius: 6px;
+      background: var(--color-canvas-default);
+      padding: 0.5rem 0.75rem;
+    }
+    .line-comment-panel-head {
+      font-size: 0.8rem;
+      color: var(--color-fg-muted);
+      margin-bottom: 0.4rem;
+      word-break: break-all;
+    }
+    .line-comment-item {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.35rem 0.25rem;
+      border-top: 1px solid var(--color-border-muted);
+      cursor: pointer;
+      align-items: flex-start;
+    }
+    .line-comment-item:hover {
+      background: var(--color-canvas-subtle);
+    }
+    .line-comment-item:focus-visible {
+      outline: 2px solid var(--color-accent-emphasis, #0969da);
+      outline-offset: -2px;
+    }
+    .line-comment-chip {
+      flex-shrink: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.75rem;
+      border: 1px solid var(--color-border-default);
+      border-radius: 10px;
+      padding: 0 0.45rem;
+      margin-top: 0.1rem;
+      color: var(--color-fg-muted);
+      background: var(--color-canvas-subtle);
+    }
     .tok-com { color: #59636e; font-style: italic; }
     .tok-str { color: #0a3069; }
     .tok-kw { color: #cf222e; }
@@ -1025,7 +1111,20 @@
             <span class="flex-auto"></span>
             <span class="blob-meta" id="blob-meta"></span>
           </div>
+          <div class="line-comment-composer" id="line-comment-composer" hidden>
+            <div class="line-comment-heading" id="line-comment-heading"></div>
+            <textarea id="line-comment-body" rows="3" class="form-control" style="width: 100%;" placeholder="Add a signed line comment…" aria-label="Line comment body"></textarea>
+            <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem; margin-top: 0.4rem;">
+              <button id="btn-line-comment-submit" class="btn btn-sm btn-primary" type="button">Comment</button>
+              <button id="btn-line-comment-cancel" class="btn btn-sm" type="button">Cancel</button>
+              <span id="line-comment-status" class="f6 color-fg-muted" style="word-break: break-all;" role="status"></span>
+            </div>
+          </div>
           <div class="blob-code" id="blob-code"></div>
+          <div class="line-comment-panel" id="line-comment-panel" hidden></div>
+          <div class="line-comment-bar" id="line-comment-bar" hidden>
+            <button id="btn-line-comment-start" class="btn btn-sm" type="button">Comment on lines</button>
+          </div>
         </div>
         <div id="tree-view">
         <div class="d-flex flex-items-center flex-wrap mb-3" style="gap: 0.5rem;">

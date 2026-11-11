@@ -21,6 +21,7 @@ import { multiaddr } from '@multiformats/multiaddr';
 import { formatSize, base64ToUint8Array, uint8ArrayToBase64, buildRepoTree, isBrowserDialable, normalizeAddressForProxy } from './lib/shared.mjs';
 
 import { classifyIndexSync } from './js/index-merge.js';
+import { normalizeLineRange, makeLineCommentFields, isLineCommentNote, commentsByLine } from './js/line-comments.js';
 
 // Repo identity: prefer the Pages origin (<owner>.github.io/<repo>), then the
 // build-time identity baked by the action (GITHUB_REPOSITORY / git remote), so
@@ -525,6 +526,8 @@ function showFileBlob(path) {
 
   treeView.hidden = true;
   blobView.hidden = false;
+  resetLineCommentUi();
+  renderLineGutter();
   blobView.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -533,6 +536,7 @@ function hideFileBlob() {
   if (treeView) treeView.hidden = false;
   blobCurrentBytes = null;
   blobCurrentCid = null;
+  resetLineCommentUi();
 }
 
 const blobRepoLink = document.getElementById('blob-repo-link');
@@ -576,6 +580,288 @@ if (blobDownloadBtn) {
     const path = document.getElementById('blob-path').textContent.replace(/\s*\/\s*/g, '/').replace(/^\//, '').trim();
     downloadBytes(blobCurrentBytes, path.split('/').pop() || 'file');
   });
+}
+
+// ---- Line comments (docs/issues-car.md phase 9) --------------------------------
+// Granular review on the blob view: select lines in the code, comment; the
+// note is a signed `line-comment` anchored to this exact blob CID, so
+// (cid, line) is an immutable coordinate — the CID pins the content the
+// range was filed against. Gutter markers render from the local index;
+// clicking one lists the file's fetched-and-verified comments below the code.
+
+const LINE_COMMENTS_KEY = 'repo-line-comments';
+const lineBarEl = document.getElementById('line-comment-bar');
+const lineBarBtn = document.getElementById('btn-line-comment-start');
+const lineComposerEl = document.getElementById('line-comment-composer');
+const linePanelEl = document.getElementById('line-comment-panel');
+let pendingLineRange = null;
+
+function loadLineCommentIndex() {
+  try { return JSON.parse(localStorage.getItem(LINE_COMMENTS_KEY) || '{}'); } catch { return {}; }
+}
+
+function saveLineCommentIndex(index) {
+  try { localStorage.setItem(LINE_COMMENTS_KEY, JSON.stringify(index)); } catch {}
+}
+
+function blobLineRows() {
+  const codeEl = document.getElementById('blob-code');
+  return codeEl ? Array.from(codeEl.querySelectorAll('.line')) : [];
+}
+
+// Selection → 1-based line range; null unless both ends sit inside the
+// rendered code (selecting page chrome must not offer a line comment).
+function currentBlobSelectionRange() {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed || sel.rangeCount === 0) return null;
+  const codeEl = document.getElementById('blob-code');
+  if (!codeEl || !blobView || blobView.hidden) return null;
+  const { anchorNode, focusNode } = sel;
+  if (!anchorNode || !focusNode || !codeEl.contains(anchorNode) || !codeEl.contains(focusNode)) return null;
+  const rowOf = (node) => {
+    let el = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+    while (el && el !== codeEl) {
+      if (el.classList && el.classList.contains('line')) return el;
+      el = el.parentElement;
+    }
+    return null;
+  };
+  const rows = blobLineRows();
+  const ai = rows.indexOf(rowOf(anchorNode));
+  const fi = rows.indexOf(rowOf(focusNode));
+  if (ai < 0 || fi < 0) return null;
+  return normalizeLineRange(ai + 1, fi + 1);
+}
+
+function hideLineBar() {
+  if (lineBarEl) lineBarEl.hidden = true;
+}
+
+// Floating "Comment on lines X–Y" action pinned above the selection's last
+// line; hidden again whenever the selection collapses or the view scrolls.
+function updateLineBar() {
+  if (!lineBarEl || !blobView || blobView.hidden) return;
+  const range = currentBlobSelectionRange();
+  const rows = blobLineRows();
+  const row = range ? rows[range.end - 1] : null;
+  if (!range || !row) {
+    hideLineBar();
+    return;
+  }
+  lineBarBtn.textContent = `💬 Comment on lines ${range.start}–${range.end}`;
+  const rect = row.getBoundingClientRect();
+  lineBarEl.style.top = `${Math.max(6, rect.top - 42)}px`;
+  lineBarEl.style.left = `${Math.max(6, Math.min(rect.left, window.innerWidth - 300))}px`;
+  lineBarEl.hidden = false;
+}
+
+document.addEventListener('selectionchange', updateLineBar);
+window.addEventListener('scroll', hideLineBar, { passive: true });
+window.addEventListener('resize', hideLineBar);
+
+if (lineBarBtn) {
+  lineBarBtn.addEventListener('click', () => {
+    const range = currentBlobSelectionRange();
+    if (!range) return;
+    pendingLineRange = range;
+    hideLineBar();
+    window.getSelection()?.removeAllRanges();
+    openLineComposer();
+  });
+}
+
+function openLineComposer() {
+  if (!lineComposerEl || !pendingLineRange) return;
+  const heading = document.getElementById('line-comment-heading');
+  const path = (document.getElementById('blob-path')?.textContent || '').trim();
+  if (heading) {
+    heading.textContent = `Commenting on ${path || '(file)'} — lines ${pendingLineRange.start}–${pendingLineRange.end}, anchored to ${blobCurrentCid}`;
+  }
+  const bodyEl = document.getElementById('line-comment-body');
+  if (bodyEl) bodyEl.value = '';
+  const statusEl = document.getElementById('line-comment-status');
+  if (statusEl) statusEl.textContent = '';
+  lineComposerEl.hidden = false;
+  bodyEl?.focus();
+}
+
+function hideLineComposer() {
+  pendingLineRange = null;
+  if (lineComposerEl) lineComposerEl.hidden = true;
+}
+
+// Gutter: tint annotated rows and drop a marker (with count) in the line
+// number cell. The marker pairs glyph+count with the tint so the meaning
+// never rides on color alone.
+function renderLineGutter() {
+  const rows = blobLineRows();
+  rows.forEach((row) => {
+    row.classList.remove('line-commented');
+    row.querySelectorAll('.ln-marker').forEach((m) => m.remove());
+  });
+  if (!blobCurrentCid) return;
+  const stored = loadLineCommentIndex()[blobCurrentCid] || [];
+  if (!stored.length) return;
+  const byLine = commentsByLine(stored);
+  rows.forEach((row, i) => {
+    const list = byLine.get(i + 1);
+    if (!list) return;
+    row.classList.add('line-commented');
+    const ln = row.querySelector('.ln');
+    if (!ln) return;
+    const marker = document.createElement('button');
+    marker.type = 'button';
+    marker.className = 'ln-marker';
+    marker.textContent = list.length > 1 ? `💬${list.length}` : '💬';
+    const label = `${list.length} comment(s) on line ${i + 1}`;
+    marker.title = label;
+    marker.setAttribute('aria-label', label);
+    marker.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openLineCommentPanel(i + 1);
+    });
+    ln.appendChild(marker);
+  });
+}
+
+// Fetch + verify one comment note for the panel; a valid signature on a
+// malformed note still must not render as a line comment.
+async function renderLineCommentBody(item, holder) {
+  if (!heliaNode) {
+    holder.textContent = 'Node offline — cannot fetch this comment.';
+    return;
+  }
+  try {
+    const note = await getDagJson(CID.parse(item.cid));
+    const { ok, signed, signer } = await verifyNote(note);
+    if (!ok || !isLineCommentNote(signed)) {
+      holder.style.color = 'var(--fgColor-danger, #cf222e)';
+      holder.textContent = `✗ invalid note at ${item.cid}`;
+      return;
+    }
+    holder.textContent = '';
+    const meta = document.createElement('div');
+    meta.className = 'f6 color-fg-muted';
+    meta.style.wordBreak = 'break-all';
+    meta.textContent = `✓ ${signer} · ${signed.timestamp} · ${item.cid}`;
+    const body = document.createElement('div');
+    body.textContent = signed.body;
+    const pin = document.createElement('pre');
+    pin.style.margin = '0.15rem 0 0 0';
+    const code = document.createElement('code');
+    code.textContent = `ipfs pin add ${item.cid}`;
+    pin.appendChild(code);
+    holder.appendChild(meta);
+    holder.appendChild(body);
+    holder.appendChild(pin);
+  } catch {
+    holder.textContent = `${item.cid} — unavailable (no provider)`;
+  }
+}
+
+// The file's line comments, newest-indexed first, each jumping to its
+// range on click/Enter.
+function openLineCommentPanel() {
+  if (!linePanelEl || !blobCurrentCid) return;
+  const stored = (loadLineCommentIndex()[blobCurrentCid] || []).slice()
+    .sort((a, b) => (a.start - b.start) || String(a.cid).localeCompare(String(b.cid)));
+  if (!stored.length) {
+    linePanelEl.hidden = true;
+    return;
+  }
+  linePanelEl.innerHTML = '';
+  const head = document.createElement('div');
+  head.className = 'line-comment-panel-head';
+  head.textContent = `Line comments on this file (${stored.length}) — anchored to ${blobCurrentCid}`;
+  linePanelEl.appendChild(head);
+  for (const item of stored) {
+    const range = normalizeLineRange(item.start, item.end);
+    const row = document.createElement('div');
+    row.className = 'line-comment-item';
+    row.tabIndex = 0;
+    const chip = document.createElement('span');
+    chip.className = 'line-comment-chip';
+    chip.textContent = range.start === range.end ? `L${range.start}` : `L${range.start}–L${range.end}`;
+    const holder = document.createElement('div');
+    holder.className = 'f6 color-fg-muted';
+    holder.style.flex = '1';
+    holder.style.wordBreak = 'break-all';
+    holder.textContent = 'Fetching…';
+    row.appendChild(chip);
+    row.appendChild(holder);
+    const jump = () => {
+      const rows = blobLineRows();
+      rows.forEach((r, i) => r.classList.toggle('line-flash', i + 1 >= range.start && i + 1 <= range.end));
+      rows[range.start - 1]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => rows.forEach((r) => r.classList.remove('line-flash')), 1600);
+    };
+    row.addEventListener('click', jump);
+    row.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        jump();
+      }
+    });
+    linePanelEl.appendChild(row);
+    renderLineCommentBody(item, holder);
+  }
+  linePanelEl.hidden = false;
+}
+
+async function createLineComment() {
+  const statusEl = document.getElementById('line-comment-status');
+  const bodyEl = document.getElementById('line-comment-body');
+  const btn = document.getElementById('btn-line-comment-submit');
+  if (!blobCurrentCid || !pendingLineRange) {
+    if (statusEl) statusEl.textContent = 'Select a line range in the code first.';
+    return;
+  }
+  const fields = makeLineCommentFields({
+    fileCid: blobCurrentCid,
+    start: pendingLineRange.start,
+    end: pendingLineRange.end,
+    body: bodyEl?.value,
+    timestamp: new Date().toISOString()
+  });
+  if (!fields) {
+    if (statusEl) statusEl.textContent = 'Write a comment first.';
+    return;
+  }
+  if (!heliaNode) {
+    if (statusEl) statusEl.textContent = 'Wait for the node to come online.';
+    return;
+  }
+  if (btn) btn.disabled = true;
+  if (statusEl) statusEl.textContent = 'Signing and publishing…';
+  try {
+    const { envelope, signer } = await signNote(fields);
+    const cid = await publishNote(envelope);
+    const index = loadLineCommentIndex();
+    (index[blobCurrentCid] = index[blobCurrentCid] || []).unshift({
+      cid, start: fields.line.start, end: fields.line.end, timestamp: fields.timestamp, signer
+    });
+    saveLineCommentIndex(index);
+    await extendChain([cid]);
+    if (statusEl) statusEl.textContent = `Commented — ${cid}`;
+    if (bodyEl) bodyEl.value = '';
+    renderLineGutter();
+    openLineCommentPanel();
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Failed: ${err.message}`;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+const lineSubmitBtn = document.getElementById('btn-line-comment-submit');
+if (lineSubmitBtn) lineSubmitBtn.addEventListener('click', createLineComment);
+const lineCancelBtn = document.getElementById('btn-line-comment-cancel');
+if (lineCancelBtn) lineCancelBtn.addEventListener('click', hideLineComposer);
+
+function resetLineCommentUi() {
+  hideLineBar();
+  hideLineComposer();
+  if (linePanelEl) linePanelEl.hidden = true;
 }
 
 // Export a CID (and its full DAG) as CAR bytes. CarWriter streams block

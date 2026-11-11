@@ -22,7 +22,7 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 - Bundle build: `./scripts/bundle.sh --build` (runs build-ipfs-js.mjs + build-repo-files.mjs + trunk + cargo bundle)
 - JS bundle only: `node scripts/build-ipfs-js.mjs` (inject repo identity via --define)
 - Web app: `npm run dev` / `npm run build` (rebuilds actions-test.car — snapshot the submodule before releasing)
-- Tests: `npm run test:all` — unit, car, index-merge (5), index-walk (3), git-objects (14), git-upload-pack (4), git-clone-smart (2), git-pull-smart (2), then CDP suite
+- Tests: `npm run test:all` — unit, car, index-merge (5), index-walk (3), line-comments (4), git-objects (14), git-upload-pack (4), git-clone-smart (2), git-pull-smart (2), then CDP suite
 - Release (ONLY when user orders): `npm run release <semver>` — refuses on dirty tree; snapshot `actions-test.car` first if `npm run build` ran
 - Sign/release app: `scripts/sign-app.sh`, `scripts/release-app.sh [--notarize]`
 
@@ -30,14 +30,14 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 
 - **Bridge plan** (`docs/rust-js-bridge.md`): phases 1–8, 11. Tabs: IPFS, Peers, Fetch, Publish, Chat, Kubo (generic `kubo.rpc` = full API), Services, Git, Repo, Issues. `:` bar = vim command line (whole op surface; `kubo <m> <args>`, second token passes as `sha`).
 - **Phase 9 git clone** (`docs/git-over-ipfs.md`): COMPLETE. `js/git-objects.js` (loose+pack+delta reader), `js/git-upload-pack.js` (in-process smart protocol; real git clones through it, fsck-clean), `js/git-smart.js` (isomorphic-git transport), `git.cloneSmart`/`git.pullSmart`/`git.clones` (lightning-fs, IndexedDB, incremental). TUI Git tab: c/s/u/a/l.
-- **Phase 10 issues** (`docs/issues-car.md`): index on its OWN IPNS name (`ipns-index-key:<repo>` — branch pointer uses the repo key; one name = one value). `extendChain` publishes tip. Cross-surface sync in both surfaces; **multi-parent merge** via shared `js/index-merge.js` `classifyIndexSync` (genesis/ff-either-way/two-parent union). Bridge ops `issues.create`/`issues.sync`; TUI Issues tab (i/s). Issues CAR bundle walk (phase 6): `scripts/index-walk.mjs` walks tip → entries (`prev`) + notes (`added`, comment `parent` links; anchors NOT followed) into the blockstore; `build-car.mjs --index-tip <cid>` (repeatable) or `INDEX_TIPS=<cid,cid>` stages via Kubo RPC (KUBO_RPC) then trustless gateways (INDEX_GATEWAYS) — never fatal; CAR roots = repo root + resolved tips, partial tips bundled but not rooted.
+- **Phase 10 issues** (`docs/issues-car.md`): index on its OWN IPNS name (`ipns-index-key:<repo>` — branch pointer uses the repo key; one name = one value). `extendChain` publishes tip. Cross-surface sync in both surfaces; **multi-parent merge** via shared `js/index-merge.js` `classifyIndexSync` (genesis/ff-either-way/two-parent union). Bridge ops `issues.create`/`issues.sync`; TUI Issues tab (i/s). Issues CAR bundle walk (phase 6): `scripts/index-walk.mjs` walks tip → entries (`prev`) + notes (`added`, comment `parent` links; anchors NOT followed) into the blockstore; `build-car.mjs --index-tip <cid>` (repeatable) or `INDEX_TIPS=<cid,cid>` stages via Kubo RPC (KUBO_RPC) then trustless gateways (INDEX_GATEWAYS) — never fatal; CAR roots = repo root + resolved tips, partial tips bundled but not rooted. Line comments (phase 9, web app): select blob lines → signed `line-comment` note `{ns:'review', anchors:[fileCid], line:{start,end}}` via `js/line-comments.js` helpers (pure, unit-tested); gutter markers + tinted rows, composer, verified-comment panel; CDP-covered (cdp-line-comments).
 - **Interop** (`docs/interop.md`): steps 1–3. Rust app serves loopback-only `:5050` (`/publish`, `/well-known/identity`, CORS `*`); bridge posts identity after boot + every 30s; main.js probes and adopts silently when no key, else exposes `window.__pendingIdentityAdoption`. Deployed-page CI smoke: `.github/workflows/deployed-smoke.yml` (two headless nodes must discover each other).
 - **URIs/providers** (`docs/ipfs-uri-providers.md`): step 1 (pin.remote.list/add, registry entries `{endpoint, token}`), step 2 (`ipfs://`/`ipns://` click interception in-app + `web+ipfs`/`web+ipns` protocol handlers via `?uri=`).
 - Desktop app: clap CLI (`--host/--port/--serve-dir/--url/--kubo/--repo/--systray`), tray-icon crate (NOT tao — tao 0.35 dropped tray), About panel (system light/dark, responsive), quit accelerators (Cmd+Q/Ctrl+Q menu, Ctrl+C raw key), interop :5050, sign/release scripts. `bundle.sh --install [PATH]`, `--run -- <args>` passthrough.
 
 ## Next (in priority order)
 
-1. **Phase 10 remainder**: line comments `(fileCid, line)`, blame, `.githooks/` git-host bridge.
+1. **Phase 10 remainder**: blame, `.githooks/` git-host bridge.
 2. **uri-providers steps 3–4**: CID linkification rendering pass (every rendered CID gets gateway/ipfs:// /providers/pin affordances), companion preference toggle.
 3. **libp2p git transport** (`/ipfs-gh-pages/git/1`): for cross-machine clone; blocked on having a LISTENING libp2p node (browser can't); the in-process upload-pack is the same logic wrapped in a stream later.
 
