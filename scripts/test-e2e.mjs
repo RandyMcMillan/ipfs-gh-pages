@@ -16,7 +16,10 @@ const BASE = `http://${HOST}:${PORT}`;
 const READY_TIMEOUT_MS = Number(process.env.E2E_READY_TIMEOUT_MS || 60000);
 const GLOBAL_TIMEOUT_MS = Number(process.env.E2E_TIMEOUT_MS || 35 * 60 * 1000);
 const UNIT_TIMEOUT_MS = Number(process.env.E2E_UNIT_TIMEOUT_MS || 3 * 60 * 1000);
-const CDP_TIMEOUT_MS = Number(process.env.E2E_CDP_TIMEOUT_MS || 8 * 60 * 1000);
+// 12 min: multi-browser tests (cdp-share-link boots three Chromes and has
+// 120s of negative-path waits) legitimately run long on loaded machines —
+// the timeout exists to catch wedges, not slow progress.
+const CDP_TIMEOUT_MS = Number(process.env.E2E_CDP_TIMEOUT_MS || 12 * 60 * 1000);
 
 // The suite list mirrors package.json's test:all — parsed from it, never
 // duplicated, so the two can never drift.
