@@ -111,7 +111,11 @@ await evalJson(`(() => {
 await new Promise((r) => setTimeout(r, 4000));
 check('comment chain renders after re-open', await evalJson(`(() => {
   const d = document.getElementById('issue-detail-body');
-  return d && d.textContent.includes('first comment from cdp');
+  // Comment bodies render inside sandboxed iframes (network content) —
+  // the parent can't read their documents (no allow-same-origin), but the
+  // sanitized HTML is right there in srcdoc.
+  const frames = [...d.querySelectorAll('iframe')];
+  return frames.some((f) => (f.getAttribute('srcdoc') || '').includes('first comment from cdp'));
 })()`));
 
 // Persistence: the issue and comment index survive in localStorage.

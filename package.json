@@ -13,7 +13,7 @@
     "install:consumer-example": "node scripts/install-consumer-example.mjs",
     "preview": "vite preview",
     "test": "npm run test:all",
-    "test:all": "node --test tests/unit.test.mjs && node --test tests/car.test.mjs && node --test tests/index-merge.test.mjs && node --test tests/index-walk.test.mjs && node --test tests/line-comments.test.mjs && node --test tests/blame.test.mjs && node --test tests/cid-links.test.mjs && node --test tests/interop-vectors.test.mjs && node --test tests/pinata-pin.test.mjs && node --test tests/action-metadata.test.mjs && node --test tests/rehost-service.test.mjs && node --test tests/rehost.test.mjs && node --test tests/rehost-mirror.test.mjs && node --test tests/stego-fixtures.test.mjs && node --test tests/git-notes-bridge.test.mjs && node --test tests/check-gitlink.test.mjs && node --test tests/install-consumer-example.test.mjs && node --test tests/git-objects.test.mjs && node --test tests/git-upload-pack.test.mjs && node --test tests/git-clone-smart.test.mjs && node --test tests/git-pull-smart.test.mjs && node tests/cdp-test.mjs && node tests/cdp-eval.mjs && node tests/cdp-zip.mjs && node tests/cdp-download.mjs && node tests/cdp-connect.mjs && (node tests/cdp-share-link.mjs || node tests/cdp-share-link.mjs || node tests/cdp-share-link.mjs) && node tests/cdp-ui.mjs && node tests/cdp-ipns-chip.mjs && node tests/cdp-issues.mjs && node tests/cdp-line-comments.mjs && node tests/cdp-blame.mjs && node tests/cdp-git-bridge.mjs && node tests/cdp-cid-links.mjs && node tests/cdp-interop-vector.mjs",
+    "test:all": "node --test tests/unit.test.mjs && node --test tests/car.test.mjs && node --test tests/index-merge.test.mjs && node --test tests/index-walk.test.mjs && node --test tests/line-comments.test.mjs && node --test tests/blame.test.mjs && node --test tests/cid-links.test.mjs && node --test tests/interop-vectors.test.mjs && node --test tests/pinata-pin.test.mjs && node --test tests/action-metadata.test.mjs && node --test tests/rehost-service.test.mjs && node --test tests/rehost.test.mjs && node --test tests/rehost-mirror.test.mjs && node --test tests/markdown.test.mjs && node --test tests/stego-fixtures.test.mjs && node --test tests/git-notes-bridge.test.mjs && node --test tests/check-gitlink.test.mjs && node --test tests/install-consumer-example.test.mjs && node --test tests/git-objects.test.mjs && node --test tests/git-upload-pack.test.mjs && node --test tests/git-clone-smart.test.mjs && node --test tests/git-pull-smart.test.mjs && node tests/cdp-test.mjs && node tests/cdp-eval.mjs && node tests/cdp-zip.mjs && node tests/cdp-download.mjs && node tests/cdp-connect.mjs && (node tests/cdp-share-link.mjs || node tests/cdp-share-link.mjs || node tests/cdp-share-link.mjs) && node tests/cdp-ui.mjs && node tests/cdp-ipns-chip.mjs && node tests/cdp-issues.mjs && node tests/cdp-line-comments.mjs && node tests/cdp-blame.mjs && node tests/cdp-git-bridge.mjs && node tests/cdp-cid-links.mjs && node tests/cdp-interop-vector.mjs && node tests/cdp-markdown.mjs",
     "test:verbose": "VERBOSE=1 npm run test:all",
     "test:deployed": "TEST_URL=https://randymcmillan.github.io/ipfs-gh-pages/ npm run test:all",
     "test:unit": "node --test tests/unit.test.mjs",
@@ -45,9 +45,11 @@
     "@libp2p/pubsub-peer-discovery": "^12.0.0",
     "@multiformats/multiaddr": "^12.0.0",
     "@primer/css": "^22.3.3",
+    "dompurify": "^3.4.17",
     "fflate": "^0.8.0",
     "helia": "^5.0.0",
-    "isomorphic-git": "^1.44.12"
+    "isomorphic-git": "^1.44.12",
+    "marked": "^18.2.0"
   },
   "devDependencies": {
     "vite": "^5.0.0"

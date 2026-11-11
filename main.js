@@ -24,6 +24,8 @@ import { classifyIndexSync } from './js/index-merge.js';
 import { normalizeLineRange, makeLineCommentFields, isLineCommentNote, commentsByLine } from './js/line-comments.js';
 import { collectReleases, blameLines, blameCommentMatches } from './js/blame.js';
 import { findCidTokens, cidAffordanceModel } from './js/cid-links.js';
+import { sanitizeMarkdownHtml, rewriteRendered, sandboxedFrame } from './js/markdown.js';
+import { rehostAndRewrite } from './js/rehost.js';
 
 // Repo identity: prefer the Pages origin (<owner>.github.io/<repo>), then the
 // build-time identity baked by the action (GITHUB_REPOSITORY / git remote), so
@@ -595,7 +597,8 @@ function showFileBlob(path) {
     const article = document.createElement('article');
     article.className = 'readme-body';
     article.style.padding = '1rem';
-    article.innerHTML = miniMd(text);
+    const dir = path.split('/').slice(0, -1).join('/');
+    renderMarkdownInto(article, text, { mdDir: dir });
     codeEl.appendChild(article);
   } else {
     const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/`/g, '&#96;');
@@ -1315,53 +1318,44 @@ function renderRepoTree() {
   fileTreeEl.appendChild(renderRepoTable(foldRepoNodes(repoTreeNodes(tree, ''))));
 }
 
-// Minimal, safe markdown subset for the embedded README: headings, fenced
-// code, inline code, bold, images, links, lists, paragraphs.
-function miniMd(src) {
-  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  const inline = (s) => esc(s)
-    .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img alt="$1" src="$2">')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-  const out = [];
-  const lines = src.split('\n');
-  let inCode = false;
-  let codeBuf = [];
-  let inList = false;
-  for (const line of lines) {
-    if (line.trim().startsWith('```')) {
-      if (inCode) {
-        out.push('<pre><code>' + codeBuf.join('\n') + '</code></pre>');
-        codeBuf = [];
-        inCode = false;
-      } else {
-        if (inList) { out.push('</ul>'); inList = false; }
-        inCode = true;
-      }
-      continue;
+// GitHub-like markdown (docs/markdown-rendering.md): marked (GFM) →
+// DOMPurify (no scripts/handlers/style/SVG/MathML — SVG renders via <img>
+// only) → rewrite pass. Repo-relative images come from the embedded
+// bundle as data: URLs (script-inert in <img> context); remote images go
+// through the rehost service (fetch-once → content-addressed URL), and a
+// failed rehost blocks the image rather than beaconing the origin.
+const EMBED_MIME = {
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
+  webp: 'image/webp', svg: 'image/svg+xml', avif: 'image/avif', ico: 'image/x-icon', bmp: 'image/bmp'
+};
+function embedDataUrl(path) {
+  const b64 = repoFiles[path];
+  if (!b64) return null;
+  const mime = EMBED_MIME[path.split('.').pop().toLowerCase()];
+  return mime ? `data:${mime};base64,${b64}` : null;
+}
+
+const REHOST_ENDPOINT_KEY = 'rehost-endpoint';
+function rehostEndpoint() {
+  try { return localStorage.getItem(REHOST_ENDPOINT_KEY) || 'http://127.0.0.1:8081'; } catch { return 'http://127.0.0.1:8081'; }
+}
+async function rehostRemoteImage(url) {
+  const out = await rehostAndRewrite(url, { endpoint: rehostEndpoint() });
+  if (out && out.cid) recordRehost(url, out.cid).catch(() => {}); // chain record, fire-and-forget
+  return out;
+}
+
+function renderMarkdownInto(el, src, { mdDir = '' } = {}) {
+  el.innerHTML = sanitizeMarkdownHtml(src);
+  el.dataset.mdDir = mdDir;
+  rewriteRendered(el, {
+    onEmbed: embedDataUrl,
+    rehost: rehostRemoteImage,
+    onRepoLink: (path) => {
+      activateTab('files');
+      showFileBlob(path);
     }
-    if (inCode) { codeBuf.push(esc(line)); continue; }
-    const h = line.match(/^(#{1,4})\s+(.*)$/);
-    if (h) {
-      if (inList) { out.push('</ul>'); inList = false; }
-      const lvl = h[1].length;
-      out.push(`<h${lvl}>${inline(h[2])}</h${lvl}>`);
-      continue;
-    }
-    const li = line.match(/^\s*[-*]\s+(.*)$/);
-    if (li) {
-      if (!inList) { out.push('<ul>'); inList = true; }
-      out.push(`<li>${inline(li[1])}</li>`);
-      continue;
-    }
-    if (inList) { out.push('</ul>'); inList = false; }
-    if (line.trim() === '') continue;
-    out.push(`<p>${inline(line)}</p>`);
-  }
-  if (inCode) out.push('<pre><code>' + codeBuf.join('\n') + '</code></pre>');
-  if (inList) out.push('</ul>');
-  return out.join('\n');
+  });
 }
 
 function renderReadme() {
@@ -1370,7 +1364,7 @@ function renderReadme() {
   if (!card || !body || !repoFiles['README.md']) return;
   try {
     const text = new TextDecoder().decode(base64ToUint8Array(repoFiles['README.md']));
-    body.innerHTML = miniMd(text);
+    renderMarkdownInto(body, text);
     card.style.display = 'block';
   } catch (e) {
     // No README render — leave the card hidden.
@@ -2066,6 +2060,14 @@ if (goToFileBtn) {
     inputCid.focus();
     inputCid.select();
     inputCid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}
+
+// Readme jump (the one inline handler, de-inlined for CSP script-src 'self').
+const readmeJumpBtn = document.getElementById('btn-readme-jump');
+if (readmeJumpBtn) {
+  readmeJumpBtn.addEventListener('click', () => {
+    document.getElementById('readme-card')?.scrollIntoView({ behavior: 'smooth' });
   });
 }
 
@@ -4253,7 +4255,11 @@ async function openIssue(cid) {
       body.textContent = signed.body || '';
       bodyEl.appendChild(h);
       bodyEl.appendChild(meta);
-      if (signed.body) bodyEl.appendChild(body);
+      if (signed.body) {
+        // Network content renders in a sandboxed iframe (no origin
+        // access even if sanitization missed something).
+        bodyEl.appendChild(sandboxedFrame(sanitizeMarkdownHtml(signed.body), { title: 'issue body' }));
+      }
       if (Array.isArray(signed.anchors) && signed.anchors.length > 0) {
         const anchLabel = document.createElement('div');
         anchLabel.className = 'f6 color-fg-muted';
@@ -4283,7 +4289,11 @@ async function openIssue(cid) {
         const cbody = document.createElement('div');
         cbody.textContent = c.signed.body || '';
         div.appendChild(cmeta);
-        div.appendChild(cbody);
+        if (c.signed.body) {
+          div.appendChild(sandboxedFrame(sanitizeMarkdownHtml(c.signed.body), { title: 'issue comment' }));
+        } else {
+          div.appendChild(cbody);
+        }
         if (bodyEl) bodyEl.appendChild(div);
       } catch {
         const div = document.createElement('div');

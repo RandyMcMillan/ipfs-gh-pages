@@ -201,18 +201,29 @@ Corrections adopted from verification:
   [go-camo](https://github.com/cactus/go-camo) is the maintained camo
   successor (GitLab uses it) — see `docs/ipfs-rehost-service.md`.
 
-## Open decisions (make these, then implement)
+## Decisions — TAKEN (2026-11-11)
 
-1. Image policy: block-by-default, gateway-proxied, or accepted leak?
-   (CSP `img-src` enforces whichever is chosen.)
-2. SVG policy: `<img>`-only (recommended), or inline SVG through a
-   namespace-aware sanitizer profile?
-3. Sandboxed iframe for network-supplied content, or sanitize + CSP only?
-4. CSP meta now (requires de-inlining the `onclick=` handlers), or with
-   the renderer?
-5. Bundle budget approval: `marked` + `dompurify` ≈ 60 kB minified
-   (noise next to Helia, but they are new runtime deps — the project
-   currently renders with zero markdown deps).
+1. **Image policy: rehost-first.** Remote images go through the rehost
+   service (fetch-once → content-addressed URL, recorded on the chain);
+   a failed rehost BLOCKS the image (alt text) rather than beaconing the
+   origin. `js/rehost.js` + `scripts/rehost-service.mjs`.
+2. **SVG policy: `<img>`-only.** DOMPurify config forbids inline
+   `<svg>`/`<math>` outright — no SVG-sanitizer profile to keep perfect.
+3. **Network content (issue bodies/comments, fetched docs): sandboxed
+   iframe** (`sandbox="allow-popups"`, no `allow-same-origin`); repo
+   content (README, .md blobs): sanitize + CSP in the page.
+4. **CSP meta: shipped.** `script-src 'self'` (theme script moved to
+   `public/theme-init.js`, the one inline handler de-inlined);
+   `img-src 'self' data: https:`; `connect-src` includes ws:/wss: and the
+   loopback services. Verified blocking inline handlers in CDP.
+5. **Deps approved:** marked + dompurify (≥3.2.4 floor).
+
+## Verification (when approved) — DONE
+
+- Unit: `tests/markdown.test.mjs` (marked GFM, classifyUrl, resolveRepoPath).
+- CDP: `tests/cdp-markdown.mjs` (boot under CSP, CSP blocks inline
+  handlers, README renders sanitized GFM, issue body sandboxed, payload
+  inert); `tests/cdp-issues.mjs` (comment chain via srcdoc).
 
 ## Verification plan (when approved)
 
