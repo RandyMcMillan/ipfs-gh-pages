@@ -1,0 +1,13 @@
+[
+  {
+    "name": "gnostr.svg",
+    "cid": "bafkreih2kz6g6n5fhria2x23ana6dp76e2nln6edrt4iyikzgifxomx46a",
+    "codec": "raw",
+    "source": "pinata",
+    "size": 1763,
+    "sha256": "fa567c6f37a53c500d5f5b0341e1bffe269ab6f8838cf88c2159320b7732fcf0",
+    "gateways": [
+      "https://cyan-immense-fish-454.mypinata.cloud"
+    ]
+  }
+]
