@@ -47,12 +47,14 @@ use wry::{WebView, WebViewBuilder};
 const HOST: &str = "127.0.0.1";
 const PORT: u16 = 8080;
 
+use ipfs_gh_pages::cli::Cli;
+
 enum UserEvent {
     MenuEvent(MenuEvent),
 }
 
-pub fn run() -> Result<(), Box<dyn Error>> {
-    let app_source = app_source()?;
+pub fn run(cli: &Cli) -> Result<(), Box<dyn Error>> {
+    let app_source = app_source(cli)?;
     println!("Serving web UI at {}", app_source.url);
 
     let mut event_loop_builder = EventLoopBuilder::<UserEvent>::with_user_event();
@@ -323,11 +325,21 @@ struct AppSource {
     server: Arc<Mutex<Option<ServerHandle>>>,
 }
 
-fn app_source() -> Result<AppSource, Box<dyn Error>> {
-    if let Some(index) = bundled_index_path()? {
-        let (server, port) = spawn_bundled_server(index.parent().unwrap().to_path_buf())?;
+fn app_source(cli: &Cli) -> Result<AppSource, Box<dyn Error>> {
+    // --url: no server at all, point the webview at an existing page
+    // (e.g. a `trunk serve` dev instance).
+    if let Some(url) = &cli.url {
         return Ok(AppSource {
-            url: format!("http://{HOST}:{port}"),
+            url: url.clone(),
+            server: Arc::new(Mutex::new(None)),
+        });
+    }
+
+    if let Some(index) = bundled_index_path(cli)? {
+        let (server, port) =
+            spawn_bundled_server(index.parent().unwrap().to_path_buf(), &cli.host, cli.port)?;
+        return Ok(AppSource {
+            url: format!("http://{}:{}", cli.host, port),
             server: Arc::new(Mutex::new(Some(ServerHandle::Bundled(server)))),
         });
     }
@@ -341,23 +353,38 @@ fn app_source() -> Result<AppSource, Box<dyn Error>> {
     })
 }
 
-fn bundled_index_path() -> Result<Option<PathBuf>, io::Error> {
+fn bundled_index_path(cli: &Cli) -> Result<Option<PathBuf>, io::Error> {
+    if let Some(dir) = &cli.serve_dir {
+        for name in ["index-rust.html", "index.html"] {
+            let index = dir.join(name);
+            if index.exists() {
+                return Ok(Some(index));
+            }
+        }
+        return Ok(None);
+    }
     let exe = std::env::current_exe()?;
     let Some(contents_dir) = exe.parent().and_then(|p| p.parent()) else {
         return Ok(None);
     };
-    let index = contents_dir
-        .join("Resources")
-        .join("dist")
-        .join("index-rust.html");
-    Ok(index.exists().then_some(index))
+    for name in ["index-rust.html", "index.html"] {
+        let index = contents_dir.join("Resources").join("dist").join(name);
+        if index.exists() {
+            return Ok(Some(index));
+        }
+    }
+    Ok(None)
 }
 
-fn spawn_bundled_server(dist_root: PathBuf) -> Result<(BundledServer, u16), io::Error> {
+fn spawn_bundled_server(
+    dist_root: PathBuf,
+    host: &str,
+    port: u16,
+) -> Result<(BundledServer, u16), io::Error> {
     // Port 0: let the OS pick a free port so the desktop app never fights
     // trunk serve, vite, or anything else for 8080.
-    let listener = std::net::TcpListener::bind((HOST, 0))?;
-    let port = listener.local_addr()?.port();
+    let listener = std::net::TcpListener::bind((host, port))?;
+    let bound_port = listener.local_addr()?.port();
     listener.set_nonblocking(true)?;
 
     let shutdown = Arc::new(AtomicBool::new(false));
@@ -381,7 +408,7 @@ fn spawn_bundled_server(dist_root: PathBuf) -> Result<(BundledServer, u16), io::
             shutdown,
             join: Mutex::new(Some(join)),
         },
-        port,
+        bound_port,
     ))
 }
 

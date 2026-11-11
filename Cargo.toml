@@ -36,14 +36,11 @@ ratzilla = "0.3.1"
 tachyonfx = { version = "0.23.0", default-features = false, features = ["wasm"] }
 tao = { version = "0.35.3", optional = true }
 wasm-bindgen = "0.2.108"
-## web-sys = { version = "0.3.81", features = [
-##     "Window",
-##     "Document",
-##     "Element",
-##     "HtmlElement",
-##     "Location",
-##     "Url",
-##     "UrlSearchParams",
-## ], optional = true }
 web-time = "1.1.0"
 wry = { version = "0.55.1", optional = true }
+
+# CLI parsing for the native binaries (desktop app + stub). Deliberately
+# NOT a wasm dependency — the browser build gets no arg parsing and the
+# trunk bundle stays lean.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+clap = { version = "4.5", features = ["derive"] }

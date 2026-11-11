@@ -120,11 +120,15 @@ fn browser_main() -> Result<(), Box<dyn Error>> {
 
 #[cfg(feature = "bundle-wry")]
 fn main() -> Result<(), Box<dyn Error>> {
-    wry_app::run()
+    use clap::Parser;
+    let cli = ipfs_gh_pages::cli::Cli::parse();
+    wry_app::run(&cli)
 }
 
 #[cfg(all(not(feature = "bundle-wry"), not(target_arch = "wasm32")))]
 fn main() {
+    use clap::Parser;
+    let _cli = ipfs_gh_pages::cli::Cli::parse();
     println!(
         "ipfs-gh-pages's browser entrypoint is for wasm32.\n\
          Run `trunk serve` or `trunk build` for the Ratzilla web app."
