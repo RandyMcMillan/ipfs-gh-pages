@@ -118,6 +118,11 @@ jobs:
           deploy: 'true'
 ```
 
+The example above pins a release tag. A self-updating variant — it auto-detects the
+newest `v*` tag of this action at run time (falling back to the default-branch HEAD),
+and takes an explicit pin via `workflow_dispatch` — lives in
+[`example.deploy.yml`](https://github.com/RandyMcMillan/ipfs-gh-pages/blob/main/example.deploy.yml).
+
 Inputs:
 
 - `node-version` (default `20`) — Node.js version used for the build.
