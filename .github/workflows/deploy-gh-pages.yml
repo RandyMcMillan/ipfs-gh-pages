@@ -77,9 +77,11 @@ jobs:
 
   build-and-deploy:
     needs: changed
-    # Push/dispatch: always. Schedule: only when the gate says HEAD or the
-    # action tag moved since the last successful deploy.
-    if: github.event_name != 'schedule' || needs.changed.outputs.changed == 'true'
+    # always(): a SKIPPED needs job would skip this job no matter what the
+    # expression says — and `changed` is skipped on every push/dispatch,
+    # which is when consumers deploy. Push/dispatch: always. Schedule:
+    # only when the gate says HEAD or the action tag moved.
+    if: always() && (github.event_name != 'schedule' || needs.changed.outputs.changed == 'true')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
