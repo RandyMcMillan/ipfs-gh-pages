@@ -1,6 +1,6 @@
-# Helia IPFS - Browser Self-Hosting
+# Helia IPFS - [deploy-gh-pages](deploy-gh-pages.yml)
 
-[![Deploy Helia App to GitHub Pages](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/this-repo-pages-deploy.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/this-repo-pages-deploy.yml)
+[![Deploy Helia App to GitHub Pages](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/deploy-gh-pages.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/this-repo-pages-deploy.yml)
 [![Release](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/release.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/release.yml)
 
 A browser-based IPFS node built with [Helia](https://github.com/ipfs/helia) that runs entirely on GitHub Pages. On load it automatically adds every file in the repository to IPFS and exposes a root CID, plus a browsable file tree, content fetch, and download support.
