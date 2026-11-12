@@ -96,6 +96,11 @@ try {
 // verify before the superproject goes out.
 run('node scripts/check-gitlink.mjs');
 
-run('git push origin main');
+// Tag BEFORE main: the shared consumer deploy workflow (which this repo
+// runs as its own deploy) triggers on the main push and builds the action
+// at the newest v* tag. Pushing main first would make that deploy
+// auto-detect the PREVIOUS release; the tag push itself does not re-
+// trigger the workflow (consumer shape has no tags trigger).
 run(`git push origin ${tag}`);
+run('git push origin main');
 console.log(`Released ${tag}`);

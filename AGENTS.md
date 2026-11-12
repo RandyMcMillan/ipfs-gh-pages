@@ -39,7 +39,10 @@ A superproject commit whose gitlink points at an UNPUSHED submodule commit
 breaks every `submodules: recursive` checkout of that ref — CI dies inside
 actions/checkout with "upload-pack: not our ref <sha>", far from the cause.
 The order is always: submodule branch, submodule tag (releases), THEN the
-superproject. Verify before any superproject push:
+superproject. Within the superproject, push the release TAG before MAIN:
+the shared deploy workflow triggers on the main push and auto-detects the
+newest `v*` tag — main first would deploy the previous release. Verify
+before any superproject push:
 
 ```
 node scripts/check-gitlink.mjs
