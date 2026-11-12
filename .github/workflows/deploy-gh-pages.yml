@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       action_ref:
-        description: 'Action ref (SHA, branch, or tag e.g. v3.0.1). Empty = auto-detect newest v* tag, else default-branch HEAD.'
+        description: 'Action ref to run (SHA, branch, or tag). Empty = auto-detect the newest v* tag at run time; when no v* tag exists, the default-branch HEAD is used.'
         required: false
         default: ''
         type: string
