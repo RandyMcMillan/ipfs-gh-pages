@@ -16,7 +16,15 @@ name: Deploy IPFS site
 
 on:
   push:
+    # Any file change on the default branch triggers a deploy — a push IS
+    # a content change, so no paths filter here.
     branches: [master, main]
+  schedule:
+    # Daily self-update: picks up a newer action release (the auto-detect
+    # below) even when this repo had no pushes. Gated to a no-op when
+    # neither the repo HEAD nor the newest action tag changed since the
+    # last successful deploy (see the `changed` job).
+    - cron: '23 3 * * *'
   workflow_dispatch:
     inputs:
       action_ref:
@@ -40,7 +48,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changed:
+    # Daily-run gate. The marker cache key is repo HEAD + newest action
+    # tag, so the scheduled run deploys only when one of them moved — a
+    # newer action release alone (no push here) still triggers, which is
+    # the cron's whole purpose. Push runs always deploy (a push IS a
+    # change); this job steps aside for them.
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.gate.outputs.changed }}
+    steps:
+      - name: Newest action tag
+        id: tag
+        run: |
+          TAG=$(git ls-remote --refs --tags --sort=-v:refname https://github.com/RandyMcMillan/ipfs-gh-pages.git 'v*' | head -n 1 | cut -f2 | sed 's|^refs/tags/||')
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+      - name: Restore deployment marker
+        id: check
+        uses: actions/cache/restore@v4
+        with:
+          path: .deployed-marker
+          key: deployed-${{ github.sha }}-${{ steps.tag.outputs.tag }}
+          lookup-only: true
+      - name: Decide
+        id: gate
+        run: echo "changed=${{ steps.check.outputs.cache-hit != 'true' && 'true' || 'false' }}" >> "$GITHUB_OUTPUT"
+
   build-and-deploy:
+    needs: changed
+    # Push/dispatch: always. Schedule: only when the gate says HEAD or the
+    # action tag moved since the last successful deploy.
+    if: github.event_name != 'schedule' || needs.changed.outputs.changed == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -115,3 +154,18 @@ jobs:
           # secret in the repo's Settings → Secrets and variables → Actions
           # (a Pinata JWT from app.pinata.cloud → Keys). Missing/empty = skipped.
           pinata-jwt: ${{ secrets.PINATA_JWT }}
+
+      - name: Record deployment marker (daily self-update gate)
+        id: marker
+        run: |
+          TAG=$(git ls-remote --refs --tags --sort=-v:refname https://github.com/RandyMcMillan/ipfs-gh-pages.git 'v*' | head -n 1 | cut -f2 | sed 's|^refs/tags/||')
+          echo "key=deployed-${{ github.sha }}-${TAG}" >> "$GITHUB_OUTPUT"
+          echo "${{ github.sha }} $TAG" > .deployed-marker
+      - name: Save deployment marker
+        uses: actions/cache/save@v4
+        # Best-effort: a same-key save failure (concurrent run) only costs
+        # one redundant daily deploy, never a failed deploy.
+        continue-on-error: true
+        with:
+          path: .deployed-marker
+          key: ${{ steps.marker.outputs.key }}
