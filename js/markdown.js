@@ -1,6 +1,7 @@
 // GitHub-like markdown rendering (docs/markdown-rendering.md — decisions:
-// marked+DOMPurify, SVG <img>-only, rehost-first images, sanitize+CSP for
-// repo content, sandboxed iframe for network content).
+// marked+DOMPurify, inline SVG temporarily re-enabled + SVG <img>,
+// rehost-first images, sanitize+CSP for repo content, sandboxed iframe
+// for network content).
 //
 // The pipeline: marked (GFM) → DOMPurify (namespace-aware, ≥3.2.4) → DOM
 // rewrite pass (repo-relative links/images resolved against the embedded
@@ -10,11 +11,14 @@
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 
-// GitHub-ish config: no scripts/handlers/style, NO inline SVG or MathML
-// (mXSS surface — SVG only ever renders via <img>), embedders/forms out.
-// `align` stays (GitHub allows it). ipfs:/ipns: schemes stay usable.
+// GitHub-ish config: no scripts/handlers/style, no MathML (mXSS surface).
+// TEMPORARY: inline <svg> is re-enabled through DOMPurify's default SVG
+// profile (scripts, event handlers, embedders still stripped by the
+// allowlist) — see docs/markdown-rendering.md. SVG images still also
+// render via <img>. `align` stays (GitHub allows it). ipfs:/ipns: schemes
+// stay usable.
 const PURIFY_CONFIG = {
-  FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed', 'svg', 'math', 'form', 'input', 'button', 'textarea', 'select', 'link', 'meta', 'base', 'frame'],
+  FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed', 'math', 'form', 'input', 'button', 'textarea', 'select', 'link', 'meta', 'base', 'frame'],
   ADD_ATTR: ['align'],
   ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|ipfs|ipns):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
 };

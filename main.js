@@ -2502,6 +2502,7 @@ if (cloneZipBtn) {
 
 // Debug helpers (used by integration tests)
 window.__runFetch = fetchContent;
+window.__sanitizeMarkdown = sanitizeMarkdownHtml;
 window.__provideRoot = async () => {
   try {
     if (!heliaNode || !heliaNode.routing) return 'no routing';

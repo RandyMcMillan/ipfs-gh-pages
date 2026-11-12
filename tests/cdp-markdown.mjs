@@ -73,15 +73,31 @@ const readme = await evalJson(`(() => {
     hasPre: html.includes('<pre>'),
     hasList: html.includes('<li>') || html.includes('<ul>'),
     hasLink: html.includes('<a '),
-    noScript: !html.includes('<script'),
-    noInlineSvg: !/<svg[\\s>]/i.test(html)
+    noScript: !html.includes('<script')
   };
 })()`);
 check('README card renders markdown (pre/lists/links present)',
   Boolean(readme && readme.visible && readme.hasPre && readme.hasList && readme.hasLink),
   JSON.stringify(readme));
-check('README card sanitized (no script, no inline SVG)',
-  Boolean(readme && readme.noScript && readme.noInlineSvg), JSON.stringify(readme));
+check('README card sanitized (no script)',
+  Boolean(readme && readme.noScript), JSON.stringify(readme));
+
+// Inline SVG is re-enabled in markdown (temporary — docs/markdown-rendering.md)
+// but the sanitizer must still strip active content inside it: scripts,
+// event handlers. The <svg>/<circle> structure must survive.
+const svgProbe = await evalJson(`(() => {
+  const html = window.__sanitizeMarkdown('<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg" onload="window.__svgxss=1"><script>window.__svgxss=2</script><a href="javascript:window.__svgxss=3"><circle cx="5" cy="5" r="4"></circle></a></svg>');
+  return {
+    hasSvg: /<svg[\\s>]/i.test(html),
+    hasCircle: html.includes('<circle'),
+    noScript: !html.includes('<script'),
+    noHandler: !/onload/i.test(html),
+    noJsScheme: !/javascript:/i.test(html)
+  };
+})()`);
+check('inline SVG re-enabled but sanitized (structure kept, script/handlers/schemes stripped)',
+  Boolean(svgProbe && svgProbe.hasSvg && svgProbe.hasCircle && svgProbe.noScript && svgProbe.noHandler && svgProbe.noJsScheme),
+  JSON.stringify(svgProbe));
 
 // Network content (issue body with a script payload) renders in a
 // sandboxed iframe and does not execute.

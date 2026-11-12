@@ -102,6 +102,14 @@ decides everything:
   render SVG via `<img>`/blob URL only, never inline; the blob view's
   image preview must not inline SVG either.
 
+> **TEMPORARY (2026-11-12, commit pending):** inline `<svg>` in markdown
+> is re-enabled through DOMPurify's default SVG profile — scripts, event
+> handlers, and executable schemes are still stripped by the allowlist,
+> but `<svg>`/`<circle>`/etc. now render. MathML stays forbidden. This is
+> a deliberate short-term revert of the rule above; the residual risk is
+> DOMPurify's SVG/foreignObject attack surface. Restore the forbid when
+> the need passes.
+
 ### Image smuggling (privacy + exfiltration)
 
 - **Tracking pixels**: every remote `<img>` beacons viewer IP, user-

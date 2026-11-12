@@ -1,7 +1,8 @@
 // js/markdown.js tests: the GitHub-like pipeline — GFM output,
-// sanitization (scripts/handlers/SVG/MathML stripped, align kept, scheme
-// filtering incl. ipfs: kept + data:/javascript: killed), URL
-// classification, and repo-path resolution. Pure parts only (no DOM).
+// sanitization (scripts/handlers/MathML stripped, inline SVG re-enabled
+// sanitized, align kept, scheme filtering incl. ipfs: kept +
+// data:/javascript: killed), URL classification, and repo-path
+// resolution. Pure parts only (no DOM).
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
