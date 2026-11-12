@@ -159,12 +159,13 @@ async function refreshRepoMetadata() {
   }
   try {
     const headers = { accept: 'application/vnd.github+json' };
-    const [repoRes, langRes, branchRes, relRes] = await Promise.all([
+    const [repoRes, langRes, branchRes, tagRes, relRes] = await Promise.all([
       fetch(`https://api.github.com/repos/${repoFullName}`, { headers }),
       fetch(`https://api.github.com/repos/${repoFullName}/languages`, { headers }),
       // Exact branch count in one tiny request: per_page=1 + the Link
       // header's last page (no Link → the array itself is 0 or 1).
       fetch(`https://api.github.com/repos/${repoFullName}/branches?per_page=1`, { headers }),
+      fetch(`https://api.github.com/repos/${repoFullName}/tags?per_page=1`, { headers }),
       fetch(`https://api.github.com/repos/${repoFullName}/releases/latest`, { headers })
     ]);
     if (!repoRes.ok) return;
@@ -175,6 +176,12 @@ async function refreshRepoMetadata() {
       const link = branchRes.headers.get('link');
       const last = link && link.match(/[?&]page=(\d+)>;\s*rel="last"/);
       branches = last ? parseInt(last[1], 10) : (await branchRes.json()).length;
+    }
+    let tags = null;
+    if (tagRes.ok) {
+      const link = tagRes.headers.get('link');
+      const last = link && link.match(/[?&]page=(\d+)>;\s*rel="last"/);
+      tags = last ? parseInt(last[1], 10) : (await tagRes.json()).length;
     }
     // Latest release, else newest tag (repos without releases still show
     // their real tag — the agregore v1.5.0-vs-v2.24.0 bug).
@@ -189,7 +196,7 @@ async function refreshRepoMetadata() {
         if (tags.length) release = { tag: tags[0].name, url: `https://github.com/${repoFullName}/releases/tag/${tags[0].name}` };
       }
     }
-    const meta = { fetchedAt: Date.now(), repo, languages, branches, release };
+    const meta = { fetchedAt: Date.now(), repo, languages, branches, tags, release };
     try { localStorage.setItem(cacheKey, JSON.stringify(meta)); } catch (e) {}
     applyRepoMetadata(meta);
   } catch (e) {
@@ -209,6 +216,10 @@ function applyRepoMetadata(meta) {
   if (typeof meta.branches === 'number') {
     const el = document.getElementById('gh-branches-count');
     if (el) el.textContent = `${meta.branches} Branch${meta.branches === 1 ? '' : 'es'}`;
+  }
+  if (typeof meta.tags === 'number') {
+    const el = document.getElementById('gh-tags-count');
+    if (el) el.textContent = `${meta.tags} Tag${meta.tags === 1 ? '' : 's'}`;
   }
   // Live release/tag beats the build-time bake (which only refreshes when
   // the site rebuilds; the API answer is always current).

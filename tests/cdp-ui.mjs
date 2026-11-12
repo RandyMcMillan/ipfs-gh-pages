@@ -186,6 +186,9 @@ check('language bar wired', (await evalJson(`document.querySelectorAll('#lang-ba
 const branchesText = await evalJson(`document.getElementById('gh-branches-count')?.textContent || ''`);
 check('branches count is a live value or neutral fallback',
   /^(\d+ Branch(es)?|Branches)$/.test(branchesText.trim()), branchesText);
+const tagsText = await evalJson(`document.getElementById('gh-tags-count')?.textContent || ''`);
+check('tags count is a live value or neutral fallback',
+  /^(\d+ Tags?|Tags)$/.test(tagsText.trim()), tagsText);
 
 // Objective-2 mapping: reference table and Kubo chips render with live values.
 vlog('Checking IPFS ↔ Kubo mapping...');
