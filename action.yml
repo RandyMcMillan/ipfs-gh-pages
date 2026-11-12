@@ -70,7 +70,12 @@ runs:
         OUT_DIR: ${{ inputs.out-dir }}
       run: |
         mkdir -p "${{ inputs.out-dir }}"
-        npm run build
+        # Consumer path: build:action deliberately skips
+        # scripts/install-consumer-example.mjs — the consumer-example
+        # fixture lockstep is an action-repo-internal concern, and the
+        # REPO_ROOT env here points at the CONSUMER's checkout where no
+        # consumer.example.yml exists (crashed consumer deploys).
+        npm run build:action
         echo "dist_path=${{ inputs.out-dir }}" >> "$GITHUB_OUTPUT"
 
     # Optional service (docs/optional-services.md): never fatal, JWT never printed.
