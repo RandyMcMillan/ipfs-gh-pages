@@ -1,7 +1,8 @@
 // install-consumer-example.mjs tests: the actions-test fixture's deploy.yml
-// stays in lockstep with the repo's consumer.example.yml (installed before
-// CAR generation). Fixtures use REPO_ROOT so the real submodule is never
-// touched.
+// stays in lockstep with the repo's own .github/workflows/deploy-gh-pages.yml
+// (the single deploy workflow this repo and consumers share — installed
+// before CAR generation). Fixtures use REPO_ROOT so the real submodule is
+// never touched.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -17,7 +18,9 @@ const EXAMPLE = 'name: Deploy IPFS site\n# auto-detects newest v* tag\n';
 
 const mkFixture = ({ withTarget = true, stale = true } = {}) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'install-example-'));
-  fs.writeFileSync(path.join(root, 'consumer.example.yml'), EXAMPLE);
+  const src = path.join(root, '.github', 'workflows', 'deploy-gh-pages.yml');
+  fs.mkdirSync(path.dirname(src), { recursive: true });
+  fs.writeFileSync(src, EXAMPLE);
   const dest = path.join(root, 'actions-test', '.github', 'workflows', 'deploy.yml');
   if (withTarget) {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -62,7 +65,7 @@ test('--check exits 1 on drift and 0 in lockstep, without writing', () => {
   assert.ok(run(root, ['--check']).includes('already in sync'));
 });
 
-test('missing consumer.example.yml is a hard error', () => {
+test('missing .github/workflows/deploy-gh-pages.yml is a hard error', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'install-example-'));
   assert.throws(() => run(root), /source not found/);
 });

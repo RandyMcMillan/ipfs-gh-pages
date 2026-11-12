@@ -1,9 +1,10 @@
-// Installs consumer.example.yml into the actions-test fixture:
-//   consumer.example.yml -> actions-test/.github/workflows/deploy.yml
-// The two files stay in lockstep — the fixture consumes the same
-// self-updating consumer workflow the README links to. Runs before CAR
+// Installs the repo's own deploy workflow into the actions-test fixture:
+//   .github/workflows/deploy-gh-pages.yml -> actions-test/.github/workflows/deploy.yml
+// The two stay in lockstep — the fixture consumes the same single deploy
+// workflow this repo and its consumers use (the repo-root
+// deploy-gh-pages.yml is a symlink to the source). Runs before CAR
 // generation (npm run build) and on every release (scripts/release.mjs),
-// so the submodule CAR always embeds the current example.
+// so the submodule CAR always embeds the current workflow.
 //
 // Usage: node scripts/install-consumer-example.mjs [--check]
 //   --check   exit 1 when the files differ (CI lockstep guard); no writes.
@@ -13,7 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
-const src = path.join(root, 'consumer.example.yml');
+const src = path.join(root, '.github', 'workflows', 'deploy-gh-pages.yml');
 const dest = path.join(root, 'actions-test', '.github', 'workflows', 'deploy.yml');
 const checkOnly = process.argv.includes('--check');
 

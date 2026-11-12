@@ -6,7 +6,7 @@ name: Deployed page interop smoke
 
 on:
   workflow_run:
-    workflows: ["Deploy Helia App to GitHub Pages"]
+    workflows: ["Deploy IPFS site"]
     types: [completed]
   workflow_dispatch:
   schedule:

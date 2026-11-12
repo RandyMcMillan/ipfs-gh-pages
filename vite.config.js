@@ -114,8 +114,9 @@ function resolveIdentity(root) {
   // The repo's latest TAG is what the header "latest release" chip shows —
   // `version` above is the ACTION's/package version (the Actions panel's
   // "Built as v…"), which for consumer repos is not their release line.
-  // Consumer checkouts must fetch tags (consumer.example.yml has a step
-  // that fetches just the newest tag); REPO_TAG_VERSION overrides without git.
+  // Consumer checkouts must fetch tags (the shared deploy-gh-pages.yml has
+  // a step that fetches just the newest tag); REPO_TAG_VERSION overrides
+  // without git.
   let tagVersion = process.env.REPO_TAG_VERSION || '';
   if (!tagVersion) {
     try {

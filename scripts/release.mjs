@@ -1,7 +1,9 @@
 // Release procedure: version bump, commit, tag, and keep the actions-test
 // submodule's tags in lockstep with ours — including installing the repo's
-// consumer.example.yml as the fixture's deploy.yml, so the fixture always
-// consumes the newest release (it auto-detects the newest v* tag).
+// own .github/workflows/deploy-gh-pages.yml (the single deploy workflow
+// this repo and consumers share) as the fixture's deploy.yml, so the
+// fixture always consumes the newest release (it auto-detects the newest
+// v* tag).
 // Usage: npm run release <version>   (e.g. npm run release 1.6.38)
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -28,14 +30,14 @@ run('git add -A');
 run(`git commit -m "Release ${tag}"`);
 run(`git tag ${tag}`);
 
-// The fixture's deploy.yml IS the repo's consumer.example.yml (lockstep). It
+// The fixture's deploy.yml IS the repo's own deploy workflow (lockstep). It
 // auto-detects the newest v* tag at run time — which is the release being
 // cut once the tag below is pushed — so no SHA pinning is needed. Refresh
 // it before the lockstep flow commits the submodule.
 try {
   run('node scripts/install-consumer-example.mjs');
 } catch (e) {
-  console.warn(`consumer.example.yml install skipped: ${e.message}`);
+  console.warn(`deploy-gh-pages.yml install skipped: ${e.message}`);
 }
 
 // Lockstep: commit any pending changes inside the actions-test submodule,

@@ -65,12 +65,12 @@ Release procedure with submodules:
 
 1. To update the fixture's content: commit and push inside the
    submodule, then bump the gitlink here (the normal two-step).
-2. Every build installs `consumer.example.yml` as the fixture's
-   `actions-test/.github/workflows/deploy.yml` — the two stay in
-   lockstep, so the fixture consumes the same self-updating workflow
-   linked above — then rebuilds every submodule CAR from the checked-out
-   commit. The CAR's root CID changes only when the submodule's
-   tracked files change.
+2. Every build installs the repo's own `.github/workflows/deploy-gh-pages.yml`
+   as the fixture's `actions-test/.github/workflows/deploy.yml` — one
+   deploy workflow shared by this repo, its consumers, and the fixture
+   (the repo-root `deploy-gh-pages.yml` is a symlink to it) — then
+   rebuilds every submodule CAR from the checked-out commit. The CAR's
+   root CID changes only when the submodule's tracked files change.
 3. CI checkouts that don't initialize submodules skip the submodule
    CARs gracefully; the main `dist/ipfs-gh-pages.car` is unaffected.
 
@@ -138,8 +138,11 @@ jobs:
 
 The example above pins a release tag. A self-updating variant — it auto-detects the
 newest `v*` tag of this action at run time (falling back to the default-branch HEAD),
-and takes an explicit pin via `workflow_dispatch` — lives in
-[`consumer.example.yml`](https://github.com/RandyMcMillan/ipfs-gh-pages/blob/main/consumer.example.yml).
+and takes an explicit pin via `workflow_dispatch` — is the very workflow this repo
+deploys itself with:
+[`.github/workflows/deploy-gh-pages.yml`](https://github.com/RandyMcMillan/ipfs-gh-pages/blob/main/.github/workflows/deploy-gh-pages.yml)
+(copy it as `.github/workflows/deploy.yml`; a `deploy-gh-pages.yml` symlink at the
+repo root points at the same file).
 
 Inputs:
 
