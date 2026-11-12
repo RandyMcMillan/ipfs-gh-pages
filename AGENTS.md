@@ -80,8 +80,10 @@ Page-wide patterns. Keep them; new UI gets them for free or not at all.
   `chip-car-export`, `issue-pin-cmd`). Repo metadata (branch/tag counts,
   stars, forks) is always fetched per-repo at runtime — this app is a
   plugin for ANY GitHub repo, so no repo-specific value may be hardcoded;
-  when the API is unreachable, fall back to a neutral label, never a fake
-  number.
+  when the API is unreachable, show nothing or a content-free placeholder
+  (—), never a fake number, and never a static label that claims a value
+  (user override: the branches/tags count links stay hidden until live
+  data arrives).
 - **Full values**: never truncate CIDs, hashes, peer IDs, URLs for display;
   let the UI wrap (user override: gitlink markers in the file tree use
   GitHub's `@<short>` convention next to the folder name).
