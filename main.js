@@ -215,11 +215,17 @@ function applyRepoMetadata(meta) {
   setCount('gh-star-count', repo.stargazers_count);
   if (typeof meta.branches === 'number') {
     const el = document.getElementById('gh-branches-count');
-    if (el) el.textContent = `${meta.branches} Branch${meta.branches === 1 ? '' : 'es'}`;
+    if (el) {
+      el.hidden = false;
+      el.textContent = `${meta.branches} Branch${meta.branches === 1 ? '' : 'es'}`;
+    }
   }
   if (typeof meta.tags === 'number') {
     const el = document.getElementById('gh-tags-count');
-    if (el) el.textContent = `${meta.tags} Tag${meta.tags === 1 ? '' : 's'}`;
+    if (el) {
+      el.hidden = false;
+      el.textContent = `${meta.tags} Tag${meta.tags === 1 ? '' : 's'}`;
+    }
   }
   // Live release/tag beats the build-time bake (which only refreshes when
   // the site rebuilds; the API answer is always current).

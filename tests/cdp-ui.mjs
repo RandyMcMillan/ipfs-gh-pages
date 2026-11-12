@@ -180,15 +180,16 @@ vlog('Checking metadata wiring...');
 await new Promise((r) => setTimeout(r, 3000));
 check('star counter wired', (await evalJson(`document.getElementById('gh-star-count')?.textContent`)) !== undefined);
 check('language bar wired', (await evalJson(`document.querySelectorAll('#lang-bar span').length`)) >= 1);
-// Branch count is a live value, never hardcoded (any-repo plugin): when
-// the API answers, the element shows "N Branch(es)"; offline it stays the
-// neutral "Branches" fallback — never a fake count.
-const branchesText = await evalJson(`document.getElementById('gh-branches-count')?.textContent || ''`);
-check('branches count is a live value or neutral fallback',
-  /^(\d+ Branch(es)?|Branches)$/.test(branchesText.trim()), branchesText);
-const tagsText = await evalJson(`document.getElementById('gh-tags-count')?.textContent || ''`);
-check('tags count is a live value or neutral fallback',
-  /^(\d+ Tags?|Tags)$/.test(tagsText.trim()), tagsText);
+// Branch and tag counts are live values, never hardcoded (any-repo plugin):
+// the links stay hidden until the API answers, then show "N Branch(es)" /
+// "N Tags". Offline or rate-limited (CI is unauthenticated: 60 req/h/IP),
+// they render nothing at all — no fake counts, no static claims.
+const branchesEl = await evalJson(`(() => { const el = document.getElementById('gh-branches-count'); return { hidden: el?.hidden, text: el?.textContent || '' }; })()`);
+check('branches count is hidden or a live value',
+  branchesEl.hidden || /^\d+ Branch(es)?$/.test(branchesEl.text.trim()), JSON.stringify(branchesEl));
+const tagsEl = await evalJson(`(() => { const el = document.getElementById('gh-tags-count'); return { hidden: el?.hidden, text: el?.textContent || '' }; })()`);
+check('tags count is hidden or a live value',
+  tagsEl.hidden || /^\d+ Tags?$/.test(tagsEl.text.trim()), JSON.stringify(tagsEl));
 
 // Objective-2 mapping: reference table and Kubo chips render with live values.
 vlog('Checking IPFS ↔ Kubo mapping...');
