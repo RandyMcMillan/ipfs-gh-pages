@@ -46,22 +46,28 @@ const repoFullName = `${repoOwner}/${repoName}`;
 const repoUrl = `https://github.com/${repoFullName}`;
 const pagesUrl = `https://${repoOwner}.github.io/${repoName}/`;
 const appVersion = repoIdentity.version || '';
-// The header "latest release" chip shows the repo's latest TAG (baked at
-// build time from the checkout — consumer workflows need fetch-depth: 0,
-// see example.deploy.yml); appVersion (the action's version) is the
-// fallback and stays the Actions panel's "Built as v…".
+// The header "latest release" chip shows the REPO's own latest TAG, baked
+// at build time from the checkout (consumer workflows fetch the newest tag
+// — see deploy-gh-pages.yml). appVersion (the ACTION's package version) is
+// NOT a fallback: on a consumer repo with no tags it would print the
+// action's release there — a lie. appVersion stays the Actions panel's
+// "Built as v…" and nothing else.
 const tagVersion = repoIdentity.tagVersion || '';
 
 function applyRepoIdentity() {
   document.title = repoFullName;
   const search = document.getElementById('repo-search-input');
   if (search) search.value = repoFullName;
-  const releaseVersion = tagVersion || appVersion;
-  if (releaseVersion) {
+  // Baked chip: only when the checkout really had a tag. No tag → the row
+  // stays hidden (see index.html) — never the action's version.
+  if (tagVersion) {
     const rel = document.getElementById('latest-release-version');
-    if (rel) rel.textContent = `v${releaseVersion}`;
+    if (rel) rel.textContent = `v${tagVersion}`;
     const relLink = document.getElementById('latest-release-link');
-    if (relLink) relLink.dataset.ghpath = `/releases/tag/v${releaseVersion}`;
+    if (relLink) {
+      relLink.hidden = false;
+      relLink.dataset.ghpath = `/releases/tag/v${tagVersion}`;
+    }
   }
   document.querySelectorAll('a.gh-link').forEach((a) => {
     a.href = repoUrl + (a.dataset.ghpath || '');
@@ -159,14 +165,15 @@ async function refreshRepoMetadata() {
   }
   try {
     const headers = { accept: 'application/vnd.github+json' };
-    const [repoRes, langRes, branchRes, tagRes, relRes] = await Promise.all([
+    const [repoRes, langRes, branchRes, tagRes, relRes, relCountRes] = await Promise.all([
       fetch(`https://api.github.com/repos/${repoFullName}`, { headers }),
       fetch(`https://api.github.com/repos/${repoFullName}/languages`, { headers }),
       // Exact branch count in one tiny request: per_page=1 + the Link
       // header's last page (no Link → the array itself is 0 or 1).
       fetch(`https://api.github.com/repos/${repoFullName}/branches?per_page=1`, { headers }),
       fetch(`https://api.github.com/repos/${repoFullName}/tags?per_page=1`, { headers }),
-      fetch(`https://api.github.com/repos/${repoFullName}/releases/latest`, { headers })
+      fetch(`https://api.github.com/repos/${repoFullName}/releases/latest`, { headers }),
+      fetch(`https://api.github.com/repos/${repoFullName}/releases?per_page=1`, { headers })
     ]);
     if (!repoRes.ok) return;
     const repo = await repoRes.json();
@@ -196,7 +203,13 @@ async function refreshRepoMetadata() {
         if (tags.length) release = { tag: tags[0].name, url: `https://github.com/${repoFullName}/releases/tag/${tags[0].name}` };
       }
     }
-    const meta = { fetchedAt: Date.now(), repo, languages, branches, tags, release };
+    let releaseCount = null;
+    if (relCountRes.ok) {
+      const link = relCountRes.headers.get('link');
+      const last = link && link.match(/[?&]page=(\d+)>;\s*rel="last"/);
+      releaseCount = last ? parseInt(last[1], 10) : (await relCountRes.json()).length;
+    }
+    const meta = { fetchedAt: Date.now(), repo, languages, branches, tags, release, releaseCount };
     try { localStorage.setItem(cacheKey, JSON.stringify(meta)); } catch (e) {}
     applyRepoMetadata(meta);
   } catch (e) {
@@ -234,8 +247,16 @@ function applyRepoMetadata(meta) {
     if (rel) rel.textContent = meta.release.tag;
     const relLink = document.getElementById('latest-release-link');
     if (relLink) {
+      relLink.hidden = false;
       relLink.dataset.ghpath = `/releases/tag/${meta.release.tag}`;
       relLink.href = meta.release.url;
+    }
+  }
+  if (typeof meta.releaseCount === 'number' && meta.releaseCount > 0) {
+    const more = document.getElementById('releases-more');
+    if (more) {
+      more.hidden = false;
+      more.textContent = `+ ${meta.releaseCount} release${meta.releaseCount === 1 ? '' : 's'}`;
     }
   }
 
