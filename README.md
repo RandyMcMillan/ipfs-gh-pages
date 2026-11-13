@@ -1,6 +1,6 @@
 # Helia IPFS - [deploy-gh-pages](deploy-gh-pages.yml)
 
-[![Deploy Helia App to GitHub Pages](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/deploy-gh-pages.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/this-repo-pages-deploy.yml)
+[![Deploy IPFS site](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/deploy-gh-pages.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/deploy-gh-pages.yml)
 [![Release](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/release.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/release.yml)
 
 A browser-based IPFS node built with [Helia](https://github.com/ipfs/helia) that runs entirely on GitHub Pages. On load it automatically adds every file in the repository to IPFS and exposes a root CID, plus a browsable file tree, content fetch, and download support.
@@ -163,7 +163,7 @@ the Pages deployment step.
 
 ## CI / CD
 
-- `.github/workflows/this-repo-pages-deploy.yml` runs the full test suite on every push and pull request; deployment to GitHub Pages only happens on `main` after tests pass.
+- `.github/workflows/deploy-gh-pages.yml` is the deploy workflow — this repo runs it as its own deploy, and consumers copy the same file (auto-detects the newest `v*` tag of the action at run time). It deploys on every push to `main` and re-checks daily.
 - `.github/workflows/release.yml` runs tests, builds the project, archives `./dist` as `dist.zip`, and attaches it to a GitHub Release (triggered by `v*` tags or manually).
 
 ## Project Structure
