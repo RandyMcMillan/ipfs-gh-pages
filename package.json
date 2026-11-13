@@ -46,6 +46,7 @@
     "@libp2p/pubsub-peer-discovery": "^12.0.0",
     "@multiformats/multiaddr": "^12.0.0",
     "@primer/css": "^22.3.3",
+    "blockstore-fs": "^2.0.5",
     "dompurify": "^3.4.17",
     "fflate": "^0.8.0",
     "helia": "^5.0.0",
