@@ -1,4 +1,4 @@
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHelia } from 'helia';
 import { car } from '@helia/car';
@@ -8,6 +8,14 @@ import { CID } from 'multiformats/cid';
 import * as dagJson from '@ipld/dag-json';
 import { sha256 } from 'multiformats/hashes/sha2';
 import { collectIndexBlocks } from '../scripts/index-walk.mjs';
+
+// Helia/libp2p shutdown occasionally leaves dangling dial handles on CI
+// runners (restricted egress), holding `node --test` open past the test:ci
+// suite cap even though every test passed. All tests are done here — exit
+// deterministically instead of trusting the event loop to drain.
+// (Node 20 has no --test-force-exit; timers fire whether or not the loop
+// is kept alive, and .unref() keeps this timer from being a handle itself.)
+after(() => setTimeout(() => process.exit(0), 500).unref());
 
 // helia/@ipld/car use Promise.withResolvers (Node 22+); CI runs Node 20.
 if (typeof Promise.withResolvers !== 'function') {
