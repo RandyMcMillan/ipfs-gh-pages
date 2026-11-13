@@ -152,6 +152,7 @@ Inputs:
 - `deploy` (default `true`) — whether to deploy to GitHub Pages.
 - `run-tests` (default `false`) — run the integration suite (installs Chromium) before building.
 - `pinata-jwt` (default empty) — a Pinata JWT, normally passed as a repo secret (`pinata-jwt: ${{ secrets.PINATA_JWT }}`). When set, the built `ipfs-gh-pages.car` is pinned to Pinata's public IPFS network (`car=true` — the CAR's roots are what gets pinned). Empty = skipped; failures only warn (optional service).
+- `filebase-key` / `filebase-secret` / `filebase-bucket` (default empty) — Filebase S3 credentials, normally repo secrets (`FILEBASE_KEY`, `FILEBASE_SECRET`, `FILEBASE_BUCKET` from the Filebase dashboard → Access Keys, plus your bucket). When all three are set, the built `ipfs-gh-pages.car` is pinned to Filebase's IPFS network via an S3 `PUT` (SigV4; the pinned CID comes back in the `x-amz-meta-cid` header). Empty = skipped; failures only warn (optional service).
 
 Outputs:
 

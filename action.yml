@@ -31,6 +31,18 @@ inputs:
     description: 'Optional Pinata JWT (pass it as a repo secret, e.g. the PINATA_JWT secret). Pins the built CAR to Pinata public IPFS; empty = skipped.'
     required: false
     default: ''
+  filebase-key:
+    description: 'Optional Filebase S3 access key (repo secret, e.g. FILEBASE_KEY). With filebase-secret and filebase-bucket, pins the built CAR to Filebase IPFS; empty = skipped.'
+    required: false
+    default: ''
+  filebase-secret:
+    description: 'Optional Filebase S3 secret key (repo secret, e.g. FILEBASE_SECRET). Never printed or logged; empty = skipped.'
+    required: false
+    default: ''
+  filebase-bucket:
+    description: 'Optional Filebase bucket name (repo secret or variable, e.g. FILEBASE_BUCKET); empty = skipped.'
+    required: false
+    default: ''
 
 outputs:
   dist-path:
@@ -89,6 +101,19 @@ runs:
       run: |
         node scripts/pinata-pin.mjs "${{ inputs.out-dir }}/ipfs-gh-pages.car" "${{ github.repository }}@${{ github.sha }}" --car \
           || echo "::warning::Pinata pin failed (optional service — build output is unaffected)"
+
+    # Optional service (docs/optional-services.md): never fatal, keys never printed.
+    - name: Pin CAR to Filebase (optional)
+      if: ${{ inputs.filebase-key != '' && inputs.filebase-secret != '' && inputs.filebase-bucket != '' }}
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        FILEBASE_KEY: ${{ inputs.filebase-key }}
+        FILEBASE_SECRET: ${{ inputs.filebase-secret }}
+        FILEBASE_BUCKET: ${{ inputs.filebase-bucket }}
+      run: |
+        node scripts/filebase-pin.mjs "${{ inputs.out-dir }}/ipfs-gh-pages.car" "${{ github.repository }}@${{ github.sha }}" \
+          || echo "::warning::Filebase pin failed (optional service — build output is unaffected)"
 
     - name: Configure Pages
       if: ${{ inputs.deploy == 'true' }}
