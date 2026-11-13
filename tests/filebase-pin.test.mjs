@@ -86,8 +86,8 @@ test('filebaseUpload errors carry status but NEVER the secret', async () => {
 
 test('filebaseUpload without credentials throws before any fetch', async () => {
   const boom = async () => assert.fail('no fetch');
-  await assert.rejects(filebaseUpload({ file: tmpFile(), bucket: 'b', key: '', secret: 'S', fetchImpl: boom }), /FILEBASE_KEY is not set/);
-  await assert.rejects(filebaseUpload({ file: tmpFile(), bucket: 'b', key: 'K', secret: '', fetchImpl: boom }), /FILEBASE_SECRET is not set/);
+  await assert.rejects(filebaseUpload({ file: tmpFile(), bucket: 'b', key: '', secret: 'S', fetchImpl: boom }), /FILEBASE_ACCESS_KEY_ID is not set/);
+  await assert.rejects(filebaseUpload({ file: tmpFile(), bucket: 'b', key: 'K', secret: '', fetchImpl: boom }), /FILEBASE_SECRET_ACCESS_KEY is not set/);
   await assert.rejects(filebaseUpload({ file: tmpFile(), bucket: '', key: 'K', secret: 'S', fetchImpl: boom }), /FILEBASE_BUCKET is not set/);
 });
 
@@ -100,10 +100,10 @@ test('CLI: missing file and missing credentials exit 1 with clear messages', () 
       return { code: e.status, err: `${e.stdout || ''}${e.stderr || ''}` };
     }
   };
-  const noFile = run(['/nonexistent.car'], { FILEBASE_KEY: 'x', FILEBASE_SECRET: 'y', FILEBASE_BUCKET: 'z' });
+  const noFile = run(['/nonexistent.car'], { FILEBASE_ACCESS_KEY_ID: 'x', FILEBASE_SECRET_ACCESS_KEY: 'y', FILEBASE_BUCKET: 'z' });
   assert.equal(noFile.code, 1);
   assert.ok(noFile.err.includes('file not found'));
-  const noSecret = run([tmpFile()], { FILEBASE_KEY: 'x', FILEBASE_SECRET: '', FILEBASE_BUCKET: 'z' });
+  const noSecret = run([tmpFile()], { FILEBASE_ACCESS_KEY_ID: 'x', FILEBASE_SECRET_ACCESS_KEY: '', FILEBASE_BUCKET: 'z' });
   assert.equal(noSecret.code, 1);
-  assert.ok(noSecret.err.includes('FILEBASE_SECRET'));
+  assert.ok(noSecret.err.includes('FILEBASE_SECRET_ACCESS_KEY'));
 });

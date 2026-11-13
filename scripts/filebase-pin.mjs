@@ -4,8 +4,9 @@
 // network; the CID comes back in the x-amz-meta-cid response header.
 // Used by the action when the consumer wires the filebase-* inputs.
 //
-// Env: FILEBASE_KEY, FILEBASE_SECRET, FILEBASE_BUCKET (required — never
-//      printed, never logged)
+// Env: FILEBASE_ACCESS_KEY_ID, FILEBASE_SECRET_ACCESS_KEY, FILEBASE_BUCKET
+//      (required — never printed, never logged). Filebase's terms:
+//      accessKeyId / secretAccessKey from the dashboard's Access Keys.
 //      FILEBASE_ENDPOINT (default https://s3.filebase.io)
 //      FILEBASE_REGION   (default auto)
 // Usage: node scripts/filebase-pin.mjs <file> [name]
@@ -53,8 +54,8 @@ export function sigV4Sign({ method, host, path: rawPath, query = {}, headers = {
 // injectable for tests. Throws on missing credentials / HTTP error — error
 // text carries the status and Filebase's body snippet, never the keys.
 export async function filebaseUpload({ file, bucket, name, key, secret, region = FILEBASE_REGION, endpoint = FILEBASE_ENDPOINT, fetchImpl = fetch }) {
-  if (!key) throw new Error('FILEBASE_KEY is not set');
-  if (!secret) throw new Error('FILEBASE_SECRET is not set');
+  if (!key) throw new Error('FILEBASE_ACCESS_KEY_ID is not set');
+  if (!secret) throw new Error('FILEBASE_SECRET_ACCESS_KEY is not set');
   if (!bucket) throw new Error('FILEBASE_BUCKET is not set');
   const bytes = fs.readFileSync(file);
   const objectKey = String(name || path.basename(file)).split('/').map(rfc3986).join('/');
@@ -102,8 +103,8 @@ if (isMain) {
       file,
       name,
       bucket: process.env.FILEBASE_BUCKET,
-      key: process.env.FILEBASE_KEY,
-      secret: process.env.FILEBASE_SECRET,
+      key: process.env.FILEBASE_ACCESS_KEY_ID,
+      secret: process.env.FILEBASE_SECRET_ACCESS_KEY,
       region: process.env.FILEBASE_REGION || FILEBASE_REGION,
       endpoint: process.env.FILEBASE_ENDPOINT || FILEBASE_ENDPOINT
     });
