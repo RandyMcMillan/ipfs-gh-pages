@@ -54,6 +54,14 @@ the deploy/CI knowledge earned the hard way.
 - Owner/name come from `GITHUB_REPOSITORY` (correct in every consumer
   build). The repo's own latest tag is `git describe` in `REPO_ROOT` after
   the workflow's "Fetch latest tag" step — consumer checkouts are shallow.
+- **The CI bake of `tagVersion` is silently empty**: `actions/checkout`
+  defaults to `fetch-depth: 1` and the workflow fetches just the one tag at
+  depth 1, so `git describe` cannot prove the tag's commit is an ancestor
+  of HEAD and fails. Every live page self-corrects via the runtime GitHub
+  API (the releases/latest → newest-tag fallback), which is why this goes
+  unnoticed — but anything relying on the baked value sees `''`. Fetch
+  depth (or `git tag --sort=-v:refname`) is the fix if the bake ever
+  matters before the API answers.
 - **The action's package version (`appVersion`) is NEVER a fallback for
   the repo's release chip.** That printed this repo's v-tag on tagless
   consumer pages (the gnostr bug). The chip shows only the repo's own tag
