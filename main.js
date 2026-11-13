@@ -1360,8 +1360,9 @@ function renderRepoTree() {
 // DOMPurify (no scripts/handlers/style/SVG/MathML — SVG renders via <img>
 // only) → rewrite pass. Repo-relative images come from the embedded
 // bundle as data: URLs (script-inert in <img> context); remote images go
-// through the rehost service (fetch-once → content-addressed URL), and a
-// failed rehost blocks the image rather than beaconing the origin.
+// through the rehost service (fetch-once → content-addressed URL); when no
+// service answers they fall back to direct load (js/markdown.js) — a
+// blocked image is a broken page.
 const EMBED_MIME = {
   png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
   webp: 'image/webp', svg: 'image/svg+xml', avif: 'image/avif', ico: 'image/x-icon', bmp: 'image/bmp'

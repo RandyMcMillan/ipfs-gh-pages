@@ -82,11 +82,17 @@ export function rewriteRendered(container, { onEmbed, rehost, onRepoLink } = {})
       if (dataUrl) img.setAttribute('src', dataUrl);
       else img.setAttribute('src', 'data:,'); // missing from bundle — inert
     } else if (decision.kind === 'rehost' && rehost) {
-      img.setAttribute('data-rehost-src', img.getAttribute('src'));
+      const origSrc = img.getAttribute('src');
+      img.setAttribute('data-rehost-src', origSrc);
       img.setAttribute('src', 'data:,');
-      rehost(img.getAttribute('data-rehost-src')).then((out) => {
+      img.setAttribute('referrerpolicy', 'no-referrer');
+      rehost(origSrc).then((out) => {
+        // Rehost service answers (e.g. the viewer runs one locally): serve
+        // the content-addressed copy. No service (every deployed page):
+        // direct load so images actually render — the origin sees the
+        // viewer either way once it serves the bytes.
         if (out && out.src) img.setAttribute('src', out.src);
-        else img.setAttribute('alt', `${img.getAttribute('alt') || 'image'} (rehost failed — blocked)`);
+        else img.setAttribute('src', origSrc);
       });
     } else if (decision.kind === 'block') {
       img.setAttribute('src', 'data:,');

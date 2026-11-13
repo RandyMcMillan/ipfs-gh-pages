@@ -213,8 +213,10 @@ Corrections adopted from verification:
 
 1. **Image policy: rehost-first.** Remote images go through the rehost
    service (fetch-once → content-addressed URL, recorded on the chain);
-   a failed rehost BLOCKS the image (alt text) rather than beaconing the
-   origin. `js/rehost.js` + `scripts/rehost-service.mjs`.
+   when no service answers (every deployed page), the image falls back to
+   DIRECT load with `referrerpolicy="no-referrer"` — blocked images are
+   broken pages, and the origin serves the bytes either way.
+   `js/rehost.js` + `scripts/rehost-service.mjs`.
 2. **SVG policy: `<img>`-only.** DOMPurify config forbids inline
    `<svg>`/`<math>` outright — no SVG-sanitizer profile to keep perfect.
 3. **Network content (issue bodies/comments, fetched docs): sandboxed
