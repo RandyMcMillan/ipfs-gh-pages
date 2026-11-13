@@ -111,3 +111,7 @@ is wired into the build script), so the fixture always consumes the
 release being cut — the workflow auto-detects the newest `v*` tag, which
 is that release once the tag is pushed. Do not cut a release unless the
 user asks for one; a commit is just a snapshot, not a release.
+
+Workflow/CI details and the consumer-contract gotchas (deploy workflow
+shape, tag-before-main, the skipped-`needs` trap, pinning providers, CI
+suite hangs, consumer testing) live in `.github/AGENTS.md`.
