@@ -93,6 +93,27 @@ Timers fire whether or not other handles keep the loop alive; `.unref()`
 keeps the shim itself from being a handle. Replicate in any suite that
 shows the same flake.
 
+## Pages deploy flake: never re-run `--failed`
+
+`actions/deploy-pages` fetches artifact metadata after
+`upload-pages-artifact` succeeds; GitHub's metadata propagation sometimes
+lags, failing the deploy with "No artifacts named github-pages were found"
+minutes after a clean upload. **Do not `gh run rerun --failed`**: re-running
+the job re-runs the upload and creates a SECOND `github-pages` artifact,
+and deploy-pages then fails with "Multiple artifacts" — the run is
+deadlocked. Remedy: wait a minute and dispatch a fresh run (new run id,
+clean artifact namespace).
+
+## Filebase pin troubleshooting
+
+A `403 AccessDenied` (not `SignatureDoesNotMatch`) means the request was
+well-signed and reached Filebase's authorization layer — check the secret
+VALUES, not the wiring: bucket name must exist under the same account as
+the Access Keys, and the key pair must have write access. Upload errors
+name the bucket and accessKeyId (identifiers, not secrets) to compare
+against the dashboard. The step is never fatal: it warns and the deploy
+continues unpinned.
+
 ## Testing consumers locally
 
 ```bash
