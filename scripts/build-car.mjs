@@ -1,7 +1,14 @@
 // Builds CAR archives for the repo and each of its submodules:
 //   - dist/ipfs-gh-pages.car            (main repo, exact app root CID)
 //   - <submodule-path>/<basename>.car   (one per submodule, checked out)
+//   - dist/repo-manifest.json           (file paths + CIDs + sizes, see below)
 // Root CIDs match what an in-browser addAll of the same files produces.
+//
+// Memory profile: file bytes stream through a disk-backed blockstore in
+// 1 MiB chunks and CAR bytes stream straight to disk, so the build handles
+// repos of any size in bounded RAM. (The vite bundle is the other half of
+// that story — repo-manifest.json exists so the app can stop embedding
+// file contents base64-in-bundle; see vite.config.js repoFilesPlugin.)
 //
 // Note: the in-browser addAll itself embeds submodule contents too (see the
 // "Virtual submodule support" block in vite.config.js's repoFilesPlugin).
@@ -15,14 +22,18 @@
 // are the repo root PLUS each index tip. Without a tip the CAR is repo-only,
 // exactly as before.
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
 import { execSync } from 'node:child_process';
 import { createHelia } from 'helia';
 import { unixfs } from '@helia/unixfs';
 import { car } from '@helia/car';
 import { CarWriter } from '@ipld/car/writer';
 import { CID } from 'multiformats/cid';
+import { FsBlockstore } from 'blockstore-fs';
 import { collectIndexBlocks } from './index-walk.mjs';
+import { listRepoFiles, listTrackedFiles } from './lib/repo-files.mjs';
 
 // helia/@ipld/car use Promise.withResolvers (Node 22+); CI builds on Node 20.
 if (typeof Promise.withResolvers !== 'function') {
@@ -84,120 +95,145 @@ async function fetchIndexBlock(cid) {
   return null;
 }
 
-function listFiles(dir) {
-  let files = [];
+// Stream a file in 1 MiB chunks so addAll never holds a whole repo in RAM.
+async function* streamFile(full) {
+  const handle = await fs.promises.open(full, 'r');
   try {
-    const out = execSync('git ls-files -z', { cwd: dir, stdio: ['ignore', 'pipe', 'ignore'] });
-    files = out.toString('utf8').split('\0').filter(Boolean);
-  } catch {
-    const walk = (d) => {
-      for (const name of fs.readdirSync(d)) {
-        if (name === 'node_modules' || name === '.git' || name === 'dist') continue;
-        const full = path.join(d, name);
-        const st = fs.statSync(full);
-        if (st.isDirectory()) walk(full);
-        else files.push(path.relative(dir, full));
-      }
-    };
-    walk(dir);
+    const buf = Buffer.alloc(1024 * 1024);
+    for (;;) {
+      const { bytesRead } = await handle.read(buf, 0, buf.length, null);
+      if (bytesRead === 0) return;
+      yield new Uint8Array(buf.subarray(0, bytesRead));
+    }
+  } finally {
+    await handle.close();
   }
-  return files
-    .filter((f) => {
-      try { return fs.statSync(path.join(dir, f)).isFile(); } catch { return false; }
-    })
-    .map((f) => ({ path: f, content: new Uint8Array(fs.readFileSync(path.join(dir, f))) }));
 }
 
-async function exportCar(helia, roots) {
+// {path, content} entries with lazy content streams, for a plain
+// `git ls-files` set (the historical main-CAR / per-submodule-CAR set).
+function* trackedEntries(dir) {
+  for (const f of listTrackedFiles(dir)) {
+    yield { path: f, content: streamFile(path.join(dir, f)) };
+  }
+}
+
+async function exportCar(helia, roots, outFile) {
   const rootArray = Array.isArray(roots) ? roots : [roots];
   const { writer, out } = await CarWriter.create(rootArray);
-  const chunks = [];
-  const collect = (async () => {
-    for await (const chunk of out) chunks.push(chunk);
-  })();
+  fs.mkdirSync(path.dirname(outFile), { recursive: true });
+  // Stream CAR chunks to disk; starting the pipeline before export()
+  // matters — awaiting it first would deadlock on backpressure.
+  const sink = pipeline(out, fs.createWriteStream(outFile));
   await car(helia).export(rootArray, writer);
-  await collect;
-  const total = chunks.reduce((n, c) => n + c.length, 0);
-  const bytes = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    bytes.set(chunk, offset);
-    offset += chunk.length;
-  }
-  return bytes;
+  await sink;
+  return fs.statSync(outFile).size;
 }
 
-const helia = await createHelia();
+const blockstorePath = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'ipfs-gh-pages-car-'));
+const helia = await createHelia({ blockstore: new FsBlockstore(blockstorePath) });
 const heliaUnixfs = unixfs(helia);
 
 async function buildCar(dir, outFile, extraRoots = []) {
-  const candidates = listFiles(dir);
+  let count = 0;
+  const candidates = [];
+  for (const entry of trackedEntries(dir)) { candidates.push(entry); count++; }
   let rootCid = null;
   for await (const entry of heliaUnixfs.addAll(candidates, { wrapWithDirectory: true })) {
     rootCid = entry.cid;
   }
-  const bytes = await exportCar(helia, [rootCid, ...extraRoots]);
-  fs.mkdirSync(path.dirname(outFile), { recursive: true });
-  fs.writeFileSync(outFile, bytes);
-  console.log(`Wrote ${outFile} (${(bytes.length / 1024).toFixed(1)} kB, ${candidates.length} files)`);
+  const size = await exportCar(helia, [rootCid, ...extraRoots], outFile);
+  console.log(`Wrote ${outFile} (${(size / 1024).toFixed(1)} kB, ${count} files)`);
   console.log(`Root CID: ${rootCid.toString()}`);
   return rootCid;
 }
 
-// Main repo CAR. With index tips the CAR also carries the issues tracker
-// (docs/issues-car.md phase 6): walk each tip's chain + notes into the
-// blockstore, then export with roots = repo root + tips. A tip whose DAG
-// did not fully resolve is not added as a root (export traversal would
-// fail) — its resolved blocks are still bundled.
-const bundledTips = [];
-if (parsedIndexTips.length > 0) {
-  let staged = 0;
-  for (const tip of parsedIndexTips) {
-    const walk = await collectIndexBlocks(helia, [tip], fetchIndexBlock);
-    staged += walk.collected;
-    if (walk.missing.length > 0) {
-      console.warn(`Index tip ${tip}: ${walk.missing.length} block(s) unresolved, not a CAR root:`);
-      for (const m of walk.missing) console.warn(`  ${m}`);
-    } else {
-      bundledTips.push(tip);
+// dist/repo-manifest.json: {path, cid, size} per file over the virtual-
+// flattened file set (superproject + checked-out submodules — exactly what
+// vite.config.js's repoFilesPlugin lists), plus the wrapped root CID. Small
+// and file-count-bound, unlike the base64 bundle map: it is the manifest the
+// app switches to so repos of any size build.
+async function buildManifest(outFile) {
+  const candidates = [];
+  const sizes = new Map();
+  for (const { path: p, full } of listRepoFiles(root)) {
+    candidates.push({ path: p, content: streamFile(full) });
+    sizes.set(p, fs.statSync(full).size);
+  }
+  const cids = new Map();
+  let manifestRoot = null;
+  for await (const entry of heliaUnixfs.addAll(candidates, { wrapWithDirectory: true })) {
+    if (entry.path) cids.set(entry.path, entry.cid.toString());
+    else manifestRoot = entry.cid; // wrap-with-directory root yields last, empty path
+  }
+  const files = [...sizes.keys()].sort().map((p) => ({ path: p, cid: cids.get(p), size: sizes.get(p) }));
+  const manifest = { version: 1, root: manifestRoot ? manifestRoot.toString() : null, files };
+  fs.mkdirSync(path.dirname(outFile), { recursive: true });
+  fs.writeFileSync(outFile, JSON.stringify(manifest));
+  console.log(`Wrote ${outFile} (${files.length} files, root ${manifest.root})`);
+  return manifest;
+}
+
+try {
+  // Main repo CAR. With index tips the CAR also carries the issues tracker
+  // (docs/issues-car.md phase 6): walk each tip's chain + notes into the
+  // blockstore, then export with roots = repo root + tips. A tip whose DAG
+  // did not fully resolve is not added as a root (export traversal would
+  // fail) — its resolved blocks are still bundled.
+  const bundledTips = [];
+  if (parsedIndexTips.length > 0) {
+    let staged = 0;
+    for (const tip of parsedIndexTips) {
+      const walk = await collectIndexBlocks(helia, [tip], fetchIndexBlock);
+      staged += walk.collected;
+      if (walk.missing.length > 0) {
+        console.warn(`Index tip ${tip}: ${walk.missing.length} block(s) unresolved, not a CAR root:`);
+        for (const m of walk.missing) console.warn(`  ${m}`);
+      } else {
+        bundledTips.push(tip);
+      }
     }
+    console.log(`Issues index: ${staged} block(s) staged, ${bundledTips.length}/${parsedIndexTips.length} tip(s) rooted`);
   }
-  console.log(`Issues index: ${staged} block(s) staged, ${bundledTips.length}/${parsedIndexTips.length} tip(s) rooted`);
-}
-const mainRoot = await buildCar(root, path.join(outDir, 'ipfs-gh-pages.car'), bundledTips);
-console.log('Seed it on any Kubo:');
-console.log('ipfs dag import --pin ipfs-gh-pages.car');
+  const mainRoot = await buildCar(root, path.join(outDir, 'ipfs-gh-pages.car'), bundledTips);
+  console.log('Seed it on any Kubo:');
+  console.log('ipfs dag import --pin ipfs-gh-pages.car');
 
-// One CAR per submodule, written inside the submodule directory.
-let submoduleOutput = '';
-try {
-  const status = execSync('git submodule status --recursive', { cwd: root, encoding: 'utf8' });
-  const submodules = status.split('\n').filter(Boolean).map((line) => {
-    const m = line.trim().match(/^[+-U]?[0-9a-f]+\s+(\S+)/);
-    return m ? m[1] : null;
-  }).filter(Boolean);
-  for (const rel of submodules) {
-    const dir = path.resolve(root, rel);
-    if (!fs.existsSync(path.join(dir, '.git'))) continue;
-    const base = rel.split('/').pop();
-    await buildCar(dir, path.join(dir, `${base}.car`));
-    submoduleOutput += `  ${rel} -> ${rel}/${base}.car\n`;
+  // One CAR per submodule, written inside the submodule directory.
+  let submoduleOutput = '';
+  try {
+    const status = execSync('git submodule status --recursive', { cwd: root, encoding: 'utf8' });
+    const submodules = status.split('\n').filter(Boolean).map((line) => {
+      const m = line.trim().match(/^[+-U]?[0-9a-f]+\s+(\S+)/);
+      return m ? m[1] : null;
+    }).filter(Boolean);
+    for (const rel of submodules) {
+      const dir = path.resolve(root, rel);
+      if (!fs.existsSync(path.join(dir, '.git'))) continue;
+      const base = rel.split('/').pop();
+      await buildCar(dir, path.join(dir, `${base}.car`));
+      submoduleOutput += `  ${rel} -> ${rel}/${base}.car\n`;
+    }
+    if (submoduleOutput) console.log('Submodule CARs:\n' + submoduleOutput.trimEnd());
+  } catch (e) {
+    console.warn('Submodule scan skipped:', e.message);
   }
-  if (submoduleOutput) console.log('Submodule CARs:\n' + submoduleOutput.trimEnd());
-} catch (e) {
-  console.warn('Submodule scan skipped:', e.message);
-}
 
-// GitHub Pages has no SPA fallback for unknown paths, so a deep path link
-// like /ipfs-gh-pages/issues would 404 on refresh. Pages serves 404.html
-// for those — ship a copy of the app; its router reads the path, activates
-// the matching view, and normalizes to the canonical hash URL. Relative
-// asset base ('./') keeps the copy working from the 404 response.
-try {
-  fs.copyFileSync(path.join(outDir, 'index.html'), path.join(outDir, '404.html'));
-  console.log('SPA fallback: 404.html written');
-} catch (e) {
-  console.warn('404.html skipped:', e.message);
-}
+  // Repo manifest: the bundle's future file source (kept file-count-bound).
+  await buildManifest(path.join(outDir, 'repo-manifest.json'));
 
-await helia.stop();
+  // GitHub Pages has no SPA fallback for unknown paths, so a deep path link
+  // like /ipfs-gh-pages/issues would 404 on refresh. Pages serves 404.html
+  // for those — ship a copy of the app; its router reads the path, activates
+  // the matching view, and normalizes to the canonical hash URL. Relative
+  // asset base ('./') keeps the copy working from the 404 response.
+  try {
+    fs.copyFileSync(path.join(outDir, 'index.html'), path.join(outDir, '404.html'));
+    console.log('SPA fallback: 404.html written');
+  } catch (e) {
+    console.warn('404.html skipped:', e.message);
+  }
+} finally {
+  await helia.stop();
+  fs.rmSync(blockstorePath, { recursive: true, force: true });
+}
