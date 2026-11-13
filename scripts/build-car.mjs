@@ -33,7 +33,7 @@ import { CarWriter } from '@ipld/car/writer';
 import { CID } from 'multiformats/cid';
 import { FsBlockstore } from 'blockstore-fs';
 import { collectIndexBlocks } from './index-walk.mjs';
-import { listRepoFiles, listTrackedFiles } from './lib/repo-files.mjs';
+import { listRepoFiles, listTrackedFiles, EMBED_THRESHOLD_BYTES } from './lib/repo-files.mjs';
 
 // helia/@ipld/car use Promise.withResolvers (Node 22+); CI builds on Node 20.
 if (typeof Promise.withResolvers !== 'function') {
@@ -156,9 +156,12 @@ async function buildCar(dir, outFile, extraRoots = []) {
 async function buildManifest(outFile) {
   const candidates = [];
   const sizes = new Map();
+  let totalBytes = 0;
   for (const { path: p, full } of listRepoFiles(root)) {
     candidates.push({ path: p, content: streamFile(full) });
-    sizes.set(p, fs.statSync(full).size);
+    const size = fs.statSync(full).size;
+    sizes.set(p, size);
+    totalBytes += size;
   }
   const cids = new Map();
   let manifestRoot = null;
@@ -171,7 +174,7 @@ async function buildManifest(outFile) {
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   fs.writeFileSync(outFile, JSON.stringify(manifest));
   console.log(`Wrote ${outFile} (${files.length} files, root ${manifest.root})`);
-  return manifest;
+  return { manifest, totalBytes };
 }
 
 try {
@@ -220,7 +223,14 @@ try {
   }
 
   // Repo manifest: the bundle's future file source (kept file-count-bound).
-  await buildManifest(path.join(outDir, 'repo-manifest.json'));
+  const { manifest, totalBytes } = await buildManifest(path.join(outDir, 'repo-manifest.json'));
+
+  // Car mode (same threshold as vite.config.js): ship the full-tree CAR the
+  // app fetches bytes from. Embedded repos never need it.
+  if (totalBytes > EMBED_THRESHOLD_BYTES && manifest.root) {
+    const size = await exportCar(helia, [CID.parse(manifest.root)], path.join(outDir, 'repo.car'));
+    console.log(`Wrote ${path.join(outDir, 'repo.car')} (${(size / 1024 / 1024).toFixed(1)} MiB, car mode)`);
+  }
 
   // GitHub Pages has no SPA fallback for unknown paths, so a deep path link
   // like /ipfs-gh-pages/issues would 404 on refresh. Pages serves 404.html

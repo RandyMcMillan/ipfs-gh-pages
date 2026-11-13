@@ -10,12 +10,77 @@ import * as dagJson from '@ipld/dag-json';
 import { sha256 } from 'multiformats/hashes/sha2';
 import { car } from '@helia/car';
 import { CarWriter } from '@ipld/car/writer';
+import { CarReader } from '@ipld/car/reader';
 import repoIdentity from 'virtual:repo-identity';
 import repoSubmodules from 'virtual:repo-submodules';
 import { strings } from '@helia/strings';
 import { unixfs } from '@helia/unixfs';
 import { CID } from 'multiformats/cid';
 import repoFiles from 'virtual:repo-files';
+import repoMode from 'virtual:repo-mode';
+
+// --- Repo file source ----------------------------------------------------
+// 'embedded' (small repos): file contents are base64-inlined in the bundle
+// via virtual:repo-files — zero fetches. 'car' (large repos): the bundle
+// carries no contents; paths + CIDs come from dist/repo-manifest.json and
+// bytes from dist/repo.car, both written by scripts/build-car.mjs. The
+// build picks the mode by total repo bytes (EMBED_THRESHOLD_BYTES in
+// scripts/lib/repo-files.mjs); both modes expose the same interface below.
+const repoCarIndex = new Map(); // car mode: path -> { cid, size }
+let repoCarRoot = null;         // car mode: manifest root CID string
+let repoCarImportPromise = null;
+
+function repoPaths() {
+  return repoMode === 'car' ? Array.from(repoCarIndex.keys()) : Object.keys(repoFiles);
+}
+function hasRepoFile(p) {
+  return repoMode === 'car' ? repoCarIndex.has(p) : Object.hasOwn(repoFiles, p);
+}
+
+async function loadRepoManifest() {
+  const res = await fetch(new URL('repo-manifest.json', document.baseURI));
+  if (!res.ok) throw new Error(`repo-manifest.json: HTTP ${res.status}`);
+  const data = await res.json();
+  repoCarIndex.clear();
+  for (const f of data.files) {
+    repoCarIndex.set(f.path, { cid: f.cid, size: f.size });
+    repoTreeCids.set(f.path, f.cid);
+    repoTreeSizes.set(f.path, f.size);
+  }
+  repoCarRoot = data.root;
+  return data;
+}
+
+async function ensureRepoCar() {
+  if (!heliaNode) return 0;
+  if (!repoCarImportPromise) {
+    repoCarImportPromise = (async () => {
+      const res = await fetch(new URL('repo.car', document.baseURI));
+      if (!res.ok) throw new Error(`repo.car: HTTP ${res.status}`);
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      await car(heliaNode).import(await CarReader.fromBytes(bytes));
+      return bytes.length;
+    })();
+  }
+  return repoCarImportPromise;
+}
+
+async function repoBytes(p) {
+  if (repoMode !== 'car') {
+    const b64 = repoFiles[p];
+    return b64 ? base64ToUint8Array(b64) : null;
+  }
+  const entry = repoCarIndex.get(p);
+  if (!entry) return null;
+  await ensureRepoCar();
+  const chunks = [];
+  for await (const chunk of heliaUnixfs.cat(CID.parse(entry.cid))) chunks.push(chunk);
+  const bytes = new Uint8Array(chunks.reduce((n, c) => n + c.length, 0));
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  return bytes;
+}
+// --- end repo file source ------------------------------------------------
 import { zipSync } from 'fflate';
 import { multiaddr } from '@multiformats/multiaddr';
 import { formatSize, base64ToUint8Array, uint8ArrayToBase64, buildRepoTree, isBrowserDialable, normalizeAddressForProxy } from './lib/shared.mjs';
@@ -591,10 +656,10 @@ function expandTreeTo(dirPath) {
   }
 }
 
-function showFileBlob(path) {
-  const b64 = repoFiles[path];
-  if (!b64 || !blobView || !treeView) return;
-  const bytes = base64ToUint8Array(b64);
+async function showFileBlob(path) {
+  if (!blobView || !treeView || !hasRepoFile(path)) return;
+  const bytes = await repoBytes(path);
+  if (!bytes) return;
   const text = new TextDecoder().decode(bytes);
   blobCurrentBytes = bytes;
   blobCurrentCid = repoTreeCids.get(path) || null;
@@ -1352,7 +1417,7 @@ function foldRepoNodes(nodes) {
 function renderRepoTree() {
   if (!fileTreeEl) return;
   fileTreeEl.innerHTML = '';
-  const tree = buildRepoTree(Object.keys(repoFiles));
+  const tree = buildRepoTree(repoPaths());
   fileTreeEl.appendChild(renderRepoTable(foldRepoNodes(repoTreeNodes(tree, ''))));
 }
 
@@ -1367,11 +1432,15 @@ const EMBED_MIME = {
   png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
   webp: 'image/webp', svg: 'image/svg+xml', avif: 'image/avif', ico: 'image/x-icon', bmp: 'image/bmp'
 };
-function embedDataUrl(path) {
-  const b64 = repoFiles[path];
-  if (!b64) return null;
+async function embedDataUrl(path) {
   const mime = EMBED_MIME[path.split('.').pop().toLowerCase()];
-  return mime ? `data:${mime};base64,${b64}` : null;
+  if (!mime || !hasRepoFile(path)) return null;
+  if (repoMode !== 'car') {
+    const b64 = repoFiles[path];
+    return b64 ? `data:${mime};base64,${b64}` : null;
+  }
+  const bytes = await repoBytes(path);
+  return bytes ? `data:${mime};base64,${uint8ArrayToBase64(bytes)}` : null;
 }
 
 const REHOST_ENDPOINT_KEY = 'rehost-endpoint';
@@ -1397,12 +1466,14 @@ function renderMarkdownInto(el, src, { mdDir = '' } = {}) {
   });
 }
 
-function renderReadme() {
+async function renderReadme() {
   const card = document.getElementById('readme-card');
   const body = document.getElementById('readme-content');
-  if (!card || !body || !repoFiles['README.md']) return;
+  if (!card || !body || !hasRepoFile('README.md')) return;
   try {
-    const text = new TextDecoder().decode(base64ToUint8Array(repoFiles['README.md']));
+    const bytes = await repoBytes('README.md');
+    if (!bytes) return;
+    const text = new TextDecoder().decode(bytes);
     renderMarkdownInto(body, text);
     card.style.display = 'block';
   } catch (e) {
@@ -1682,6 +1753,39 @@ async function recordRelease(rootCidStr) {
 
 async function addAllRepoFiles() {
   if (!heliaUnixfs) return;
+
+  if (repoMode === 'car') {
+    // The root CID was already computed at build time over the same
+    // virtual-flattened file set (scripts/build-car.mjs) — skip the
+    // in-browser addAll entirely and stream bytes from repo.car instead.
+    if (!repoCarRoot) return;
+    const rootCid = CID.parse(repoCarRoot);
+    outputCid.textContent = repoCarRoot;
+    inputCid.value = repoCarRoot;
+    rootCidForProvide = rootCid;
+    if (cloneCidEl) {
+      cloneCidEl.textContent = repoCarRoot;
+      cloneCidEl.title = repoCarRoot;
+    }
+    if (cloneZipBtn) cloneZipBtn.disabled = false;
+    if (carDownloadBtn) carDownloadBtn.disabled = false;
+    if (fetchRepoBtn) fetchRepoBtn.disabled = false;
+    if (downloadRepoBtn) downloadRepoBtn.disabled = false;
+    publishBranchPointer(rootCid).catch(() => {});
+    recordRelease(repoCarRoot).catch(() => {});
+    statusEl.textContent = 'Online & loading repository CAR...';
+    try {
+      const size = await ensureRepoCar();
+      statusEl.textContent = `Online & repository CAR loaded (${formatSize(size)})`;
+    } catch (err) {
+      statusEl.textContent = `Online & CAR load failed: ${err.message}`;
+    }
+    if (heliaNode && heliaNode.routing && typeof heliaNode.routing.provide === 'function') {
+      heliaNode.routing.provide(rootCid).catch(() => {});
+    }
+    return;
+  }
+
   statusEl.textContent = 'Adding all repository files to IPFS...';
 
   const candidates = Object.entries(repoFiles).map(([p, b64]) => ({
@@ -1877,6 +1981,13 @@ async function initHelia() {
         }
       }
     })();
+
+    // Car mode: paths + CIDs must land before the tree renders; file
+    // bytes stream from dist/repo.car on demand (see repoBytes).
+    if (repoMode === 'car') {
+      statusEl.textContent = 'Loading repository manifest...';
+      await loadRepoManifest();
+    }
 
     // Render the repository file tree immediately
     renderRepoTree();

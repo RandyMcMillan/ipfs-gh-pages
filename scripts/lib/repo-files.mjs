@@ -59,6 +59,20 @@ export function* listRepoFiles(root) {
   }
 }
 
+// Repos at or under this total byte size embed file contents directly in
+// the bundle (zero fetches, fully static). Larger repos ship
+// dist/repo-manifest.json + dist/repo.car and the app fetches bytes on
+// demand. vite.config.js (bundle side) and scripts/build-car.mjs (artifact
+// side) both consult this constant — keep them on the same threshold.
+export const EMBED_THRESHOLD_BYTES = 20 * 1024 * 1024;
+
+// Total bytes of every file listRepoFiles would yield.
+export function repoByteTotal(root) {
+  let total = 0;
+  for (const { full } of listRepoFiles(root)) total += fs.statSync(full).size;
+  return total;
+}
+
 // Superproject tracked files only (no submodule recursion). This is the
 // historical main-CAR file set: submodule content ships in per-submodule
 // CARs, and the virtual-flattened set is the manifest's job.

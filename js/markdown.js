@@ -79,7 +79,12 @@ export function rewriteRendered(container, { onEmbed, rehost, onRepoLink } = {})
     const decision = classifyUrl(img.getAttribute('src'), { mdDirPath: mdDir });
     if (decision.kind === 'embed' && onEmbed) {
       const dataUrl = onEmbed(decision.path);
-      if (dataUrl) img.setAttribute('src', dataUrl);
+      if (dataUrl && typeof dataUrl.then === 'function') {
+        // Async source (car mode: bytes come from repo.car) — inert
+        // placeholder until the bytes arrive, then swap the data: URL in.
+        img.setAttribute('src', 'data:,');
+        dataUrl.then((url) => { if (url) img.setAttribute('src', url); }).catch(() => {});
+      } else if (dataUrl) img.setAttribute('src', dataUrl);
       else img.setAttribute('src', 'data:,'); // missing from bundle — inert
     } else if (decision.kind === 'rehost' && rehost) {
       const origSrc = img.getAttribute('src');
