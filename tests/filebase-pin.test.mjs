@@ -71,14 +71,16 @@ test('filebaseUpload falls back to the ETag when no CID header', async () => {
   assert.equal(out.cid, 'bafyETAG');
 });
 
-test('filebaseUpload errors carry status but NEVER the secret', async () => {
-  const fetchImpl = async () => new Response('<?xml><Error>SignatureDoesNotMatch</Error>', { status: 403 });
+test('filebaseUpload errors carry status + identifiers but NEVER the secret', async () => {
+  const fetchImpl = async () => new Response('<?xml><Error><Code>AccessDenied</Code></Error>', { status: 403 });
   await assert.rejects(
-    filebaseUpload({ file: tmpFile(), bucket: 'b', key: 'AK', secret: 'TOP_SECRET', fetchImpl }),
+    filebaseUpload({ file: tmpFile(), bucket: 'my-bucket', key: 'AKID', secret: 'TOP_SECRET', fetchImpl }),
     (err) => {
       assert.ok(err.message.includes('HTTP 403'));
+      assert.ok(err.message.includes('AccessDenied'));
+      assert.ok(err.message.includes('my-bucket'), 'bucket named for debugging');
+      assert.ok(err.message.includes('AKID'), 'accessKeyId named for debugging');
       assert.ok(!err.message.includes('TOP_SECRET'), 'secret must not leak into errors');
-      assert.ok(!err.message.includes('AK'), 'key must not leak into errors');
       return true;
     }
   );

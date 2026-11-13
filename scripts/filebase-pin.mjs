@@ -83,7 +83,10 @@ export async function filebaseUpload({ file, bucket, name, key, secret, region =
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`filebase upload HTTP ${res.status}: ${text.slice(0, 300)}`);
+    const code = (text.match(/<Code>([^<]+)<\/Code>/) || [])[1] || '';
+    // accessKeyId + bucket are identifiers, not secrets — they make a 403
+    // debuggable against the Filebase dashboard.
+    throw new Error(`filebase upload HTTP ${res.status}${code ? ` ${code}` : ''} (bucket "${bucket}", accessKeyId "${key}")${text ? `: ${text.slice(0, 300)}` : ''}`);
   }
   // Filebase returns the pinned IPFS CID for CAR uploads; ETag is the
   // fallback for plain objects.
