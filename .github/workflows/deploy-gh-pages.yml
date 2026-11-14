@@ -85,11 +85,6 @@ jobs:
       - name: Checkout main repository
         uses: actions/checkout@v4
         with:
-          # The built app embeds the repo's submodule files (the bundle
-          # mirrors the working tree) — without this the submodule dirs
-          # are empty and the deployed site is missing their content.
-          submodules: 'recursive'
-        with:
           # The deployed site and IPFS mirror cover the whole repo:
           # submodule contents flatten into repo-manifest.json / repo.car
           # (an uninitialized submodule contributes zero entries instead
