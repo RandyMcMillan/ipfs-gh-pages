@@ -3931,6 +3931,41 @@ function showCidPopover(cid, anchor) {
     }
   });
 
+  // CAR download: export this CID's full DAG from the in-page node —
+  // the popover's `ipfs dag export`, no CLI needed.
+  const carRow = document.createElement('div');
+  carRow.style.cssText = 'margin-top:0.4rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;';
+  const carBtn = document.createElement('button');
+  carBtn.className = 'btn btn-sm';
+  carBtn.type = 'button';
+  carBtn.textContent = 'Download CAR';
+  const carStatus = document.createElement('span');
+  carStatus.className = 'f6 color-fg-muted';
+  carStatus.style.wordBreak = 'break-all';
+  carRow.appendChild(carBtn);
+  carRow.appendChild(carStatus);
+  pop.appendChild(carRow);
+
+  carBtn.addEventListener('click', async () => {
+    if (!heliaNode || !heliaCar) {
+      carStatus.textContent = 'Node offline — cannot export.';
+      return;
+    }
+    carBtn.disabled = true;
+    carStatus.textContent = 'Fetching DAG and exporting…';
+    try {
+      const bytes = await Promise.race([
+        exportCarBytes(CID.parse(cid)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timed out fetching the DAG — content may have no reachable providers')), 60000))
+      ]);
+      downloadBytes(bytes, `${cid}.car`);
+      carStatus.textContent = `${(bytes.length / 1024 / 1024).toFixed(2)} MB exported`;
+    } catch (err) {
+      carStatus.textContent = `Export failed: ${err.message}`;
+      carBtn.disabled = false;
+    }
+  });
+
   document.body.appendChild(pop);
   const r = anchor.getBoundingClientRect();
   const pw = pop.offsetWidth;

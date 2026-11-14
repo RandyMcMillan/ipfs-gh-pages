@@ -66,9 +66,13 @@ that don't require auth). Bridge ops:
 - `pin.remote.add(cid, name?)` — POST <endpoint>/pins {cid, name}
 - `pin.remote.remove(pinId)` — DELETE <endpoint>/pins/<id>
 
-Per-CID UI affordance in gh-pages: "Pin to provider…" listing configured
-services with results; in the TUI: `pin.remote.add <cid>` via the `:`
-bar. Pinning is always user-initiated — never automatic.
+Per-CID UI affordance in gh-pages: gateway + `ipfs://` links, `ipfs pin add`,
+delegated-routing providers with `ipfs swarm connect` per addr, "Pin to
+provider…" listing configured services with results, and "Download CAR"
+(export the CID's full DAG from the in-page node — the popover's
+`ipfs dag export`, with a 60 s fetch guard); in the TUI:
+`pin.remote.add <cid>` via the `:` bar. Pinning is always user-initiated —
+never automatic.
 
 Local Kubo pinning (`ipfs pin add`) already exists and stays the primary
 durable-copy path; remote pinning is for availability when the user's
