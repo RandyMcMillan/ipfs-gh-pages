@@ -349,6 +349,12 @@ function applyRepoMetadata(meta) {
   // The repo's REAL default branch — beats the bake (always current, and
   // the only source in shallow CI checkouts where origin/HEAD is absent).
   setBranchLabels(repo.default_branch);
+  // Visibility (Public/Private) — never claimed without the API answer.
+  const vis = document.getElementById('repo-visibility');
+  if (vis && repo.visibility) {
+    vis.textContent = repo.visibility === 'public' ? 'Public' : 'Private';
+    vis.hidden = false;
+  }
   if (Array.isArray(repo.topics) && repo.topics.length > 0) {
     const box = document.getElementById('about-topics');
     if (box) {
