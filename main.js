@@ -13,6 +13,7 @@ import { CarWriter } from '@ipld/car/writer';
 import { CarReader } from '@ipld/car/reader';
 import repoIdentity from 'virtual:repo-identity';
 import repoSubmodules from 'virtual:repo-submodules';
+import repoLiveInfo from 'virtual:repo-live-info';
 import { strings } from '@helia/strings';
 import { unixfs } from '@helia/unixfs';
 import { CID } from 'multiformats/cid';
@@ -89,8 +90,7 @@ import { classifyIndexSync } from './js/index-merge.js';
 import { normalizeLineRange, makeLineCommentFields, isLineCommentNote, commentsByLine } from './js/line-comments.js';
 import { collectReleases, blameLines, blameCommentMatches } from './js/blame.js';
 import { findCidTokens, cidAffordanceModel } from './js/cid-links.js';
-import { sanitizeMarkdownHtml, rewriteRendered, sandboxedFrame } from './js/markdown.js';
-import { rehostAndRewrite } from './js/rehost.js';
+import { sanitizeMarkdownHtml, rewriteRendered, sandboxedFrame } from './js/markdown.js';import { rehostAndRewrite } from './js/rehost.js';
 
 // Repo identity: prefer the Pages origin (<owner>.github.io/<repo>), then the
 // build-time identity baked by the action (GITHUB_REPOSITORY / git remote), so
@@ -127,6 +127,34 @@ function setBranchLabels(branch) {
   document.querySelectorAll('.branch-name-label').forEach((el) => {
     el.textContent = branch;
     el.hidden = false;
+  });
+}
+
+// THE BRIDGE: the deploy baked this repo's real metadata into the bundle
+// (virtual:repo-live-info). Paint it FIRST — the page exposes the repo's
+// live data from the served files alone, and no visitor's view depends on
+// the unauthenticated GitHub API. refreshRepoMetadata still refreshes on
+// top when the API answers.
+function paintBakedRepoInfo() {
+  const b = repoLiveInfo;
+  if (!b) return;
+  applyRepoMetadata({
+    repo: {
+      subscribers_count: b.watchers,
+      forks_count: b.forks,
+      stargazers_count: b.stars,
+      description: b.description,
+      topics: b.topics,
+      default_branch: b.defaultBranch,
+      visibility: b.visibility
+    },
+    languages: b.languages,
+    branches: b.branchesCount,
+    tags: b.tagsCount,
+    release: b.latestRelease || (Array.isArray(b.tagNames) && b.tagNames.length
+      ? { tag: b.tagNames[0], url: `https://github.com/${repoFullName}/releases/tag/${b.tagNames[0]}` }
+      : null),
+    releaseCount: b.releasesCount
   });
 }
 
@@ -216,6 +244,10 @@ function applyBuildInfo() {
   }
 }
 applyRepoIdentity();
+// Deferred: the bake paints via applyRepoMetadata, which touches
+// module-level consts (LINGUIST_COLORS) declared further down — a
+// synchronous call here would hit the temporal dead zone.
+queueMicrotask(paintBakedRepoInfo);
 applyBuildInfo();
 
 // Live repo metadata from the public GitHub API (unauthenticated,
@@ -241,7 +273,9 @@ async function refreshRepoMetadata() {
   try {
     cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
   } catch (e) {}
-  if (cached && Date.now() - cached.fetchedAt < GH_META_TTL_MS) {
+  // A cached read older than the deploy-time bake must not clobber it.
+  if (cached && Date.now() - cached.fetchedAt < GH_META_TTL_MS
+      && (!repoLiveInfo || cached.fetchedAt > repoLiveInfo.fetchedAt)) {
     applyRepoMetadata(cached);
     return;
   }

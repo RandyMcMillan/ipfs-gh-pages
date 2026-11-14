@@ -3,6 +3,39 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { listRepoFiles, repoByteTotal, EMBED_THRESHOLD_BYTES } from './scripts/lib/repo-files.mjs';
+import { fetchRepoInfo } from './scripts/lib/repo-info.mjs';
+
+// THE BRIDGE: repo metadata fetched at DEPLOY time and baked into the
+// bundle, so the deployed Pages/IPFS site exposes the repo's real info to
+// every visitor — browsers enhance it via the live API when they can, but
+// they never start from placeholders. Fetched once per process (dev-server
+// reloads reuse it); GITHUB_TOKEN (passed by the action) makes it
+// authenticated and quota-free; without it the fetch is unauthenticated
+// and silently empty on failure.
+let liveInfoPromise = null;
+function repoLiveInfoPlugin() {
+  const virtualId = 'virtual:repo-live-info';
+  const resolvedId = '\0' + virtualId;
+  return {
+    name: 'repo-live-info',
+    resolveId(id) {
+      if (id === virtualId) return resolvedId;
+    },
+    load(id) {
+      if (id !== resolvedId) return null;
+      if (!liveInfoPromise) {
+        const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
+        const { owner, name } = resolveIdentity(root);
+        liveInfoPromise = fetchRepoInfo({
+          owner,
+          name,
+          token: process.env.GITHUB_TOKEN || ''
+        }).catch(() => null);
+      }
+      return liveInfoPromise.then((info) => `export default ${JSON.stringify(info)};`);
+    }
+  };
+}
 
 function repoFilesPlugin() {
   // Repo file source — dual mode so the action handles ANY repo size:
@@ -192,7 +225,7 @@ export default defineConfig({
   // action needs no PostCSS plugins; pinning an inline config disables the
   // file search entirely.
   css: { postcss: {} },
-  plugins: [repoFilesPlugin(), repoSubmodulesPlugin(), repoIdentityPlugin()],
+  plugins: [repoFilesPlugin(), repoSubmodulesPlugin(), repoIdentityPlugin(), repoLiveInfoPlugin()],
   build: {
     target: 'esnext',
     // The GitHub Action sets OUT_DIR so the bundle lands where the caller asked.

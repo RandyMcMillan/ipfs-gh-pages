@@ -97,6 +97,10 @@ runs:
       env:
         REPO_ROOT: ${{ inputs.repo-root }}
         OUT_DIR: ${{ inputs.out-dir }}
+        # Authenticated repo-info fetch for the bridge payload
+        # (virtual:repo-live-info): quota-free and reliable, vs the
+        # per-visitor unauthenticated API fallback.
+        GITHUB_TOKEN: ${{ github.token }}
       run: |
         mkdir -p "${{ inputs.out-dir }}"
         # Consumer path: build:action deliberately skips
