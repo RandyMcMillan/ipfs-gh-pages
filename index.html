@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-color-mode="light" data-light-theme="light" data-dark-theme="dark_dimmed">
+<html lang="en" data-color-mode="light" data-light-theme="light" data-dark-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -898,6 +898,10 @@
     .tok-kw { color: #cf222e; }
     .tok-num { color: #0550ae; }
     .tok-tag { color: #116329; }
+    :root[data-color-mode="dark"] {
+      /* Primer's `dark` theme supplies the full dark palette (the bundled
+         build has no dark_dimmed — it silently never matched). */
+    }
     :root[data-color-mode="dark"] .tok-com { color: #8b949e; }
     :root[data-color-mode="dark"] .tok-str { color: #a5d6ff; }
     :root[data-color-mode="dark"] .tok-kw { color: #ff7b72; }
@@ -1020,6 +1024,8 @@
     }
     .readme-body pre code { background: none; padding: 0; }
     .readme-body img { max-width: 100%; }
+    /* axe link-in-text-block: links inside prose must not rely on color alone. */
+    .readme-body a { text-decoration: underline; text-underline-offset: 2px; }
   </style>
 </head>
 <body>
@@ -1048,9 +1054,10 @@
       <button type="button" id="btn-theme-toggle" title="Switch to dark mode" aria-label="Toggle theme"
         style="background: none; border: none; box-shadow: none; padding: 0.25rem 0.5rem; margin: 0; color: var(--color-header-text, #fff); cursor: pointer; display: inline-flex; align-items: center;"></button>
     </div>
-  </div>
+  </header>
 
   <div class="container-xl px-3 px-md-4 px-lg-5">
+    <main>
     <div class="d-flex flex-wrap flex-items-center flex-justify-between pt-3 mb-3">
       <!-- Repo Breadcrumbs -->
       <div class="d-flex flex-items-center flex-wrap f3 text-bold">
@@ -1127,8 +1134,6 @@
       <a class="tab-link" role="tab" aria-selected="false" href="#/peer" data-tab-route="peer" id="tab-btn-peer">Peer</a>
       <a class="tab-link" role="tab" aria-selected="false" href="#/publish" data-tab-route="publish" id="tab-btn-publish">Publish</a>
     </nav>
-
-    <main>
       <section class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-files" id="tab-files">
         <div class="repo-layout">
         <div class="repo-main">
