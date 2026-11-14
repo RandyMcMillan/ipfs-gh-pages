@@ -73,6 +73,23 @@ runs:
         REPO_ROOT: ${{ inputs.repo-root }}
       run: npm run test:ci
 
+    - name: Checkout submodules (consumer repo)
+      # The bundle embeds the consumer's submodule files — the vite
+      # repo-files plugin reads the WORKING TREE, and a plain checkout
+      # leaves submodule dirs empty (0 entries embedded). Custom workflows
+      # that skip `submodules:` in actions/checkout get fixed here too.
+      # Repos without .gitmodules skip cleanly; a broken gitlink (unpushed
+      # submodule commit, unreachable remote) fails here BY DESIGN — that
+      # state breaks every recursive clone of the consumer repo too.
+      shell: bash
+      working-directory: ${{ inputs.repo-root }}
+      run: |
+        if [ -f .gitmodules ] && [ -e .git ]; then
+          git submodule update --init --recursive
+        else
+          echo "no submodules — skipping"
+        fi
+
     - name: Build bundle
       id: build
       shell: bash

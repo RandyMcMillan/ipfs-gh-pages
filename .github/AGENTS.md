@@ -39,6 +39,19 @@ the deploy/CI knowledge earned the hard way.
   `deployed-<HEAD>-<newest-action-tag>`, so either side moving fires it;
   `actions/cache/save` is `continue-on-error` (a same-key race costs one
   redundant deploy, never a failure).
+- **Submodules are content, and consumers must check them out.** The
+  bundle mirrors the working tree (`scripts/lib/repo-files.mjs` flattens
+  each checked-out submodule as `<sub>/<file>`); a plain
+  `actions/checkout` leaves submodule dirs EMPTY and the deployed site
+  silently ships without their files. The demo workflow passes
+  `submodules: 'recursive'`, and the action itself runs
+  `git submodule update --init --recursive` when `.gitmodules` exists —
+  so custom workflows are covered too. A broken gitlink fails the build
+  by design (that state breaks every recursive clone of the consumer
+  repo as well). Large repos (over `EMBED_THRESHOLD_BYTES`) switch to
+  `car` mode: `dist/repo.car` + `repo-manifest.json` carry the same
+  flattened file set; per-submodule CARs cover each submodule's own
+  files (`listTrackedFiles`).
 - **Pinning inputs use each provider's own terminology.** Filebase:
   `filebase-access-key-id` / `filebase-secret-access-key` /
   `filebase-bucket` ← secrets `FILEBASE_ACCESS_KEY_ID`,
