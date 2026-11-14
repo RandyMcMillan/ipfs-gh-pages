@@ -105,6 +105,15 @@ function repoIdentityPlugin() {
       if (id !== resolvedId) return;
       const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
       const { owner, name, version, tagVersion } = resolveIdentity(root);
+      // The repo's DEFAULT branch name (master? main?) — the page must
+      // never claim one it doesn't know. origin/HEAD resolves in full
+      // clones; shallow CI checkouts lack it and the live GitHub API
+      // (repo.default_branch) fills the gap at runtime.
+      let defaultBranch = '';
+      try {
+        defaultBranch = execSync('git symbolic-ref --short -q refs/remotes/origin/HEAD', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] })
+          .toString().trim().replace(/^origin\//, '');
+      } catch {}
       let lastCommitMsg = '';
       let lastCommitTime = '';
       let shortSha = '';
@@ -116,7 +125,7 @@ function repoIdentityPlugin() {
         const n = parseInt(execSync('git rev-list --count HEAD', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(), 10);
         if (n > 1) commitCount = String(n);
       } catch {}
-      return `export default { owner: ${JSON.stringify(owner)}, name: ${JSON.stringify(name)}, version: ${JSON.stringify(version)}, tagVersion: ${JSON.stringify(tagVersion)}, lastCommitMsg: ${JSON.stringify(lastCommitMsg)}, lastCommitTime: ${JSON.stringify(lastCommitTime)}, shortSha: ${JSON.stringify(shortSha)}, commitCount: ${JSON.stringify(commitCount)} };`;
+      return `export default { owner: ${JSON.stringify(owner)}, name: ${JSON.stringify(name)}, version: ${JSON.stringify(version)}, tagVersion: ${JSON.stringify(tagVersion)}, defaultBranch: ${JSON.stringify(defaultBranch)}, lastCommitMsg: ${JSON.stringify(lastCommitMsg)}, lastCommitTime: ${JSON.stringify(lastCommitTime)}, shortSha: ${JSON.stringify(shortSha)}, commitCount: ${JSON.stringify(commitCount)} };`;
     },
     transformIndexHtml(html) {
       const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();

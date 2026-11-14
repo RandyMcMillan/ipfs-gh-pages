@@ -119,6 +119,17 @@ const appVersion = repoIdentity.version || '';
 // "Built as v…" and nothing else.
 const tagVersion = repoIdentity.tagVersion || '';
 
+// Default-branch labels (tree-view button + blob breadcrumb) — only ever
+// the repo's REAL default branch: baked from origin/HEAD at build time,
+// overridden by the live API when it answers. Never a hardcoded "main".
+function setBranchLabels(branch) {
+  if (!branch) return;
+  document.querySelectorAll('.branch-name-label').forEach((el) => {
+    el.textContent = branch;
+    el.hidden = false;
+  });
+}
+
 function applyRepoIdentity() {
   document.title = repoFullName;
   const search = document.getElementById('repo-search-input');
@@ -134,6 +145,7 @@ function applyRepoIdentity() {
       relLink.dataset.ghpath = `/releases/tag/v${tagVersion}`;
     }
   }
+  setBranchLabels(repoIdentity.defaultBranch);
   document.querySelectorAll('a.gh-link').forEach((a) => {
     a.href = repoUrl + (a.dataset.ghpath || '');
   });
@@ -210,7 +222,12 @@ applyBuildInfo();
 // 60 req/h/IP): real Watch/Fork/Star counts, description, topics, release
 // info, and language breakdown. Cached in localStorage for 30 minutes;
 // failures silently keep the static build-time values.
-const GH_META_TTL_MS = 30 * 60 * 1000;
+// Live-metadata cache. Each uncached load costs 6 unauthenticated GitHub
+// API calls (60/hr/IP), so this can't be zero — but tags/releases are the
+// values the user watches after pushing; 5 minutes is the compromise
+// between "live" and rate-limit-safe. A 403 (quota gone) never caches:
+// the next load retries with a fresh hour.
+const GH_META_TTL_MS = 5 * 60 * 1000;
 const LINGUIST_COLORS = {
   JavaScript: '#f1e05a', TypeScript: '#3178c6', HTML: '#e34c26', CSS: '#563d7c',
   Rust: '#dea584', Python: '#3572A5', Shell: '#89e051', Go: '#00ADD8',
@@ -329,6 +346,9 @@ function applyRepoMetadata(meta) {
     const desc = document.getElementById('about-description');
     if (desc) desc.textContent = repo.description;
   }
+  // The repo's REAL default branch — beats the bake (always current, and
+  // the only source in shallow CI checkouts where origin/HEAD is absent).
+  setBranchLabels(repo.default_branch);
   if (Array.isArray(repo.topics) && repo.topics.length > 0) {
     const box = document.getElementById('about-topics');
     if (box) {
