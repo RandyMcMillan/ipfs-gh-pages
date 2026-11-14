@@ -183,6 +183,15 @@ function repoSubmodulesPlugin() {
 export default defineConfig({
   // Base relative path ensures assets resolve correctly on GitHub Pages
   base: './',
+  // Inline (empty) PostCSS config: without it, Vite's CSS step searches for
+  // postcss.config.* from the action dir UPWARD — and in the consumer
+  // workspace the action lives in a SUBDIRECTORY of the consumer repo
+  // (temp-action-repo), so a consumer postcss.config.js gets picked up.
+  // Consumer configs are theirs (CJS `module.exports` in a "type":"module"
+  // package breaks as ESM — gnostr-org/ipfs-webui did exactly this). The
+  // action needs no PostCSS plugins; pinning an inline config disables the
+  // file search entirely.
+  css: { postcss: {} },
   plugins: [repoFilesPlugin(), repoSubmodulesPlugin(), repoIdentityPlugin()],
   build: {
     target: 'esnext',
