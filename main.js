@@ -4933,6 +4933,20 @@ function renderPRs() {
     a.textContent = pr.title;
     a.addEventListener('click', (e) => { e.preventDefault(); openIssue(pr.cid); location.hash = '#/issues'; });
     li.appendChild(a);
+    if (pr.merged) {
+      const badge = document.createElement('span');
+      badge.className = 'Label Label--secondary';
+      badge.style.marginLeft = '0.4rem';
+      badge.textContent = 'merged';
+      li.appendChild(badge);
+    } else {
+      const mb = document.createElement('button');
+      mb.className = 'btn btn-sm';
+      mb.style.marginLeft = '0.4rem';
+      mb.textContent = 'Merge';
+      mb.addEventListener('click', (ev) => { ev.preventDefault(); mergeIpfsPR(pr); });
+      li.appendChild(mb);
+    }
     listEl.appendChild(li);
   }
 }
@@ -5072,3 +5086,23 @@ if (cloneHelpModal && cloneHelpBtn) {
 }
 
 initHelia();
+// Merge an IPFS PR: verify, pin the head root to a detected Kubo, record the
+// adoption as a signed merge note on the index chain.
+async function mergeIpfsPR(pr) {
+  const statusEl = document.getElementById('pr-status');
+  try {
+    const { ok, signed } = await verifyNote(await getDagJson(CID.parse(pr.cid)));
+    if (!ok) { if (statusEl) statusEl.textContent = 'Merge failed: PR signature INVALID.'; return; }
+    const head = signed.head?.rootCid;
+    if (!head) { if (statusEl) statusEl.textContent = 'Merge failed: no head root CID.'; return; }
+    const { envelope } = await signNote({ ns: 'issues', type: 'merge', pr: pr.cid, head, title: `Merge: ${signed.title || pr.cid}`, timestamp: new Date().toISOString() });
+    const cid = await publishNote(envelope);
+    await extendChain([cid]);
+    const prs = loadPRs();
+    const entry = prs.find((p) => p.cid === pr.cid);
+    if (entry) { entry.merged = head; entry.mergeNote = cid; try { localStorage.setItem(PRS_KEY, JSON.stringify(prs)); } catch {} }
+    if (localKuboRpc) { try { await kuboHandoff(head, { exportCarBytes }); } catch {} }
+    if (statusEl) statusEl.textContent = `Merged - adoption note ${cid}, head ${head}`;
+    renderPRs();
+  } catch (err) { if (statusEl) statusEl.textContent = `Merge failed: ${err.message}`; }
+}
