@@ -7,6 +7,8 @@
 // → POST /api/v0/dag/import (any codec) → pin/add. What the user just hit —
 // "ipfs pin add" failing on a block only the browser has — disappears: the
 // page pushes the block, then pins it. Pure + injectable for tests.
+import { CID } from 'multiformats/cid';
+
 export const KUBO_RPC_DEFAULT = 'http://127.0.0.1:5001';
 // The user's Kubo is NOT always on 5001 (custom configs, parallel daemons,
 // dev setups) — probe the whole common RPC range, same list as the
@@ -53,7 +55,10 @@ export async function pinAdd(cid, { endpoint = KUBO_RPC_DEFAULT, fetchImpl = fet
 // Full hand-off: export the DAG from the in-page node, import to Kubo, pin.
 export async function kuboHandoff(cid, { exportCarBytes, endpoint = KUBO_RPC_DEFAULT, fetchImpl = fetch } = {}) {
   if (typeof exportCarBytes !== 'function') throw new Error('exportCarBytes is required');
-  const carBytes = await exportCarBytes(cid);
+  // exportCarBytes feeds CarWriter.create — it needs a CID object, not the
+  // string that callers naturally have.
+  const root = typeof cid === 'string' ? CID.parse(cid) : cid;
+  const carBytes = await exportCarBytes(root);
   await importCar(carBytes, { endpoint, fetchImpl });
   await pinAdd(cid, { endpoint, fetchImpl });
   return { bytes: carBytes.length };

@@ -45,7 +45,7 @@ test('importCar posts a multipart CAR; pinAdd posts to the pin endpoint', async 
 
 test('kuboHandoff: export → import → pin, byte count returned', async () => {
   const order = [];
-  const exportCarBytes = async (cid) => { order.push('export:' + cid); return new Uint8Array(9); };
+  const exportCarBytes = async (cid) => { order.push('export:' + cid); if (!(cid && typeof cid === 'object')) throw new Error('expected CID object'); return new Uint8Array(9); };
   const fetchImpl = async (url) => { order.push(url.split('/api/v0/')[1].split('?')[0]); return new Response('{}', { status: 200 }); };
   const out = await kuboHandoff('bafyCID', { exportCarBytes, fetchImpl });
   assert.deepEqual(order, ['export:bafyCID', 'dag/import', 'pin/add']);
