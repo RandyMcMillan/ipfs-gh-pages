@@ -3980,7 +3980,7 @@ function showCidPopover(cid, anchor) {
     }
   });
 
-  if (localKubo) {
+  if (localKuboRpc) {
     const kuboBtn = document.createElement('button');
     kuboBtn.className = 'btn btn-sm';
     kuboBtn.type = 'button';
@@ -4094,22 +4094,21 @@ function getGhClientId() {
   try { return localStorage.getItem(GH_CLIENT_ID_KEY) || GH_OAUTH_CLIENT_ID; } catch { return GH_OAUTH_CLIENT_ID; }
 }
 
-// Local Kubo detection: probe at boot; the popover offers 'Pin to local
-// Kubo' (CAR hand-off) whenever one answers. THE PAGE ACTIVELY PROBES.
-let localKubo = null;
-async function detectKubo() {
-  localKubo = await probeKubo();
+// Kubo RPC detection for the CID-popover hand-off ('Pin to local Kubo').
+// Distinct from the Peer-settings detectKubo() (dial-address probe): this
+// one tracks an RPC endpoint for dag/import + pin/add. Auto-probes at boot.
+let localKuboRpc = null;
+async function detectKuboRpc() {
+  localKuboRpc = await probeKubo();
   const el = document.getElementById('kubo-status');
   if (el) {
-    if (localKubo) {
-      el.textContent = `Local Kubo: ${localKubo.peerId} (${localKubo.agentVersion || 'kubo'}) — popovers can pin straight to it.`;
-    } else {
-      el.textContent = 'Local Kubo: none detected at 127.0.0.1:5001 (start your node, then reload).';
-    }
+    el.textContent = localKuboRpc
+      ? `Local Kubo: ${localKuboRpc.peerId} (${localKuboRpc.agentVersion || 'kubo'}) — popovers can pin straight to it.`
+      : 'Local Kubo: none detected at 127.0.0.1:5001 (start your node, then reload).';
   }
-  return localKubo;
+  return localKuboRpc;
 }
-detectKubo();
+detectKuboRpc();
 
 // Optional relay for the device flow (github.com/login/* has no CORS):
 // localStorage 'github-auth-relay' = e.g. https://auth.example.com/gh
