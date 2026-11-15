@@ -54,3 +54,4 @@ jobs:
           repository: ${{ github.repository }}
           token: ${{ secrets.GH_TOKEN }}
           cache_key: accessibility-scanner-cache.json
+          skip_copilot_assignment: true
