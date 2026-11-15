@@ -16,6 +16,7 @@ import repoSubmodules from 'virtual:repo-submodules';
 import repoLiveInfo from 'virtual:repo-live-info';
 import { parseIssueUrl, mapGithubIssue, mapGithubComment, fetchGithubThread, postGithubComment } from './js/github-issues.js';
 import { startDeviceFlow, pollDeviceToken } from './js/github-auth.js';
+import { probeKubo, kuboHandoff } from './js/kubo.js';
 import { strings } from '@helia/strings';
 import { unixfs } from '@helia/unixfs';
 import { CID } from 'multiformats/cid';
@@ -3979,6 +3980,26 @@ function showCidPopover(cid, anchor) {
     }
   });
 
+  if (localKubo) {
+    const kuboBtn = document.createElement('button');
+    kuboBtn.className = 'btn btn-sm';
+    kuboBtn.type = 'button';
+    kuboBtn.textContent = 'Pin to local Kubo';
+    kuboBtn.style.marginLeft = '0.5rem';
+    carRow.appendChild(kuboBtn);
+    kuboBtn.addEventListener('click', async () => {
+      kuboBtn.disabled = true;
+      carStatus.textContent = 'Exporting and importing to local Kubo…';
+      try {
+        const out = await kuboHandoff(cid, { exportCarBytes });
+        carStatus.textContent = `Pinned to local Kubo (${(out.bytes / 1024).toFixed(1)} KB imported)`;
+      } catch (err) {
+        carStatus.textContent = `Kubo pin failed: ${err.message}`;
+        kuboBtn.disabled = false;
+      }
+    });
+  }
+
   document.body.appendChild(pop);
   const r = anchor.getBoundingClientRect();
   const pw = pop.offsetWidth;
@@ -4072,6 +4093,23 @@ const GH_CLIENT_ID_KEY = 'github-oauth-client-id';
 function getGhClientId() {
   try { return localStorage.getItem(GH_CLIENT_ID_KEY) || GH_OAUTH_CLIENT_ID; } catch { return GH_OAUTH_CLIENT_ID; }
 }
+
+// Local Kubo detection: probe at boot; the popover offers 'Pin to local
+// Kubo' (CAR hand-off) whenever one answers. THE PAGE ACTIVELY PROBES.
+let localKubo = null;
+async function detectKubo() {
+  localKubo = await probeKubo();
+  const el = document.getElementById('kubo-status');
+  if (el) {
+    if (localKubo) {
+      el.textContent = `Local Kubo: ${localKubo.peerId} (${localKubo.agentVersion || 'kubo'}) — popovers can pin straight to it.`;
+    } else {
+      el.textContent = 'Local Kubo: none detected at 127.0.0.1:5001 (start your node, then reload).';
+    }
+  }
+  return localKubo;
+}
+detectKubo();
 
 // Optional relay for the device flow (github.com/login/* has no CORS):
 // localStorage 'github-auth-relay' = e.g. https://auth.example.com/gh

@@ -1,0 +1,47 @@
+// Local Kubo RPC probe + CAR hand-off. The app runs next to a Kubo on the
+// user's machine more often than not (the deploy docs assume one); probing
+// 127.0.0.1:5001 lets the page offer live actions instead of dead commands.
+// The CSP already permits connect-src http://127.0.0.1:5001.
+//
+// kuboHandoff is the loop-closer: exportCarBytes(cid) from the in-page node
+// → POST /api/v0/dag/import (any codec) → pin/add. What the user just hit —
+// "ipfs pin add" failing on a block only the browser has — disappears: the
+// page pushes the block, then pins it. Pure + injectable for tests.
+export const KUBO_RPC_DEFAULT = 'http://127.0.0.1:5001';
+
+export async function probeKubo({ endpoint = KUBO_RPC_DEFAULT, fetchImpl = fetch, timeoutMs = 2500 } = {}) {
+  try {
+    const res = await fetchImpl(`${endpoint}/api/v0/id`, {
+      method: 'POST',
+      signal: AbortSignal.timeout(timeoutMs)
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    return j && j.ID ? { endpoint, peerId: j.ID, agentVersion: j.AgentVersion || '' } : null;
+  } catch {
+    return null; // no Kubo, wrong port, CORS on a custom RPC — all the same: unavailable
+  }
+}
+
+export async function importCar(carBytes, { endpoint = KUBO_RPC_DEFAULT, fetchImpl = fetch } = {}) {
+  const form = new FormData();
+  form.append('file', new Blob([carBytes], { type: 'application/vnd.ipfs.car' }), 'export.car');
+  const res = await fetchImpl(`${endpoint}/api/v0/dag/import`, { method: 'POST', body: form });
+  if (!res.ok) throw new Error(`dag import HTTP ${res.status}`);
+  return res.json().catch(() => ({}));
+}
+
+export async function pinAdd(cid, { endpoint = KUBO_RPC_DEFAULT, fetchImpl = fetch } = {}) {
+  const res = await fetchImpl(`${endpoint}/api/v0/pin/add?arg=${encodeURIComponent(cid)}`, { method: 'POST' });
+  if (!res.ok) throw new Error(`pin add HTTP ${res.status}`);
+  return res.json().catch(() => ({}));
+}
+
+// Full hand-off: export the DAG from the in-page node, import to Kubo, pin.
+export async function kuboHandoff(cid, { exportCarBytes, endpoint = KUBO_RPC_DEFAULT, fetchImpl = fetch } = {}) {
+  if (typeof exportCarBytes !== 'function') throw new Error('exportCarBytes is required');
+  const carBytes = await exportCarBytes(cid);
+  await importCar(carBytes, { endpoint, fetchImpl });
+  await pinAdd(cid, { endpoint, fetchImpl });
+  return { bytes: carBytes.length };
+}
