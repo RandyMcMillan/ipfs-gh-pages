@@ -8,8 +8,21 @@
 // "ipfs pin add" failing on a block only the browser has — disappears: the
 // page pushes the block, then pins it. Pure + injectable for tests.
 export const KUBO_RPC_DEFAULT = 'http://127.0.0.1:5001';
+// The user's Kubo is NOT always on 5001 (custom configs, parallel daemons,
+// dev setups) — probe the whole common RPC range, same list as the
+// Peer-settings probe. First answer wins; ports after it never fire.
+export const KUBO_RPC_PORTS = Array.from({ length: 10 }, (_, i) => String(5001 + i));
 
-export async function probeKubo({ endpoint = KUBO_RPC_DEFAULT, fetchImpl = fetch, timeoutMs = 2500 } = {}) {
+export async function probeKubo({ endpoint = '', fetchImpl = fetch, timeoutMs = 1200 } = {}) {
+  if (endpoint) return probeEndpoint(endpoint, fetchImpl, timeoutMs);
+  for (const port of KUBO_RPC_PORTS) {
+    const hit = await probeEndpoint(`http://127.0.0.1:${port}`, fetchImpl, timeoutMs);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+async function probeEndpoint(endpoint, fetchImpl, timeoutMs) {
   try {
     const res = await fetchImpl(`${endpoint}/api/v0/id`, {
       method: 'POST',
@@ -19,7 +32,7 @@ export async function probeKubo({ endpoint = KUBO_RPC_DEFAULT, fetchImpl = fetch
     const j = await res.json();
     return j && j.ID ? { endpoint, peerId: j.ID, agentVersion: j.AgentVersion || '' } : null;
   } catch {
-    return null; // no Kubo, wrong port, CORS on a custom RPC — all the same: unavailable
+    return null; // nothing there / not a Kubo RPC — try the next port
   }
 }
 

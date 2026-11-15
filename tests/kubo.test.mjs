@@ -17,6 +17,18 @@ test('probeKubo returns peer info on 200, null on any failure', async () => {
   assert.equal(await probeKubo({ fetchImpl: async () => { throw new TypeError('fetch failed'); } }), null);
 });
 
+test('probeKubo scans the common RPC port range, not just 5001', async () => {
+  const tried = [];
+  const hit = await probeKubo({ fetchImpl: async (url) => {
+    tried.push(url);
+    if (url.includes(':5003')) return new Response(JSON.stringify({ ID: '12D3KooWpeer' }), { status: 200 });
+    throw new TypeError('refused');
+  }, timeoutMs: 1 });
+  assert.equal(hit.peerId, '12D3KooWpeer');
+  assert.equal(hit.endpoint, 'http://127.0.0.1:5003');
+  assert.deepEqual(tried, ['http://127.0.0.1:5001/api/v0/id', 'http://127.0.0.1:5002/api/v0/id', 'http://127.0.0.1:5003/api/v0/id'], 'stops at the first answer');
+});
+
 test('importCar posts a multipart CAR; pinAdd posts to the pin endpoint', async () => {
   const sent = [];
   const fetchImpl = async (url, init) => {
