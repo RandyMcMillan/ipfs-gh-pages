@@ -1412,6 +1412,12 @@
       <section class="tab-panel" role="tabpanel" id="tab-pulls">
         <div class="card">
           <h3>Pull requests</h3>
+          <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem;">
+            <button id="btn-gh-list-prs" class="btn btn-sm" type="button">Load this repo's PRs</button>
+            <span id="gh-pr-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
+          </div>
+          <ul id="gh-pr-list" style="list-style: none; padding-left: 0; margin: 0.35rem 0;"></ul>
+          <p class="f6 color-fg-muted" style="margin: 0.25rem 0 0.5rem 0;">Imported PRs land in the Issues index as signed notes with their review comments; the <code>pull_request</code> link stays in the envelope.</p>
           <p>A fork is a republish: the fork's page builds its own root CID and publishes its own branch pointer (<code>/ipns/&lt;peerId&gt;</code>). "Merging" is adopting the fork's root CID as yours — the IPNS pointer flips, DNSLink followers move with it.</p>
           <p>Reviewing a PR = diffing two UnixFS DAGs by CID: fetch both roots (Files → Fetch), compare file CIDs; identical CIDs are identical content, so the delta is exact.</p>
           <p class="f6" style="margin-bottom: 0;">Real PRs: <a class="gh-link" data-ghpath="/pulls" href="https://github.com/__REPO_OWNER__/__REPO_NAME__/pulls">Pull requests on GitHub ↗</a></p>

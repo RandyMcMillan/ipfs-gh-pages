@@ -33,7 +33,8 @@ export function mapGithubIssue(issue) {
       number: issue.number,
       id: issue.id,
       url: issue.html_url || '',
-      user: issue.user?.login || ''
+      user: issue.user?.login || '',
+      pull_request: issue.pull_request ? { url: issue.pull_request.url || '' } : null
     }
   };
 }
@@ -122,4 +123,13 @@ export async function fetchContributors(owner, repo, { token = '', fetchImpl = f
   if (!res.ok) throw new Error(`contributors HTTP ${res.status}`);
   const json = await res.json();
   return (Array.isArray(json) ? json : []).map((c) => ({ login: c.login, avatar: c.avatar_url || '', contributions: c.contributions, url: c.html_url || '' }));
+}
+
+// Pull requests ARE issues on GitHub's side (same object, plus a
+// pull_request key) — same endpoint, opposite filter.
+export async function listGithubPRs(owner, repo, { token = '', state = 'open', fetchImpl = fetch } = {}) {
+  const res = await fetchImpl(`https://api.github.com/repos/${owner}/${repo}/issues?state=${state}&per_page=30`, { headers: headers(token) });
+  if (!res.ok) throw new Error(`GitHub PR list HTTP ${res.status}`);
+  const json = await res.json();
+  return (Array.isArray(json) ? json : []).filter((i) => i.pull_request);
 }

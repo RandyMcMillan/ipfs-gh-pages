@@ -14,7 +14,7 @@ import { CarReader } from '@ipld/car/reader';
 import repoIdentity from 'virtual:repo-identity';
 import repoSubmodules from 'virtual:repo-submodules';
 import repoLiveInfo from 'virtual:repo-live-info';
-import { parseIssueUrl, mapGithubIssue, mapGithubComment, fetchGithubThread, postGithubComment, listGithubIssues, fetchContributors } from './js/github-issues.js';
+import { parseIssueUrl, mapGithubIssue, mapGithubComment, fetchGithubThread, postGithubComment, listGithubIssues, fetchContributors, listGithubPRs } from './js/github-issues.js';
 import { startDeviceFlow, pollDeviceToken } from './js/github-auth.js';
 import { probeKubo, kuboHandoff } from './js/kubo.js';
 import { strings } from '@helia/strings';
@@ -4861,6 +4861,32 @@ if (new URLSearchParams(location.search).has('selftest')) {
     if (/Online/.test(document.getElementById('node-status')?.textContent || '')) { clearInterval(t); selfTestIssue(); }
   }, 1000);
 }
+// Pull requests: identical seamless list on the #/pulls tab. Import reuses
+// importGithubIssue — GitHub serves PRs at /issues/<n>, comments included.
+const ghListPrBtn = document.getElementById('btn-gh-list-prs');
+if (ghListPrBtn) ghListPrBtn.addEventListener('click', async () => {
+  const statusEl = document.getElementById('gh-pr-status');
+  const listEl = document.getElementById('gh-pr-list');
+  const [owner, name] = repoFullName.split('/');
+  if (statusEl) statusEl.textContent = 'Loading open GitHub pull requests…';
+  try {
+    const prs = await listGithubPRs(owner, name, { token: getGithubToken() });
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    for (const i of prs) {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = `#${i.number} ${i.title}`;
+      a.addEventListener('click', (e) => { e.preventDefault(); importGithubIssue({ owner, repo: name, number: i.number }); });
+      li.appendChild(a);
+      listEl.appendChild(li);
+    }
+    if (statusEl) statusEl.textContent = prs.length ? `${prs.length} open PR(s) — click to import:` : 'No open GitHub pull requests in this repo.';
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Could not list PRs: ${err.message} — set the fine-grained PAT above if quota is gone.`;
+  }
+});
 const ghConnectBtn = document.getElementById('btn-gh-connect');
 if (ghConnectBtn) ghConnectBtn.addEventListener('click', connectGithub);
 const ghTokenEl = document.getElementById('gh-token');
