@@ -30,3 +30,11 @@ test('every inputs.<name> used in steps is declared', () => {
   const missing = [...used].filter((u) => !declared.has(u));
   assert.deepEqual(missing, [], `undeclared inputs used: ${missing.join(', ')}`);
 });
+
+test('deployed accessibility scanner files findings without assigning Copilot', () => {
+  const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/deployed-smoke.yml'), 'utf8');
+  const scanner = workflow.match(/uses: github\/accessibility-scanner@[^\n]+\n([\s\S]*)/);
+  assert.ok(scanner, 'deployed smoke must run the accessibility scanner');
+  assert.match(scanner[1], /^\s+skip_copilot_assignment:\s*(?:true|'true'|"true")\s*$/m);
+  assert.doesNotMatch(scanner[1], /^\s+dry_run:\s*(?:true|'true'|"true")\s*$/m);
+});
