@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ACTION = fs.readFileSync(path.join(ROOT, 'action.yml'), 'utf8');
+const INDEX = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 
 test('action.yml parses as YAML', () => {
   // no yaml dep here — structural sanity: balanced inputs/runs blocks
@@ -37,4 +38,11 @@ test('deployed accessibility scanner files findings without assigning Copilot', 
   assert.ok(scanner, 'deployed smoke must run the accessibility scanner');
   assert.match(scanner[1], /^\s+skip_copilot_assignment:\s*(?:true|'true'|"true")\s*$/m);
   assert.doesNotMatch(scanner[1], /^\s+dry_run:\s*(?:true|'true'|"true")\s*$/m);
+});
+
+test('commit-count link has an accessible name before its count loads', () => {
+  const link = INDEX.match(/<a\b[^>]*\bid="commit-count"[^>]*>/);
+  assert.ok(link, 'commit-count link exists');
+  assert.match(link[0], /\baria-label="View commits"/);
+  assert.match(link[0], /\bhidden\b/);
 });
