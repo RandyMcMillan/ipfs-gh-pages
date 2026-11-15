@@ -1446,6 +1446,12 @@
       <section class="tab-panel" role="tabpanel" id="tab-projects">
         <div class="card">
           <h3>Projects</h3>
+          <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem;">
+            <button id="btn-gh-list-ms" class="btn btn-sm" type="button">Load milestones</button>
+            <span id="gh-ms-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
+          </div>
+          <ul id="gh-ms-list" style="list-style: none; padding-left: 0; margin: 0.35rem 0;"></ul>
+          <p class="f6 color-fg-muted" style="margin: 0.25rem 0 0.5rem 0;">Milestones are GitHub's REST-visible project surface - click an issue to import it into the IPFS index.</p>
           <p>Projects ↔ <strong>named pin sets</strong>. A milestone is a group of CIDs pinned under one name — with the Code dropdown's ☆ Remote pin, use a shared <code>name</code> per milestone and the pinning service groups them; anyone can list the set via <code>GET /pins?name=…</code>.</p>
           <p class="f6" style="margin-bottom: 0;">Real project boards: <a class="gh-link" data-ghpath="/projects" href="https://github.com/__REPO_OWNER__/__REPO_NAME__/projects">Projects on GitHub ↗</a></p>
         </div>

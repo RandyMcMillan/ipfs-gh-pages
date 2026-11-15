@@ -4953,6 +4953,36 @@ function renderPRs() {
 const prCreateBtn = document.getElementById('btn-pr-create');
 if (prCreateBtn) prCreateBtn.addEventListener('click', createIpfsPR);
 renderPRs();
+// Projects: seamless milestone list - click a milestone's issue to import.
+const ghMsBtn = document.getElementById('btn-gh-list-ms');
+if (ghMsBtn) ghMsBtn.addEventListener('click', async () => {
+  const statusEl = document.getElementById('gh-ms-status');
+  const listEl = document.getElementById('gh-ms-list');
+  const [owner, name] = repoFullName.split('/');
+  if (statusEl) statusEl.textContent = 'Loading milestones…';
+  try {
+    const ms = await fetchMilestones(owner, name, { token: getGithubToken() });
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    for (const m of ms) {
+      const li = document.createElement('li');
+      li.innerHTML = `<strong></strong> <span class="f6 color-fg-muted"></span>`;
+      li.querySelector('strong').textContent = m.title;
+      li.querySelector('span').textContent = `${m.openIssues.length} open`;
+      for (const i of m.openIssues) {
+        const sub = document.createElement('div');
+        const a = document.createElement('a');
+        a.href = '#';
+        a.textContent = `  #${i.number} ${i.title}`;
+        a.addEventListener('click', (e) => { e.preventDefault(); importGithubIssue({ owner, repo: name, number: i.number }); });
+        sub.appendChild(a);
+        li.appendChild(sub);
+      }
+      listEl.appendChild(li);
+    }
+    if (statusEl) statusEl.textContent = ms.length ? `${ms.length} milestone(s):` : 'No open milestones.';
+  } catch (err) { if (statusEl) statusEl.textContent = `Could not list milestones: ${err.message}`; }
+});
 const ghConnectBtn = document.getElementById('btn-gh-connect');
 if (ghConnectBtn) ghConnectBtn.addEventListener('click', connectGithub);
 const ghTokenEl = document.getElementById('gh-token');

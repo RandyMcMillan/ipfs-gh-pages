@@ -133,3 +133,19 @@ export async function listGithubPRs(owner, repo, { token = '', state = 'open', f
   const json = await res.json();
   return (Array.isArray(json) ? json : []).filter((i) => i.pull_request);
 }
+
+// GitHub milestones - the REST-accessible "project" surface. Each milestone
+// carries its open issues; one click imports a milestone's issue thread.
+export async function fetchMilestones(owner, repo, { token = '', fetchImpl = fetch } = {}) {
+  const [ms, issues] = await Promise.all([
+    fetchImpl(`https://api.github.com/repos/${owner}/${repo}/milestones?state=open&per_page=20`, { headers: headers(token) }),
+    fetchImpl(`https://api.github.com/repos/${owner}/${repo}/issues?state=open&per_page=100`, { headers: headers(token) })
+  ]);
+  if (!ms.ok) throw new Error(`milestones HTTP ${ms.status}`);
+  const milestones = Array.isArray(await ms.json()) ? await (async () => { const r = ms; return r.json(); })() : [];
+  const issueList = issues.ok ? (await issues.json()) : [];
+  return milestones.map((m) => ({
+    number: m.number, title: m.title, description: m.description || '',
+    openIssues: (Array.isArray(issueList) ? issueList : []).filter((i) => i.milestone?.number === m.number)
+  }));
+}
