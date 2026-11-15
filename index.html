@@ -1412,6 +1412,15 @@
       <section class="tab-panel" role="tabpanel" id="tab-pulls">
         <div class="card">
           <h3>Pull requests</h3>
+          <h4 style="margin: 0.5rem 0 0.25rem 0;">IPFS pull requests</h4>
+          <input id="pr-title" type="text" class="form-control" style="width: 100%;" placeholder="PR title" />
+          <textarea id="pr-body" rows="2" class="form-control" style="width: 100%; margin-top: 0.35rem;" placeholder="What this fork changes…"></textarea>
+          <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem; margin-top: 0.4rem;">
+            <input id="pr-head" type="text" class="form-control" style="flex: 1 1 16rem; min-width: 12rem;" placeholder="Fork root CID (bafy…)" />
+            <button id="btn-pr-create" class="btn btn-sm" type="button">File IPFS PR</button>
+            <span id="pr-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
+          </div>
+          <ul id="ipfs-pr-list" style="list-style: none; padding-left: 0; margin: 0.35rem 0 0.5rem 0;"></ul>
           <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem;">
             <button id="btn-gh-list-prs" class="btn btn-sm" type="button">Load this repo's PRs</button>
             <span id="gh-pr-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>

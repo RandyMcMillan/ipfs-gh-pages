@@ -4887,6 +4887,58 @@ if (ghListPrBtn) ghListPrBtn.addEventListener('click', async () => {
     if (statusEl) statusEl.textContent = `Could not list PRs: ${err.message} — set the fine-grained PAT above if quota is gone.`;
   }
 });
+// Native IPFS pull request: a signed note proposing a new repo root —
+// 'a fork is a republish', made concrete. head = the fork's root CID,
+// base = this repo's current root. Same index, same verification, same
+// comment chains; the merge action (root adoption) lands next.
+const PRS_KEY = 'ipfs-prs';
+const loadPRs = () => { try { return JSON.parse(localStorage.getItem(PRS_KEY) || '[]'); } catch { return []; } };
+async function createIpfsPR() {
+  const title = (document.getElementById('pr-title')?.value || '').trim();
+  const body = (document.getElementById('pr-body')?.value || '').trim();
+  const head = (document.getElementById('pr-head')?.value || '').trim();
+  const statusEl = document.getElementById('pr-status');
+  if (!title || !head) { if (statusEl) statusEl.textContent = 'Give the PR a title and the fork root CID.'; return; }
+  if (!heliaNode) { if (statusEl) statusEl.textContent = 'Wait for the node to come online.'; return; }
+  if (statusEl) statusEl.textContent = 'Signing and publishing…';
+  try {
+    const base = (document.getElementById('output-cid')?.textContent || '').trim();
+    const { envelope, signer } = await signNote({
+      ns: 'issues', type: 'pull-request', title, body,
+      head: { rootCid: head }, base: { rootCid: base },
+      timestamp: new Date().toISOString()
+    });
+    const cid = await publishNote(envelope);
+    await extendChain([cid]);
+    const prs = loadPRs();
+    prs.unshift({ cid, title, timestamp: envelope.timestamp, signer });
+    try { localStorage.setItem(PRS_KEY, JSON.stringify(prs)); } catch {}
+    autoPinToKubo(cid, statusEl);
+    renderPRs();
+    if (statusEl) statusEl.textContent = `PR filed — ${cid}`;
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Failed: ${err.message}`;
+  }
+}
+function renderPRs() {
+  const listEl = document.getElementById('ipfs-pr-list');
+  if (!listEl) return;
+  const prs = loadPRs();
+  listEl.innerHTML = '';
+  if (!prs.length) { listEl.innerHTML = '<li class="f6 color-fg-muted">(none yet)</li>'; return; }
+  for (const pr of prs) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#';
+    a.textContent = pr.title;
+    a.addEventListener('click', (e) => { e.preventDefault(); openIssue(pr.cid); location.hash = '#/issues'; });
+    li.appendChild(a);
+    listEl.appendChild(li);
+  }
+}
+const prCreateBtn = document.getElementById('btn-pr-create');
+if (prCreateBtn) prCreateBtn.addEventListener('click', createIpfsPR);
+renderPRs();
 const ghConnectBtn = document.getElementById('btn-gh-connect');
 if (ghConnectBtn) ghConnectBtn.addEventListener('click', connectGithub);
 const ghTokenEl = document.getElementById('gh-token');
