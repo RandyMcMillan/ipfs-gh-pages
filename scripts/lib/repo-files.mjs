@@ -3,37 +3,48 @@
 // on the file set, so the walk lives here once.
 //
 // Semantics (mirrors the "Virtual submodule support" block in vite.config.js):
-// superproject tracked files, plus — for each checked-out submodule (gitlink
-// mode 160000) — its tracked files flattened as "<submodule>/<file>".
-// An uninitialized submodule contributes zero entries. Falls back to a
-// directory walk when git is unavailable. Working-tree files only; nothing
-// is read from git object databases.
+// superproject tracked files, plus — RECURSIVELY for each checked-out
+// submodule (gitlink mode 160000) — its tracked files flattened as
+// "<sub>/<file>", "<sub>/<sub-sub>/<file>", … (gnostr's vendor/ nests 10+
+// crates, e.g. vendor/gitui). An uninitialized submodule contributes zero
+// entries at any depth. Falls back to a directory walk when git is
+// unavailable. Working-tree files only; nothing is read from git object
+// databases.
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+
+// Recursive git walk: `--stage` so nested gitlinks surface as 160000 and we
+// descend again. `visited` guards against pathological self-referencing
+// submodule loops (git technically allows a repo to embed itself).
+function collectGitFiles(dir, prefix, out, visited) {
+  const real = fs.realpathSync(dir);
+  if (visited.has(real)) return;
+  visited.add(real);
+  const stage = execSync('git ls-files --stage -z', { cwd: dir, stdio: ['ignore', 'pipe', 'ignore'] })
+    .toString('utf8').split('\0').filter(Boolean);
+  for (const rec of stage) {
+    const tab = rec.indexOf('\t');
+    const mode = rec.slice(0, tab).split(' ')[0];
+    const p = rec.slice(tab + 1);
+    const rel = prefix ? `${prefix}/${p}` : p;
+    if (mode === '160000') {
+      try {
+        collectGitFiles(path.join(dir, p), rel, out, visited);
+      } catch {
+        // Uninitialized/broken submodule at any depth — nothing on disk.
+      }
+    } else {
+      out.push(rel);
+    }
+  }
+}
 
 export function* listRepoFiles(root) {
   let records = [];
   let usedGit = true;
   try {
-    const stage = execSync('git ls-files --stage -z', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] })
-      .toString('utf8').split('\0').filter(Boolean);
-    for (const rec of stage) {
-      const tab = rec.indexOf('\t');
-      const mode = rec.slice(0, tab).split(' ')[0];
-      const p = rec.slice(tab + 1);
-      if (mode === '160000') {
-        try {
-          const sub = execSync('git ls-files -z', { cwd: path.join(root, p), stdio: ['ignore', 'pipe', 'ignore'] })
-            .toString('utf8').split('\0').filter(Boolean);
-          for (const sf of sub) records.push(`${p}/${sf}`);
-        } catch {
-          // Uninitialized submodule — nothing on disk to list.
-        }
-      } else {
-        records.push(p);
-      }
-    }
+    collectGitFiles(root, '', records, new Set());
   } catch {
     usedGit = false;
   }

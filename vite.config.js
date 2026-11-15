@@ -191,23 +191,36 @@ function repoSubmodulesPlugin() {
       if (id !== resolvedId) return;
       const root = process.env.REPO_ROOT ? path.resolve(process.env.REPO_ROOT) : process.cwd();
       const subs = {};
-      let paths = [];
-      try {
-        const out = execSync('git config --file .gitmodules --get-regexp submodule\\..*\\.path', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString();
-        paths = out.split('\n').filter(Boolean).map((l) => l.split(' ').pop().trim())
-          .filter((p) => fs.existsSync(path.join(root, p, '.git')));
-      } catch {}
-      for (const p of paths) {
+      // Recursive: a submodule's own .gitmodules lists nested submodules
+      // (gnostr's vendor/ nests 10+ crates). Markers carry their full
+      // flattened path so the tree renders gitlinks at every depth.
+      const walk = (dir, prefix, visited) => {
+        let real;
+        try { real = fs.realpathSync(dir); } catch { return; }
+        if (visited.has(real)) return;
+        visited.add(real);
+        let paths = [];
         try {
-          const sha = execSync('git rev-parse HEAD', { cwd: path.join(root, p), stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-          let url = '';
+          const out = execSync('git config --file .gitmodules --get-regexp submodule\\..*\\.path', { cwd: dir, stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+          paths = out.split('\n').filter(Boolean).map((l) => l.split(' ').pop().trim());
+        } catch { return; }
+        for (const p of paths) {
+          const full = path.join(dir, p);
+          if (!fs.existsSync(path.join(full, '.git'))) continue;
+          const rel = prefix ? `${prefix}/${p}` : p;
           try {
-            url = execSync('git config --get remote.origin.url', { cwd: path.join(root, p), stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+            const sha = execSync('git rev-parse HEAD', { cwd: full, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+            let url = '';
+            try {
+              url = execSync('git config --get remote.origin.url', { cwd: full, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+            } catch {}
+            url = url.replace(/^git@github\.com:/, 'https://github.com/').replace(/\.git$/, '');
+            subs[rel] = { sha, url };
           } catch {}
-          url = url.replace(/^git@github\.com:/, 'https://github.com/').replace(/\.git$/, '');
-          subs[p] = { sha, url };
-        } catch {}
-      }
+          walk(full, rel, visited);
+        }
+      };
+      walk(root, '', new Set());
       return `export default ${JSON.stringify(subs)};`;
     }
   };

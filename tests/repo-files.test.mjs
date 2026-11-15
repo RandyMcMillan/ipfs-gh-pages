@@ -47,6 +47,31 @@ test('listRepoFiles flattens a checked-out submodule as <sub>/<file>', () => {
   }
 });
 
+test('listRepoFiles flattens NESTED submodules as <sub>/<sub-sub>/<file>', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-files-nested-test-'));
+  try {
+    const parent = makeRepo(path.join(tmp, 'parent'));
+    const sub = makeRepo(path.join(tmp, 'sub-src'));
+    const subsub = makeRepo(path.join(tmp, 'subsub-src'));
+    git(['-c', 'protocol.file.allow=always', 'submodule', '-q', 'add', sub, 'vendor'], parent);
+    // Nested submodules are added from INSIDE the submodule, not the parent.
+    git(['-c', 'protocol.file.allow=always', 'submodule', '-q', 'add', subsub, 'crates-inner'], path.join(parent, 'vendor'));
+    const paths = [...listRepoFiles(parent)].map((e) => e.path).sort();
+    assert.deepEqual(paths, [
+      '.gitmodules',
+      'README.md',
+      'src/f0.bin',
+      'vendor/.gitmodules',
+      'vendor/README.md',
+      'vendor/crates-inner/README.md',
+      'vendor/crates-inner/src/f0.bin',
+      'vendor/src/f0.bin'
+    ]);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
 test('repoByteTotal sums the flattened set', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-bytes-test-'));
   try {
