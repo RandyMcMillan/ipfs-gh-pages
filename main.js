@@ -294,7 +294,11 @@ async function refreshRepoMetadata() {
     return;
   }
   try {
-    const headers = { accept: 'application/vnd.github+json' };
+    // Send the user's PAT when configured: 5,000 req/hr instead of 60,
+    // and no shared quota surprises like the issues-list 403.
+    const headers = { accept: 'application/vnd.github+json', 'user-agent': 'ipfs-gh-pages' };
+    const ghTok = getGithubToken();
+    if (ghTok) headers.authorization = `Bearer ${ghTok}`;
     const [repoRes, langRes, branchRes, tagRes, relRes, relCountRes] = await Promise.all([
       fetch(`https://api.github.com/repos/${repoFullName}`, { headers }),
       fetch(`https://api.github.com/repos/${repoFullName}/languages`, { headers }),
@@ -4794,7 +4798,7 @@ if (ghListBtn) ghListBtn.addEventListener('click', async () => {
     }
     if (statusEl) statusEl.textContent = issues.length ? `${issues.length} open issue(s) — click to import:` : 'No open GitHub issues in this repo.';
   } catch (err) {
-    if (statusEl) statusEl.textContent = `Could not list issues: ${err.message}`;
+    if (statusEl) statusEl.textContent = `Could not list issues: ${err.message} — set a fine-grained PAT (Issues read/write, this repo) in the field above; without one the unauthenticated limit is 60/hr.`;
   }
 });
 // Seamless pinning: with a local Kubo detected, every new note is handed
