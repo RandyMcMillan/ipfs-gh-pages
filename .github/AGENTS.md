@@ -151,3 +151,21 @@ it yields `undefined || ''` → chip hidden. Local checkouts for this:
 A consumer page built before a fix keeps the old behavior until it
 redeploys (push/dispatch/daily cron) against an action tag that carries
 the fix.
+
+## Code for the real world (standing user order)
+
+Real users, real networks: offline tabs, stalled bitswap, Kubo on non-default
+ports, rate-limited APIs, half-synced chains. Concretely:
+
+- **Every network await is bounded.** Any fetch/bitswap/IPNS/DHT call that can
+  hang gets an explicit timeout and a defined degraded behavior (the 8s
+  prev-tip bound in extendChain exists because an unbounded getDagJson hung
+  issue creation forever). No unbounded awaits in user-facing paths.
+- **Probe, don't assume.** Kubo is found by scanning the RPC range, not by
+  trusting the default port. Capabilities are detected at runtime; features
+  appear when their dependency answers and never block the rest.
+- **Real fixtures, never placeholders.** Unit tests use genuine CIDs, URLs,
+  and payloads; assertions check shapes a placeholder could never pass.
+- **Fail loud, fail local.** A broken optional service (pin provider, GitHub
+  sync, Kubo hand-off) degrades its own status line and never takes the core
+  flow down with it.
