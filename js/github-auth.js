@@ -11,8 +11,14 @@ export const DEVICE_GRANT = 'urn:ietf:params:oauth:grant-type:device_code';
 
 // Minimal scopes: public_repo covers issue/comment read+write on public
 // repos. (Private repos = user opts into `repo` later.)
-export async function startDeviceFlow(clientId, { scope = 'public_repo', fetchImpl = fetch } = {}) {
-  const res = await fetchImpl(DEVICE_CODE_URL, {
+// Endpoints are injectable because github.com/login/* sends no CORS headers
+// — a browser page cannot call it directly (verified: fetch fails with a
+// network error, not a GitHub response). Deploy a tiny relay on an origin
+// you control (it only forwards these two requests; the token passes
+// through at auth time, same trust as this app) and pass its base URL.
+export async function startDeviceFlow(clientId, { scope = 'public_repo', fetchImpl = fetch, baseUrl = '' } = {}) {
+  const codeUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}/device/code` : DEVICE_CODE_URL;
+  const res = await fetchImpl(codeUrl, {
     method: 'POST',
     headers: { accept: 'application/json', 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ client_id: clientId, scope })
@@ -23,11 +29,12 @@ export async function startDeviceFlow(clientId, { scope = 'public_repo', fetchIm
 
 // Poll until authorized/denied/expired. Resolves {token} — the app stores
 // it under the same localStorage key as the PAT fallback.
-export async function pollDeviceToken(clientId, deviceCode, { interval = 5, fetchImpl = fetch, signal } = {}) {
+export async function pollDeviceToken(clientId, deviceCode, { interval = 5, fetchImpl = fetch, signal, baseUrl = '' } = {}) {
+  const tokenUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}/oauth/access_token` : ACCESS_TOKEN_URL;
   for (;;) {
     await new Promise((r) => setTimeout(r, Math.max(1, interval) * 1000));
     if (signal?.aborted) throw new Error('authorization cancelled');
-    const res = await fetchImpl(ACCESS_TOKEN_URL, {
+    const res = await fetchImpl(tokenUrl, {
       method: 'POST',
       headers: { accept: 'application/json', 'content-type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ client_id: clientId, device_code: deviceCode, grant_type: DEVICE_GRANT })

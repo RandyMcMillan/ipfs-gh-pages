@@ -41,3 +41,12 @@ test('pollDeviceToken: slow_down backs off, denied/expired throw cleanly', async
   await assert.rejects(pollDeviceToken('CID', 'DC', { interval: 0.01, fetchImpl: async () => new Response(JSON.stringify({ error: 'access_denied' }), { status: 200 }) }), /denied/);
   await assert.rejects(pollDeviceToken('CID', 'DC', { interval: 0.01, fetchImpl: async () => new Response(JSON.stringify({ error: 'expired_token' }), { status: 200 }) }), /expired/);
 });
+
+test('custom relay baseUrl reroutes both endpoints', async () => {
+  const urls = [];
+  const fetchImpl = async (url) => { urls.push(url); return new Response(JSON.stringify({ device_code: 'D' }), { status: 200 }); };
+  await startDeviceFlow('CID', { baseUrl: 'https://auth.example.com/gh/', fetchImpl });
+  assert.equal(urls[0], 'https://auth.example.com/gh/device/code');
+  await assert.rejects(pollDeviceToken('CID', 'D', { interval: 0.01, baseUrl: 'https://auth.example.com/gh', fetchImpl: async (url) => { urls.push(url); return new Response(JSON.stringify({ error: 'access_denied' }), { status: 200 }); } }), /denied/);
+  assert.equal(urls[1], 'https://auth.example.com/gh/oauth/access_token');
+});

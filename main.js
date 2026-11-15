@@ -4073,12 +4073,20 @@ function getGhClientId() {
   try { return localStorage.getItem(GH_CLIENT_ID_KEY) || GH_OAUTH_CLIENT_ID; } catch { return GH_OAUTH_CLIENT_ID; }
 }
 
+// Optional relay for the device flow (github.com/login/* has no CORS):
+// localStorage 'github-auth-relay' = e.g. https://auth.example.com/gh
+// which forwards POST /device/code and /oauth/access_token.
+function getGhAuthBaseUrl() {
+  try { return localStorage.getItem('github-auth-relay') || ''; } catch { return ''; }
+}
+
 // GitHub device-flow connect: show the user_code + verification URL, poll
 // for the token, store it under the same key as the PAT fallback.
 async function connectGithub() {
   const statusEl = document.getElementById('gh-import-status');
   try {
-    const dev = await startDeviceFlow(getGhClientId());
+    const baseUrl = getGhAuthBaseUrl();
+    const dev = await startDeviceFlow(getGhClientId(), { baseUrl });
     if (statusEl) {
       statusEl.innerHTML = '';
       const a = document.createElement('a');
@@ -4090,7 +4098,7 @@ async function connectGithub() {
       statusEl.appendChild(a);
       statusEl.append(' — waiting…');
     }
-    const { token } = await pollDeviceToken(getGhClientId(), dev.device_code, { interval: dev.interval });
+    const { token } = await pollDeviceToken(getGhClientId(), dev.device_code, { interval: dev.interval, baseUrl });
     try { localStorage.setItem(GH_TOKEN_KEY, token); } catch {}
     const tokEl = document.getElementById('gh-token');
     if (tokEl) tokEl.value = token;
