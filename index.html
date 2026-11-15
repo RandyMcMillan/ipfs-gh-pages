@@ -1460,6 +1460,16 @@
       <section class="tab-panel" role="tabpanel" id="tab-wiki">
         <div class="card">
           <h3>Wiki</h3>
+          <p id="wiki-gh-status" class="f6 color-fg-muted" style="margin: 0.25rem 0;">Checking for a GitHub wiki…</p>
+          <h4 style="margin: 0.5rem 0 0.25rem 0;">IPFS wiki</h4>
+          <input id="wiki-title" type="text" class="form-control" style="width: 100%;" placeholder="Page title" />
+          <textarea id="wiki-body" rows="3" class="form-control" style="width: 100%; margin-top: 0.35rem;" placeholder="Markdown body…"></textarea>
+          <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem; margin-top: 0.4rem;">
+            <button id="btn-wiki-create" class="btn btn-sm" type="button">Save page</button>
+            <span id="wiki-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
+          </div>
+          <ul id="wiki-list" style="list-style: none; padding-left: 0; margin: 0.35rem 0;"></ul>
+          <div id="wiki-page-body"></div>
           <p>A wiki page ↔ <strong>a markdown file in the repo</strong>. It renders exactly like the README card (same renderer) and travels inside the root CID — every clone carries the wiki, and editing a page is a commit like any other.</p>
           <p class="f6" style="margin-bottom: 0;">The real wiki: <a class="gh-link" data-ghpath="/wiki" href="https://github.com/__REPO_OWNER__/__REPO_NAME__/wiki">Wiki on GitHub ↗</a></p>
         </div>

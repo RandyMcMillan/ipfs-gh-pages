@@ -149,3 +149,10 @@ export async function fetchMilestones(owner, repo, { token = '', fetchImpl = fet
     openIssues: (Array.isArray(issueList) ? issueList : []).filter((i) => i.milestone?.number === m.number)
   }));
 }
+
+// Wiki detection: the repo object carries has_wiki.
+export async function fetchRepoMeta(owner, repo, { token = '', fetchImpl = fetch } = {}) {
+  const res = await fetchImpl(`https://api.github.com/repos/${owner}/${repo}`, { headers: headers(token) });
+  if (!res.ok) throw new Error(`repo meta HTTP ${res.status}`);
+  return res.json();
+}

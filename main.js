@@ -14,7 +14,7 @@ import { CarReader } from '@ipld/car/reader';
 import repoIdentity from 'virtual:repo-identity';
 import repoSubmodules from 'virtual:repo-submodules';
 import repoLiveInfo from 'virtual:repo-live-info';
-import { parseIssueUrl, mapGithubIssue, mapGithubComment, fetchGithubThread, postGithubComment, listGithubIssues, fetchContributors, listGithubPRs } from './js/github-issues.js';
+import { parseIssueUrl, mapGithubIssue, mapGithubComment, fetchGithubThread, postGithubComment, listGithubIssues, fetchContributors, listGithubPRs, fetchRepoMeta } from './js/github-issues.js';
 import { startDeviceFlow, pollDeviceToken } from './js/github-auth.js';
 import { probeKubo, kuboHandoff } from './js/kubo.js';
 import { strings } from '@helia/strings';
@@ -4983,6 +4983,71 @@ if (ghMsBtn) ghMsBtn.addEventListener('click', async () => {
     if (statusEl) statusEl.textContent = ms.length ? `${ms.length} milestone(s):` : 'No open milestones.';
   } catch (err) { if (statusEl) statusEl.textContent = `Could not list milestones: ${err.message}`; }
 });
+// Wiki: detect the GitHub wiki, and run the native IPFS wiki (signed notes,
+// ns 'wiki') - create/list/render through the existing markdown pipeline.
+const WIKI_KEY = 'ipfs-wiki';
+const loadWikiPages = () => { try { return JSON.parse(localStorage.getItem(WIKI_KEY) || '[]'); } catch { return []; } };
+function renderWiki() {
+  const listEl = document.getElementById('wiki-list');
+  if (!listEl) return;
+  const pages = loadWikiPages();
+  listEl.innerHTML = '';
+  if (!pages.length) { listEl.innerHTML = '<li class="f6 color-fg-muted">(no pages yet)</li>'; return; }
+  for (const p of pages) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#';
+    a.textContent = p.title;
+    a.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const { ok, signed } = await verifyNote(await getDagJson(CID.parse(p.cid)));
+      const body = document.getElementById('wiki-page-body');
+      if (!body) return;
+      body.innerHTML = '';
+      if (!ok) { body.textContent = 'signature INVALID'; return; }
+      const h = document.createElement('h4'); h.textContent = signed.title; h.style.margin = '0.5rem 0 0.25rem 0';
+      body.appendChild(h);
+      body.appendChild(sandboxedFrame(sanitizeMarkdownHtml(signed.body || ''), { title: 'wiki page' }));
+    });
+    li.appendChild(a);
+    listEl.appendChild(li);
+  }
+}
+async function createWikiPage() {
+  const title = (document.getElementById('wiki-title')?.value || '').trim();
+  const body = (document.getElementById('wiki-body')?.value || '').trim();
+  const statusEl = document.getElementById('wiki-status');
+  if (!title) { if (statusEl) statusEl.textContent = 'Give the page a title.'; return; }
+  if (!heliaNode) { if (statusEl) statusEl.textContent = 'Wait for the node.'; return; }
+  try {
+    const { envelope, signer } = await signNote({ ns: 'wiki', type: 'page', title, body, timestamp: new Date().toISOString() });
+    const cid = await publishNote(envelope);
+    await extendChain([cid]);
+    const pages = loadWikiPages();
+    pages.unshift({ cid, title, timestamp: envelope.timestamp, signer });
+    try { localStorage.setItem(WIKI_KEY, JSON.stringify(pages)); } catch {}
+    autoPinToKubo(cid, statusEl);
+    if (statusEl) statusEl.textContent = `Page saved - ${cid}`;
+    document.getElementById('wiki-title').value = '';
+    document.getElementById('wiki-body').value = '';
+    renderWiki();
+  } catch (err) { if (statusEl) statusEl.textContent = `Failed: ${err.message}`; }
+}
+const wikiCreateBtn = document.getElementById('btn-wiki-create');
+if (wikiCreateBtn) wikiCreateBtn.addEventListener('click', createWikiPage);
+renderWiki();
+// Detection probe: has_wiki from the repo object (token-aware).
+(async () => {
+  const el = document.getElementById('wiki-gh-status');
+  if (!el) return;
+  const [owner, name] = repoFullName.split('/');
+  try {
+    const meta = await fetchRepoMeta(owner, name, { token: getGithubToken() });
+    el.textContent = meta.has_wiki
+      ? 'GitHub wiki detected - pages clone from https://github.com/' + repoFullName + '.wiki.git (git transport bridge planned).'
+      : 'No GitHub wiki on this repo - the IPFS wiki below is the native home.';
+  } catch (err) { el.textContent = `Wiki detection: ${err.message}`; }
+})();
 const ghConnectBtn = document.getElementById('btn-gh-connect');
 if (ghConnectBtn) ghConnectBtn.addEventListener('click', connectGithub);
 const ghTokenEl = document.getElementById('gh-token');
