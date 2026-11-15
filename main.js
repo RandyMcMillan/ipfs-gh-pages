@@ -240,7 +240,16 @@ function applyBuildInfo() {
   }
   const count = document.getElementById('commit-count');
   if (count) {
-    count.textContent = repoIdentity.commitCount ? `${repoIdentity.commitCount} Commits` : '';
+    // Shallow CI checkouts count 1 commit — the plugin bakes '' then, and
+    // an empty link is a link-name violation (axe). Hide until there's a
+    // real number, like every other count on the page.
+    if (repoIdentity.commitCount) {
+      count.hidden = false;
+      count.textContent = `${repoIdentity.commitCount} Commits`;
+    } else {
+      count.hidden = true;
+      count.textContent = '';
+    }
   }
 }
 applyRepoIdentity();
