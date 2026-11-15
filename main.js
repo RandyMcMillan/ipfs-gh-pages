@@ -4801,6 +4801,42 @@ if (ghListBtn) ghListBtn.addEventListener('click', async () => {
     if (statusEl) statusEl.textContent = `Could not list issues: ${err.message} — set a fine-grained PAT (Issues read/write, this repo) in the field above; without one the unauthenticated limit is 60/hr.`;
   }
 });
+// End-to-end self-test (local testing): create a REAL signed issue note,
+// publish it, extend the chain, and — with a Kubo detected — hand the CAR
+// to dag/import + pin. Every step reports; nothing is mocked. Trigger from
+// the Issues panel button or automatically with ?selftest.
+async function selfTestIssue() {
+  const statusEl = document.getElementById('issue-status');
+  const say = (t) => { if (statusEl) statusEl.textContent = t; };
+  if (!heliaNode) { say('Self-test: node offline — wait for Online.'); return; }
+  const stamp = new Date().toISOString();
+  say('Self-test: signing + publishing…');
+  try {
+    const { envelope, signer } = await signNote({
+      ns: 'issues', type: 'issue', anchors: [],
+      title: `self-test ${stamp}`,
+      body: `Automated end-to-end test from the Issues panel. Node: ${document.getElementById('node-status')?.textContent?.trim() || 'unknown'}. Kubo: ${localKuboRpc ? localKuboRpc.peerId : 'none detected'}.`,
+      timestamp: stamp
+    });
+    const cid = await publishNote(envelope);
+    await extendChain([cid]);
+    say(`Self-test: published ${cid}`);
+    if (localKuboRpc) {
+      say(`Self-test: exporting CAR → local Kubo (${localKuboRpc.peerId})…`);
+      const out = await kuboHandoff(cid, { exportCarBytes });
+      say(`Self-test OK — ${cid} — ${(out.bytes / 1024).toFixed(1)} KB imported and PINNED to local Kubo. Verify: ipfs pin ls | grep ${cid.slice(-8)}`);
+    } else {
+      say(`Self-test OK — ${cid} — published (no local Kubo detected, pin step skipped).`);
+    }
+    const issues = loadIssues();
+    issues.unshift({ cid, title: envelope.title, timestamp: envelope.timestamp, signer, anchors: [] });
+    try { localStorage.setItem(ISSUES_KEY, JSON.stringify(issues)); } catch {}
+    renderIssues();
+  } catch (err) {
+    say(`Self-test FAILED: ${err.message}`);
+  }
+}
+
 // Seamless pinning: with a local Kubo detected, every new note is handed
 // off automatically — the user never runs `ipfs pin add`.
 async function autoPinToKubo(cid, statusEl) {
@@ -4811,6 +4847,13 @@ async function autoPinToKubo(cid, statusEl) {
   } catch (err) {
     if (statusEl) statusEl.textContent += ` — Kubo pin failed: ${err.message}`;
   }
+}
+const selfTestBtn = document.getElementById('btn-issue-selftest');
+if (selfTestBtn) selfTestBtn.addEventListener('click', selfTestIssue);
+if (new URLSearchParams(location.search).has('selftest')) {
+  const t = setInterval(() => {
+    if (/Online/.test(document.getElementById('node-status')?.textContent || '')) { clearInterval(t); selfTestIssue(); }
+  }, 1000);
 }
 const ghConnectBtn = document.getElementById('btn-gh-connect');
 if (ghConnectBtn) ghConnectBtn.addEventListener('click', connectGithub);
