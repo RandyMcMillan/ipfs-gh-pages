@@ -30,7 +30,7 @@ test('mapGithubIssue / mapGithubComment carry the github link metadata', () => {
     repository: { name: 'r', owner: { login: 'o' } }
   });
   assert.equal(issue.title, 'T');
-  assert.deepEqual(issue.github, { owner: 'o', repo: 'r', number: 5, id: 5001, url: 'https://github.com/o/r/issues/5', user: 'alice' });
+  assert.deepEqual(issue.github, { owner: 'o', repo: 'r', number: 5, id: 5001, url: 'https://github.com/o/r/issues/5', user: 'alice', pull_request: null });
   const c = mapGithubComment({ id: 9001, body: 'hi', html_url: 'https://github.com/o/r/issues/5#issuecomment-1', user: { login: 'bob' }, created_at: '2026-11-15T00:00:00Z' });
   assert.equal(c.body, 'hi');
   assert.equal(c.github.id, 9001);
