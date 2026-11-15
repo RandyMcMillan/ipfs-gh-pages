@@ -14,7 +14,7 @@ import { CarReader } from '@ipld/car/reader';
 import repoIdentity from 'virtual:repo-identity';
 import repoSubmodules from 'virtual:repo-submodules';
 import repoLiveInfo from 'virtual:repo-live-info';
-import { parseIssueUrl, mapGithubIssue, mapGithubComment, fetchGithubThread, postGithubComment } from './js/github-issues.js';
+import { parseIssueUrl, mapGithubIssue, mapGithubComment, fetchGithubThread, postGithubComment, listGithubIssues } from './js/github-issues.js';
 import { startDeviceFlow, pollDeviceToken } from './js/github-auth.js';
 import { probeKubo, kuboHandoff } from './js/kubo.js';
 import { strings } from '@helia/strings';
@@ -4490,12 +4490,15 @@ function getGithubToken() {
 
 // GitHub → IPFS: fetch the thread, re-express as signed notes chained like
 // git commits (issue → comment1 → comment2 …), publish all, one chain extend.
-async function importGithubIssue() {
-  const urlEl = document.getElementById('gh-import-url');
+async function importGithubIssue(target) {
   const statusEl = document.getElementById('gh-import-status');
-  const parsed = parseIssueUrl(urlEl?.value || '');
+  // Seamless path: called with {owner, repo, number} from the listed issues.
+  // Fallback: parse whatever is in the URL box.
+  let parsed = target || null;
+  const urlEl = document.getElementById('gh-import-url');
+  if (!parsed) parsed = parseIssueUrl(urlEl?.value || '');
   if (!parsed) {
-    if (statusEl) statusEl.textContent = 'Paste a GitHub issue URL first.';
+    if (statusEl) statusEl.textContent = 'Load the repo issues below, or paste an issue URL.';
     return;
   }
   if (!heliaNode) {
@@ -4572,6 +4575,7 @@ async function createIssue() {
     if (titleEl) titleEl.value = '';
     if (bodyEl) bodyEl.value = '';
     if (statusEl) statusEl.textContent = `Created — ${cid}${pendingIssueAnchor ? ` — anchored to ${pendingIssueAnchor.name}` : ''}`;
+    autoPinToKubo(cid, statusEl);
     pendingIssueAnchor = null;
     // Hand the user the real command at the moment of creation, on its own
     // line (yellow by the global command rule).
@@ -4744,6 +4748,46 @@ if (issueCreateBtn) issueCreateBtn.addEventListener('click', createIssue);
 // GitHub ↔ IPFS issues bridge (js/github-issues.js): import + token.
 const ghImportBtn = document.getElementById('btn-gh-import');
 if (ghImportBtn) ghImportBtn.addEventListener('click', importGithubIssue);
+// Seamless: list this repo's open GitHub issues — the app already knows
+// repoFullName. Click an entry to import it; no URL copying anywhere.
+const ghListBtn = document.getElementById('btn-gh-list');
+if (ghListBtn) ghListBtn.addEventListener('click', async () => {
+  const statusEl = document.getElementById('gh-import-status');
+  const listEl = document.getElementById('gh-issue-list');
+  const [owner, name] = repoFullName.split('/');
+  if (statusEl) statusEl.textContent = 'Loading open GitHub issues…';
+  try {
+    const issues = await listGithubIssues(owner, name, { token: getGithubToken() });
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    for (const i of issues) {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = `#${i.number} ${i.title}`;
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        importGithubIssue({ owner, repo: name, number: i.number });
+      });
+      li.appendChild(a);
+      listEl.appendChild(li);
+    }
+    if (statusEl) statusEl.textContent = issues.length ? `${issues.length} open issue(s) — click to import:` : 'No open GitHub issues in this repo.';
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Could not list issues: ${err.message}`;
+  }
+});
+// Seamless pinning: with a local Kubo detected, every new note is handed
+// off automatically — the user never runs `ipfs pin add`.
+async function autoPinToKubo(cid, statusEl) {
+  if (!localKuboRpc) return;
+  try {
+    await kuboHandoff(cid, { exportCarBytes });
+    if (statusEl) statusEl.textContent += ` — pinned to local Kubo`;
+  } catch (err) {
+    if (statusEl) statusEl.textContent += ` — Kubo pin failed: ${err.message}`;
+  }
+}
 const ghConnectBtn = document.getElementById('btn-gh-connect');
 if (ghConnectBtn) ghConnectBtn.addEventListener('click', connectGithub);
 const ghTokenEl = document.getElementById('gh-token');

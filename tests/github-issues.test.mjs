@@ -6,6 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   parseIssueUrl,
+  listGithubIssues,
   mapGithubIssue,
   mapGithubComment,
   diffComments,
@@ -86,4 +87,20 @@ test('postGithubComment: requires token, posts JSON, error carries status not to
   }).then(() => null, (e) => e.message);
   assert.ok(err.includes('422'));
   assert.ok(!err.includes('SECRET_TOK'), 'token never leaks into errors');
+});
+
+test('listGithubIssues: fetches open issues, filters out PRs, token when present', async () => {
+  const sent = [];
+  const fetchImpl = async (url, init) => {
+    sent.push({ url, auth: init.headers.authorization });
+    return new Response(JSON.stringify([
+      { number: 2, title: 'bug', pull_request: {} },
+      { number: 3, title: 'real issue', user: { login: 'a' } }
+    ]), { status: 200 });
+  };
+  const out = await listGithubIssues('o', 'r', { token: 'T', fetchImpl });
+  assert.equal(out.length, 1);
+  assert.equal(out[0].number, 3);
+  assert.ok(sent[0].url.includes('/repos/o/r/issues?state=open'));
+  assert.equal(sent[0].auth, 'Bearer T');
 });

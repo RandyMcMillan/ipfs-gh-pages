@@ -104,3 +104,13 @@ export async function postGithubComment(owner, repo, number, body, { token, fetc
   }
   return res.json();
 }
+
+// List a repo's open GitHub issues — the app knows repoFullName, so the
+// bridge LISTS instead of asking the user to paste URLs. Token optional
+// (authenticated raises the ceiling; unauthenticated still works).
+export async function listGithubIssues(owner, repo, { token = '', state = 'open', fetchImpl = fetch } = {}) {
+  const res = await fetchImpl(`https://api.github.com/repos/${owner}/${repo}/issues?state=${state}&per_page=30`, { headers: headers(token) });
+  if (!res.ok) throw new Error(`GitHub issues list HTTP ${res.status}`);
+  const json = await res.json();
+  return (Array.isArray(json) ? json : []).filter((i) => !i.pull_request);
+}
