@@ -15,6 +15,7 @@ import repoIdentity from 'virtual:repo-identity';
 import repoSubmodules from 'virtual:repo-submodules';
 import repoLiveInfo from 'virtual:repo-live-info';
 import { parseIssueUrl, mapGithubIssue, mapGithubComment, fetchGithubThread, postGithubComment } from './js/github-issues.js';
+import { startDeviceFlow, pollDeviceToken } from './js/github-auth.js';
 import { strings } from '@helia/strings';
 import { unixfs } from '@helia/unixfs';
 import { CID } from 'multiformats/cid';
@@ -4063,6 +4064,41 @@ let currentIssueCid = null;
 // GitHub link of the open issue (from its signed envelope) — set by openIssue.
 let currentIssueGithub = null;
 const GH_TOKEN_KEY = 'github-token';
+// OAuth device flow: client_id is PUBLIC by design (device flow is
+// secretless). Baked plugin default; a consumer org can register their own
+// OAuth app and override via localStorage for their own consent-screen name.
+const GH_OAUTH_CLIENT_ID = 'Ov23lisYGKagLsL5KwID';
+const GH_CLIENT_ID_KEY = 'github-oauth-client-id';
+function getGhClientId() {
+  try { return localStorage.getItem(GH_CLIENT_ID_KEY) || GH_OAUTH_CLIENT_ID; } catch { return GH_OAUTH_CLIENT_ID; }
+}
+
+// GitHub device-flow connect: show the user_code + verification URL, poll
+// for the token, store it under the same key as the PAT fallback.
+async function connectGithub() {
+  const statusEl = document.getElementById('gh-import-status');
+  try {
+    const dev = await startDeviceFlow(getGhClientId());
+    if (statusEl) {
+      statusEl.innerHTML = '';
+      const a = document.createElement('a');
+      a.href = dev.verification_uri;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = dev.verification_uri;
+      statusEl.append('Enter code ', dev.user_code, ' at ');
+      statusEl.appendChild(a);
+      statusEl.append(' — waiting…');
+    }
+    const { token } = await pollDeviceToken(getGhClientId(), dev.device_code, { interval: dev.interval });
+    try { localStorage.setItem(GH_TOKEN_KEY, token); } catch {}
+    const tokEl = document.getElementById('gh-token');
+    if (tokEl) tokEl.value = token;
+    if (statusEl) statusEl.textContent = 'GitHub connected — token stored in this browser.';
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Connect failed: ${err.message}`;
+  }
+}
 // Phase 3: an issue filed from the file tree anchors to that file's CID —
 // the git-notes model (annotate without mutating the annotated object).
 let pendingIssueAnchor = null;
@@ -4663,6 +4699,8 @@ if (issueCreateBtn) issueCreateBtn.addEventListener('click', createIssue);
 // GitHub ↔ IPFS issues bridge (js/github-issues.js): import + token.
 const ghImportBtn = document.getElementById('btn-gh-import');
 if (ghImportBtn) ghImportBtn.addEventListener('click', importGithubIssue);
+const ghConnectBtn = document.getElementById('btn-gh-connect');
+if (ghConnectBtn) ghConnectBtn.addEventListener('click', connectGithub);
 const ghTokenEl = document.getElementById('gh-token');
 if (ghTokenEl) {
   ghTokenEl.value = getGithubToken();
