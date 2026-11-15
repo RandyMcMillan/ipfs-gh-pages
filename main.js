@@ -4244,7 +4244,13 @@ async function extendChain(addedCids) {
   let parentLamport = 0;
   if (prevTip) {
     try {
-      const prevEntry = await getDagJson(CID.parse(prevTip.cid));
+      // Bounded: the prev tip can point at a block this browser doesn't
+      // hold; bitswap then stalls the whole chain extension (observed:
+      // 'Signing and publishing…' forever). Unresolvable in 8s → genesis.
+      const prevEntry = await Promise.race([
+        getDagJson(CID.parse(prevTip.cid)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('prev tip timeout')), 8000))
+      ]);
       parentHeight = Number(prevEntry.height) || 0;
       parentLamport = Number(prevEntry.lamport) || 0;
     } catch { /* prev unavailable — treat as genesis */ }
