@@ -114,3 +114,12 @@ export async function listGithubIssues(owner, repo, { token = '', state = 'open'
   const json = await res.json();
   return (Array.isArray(json) ? json : []).filter((i) => !i.pull_request);
 }
+
+// Repo contributors (About sidebar). Token raises the ceiling but the call
+// works unauthenticated too — same pattern as everything else.
+export async function fetchContributors(owner, repo, { token = '', fetchImpl = fetch } = {}) {
+  const res = await fetchImpl(`https://api.github.com/repos/${owner}/${repo}/contributors?per_page=10`, { headers: headers(token) });
+  if (!res.ok) throw new Error(`contributors HTTP ${res.status}`);
+  const json = await res.json();
+  return (Array.isArray(json) ? json : []).map((c) => ({ login: c.login, avatar: c.avatar_url || '', contributions: c.contributions, url: c.html_url || '' }));
+}

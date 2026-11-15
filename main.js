@@ -14,7 +14,7 @@ import { CarReader } from '@ipld/car/reader';
 import repoIdentity from 'virtual:repo-identity';
 import repoSubmodules from 'virtual:repo-submodules';
 import repoLiveInfo from 'virtual:repo-live-info';
-import { parseIssueUrl, mapGithubIssue, mapGithubComment, fetchGithubThread, postGithubComment, listGithubIssues } from './js/github-issues.js';
+import { parseIssueUrl, mapGithubIssue, mapGithubComment, fetchGithubThread, postGithubComment, listGithubIssues, fetchContributors } from './js/github-issues.js';
 import { startDeviceFlow, pollDeviceToken } from './js/github-auth.js';
 import { probeKubo, kuboHandoff } from './js/kubo.js';
 import { strings } from '@helia/strings';
@@ -390,6 +390,26 @@ function applyRepoMetadata(meta) {
     }
   }
 
+  // Contributors: the About heading exists — fill it with live data when
+  // the API answers (PAT makes this fast and quota-free in practice).
+  const [ghOwner, ghName] = repoFullName.split('/');
+  fetchContributors(ghOwner, ghName, { token: getGithubToken() }).then((list) => {
+    const box = document.querySelector('#tab-files .sidebar-section h2');
+    const section = [...document.querySelectorAll('#tab-files h2')].find((h) => h.textContent === 'Contributors')?.parentElement;
+    if (!section || !list.length) return;
+    section.querySelectorAll('.contrib-row').forEach((n) => n.remove());
+    for (const c of list) {
+      const row = document.createElement('a');
+      row.className = 'f6 contrib-row';
+      row.href = c.url;
+      row.target = '_blank';
+      row.rel = 'noopener';
+      row.style.cssText = 'display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;';
+      row.innerHTML = `<img src="${c.avatar}&s=40" width="20" height="20" style="border-radius:50%" alt=""> <span></span> <span class="color-fg-muted">${c.contributions}</span>`;
+      row.querySelector('span').textContent = c.login;
+      section.appendChild(row);
+    }
+  }).catch(() => {});
   if (repo.description) {
     const desc = document.getElementById('about-description');
     if (desc) desc.textContent = repo.description;
