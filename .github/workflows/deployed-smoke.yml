@@ -5,6 +5,9 @@ name: Deployed page interop smoke
 # local-service probe must fail gracefully when no app listens on :5050.
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_run:
     workflows: ["Deploy IPFS site"]
     types: [completed]
@@ -23,7 +26,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  interop:
+  deployed-smoke:
     # Only smoke the deployed page when the deploy actually succeeded.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
