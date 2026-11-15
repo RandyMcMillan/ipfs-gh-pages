@@ -18,7 +18,9 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
   interop:
@@ -52,5 +54,6 @@ jobs:
           urls: |
             https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
           repository: ${{ github.repository }}
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ github.token }}
           cache_key: accessibility-scanner-cache.json
+          skip_copilot_assignment: true
