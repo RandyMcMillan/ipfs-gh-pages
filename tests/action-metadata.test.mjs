@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ACTION = fs.readFileSync(path.join(ROOT, 'action.yml'), 'utf8');
 const INDEX = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+const MAIN = fs.readFileSync(path.join(ROOT, 'main.js'), 'utf8');
 
 test('action.yml parses as YAML', () => {
   // no yaml dep here — structural sanity: balanced inputs/runs blocks
@@ -45,4 +46,5 @@ test('commit-count link has an accessible name before its count loads', () => {
   assert.ok(link, 'commit-count link exists');
   assert.match(link[0], /\baria-label="View commits"/);
   assert.match(link[0], /\bhidden\b/);
+  assert.match(MAIN, /count\.textContent = commitCount;\s*count\.setAttribute\('aria-label', commitCount\);/);
 });

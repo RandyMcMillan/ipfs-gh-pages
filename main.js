@@ -245,7 +245,9 @@ function applyBuildInfo() {
     // real number, like every other count on the page.
     if (repoIdentity.commitCount) {
       count.hidden = false;
-      count.textContent = `${repoIdentity.commitCount} Commits`;
+      const commitCount = `${repoIdentity.commitCount} Commits`;
+      count.textContent = commitCount;
+      count.setAttribute('aria-label', commitCount);
     } else {
       count.hidden = true;
       count.textContent = '';
