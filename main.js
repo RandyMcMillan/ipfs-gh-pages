@@ -14,6 +14,7 @@ import { CarReader } from '@ipld/car/reader';
 import repoIdentity from 'virtual:repo-identity';
 import repoSubmodules from 'virtual:repo-submodules';
 import repoLiveInfo from 'virtual:repo-live-info';
+import { parseIssueUrl, mapGithubIssue, mapGithubComment, fetchGithubThread, postGithubComment } from './js/github-issues.js';
 import { strings } from '@helia/strings';
 import { unixfs } from '@helia/unixfs';
 import { CID } from 'multiformats/cid';
@@ -4059,6 +4060,9 @@ async function verifyNote(envelope) {
 }
 
 let currentIssueCid = null;
+// GitHub link of the open issue (from its signed envelope) — set by openIssue.
+let currentIssueGithub = null;
+const GH_TOKEN_KEY = 'github-token';
 // Phase 3: an issue filed from the file tree anchors to that file's CID —
 // the git-notes model (annotate without mutating the annotated object).
 let pendingIssueAnchor = null;
@@ -4399,6 +4403,61 @@ async function recordRehost(url, cid) {
   return noteCid;
 }
 
+function getGithubToken() {
+  try { return localStorage.getItem(GH_TOKEN_KEY) || ''; } catch { return ''; }
+}
+
+// GitHub → IPFS: fetch the thread, re-express as signed notes chained like
+// git commits (issue → comment1 → comment2 …), publish all, one chain extend.
+async function importGithubIssue() {
+  const urlEl = document.getElementById('gh-import-url');
+  const statusEl = document.getElementById('gh-import-status');
+  const parsed = parseIssueUrl(urlEl?.value || '');
+  if (!parsed) {
+    if (statusEl) statusEl.textContent = 'Paste a GitHub issue URL first.';
+    return;
+  }
+  if (!heliaNode) {
+    if (statusEl) statusEl.textContent = 'Wait for the node to come online.';
+    return;
+  }
+  if (statusEl) statusEl.textContent = `Fetching ${parsed.owner}/${parsed.repo}#${parsed.number}…`;
+  try {
+    const { issue, comments } = await fetchGithubThread(parsed.owner, parsed.repo, parsed.number, { token: getGithubToken() });
+    const issueFields = mapGithubIssue({ ...issue, owner: parsed.owner, repo: parsed.repo });
+    const issueNote = await signNote({
+      ns: 'issues', type: 'issue', title: issueFields.title, body: issueFields.body,
+      github: issueFields.github, timestamp: new Date().toISOString()
+    });
+    const issueCid = await publishNote(issueNote.envelope);
+    const cids = [issueCid];
+    const commentIndex = loadCommentIndex();
+    let parent = issueCid;
+    for (const c of comments) {
+      const fields = mapGithubComment(c);
+      const note = await signNote({
+        ns: 'issues', type: 'comment', parent, body: fields.body,
+        github: fields.github, timestamp: new Date().toISOString()
+      });
+      const ccid = await publishNote(note.envelope);
+      cids.push(ccid);
+      (commentIndex[issueCid] = commentIndex[issueCid] || []).push(ccid);
+      parent = ccid;
+    }
+    try { localStorage.setItem(COMMENTS_KEY, JSON.stringify(commentIndex)); } catch {}
+    const issues = loadIssues();
+    issues.unshift({ cid: issueCid, title: issueFields.title, timestamp: issueNote.envelope.timestamp, signer: issueNote.signer, anchors: [] });
+    try { localStorage.setItem(ISSUES_KEY, JSON.stringify(issues)); } catch {}
+    await extendChain(cids);
+    if (statusEl) statusEl.textContent = `Imported ${comments.length + 1} notes — ${issueCid}`;
+    if (urlEl) urlEl.value = '';
+    renderIssues();
+    openIssue(issueCid);
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Import failed: ${err.message}`;
+  }
+}
+
 async function createIssue() {
   const titleEl = document.getElementById('issue-title');
   const bodyEl = document.getElementById('issue-body');
@@ -4473,6 +4532,20 @@ async function createComment(issueCid, body) {
     const replyEl = document.getElementById('issue-reply');
     if (replyEl) replyEl.value = '';
     if (statusEl) statusEl.textContent = `Commented — ${cid}`;
+    // Bridge back to GitHub: the issue is linked and a token is configured.
+    // Fires alongside the IPFS comment; failures never undo the local one.
+    if (currentIssueGithub && issueCid === currentIssueCid) {
+      const token = getGithubToken();
+      if (token) {
+        postGithubComment(currentIssueGithub.owner, currentIssueGithub.repo, currentIssueGithub.number, body, { token })
+          .then((gh) => {
+            if (statusEl) statusEl.textContent = `Commented — ${cid} — mirrored to GitHub #${currentIssueGithub.number} (${gh.id})`;
+          })
+          .catch((e) => {
+            if (statusEl) statusEl.textContent = `Commented — ${cid} — GitHub mirror failed: ${e.message}`;
+          });
+      }
+    }
     openIssue(issueCid);
   } catch (err) {
     if (statusEl) statusEl.textContent = `Failed: ${err.message}`;
@@ -4500,6 +4573,7 @@ async function openIssue(cid) {
       return;
     }
     statusEl.textContent = '';
+    currentIssueGithub = signed.github || null;
     if (bodyEl) {
       const h = document.createElement('h4');
       h.style.marginTop = '0';
@@ -4512,6 +4586,18 @@ async function openIssue(cid) {
       body.textContent = signed.body || '';
       bodyEl.appendChild(h);
       bodyEl.appendChild(meta);
+      if (signed.github && signed.github.url) {
+        const ghRow = document.createElement('div');
+        ghRow.className = 'f6';
+        ghRow.style.marginTop = '0.2rem';
+        const a = document.createElement('a');
+        a.href = signed.github.url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = `↔ GitHub ${signed.github.owner}/${signed.github.repo}#${signed.github.number} — comments here post back when a token is set`;
+        ghRow.appendChild(a);
+        bodyEl.appendChild(ghRow);
+      }
       if (signed.body) {
         // Network content renders in a sandboxed iframe (no origin
         // access even if sanitization missed something).
@@ -4574,6 +4660,16 @@ async function openIssue(cid) {
 
 const issueCreateBtn = document.getElementById('btn-issue-create');
 if (issueCreateBtn) issueCreateBtn.addEventListener('click', createIssue);
+// GitHub ↔ IPFS issues bridge (js/github-issues.js): import + token.
+const ghImportBtn = document.getElementById('btn-gh-import');
+if (ghImportBtn) ghImportBtn.addEventListener('click', importGithubIssue);
+const ghTokenEl = document.getElementById('gh-token');
+if (ghTokenEl) {
+  ghTokenEl.value = getGithubToken();
+  ghTokenEl.addEventListener('change', () => {
+    try { localStorage.setItem(GH_TOKEN_KEY, ghTokenEl.value.trim()); } catch {}
+  });
+}
 // Phase 3: from the file tree, route to the issues view with the anchor
 // prefilled — the note is attached to that exact CID, non-invasively.
 const issueOnFileBtn = document.getElementById('btn-issue-on-file');
