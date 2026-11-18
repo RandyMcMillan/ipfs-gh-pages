@@ -252,13 +252,7 @@ fn draw_code_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         i += 1;
     }
     if show_readme {
-        let lines: Vec<text::Line> = app
-            .ipfs
-            .repo_readme
-            .lines()
-            .take(200)
-            .map(|l| text::Line::from(l.to_string()))
-            .collect();
+        let lines = readme_lines(&app.ipfs.repo_readme);
         frame.render_widget(
             Paragraph::new(lines)
                 .block(content_block("README.md"))
@@ -275,6 +269,63 @@ fn draw_code_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         ),
         chunks[i],
     );
+}
+
+/// GitHub-flavored README rendering, line-based (terminal markdown à la
+/// glow/mdcat): ATX headers bold (h1 accent), fenced code blocks on the
+/// inset background, quotes muted behind a bar, rules as hairlines.
+/// Inline formatting stays literal — no span-level parsing.
+fn readme_lines(readme: &str) -> Vec<text::Line<'static>> {
+    let mut lines = vec![];
+    let mut in_code = false;
+    for raw in readme.lines().take(200) {
+        let line = raw.strip_suffix('\r').unwrap_or(raw);
+        let trimmed = line.trim();
+        if trimmed.starts_with("```") {
+            in_code = !in_code;
+            continue;
+        }
+        if in_code {
+            lines.push(text::Line::from(Span::styled(
+                format!(" {line}"),
+                Style::default().fg(theme::FG_MUTED).bg(theme::CANVAS_INSET),
+            )));
+        } else if let Some(header) = trimmed.strip_prefix("### ") {
+            lines.push(text::Line::from(Span::styled(
+                header.to_string(),
+                Style::default()
+                    .fg(theme::FG)
+                    .add_modifier(Modifier::BOLD | Modifier::UNDERLINED),
+            )));
+        } else if let Some(header) = trimmed.strip_prefix("## ") {
+            lines.push(text::Line::from(Span::styled(
+                header.to_string(),
+                Style::default()
+                    .fg(theme::FG)
+                    .add_modifier(Modifier::BOLD | Modifier::UNDERLINED),
+            )));
+        } else if let Some(header) = trimmed.strip_prefix("# ") {
+            lines.push(text::Line::from(Span::styled(
+                header.to_string(),
+                Style::default()
+                    .fg(theme::ACCENT)
+                    .add_modifier(Modifier::BOLD),
+            )));
+        } else if let Some(quote) = trimmed.strip_prefix("> ") {
+            lines.push(text::Line::from(vec![
+                Span::styled(" ▎", Style::default().fg(theme::ACCENT)),
+                Span::styled(quote.to_string(), Style::default().fg(theme::FG_MUTED)),
+            ]));
+        } else if trimmed == "---" || trimmed == "***" || trimmed == "___" {
+            lines.push(text::Line::from(Span::styled(
+                "─".repeat(40),
+                Style::default().fg(theme::BORDER),
+            )));
+        } else {
+            lines.push(text::Line::from(line.to_string()));
+        }
+    }
+    lines
 }
 
 /// ` ⎇ main ▾   Go to file …                     + Add file ▾  [ Code ▾ ] `
