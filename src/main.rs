@@ -109,10 +109,10 @@ fn browser_main() -> Result<(), Box<dyn Error>> {
                     app_state.on_left();
                 }
                 KeyCode::Up => {
-                    app_state.on_code_up();
+                    app_state.on_up();
                 }
                 KeyCode::Down => {
-                    app_state.on_code_down();
+                    app_state.on_down();
                 }
                 KeyCode::Enter => {
                     app_state.on_code_enter();

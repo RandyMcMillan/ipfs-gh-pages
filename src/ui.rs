@@ -405,8 +405,13 @@ fn draw_file_table(frame: &mut Frame, app: &mut App, area: Rect) {
 // ---- Issues ---------------------------------------------------------------
 
 fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
-    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
+    let outer = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
+    let panes = Layout::horizontal([Constraint::Percentage(55), Constraint::Percentage(45)])
+        .split(outer[0]);
     let issues = &app.ipfs.issues;
+    let cursor = app.issue_cursor.min(issues.len().saturating_sub(1));
+    // GitHub's row hover: a hair lighter than the canvas.
+    let hover = Style::default().bg(Color::Rgb(0x16, 0x1b, 0x22));
     let mut lines = vec![];
     if issues.is_empty() {
         lines.push(text::Line::from(
@@ -415,14 +420,23 @@ fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     } else {
         for (i, issue) in issues.iter().enumerate() {
             // GitHub issue row: #N (accent) title (default) meta (muted).
+            let selected = i == cursor;
+            let num_style = Style::default()
+                .fg(theme::ACCENT)
+                .add_modifier(Modifier::BOLD);
+            let num_style = if selected {
+                hover.patch(num_style)
+            } else {
+                num_style
+            };
+            let title_style = if selected {
+                hover.patch(Style::default().fg(theme::FG))
+            } else {
+                Style::default().fg(theme::FG)
+            };
             lines.push(text::Line::from(vec![
-                Span::styled(
-                    format!(" #{}  ", issues.len() - i),
-                    Style::default()
-                        .fg(theme::ACCENT)
-                        .add_modifier(Modifier::BOLD),
-                ),
-                Span::styled(issue.title.clone(), Style::default().fg(theme::FG)),
+                Span::styled(format!(" #{}  ", issues.len() - i), num_style),
+                Span::styled(issue.title.clone(), title_style),
                 Span::styled(
                     format!("  {}  ", issue.timestamp),
                     Style::default().fg(theme::FG_MUTED),
@@ -435,11 +449,50 @@ fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         Paragraph::new(lines)
             .block(content_block(&format!("Issues ({} in view)", issues.len())))
             .wrap(Wrap { trim: false }),
-        chunks[0],
+        panes[0],
+    );
+    // Detail pane (GitKraken-style right panel): the selected issue's
+    // full values, unwrapped.
+    let detail: Vec<text::Line> = match issues.get(cursor) {
+        Some(issue) => vec![
+            text::Line::from(vec![Span::styled(
+                format!("Issue #{}", issues.len() - cursor),
+                Style::default()
+                    .fg(theme::ACCENT)
+                    .add_modifier(Modifier::BOLD),
+            )]),
+            text::Line::from(""),
+            text::Line::from(vec![
+                Span::styled("Title  ", Style::default().fg(theme::FG_MUTED)),
+                Span::styled(issue.title.clone(), Style::default().fg(theme::FG)),
+            ]),
+            text::Line::from(vec![
+                Span::styled("CID  ", Style::default().fg(theme::FG_MUTED)),
+                Span::styled(issue.cid.clone(), Style::default().fg(theme::FG)),
+            ]),
+            text::Line::from(vec![
+                Span::styled("Time  ", Style::default().fg(theme::FG_MUTED)),
+                Span::styled(issue.timestamp.clone(), Style::default().fg(theme::FG)),
+            ]),
+        ],
+        None => vec![text::Line::from(Span::styled(
+            "(select an issue to see its full values)",
+            Style::default().fg(theme::FG_MUTED),
+        ))],
+    };
+    frame.render_widget(
+        Paragraph::new(detail)
+            .block(content_block("Issue"))
+            .wrap(Wrap { trim: true }),
+        panes[1],
     );
     frame.render_widget(
-        footer(app, "file issue", "i = file issue   s = sync from IPNS"),
-        chunks[1],
+        footer(
+            app,
+            "file issue",
+            "↑/↓/j/k = move   i = file issue   s = sync from IPNS",
+        ),
+        outer[1],
     );
 }
 

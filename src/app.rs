@@ -73,6 +73,8 @@ pub struct App<'a> {
     /// ("" = root), and the cursor row in its listing.
     pub code_dir: String,
     pub code_cursor: usize,
+    /// Cursor row in the Issues tab listing (drives the detail panel).
+    pub issue_cursor: usize,
     /// Vim-style `:` command bar (any bridge op, any tab). A true PTY
     /// terminal is impossible here — the TUI renders from wasm, which
     /// cannot spawn processes — so this is the in-app command line.
@@ -112,6 +114,7 @@ impl<'a> App<'a> {
             repo_output: String::new(),
             code_dir: String::new(),
             code_cursor: 0,
+            issue_cursor: 0,
             cmd_open: false,
             cmd_buffer: String::new(),
             cmd_output: String::new(),
@@ -167,16 +170,22 @@ impl<'a> App<'a> {
         self.tabs.index == 0
     }
 
-    pub fn on_code_up(&mut self) {
-        if self.on_code_tab() && self.code_cursor > 0 {
-            self.code_cursor -= 1;
+    /// Up arrow: move the cursor in the active tab's list (Code tree,
+    /// Issues), if it has one.
+    pub fn on_up(&mut self) {
+        match self.tabs.index {
+            0 if self.code_cursor > 0 => self.code_cursor -= 1,
+            1 if self.issue_cursor > 0 => self.issue_cursor -= 1,
+            _ => {}
         }
     }
 
-    pub fn on_code_down(&mut self) {
-        if self.on_code_tab() {
-            // Clamped at render time against the live entry count.
-            self.code_cursor += 1;
+    /// Down arrow — cursor clamps at render against the live entry count.
+    pub fn on_down(&mut self) {
+        match self.tabs.index {
+            0 => self.code_cursor += 1,
+            1 => self.issue_cursor += 1,
+            _ => {}
         }
     }
 
@@ -230,6 +239,8 @@ impl<'a> App<'a> {
             }
             // Issues.
             'i' if self.tabs.index == 1 => self.start_input(InputTarget::IssueCreate),
+            'j' if self.tabs.index == 1 => self.on_down(),
+            'k' if self.tabs.index == 1 => self.on_up(),
             's' if self.tabs.index == 1 => {
                 if let Some(id) = ipfs::cmd("issues.sync", "{}") {
                     self.pending = Some((id, InputTarget::IssueCreate));
