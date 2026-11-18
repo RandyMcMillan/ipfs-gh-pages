@@ -409,11 +409,22 @@ fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
             "(no issues — press i to file one; s syncs from the index IPNS name)",
         ));
     } else {
-        for issue in issues {
-            lines.push(text::Line::from(format!(
-                "{} {} {}",
-                issue.timestamp, issue.title, issue.cid
-            )));
+        for (i, issue) in issues.iter().enumerate() {
+            // GitHub issue row: #N (accent) title (default) meta (muted).
+            lines.push(text::Line::from(vec![
+                Span::styled(
+                    format!(" #{}  ", issues.len() - i),
+                    Style::default()
+                        .fg(theme::ACCENT)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(issue.title.clone(), Style::default().fg(theme::FG)),
+                Span::styled(
+                    format!("  {}  ", issue.timestamp),
+                    Style::default().fg(theme::FG_MUTED),
+                ),
+                Span::styled(issue.cid.clone(), Style::default().fg(theme::FG_SUBTLE)),
+            ]));
         }
     }
     frame.render_widget(
@@ -573,28 +584,52 @@ fn draw_wiki_tab(frame: &mut Frame, app: &mut App, area: Rect) {
 
 fn draw_insights_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     let snap = &app.ipfs;
+    let kv = |label: &str, value: String| {
+        text::Line::from(vec![
+            Span::styled(format!("{label:<16}"), Style::default().fg(theme::FG_MUTED)),
+            Span::styled(value, Style::default().fg(theme::FG)),
+        ])
+    };
+    let head = |title: &str| {
+        text::Line::from(Span::styled(
+            title.to_string(),
+            Style::default().fg(theme::FG).add_modifier(Modifier::BOLD),
+        ))
+    };
     let mut lines = vec![
-        text::Line::from(format!("Status: {}", snap.node_status)),
-        text::Line::from(format!("Peer ID: {}", snap.peer_id)),
-        text::Line::from(format!("Connections: {}", snap.connections.len())),
+        head("Node"),
+        kv("Status", snap.node_status.clone()),
+        kv("Peer ID", snap.peer_id.clone()),
+        kv("Connections", format!("{}", snap.connections.len())),
         text::Line::from(""),
-        text::Line::from(format!("Kubo: {}", snap.kubo_status)),
-        text::Line::from(format!("Kubo endpoint: {}", snap.kubo_endpoint)),
-        text::Line::from(format!("Kubo peer ID: {}", snap.kubo_peer_id)),
+        head("Kubo"),
+        kv("Status", snap.kubo_status.clone()),
+        kv("Endpoint", snap.kubo_endpoint.clone()),
+        kv("Peer ID", snap.kubo_peer_id.clone()),
         text::Line::from(""),
-        text::Line::from(format!(
-            "Git serve adverts seen: {}{}",
-            snap.git_seen,
-            if snap.serving { " (serving)" } else { "" }
-        )),
+        head("Git bridge"),
+        kv(
+            "Serve adverts",
+            format!(
+                "{}{}",
+                snap.git_seen,
+                if snap.serving { " (serving)" } else { "" }
+            ),
+        ),
         text::Line::from(""),
-        text::Line::from("Multiaddrs:"),
+        head("Multiaddrs"),
     ];
     if snap.multiaddrs.is_empty() {
-        lines.push(text::Line::from("(none - browser node)"));
+        lines.push(text::Line::from(Span::styled(
+            "(none - browser node)",
+            Style::default().fg(theme::FG_MUTED),
+        )));
     } else {
         for addr in &snap.multiaddrs {
-            lines.push(text::Line::from(addr.as_str()));
+            lines.push(text::Line::from(Span::styled(
+                addr.clone(),
+                Style::default().fg(theme::FG),
+            )));
         }
     }
     let paragraph = Paragraph::new(lines)
@@ -653,28 +688,62 @@ fn draw_peer_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     ])
     .split(area);
     let snap = &app.ipfs;
-    let mut peer_lines = vec![];
-    if snap.connections.is_empty() {
-        peer_lines.push(text::Line::from(
-            "(no connections — press c to dial a multiaddr)",
-        ));
-    } else {
-        for conn in &snap.connections {
-            peer_lines.push(text::Line::from(format!(
-                "{} [{}] {}",
-                conn.peer, conn.direction, conn.addr
-            )));
-        }
+    let mut rows: Vec<Row> = vec![];
+    for conn in &snap.connections {
+        let direction_color = if conn.direction == "inbound" {
+            theme::SUCCESS
+        } else {
+            theme::ACCENT
+        };
+        rows.push(Row::new(vec![
+            Cell::from(Span::styled(
+                conn.peer.clone(),
+                Style::default().fg(theme::FG),
+            )),
+            Cell::from(Span::styled(
+                conn.direction.clone(),
+                Style::default().fg(direction_color),
+            )),
+            Cell::from(Span::styled(
+                conn.addr.clone(),
+                Style::default().fg(theme::FG_MUTED),
+            )),
+        ]));
     }
-    frame.render_widget(
-        Paragraph::new(peer_lines)
-            .block(content_block(&format!(
-                "Peers ({} connected)",
-                snap.connections.len()
-            )))
-            .wrap(Wrap { trim: false }),
-        chunks[0],
-    );
+    if rows.is_empty() {
+        rows.push(Row::new(vec![Cell::from(Span::styled(
+            "(no connections — press c to dial a multiaddr)",
+            Style::default().fg(theme::FG_MUTED),
+        ))]));
+    }
+    let peers = Table::new(
+        rows,
+        [
+            Constraint::Percentage(34),
+            Constraint::Length(10),
+            Constraint::Min(20),
+        ],
+    )
+    .header(
+        Row::new(vec![
+            Cell::from(Span::styled("Peer", Style::default().fg(theme::FG_MUTED))),
+            Cell::from(Span::styled(
+                "Direction",
+                Style::default().fg(theme::FG_MUTED),
+            )),
+            Cell::from(Span::styled(
+                "Address",
+                Style::default().fg(theme::FG_MUTED),
+            )),
+        ])
+        .bottom_margin(1),
+    )
+    .block(content_block(&format!(
+        "Peers ({} connected)",
+        snap.connections.len()
+    )))
+    .style(theme::base());
+    frame.render_widget(peers, chunks[0]);
     let inbox = &app.ipfs.chat_inbox;
     let mut chat_lines = vec![];
     if inbox.is_empty() {
@@ -682,11 +751,23 @@ fn draw_peer_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     } else {
         for msg in inbox.iter().rev() {
             // Oldest first so the newest sits at the bottom.
-            let mark = if msg.verified { "✓" } else { "✗" };
-            chat_lines.push(text::Line::from(format!(
-                "{} {} {}: {}",
-                mark, msg.timestamp, msg.signer, msg.text
-            )));
+            let (mark, mark_color) = if msg.verified {
+                ("✓", theme::SUCCESS)
+            } else {
+                ("✗", theme::DANGER)
+            };
+            chat_lines.push(text::Line::from(vec![
+                Span::styled(format!("{mark} "), Style::default().fg(mark_color)),
+                Span::styled(
+                    format!("{} ", msg.timestamp),
+                    Style::default().fg(theme::FG_MUTED),
+                ),
+                Span::styled(
+                    format!("{}: ", msg.signer),
+                    Style::default().fg(theme::ACCENT),
+                ),
+                Span::styled(msg.text.clone(), Style::default().fg(theme::FG)),
+            ]));
         }
     }
     frame.render_widget(
