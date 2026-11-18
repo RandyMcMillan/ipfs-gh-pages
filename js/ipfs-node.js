@@ -81,6 +81,9 @@ const repoGitMeta = {
   shortSha: typeof REPO_SHORT_SHA === 'string' ? REPO_SHORT_SHA : '',
   commitCount: typeof REPO_COMMIT_COUNT === 'string' ? REPO_COMMIT_COUNT : ''
 };
+// Workflow summaries from .github/workflows (definitions only — run
+// status lives on the git host).
+const repoWorkflows = typeof REPO_WORKFLOWS === 'string' ? JSON.parse(REPO_WORKFLOWS) : [];
 
 const GOSSIP_TOPIC = `repo-gossip:${repoFullName}`;
 const CHAT_TOPIC = `${GOSSIP_TOPIC}:chat`;
@@ -131,7 +134,7 @@ function resolveEndpoints(field) {
 // ---- state (JS -> Rust) -----------------------------------------------------
 
 const state = {
-  repo: { owner: repoOwner, name: repoName, fullName: repoFullName, version: repoIdentity.version, files: repoFilesList, readme: repoReadmeText, ...repoGitMeta },
+  repo: { owner: repoOwner, name: repoName, fullName: repoFullName, version: repoIdentity.version, files: repoFilesList, readme: repoReadmeText, workflows: repoWorkflows, ...repoGitMeta },
   node: { status: 'starting', peerId: null, multiaddrs: [], protocols: [], connections: [] },
   chat: { inbox: [] }, // { signer, verified, text, timestamp } — newest first, cap 50
   issues: [], // { cid, title, timestamp } — newest first (local index view)

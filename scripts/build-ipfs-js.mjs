@@ -56,6 +56,87 @@ function resolveGitMeta(root) {
   };
 }
 
+// Workflow summaries for the TUI's Actions tab (wrkflw-style map): the
+// workflow `name`, its job ids, and each job's runs-on/needs — line-parsed,
+// no YAML dependency. Definitions only; run status lives on the git host.
+function stripQuotes(s) {
+  return s.replace(/^['"]|['"]$/g, '');
+}
+
+function parseWorkflow(file, text) {
+  const jobs = [];
+  let name = '';
+  let inJobs = false;
+  let jobsIndent = -1;
+  let current = null;
+  let collectingNeeds = false;
+  const needsItems = [];
+  for (const raw of text.split('\n')) {
+    if (!raw.trim() || raw.trim().startsWith('#')) continue;
+    const indent = raw.length - raw.trimStart().length;
+    const line = raw.trim();
+    if (!inJobs) {
+      const m = line.match(/^name:\s*(.+)$/);
+      if (m && indent === 0) name = stripQuotes(m[1].trim());
+      if (indent === 0 && line === 'jobs:') inJobs = true;
+      continue;
+    }
+    if (indent === 0) break; // next top-level key ends the jobs section
+    const jobMatch = raw.match(/^(\s+)([A-Za-z0-9_-]+):\s*(?:#.*)?$/);
+    if (jobMatch) {
+      const ind = jobMatch[1].length;
+      if (jobsIndent === -1) jobsIndent = ind;
+      if (ind === jobsIndent) {
+        if (current && collectingNeeds) current.needs = needsItems.join(', ');
+        current = { name: jobMatch[2], runs_on: '', needs: '' };
+        jobs.push(current);
+        collectingNeeds = false;
+        needsItems.length = 0;
+        continue;
+      }
+    }
+    if (!current || indent <= jobsIndent) continue;
+    const ro = line.match(/^runs-on:\s*(.+)$/);
+    if (ro) current.runs_on = stripQuotes(ro[1].trim());
+    const ne = line.match(/^needs:\s*(.*)$/);
+    if (ne) {
+      const value = ne[1].trim();
+      if (value.startsWith('[')) {
+        current.needs = stripQuotes(value.replace(/^\[|\]$/g, ''));
+        collectingNeeds = false;
+      } else if (value) {
+        current.needs = stripQuotes(value);
+        collectingNeeds = false;
+      } else {
+        collectingNeeds = true; // multiline list form
+        needsItems.length = 0;
+      }
+      continue;
+    }
+    if (collectingNeeds) {
+      const item = line.match(/^-\s+(.+)$/);
+      if (item) needsItems.push(stripQuotes(item[1].trim()));
+    }
+  }
+  if (current && collectingNeeds) current.needs = needsItems.join(', ');
+  return { file, name: name || file, jobs };
+}
+
+function extractWorkflows(root) {
+  const wfDir = `${root}/.github/workflows`;
+  let files = [];
+  try {
+    files = fs.readdirSync(wfDir).filter((f) => /\.(ya?ml)$/.test(f)).sort();
+  } catch {}
+  const workflows = [];
+  for (const file of files) {
+    try {
+      workflows.push(parseWorkflow(file, fs.readFileSync(`${wfDir}/${file}`, 'utf8')));
+    } catch {}
+  }
+  return workflows;
+}
+
 const { owner, name, version } = resolveIdentity();
 const repoRoot = process.env.REPO_ROOT || '.';
 const gitMeta = resolveGitMeta(repoRoot);
@@ -81,7 +162,8 @@ const define = {
   REPO_LAST_COMMIT: JSON.stringify(gitMeta.lastCommitMsg),
   REPO_LAST_TIME: JSON.stringify(gitMeta.lastCommitTime),
   REPO_SHORT_SHA: JSON.stringify(gitMeta.shortSha),
-  REPO_COMMIT_COUNT: JSON.stringify(gitMeta.commitCount)
+  REPO_COMMIT_COUNT: JSON.stringify(gitMeta.commitCount),
+  REPO_WORKFLOWS: JSON.stringify(extractWorkflows(repoRoot))
 };
 
 await build({

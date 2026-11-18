@@ -41,6 +41,20 @@ mod imp {
     }
 
     #[derive(Clone, Debug, Default)]
+    pub struct WorkflowJob {
+        pub name: String,
+        pub runs_on: String,
+        pub needs: String,
+    }
+
+    #[derive(Clone, Debug, Default)]
+    pub struct Workflow {
+        pub file: String,
+        pub name: String,
+        pub jobs: Vec<WorkflowJob>,
+    }
+
+    #[derive(Clone, Debug, Default)]
     pub struct Snapshot {
         pub node_status: String,
         pub peer_id: String,
@@ -59,6 +73,7 @@ mod imp {
         pub repo_version: String,
         pub repo_files: Vec<String>,
         pub repo_readme: String,
+        pub workflows: Vec<Workflow>,
         pub repo_branch: String,
         pub repo_last_commit: String,
         pub repo_last_commit_time: String,
@@ -189,6 +204,32 @@ mod imp {
             snap.repo_last_commit_time = get_string(&repo, "lastCommitTime");
             snap.repo_short_sha = get_string(&repo, "shortSha");
             snap.repo_commit_count = get_string(&repo, "commitCount");
+            snap.workflows = get_array(&repo, "workflows")
+                .into_iter()
+                .filter_map(|w| {
+                    if !w.is_object() {
+                        return None;
+                    }
+                    let jobs = get_array(&w, "jobs")
+                        .into_iter()
+                        .filter_map(|j| {
+                            if !j.is_object() {
+                                return None;
+                            }
+                            Some(WorkflowJob {
+                                name: get_string(&j, "name"),
+                                runs_on: get_string(&j, "runs_on"),
+                                needs: get_string(&j, "needs"),
+                            })
+                        })
+                        .collect();
+                    Some(Workflow {
+                        file: get_string(&w, "file"),
+                        name: get_string(&w, "name"),
+                        jobs,
+                    })
+                })
+                .collect();
         }
 
         snap
@@ -295,6 +336,20 @@ mod imp {
     }
 
     #[derive(Clone, Debug, Default)]
+    pub struct WorkflowJob {
+        pub name: String,
+        pub runs_on: String,
+        pub needs: String,
+    }
+
+    #[derive(Clone, Debug, Default)]
+    pub struct Workflow {
+        pub file: String,
+        pub name: String,
+        pub jobs: Vec<WorkflowJob>,
+    }
+
+    #[derive(Clone, Debug, Default)]
     pub struct Snapshot {
         pub node_status: String,
         pub peer_id: String,
@@ -313,6 +368,7 @@ mod imp {
         pub repo_version: String,
         pub repo_files: Vec<String>,
         pub repo_readme: String,
+        pub workflows: Vec<Workflow>,
         pub repo_branch: String,
         pub repo_last_commit: String,
         pub repo_last_commit_time: String,
@@ -337,4 +393,7 @@ mod imp {
     }
 }
 
-pub use imp::{cmd, json_field, poll, take_result, ChatMessage, Connection, IssueEntry, Snapshot};
+pub use imp::{
+    cmd, json_field, poll, take_result, ChatMessage, Connection, IssueEntry, Snapshot, Workflow,
+    WorkflowJob,
+};

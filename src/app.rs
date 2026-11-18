@@ -86,6 +86,8 @@ pub struct App<'a> {
     pub tree_cursor: usize,
     /// Cursor row in the Issues tab listing (drives the detail panel).
     pub issue_cursor: usize,
+    /// Cursor row in the Actions tab workflow list.
+    pub wf_cursor: usize,
     /// Vim-style `:` command bar (any bridge op, any tab). A true PTY
     /// terminal is impossible here — the TUI renders from wasm, which
     /// cannot spawn processes — so this is the in-app command line.
@@ -126,6 +128,7 @@ impl<'a> App<'a> {
             open_dirs: std::collections::BTreeSet::new(),
             tree_cursor: 0,
             issue_cursor: 0,
+            wf_cursor: 0,
             cmd_open: false,
             cmd_buffer: String::new(),
             cmd_output: String::new(),
@@ -216,6 +219,7 @@ impl<'a> App<'a> {
         match self.tabs.index {
             0 if self.tree_cursor > 0 => self.tree_cursor -= 1,
             1 if self.issue_cursor > 0 => self.issue_cursor -= 1,
+            3 if self.wf_cursor > 0 => self.wf_cursor -= 1,
             _ => {}
         }
     }
@@ -225,6 +229,7 @@ impl<'a> App<'a> {
         match self.tabs.index {
             0 => self.tree_cursor += 1,
             1 => self.issue_cursor += 1,
+            3 => self.wf_cursor += 1,
             _ => {}
         }
     }
@@ -279,6 +284,9 @@ impl<'a> App<'a> {
                     self.last_result = "syncing issues from IPNS...".to_string();
                 }
             }
+            // Actions.
+            'j' if self.tabs.index == 3 => self.on_down(),
+            'k' if self.tabs.index == 3 => self.on_up(),
             // Pulls: clone / advertise through the app.
             'c' if self.tabs.index == 2 => self.start_input(InputTarget::GitClone),
             'a' if self.tabs.index == 2 => self.start_input(InputTarget::GitAdvertise),

@@ -635,16 +635,109 @@ fn draw_pulls_tab(frame: &mut Frame, app: &mut App, area: Rect) {
 // ---- Actions / Projects / Security (web-app parity gaps) ------------------
 
 fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
-    draw_placeholder_tab(
-        frame,
-        app,
-        area,
-        "Actions",
-        &[
-            "GitHub Actions run CI on the git host; nothing executes in-page.",
-            "The bridge does not expose workflow runs yet — this tab is the",
-            "placeholder the web app maps: Actions ↔ CI logs, still a gap.",
+    let outer = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
+    let panes = Layout::horizontal([Constraint::Percentage(40), Constraint::Percentage(60)])
+        .split(outer[0]);
+    let workflows = &app.ipfs.workflows;
+    let cursor = app.wf_cursor.min(workflows.len().saturating_sub(1));
+    let hover = Style::default().bg(Color::Rgb(0x16, 0x1b, 0x22));
+
+    // Left pane: the workflow list (wrkflw's Workflows view).
+    let mut lines = vec![];
+    if workflows.is_empty() {
+        lines.push(text::Line::from(
+            "(no workflows under .github/workflows — this repo defines none)",
+        ));
+    }
+    for (i, wf) in workflows.iter().enumerate() {
+        let selected = i == cursor;
+        let name_style = if selected {
+            hover.patch(Style::default().fg(theme::FG).add_modifier(Modifier::BOLD))
+        } else {
+            Style::default().fg(theme::FG)
+        };
+        lines.push(text::Line::from(vec![
+            Span::styled(wf.name.clone(), name_style),
+            Span::styled(
+                format!("  {}  ", wf.file),
+                Style::default().fg(theme::FG_SUBTLE),
+            ),
+            Span::styled(
+                format!("{} job(s)", wf.jobs.len()),
+                Style::default().fg(theme::FG_MUTED),
+            ),
+        ]));
+    }
+    frame.render_widget(
+        Paragraph::new(lines)
+            .block(content_block(&format!("Workflows ({})", workflows.len())))
+            .wrap(Wrap { trim: false }),
+        panes[0],
+    );
+
+    // Right pane: the selected workflow's jobs (wrkflw's Run view).
+    let mut rows: Vec<Row> = vec![];
+    if let Some(wf) = workflows.get(cursor) {
+        for job in &wf.jobs {
+            rows.push(Row::new(vec![
+                Cell::from(Span::styled(
+                    job.name.clone(),
+                    Style::default()
+                        .fg(theme::ACCENT)
+                        .add_modifier(Modifier::BOLD),
+                )),
+                Cell::from(Span::styled(
+                    job.runs_on.clone(),
+                    Style::default().fg(theme::FG_MUTED),
+                )),
+                Cell::from(Span::styled(
+                    if job.needs.is_empty() {
+                        "—".to_string()
+                    } else {
+                        job.needs.clone()
+                    },
+                    Style::default().fg(theme::FG),
+                )),
+            ]));
+        }
+    }
+    if rows.is_empty() {
+        rows.push(Row::new(vec![Cell::from(Span::styled(
+            "(select a workflow to see its jobs)",
+            Style::default().fg(theme::FG_MUTED),
+        ))]));
+    }
+    let jobs = Table::new(
+        rows,
+        [
+            Constraint::Percentage(34),
+            Constraint::Percentage(30),
+            Constraint::Min(20),
         ],
+    )
+    .header(
+        Row::new(vec![
+            Cell::from(Span::styled("Job", Style::default().fg(theme::FG_MUTED))),
+            Cell::from(Span::styled(
+                "Runs on",
+                Style::default().fg(theme::FG_MUTED),
+            )),
+            Cell::from(Span::styled("Needs", Style::default().fg(theme::FG_MUTED))),
+        ])
+        .bottom_margin(1),
+    )
+    .block(content_block(&format!(
+        "Jobs ({})",
+        workflows.get(cursor).map_or(0, |w| w.jobs.len())
+    )))
+    .style(theme::base());
+    frame.render_widget(jobs, panes[1]);
+    frame.render_widget(
+        Paragraph::new(
+            "↑/↓/j/k = move   definitions from .github/workflows — run status lives on the git host",
+        )
+        .style(Style::default().fg(theme::FG_MUTED)),
+        outer[1],
     );
 }
 
