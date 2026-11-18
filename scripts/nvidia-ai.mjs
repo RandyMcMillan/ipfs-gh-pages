@@ -62,7 +62,11 @@ const prompt = process.env.AI_PROMPT || [
   diff ? `## git diff\n\`\`\`diff\n${diff}\n\`\`\`` : '(no diff available — review the repository state generally)',
 ].join('\n\n');
 
-const result = await nvidiaChat({ prompt, apiKey, model: MODEL });
+// 'high' reasoning effort on a multi-kilobyte diff exceeds the default
+// 120s client timeout (seen on the v4.0.0 push: timed out, job stayed
+// green via warn-and-continue but produced no review); 'medium' with a
+// 5-minute bound completes reliably.
+const result = await nvidiaChat({ prompt, apiKey, model: MODEL, maxTokens: 1024, reasoningEffort: 'medium', timeoutMs: 300_000 });
 if (!result.ok) {
   warn(result.warning);
   process.exit(0);
