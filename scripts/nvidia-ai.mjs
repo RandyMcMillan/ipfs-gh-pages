@@ -28,6 +28,13 @@ function warn(message) {
   console.log(`::warning::${message}`);
 }
 
+// VERBOSE=1 (matching npm run test:verbose) logs request details — never
+// the API key.
+const VERBOSE = process.env.VERBOSE === '1' || process.env.VERBOSE === 'true';
+function verbose(...args) {
+  if (VERBOSE) console.log('[nvidia-ai]', ...args);
+}
+
 if (!apiKey) {
   warn('NVIDIA_API_KEY is not set; skipping AI review. Add it as a repository secret to enable.');
   process.exit(0);
@@ -47,6 +54,7 @@ function gitDiff() {
 }
 
 const diff = gitDiff().slice(0, DIFF_MAX);
+verbose(`model=${MODEL} endpoint=${INVOKE_URL} event=${process.env.GH_EVENT || 'local'} diff_chars=${diff.length}`);
 const prompt = process.env.AI_PROMPT || [
   'You are reviewing a commit in a CI pipeline for the ipfs-gh-pages project.',
   'Briefly review the following git diff: flag bugs, regressions, and missing tests.',
@@ -59,13 +67,14 @@ const payload = {
   model: MODEL,
   max_tokens: 1024,
   seed: 0,
-  stream: false,
+  stream: true,
   stream_options: { include_usage: true },
   reasoning_effort: 'high',
 };
 
 const controller = new AbortController();
 const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+const startedAt = Date.now();
 let response;
 try {
   response = await fetch(INVOKE_URL, {
@@ -78,6 +87,7 @@ try {
     body: JSON.stringify(payload),
     signal: controller.signal,
   });
+  verbose(`HTTP ${response.status} in ${Date.now() - startedAt}ms`);
 } catch (err) {
   warn(`NVIDIA API request failed (${err.name === 'AbortError' ? `timeout after ${REQUEST_TIMEOUT_MS / 1000}s` : err.message}); continuing without AI review`);
   process.exit(0);
@@ -101,6 +111,7 @@ if (!content) {
 console.log(`## AI review (NVIDIA · ${MODEL})\n`);
 console.log(content);
 if (data.usage) {
+  verbose(`usage: prompt=${data.usage.prompt_tokens} completion=${data.usage.completion_tokens} total=${data.usage.total_tokens}`);
   console.log(`\n<!-- usage: prompt=${data.usage.prompt_tokens} completion=${data.usage.completion_tokens} total=${data.usage.total_tokens} -->`);
 }
 
