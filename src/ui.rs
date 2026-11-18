@@ -1066,8 +1066,55 @@ fn draw_peer_tab(frame: &mut Frame, app: &mut App, area: Rect) {
 // ---- Publish ---------------------------------------------------------------
 
 fn draw_publish_tab(frame: &mut Frame, app: &mut App, area: Rect) {
+    let tags = &app.ipfs.repo_tags;
+    let mut constraints = vec![Constraint::Length(
+        3 + tags.len().clamp(1, 10) as u16 + u16::from(!tags.is_empty()),
+    )];
+    constraints.push(Constraint::Min(3));
+    let chunks = Layout::vertical(constraints).split(area);
+    // gitsocial-style releases view: recent git tags (GitHub's
+    // Code-sidebar Releases section).
+    let mut rows: Vec<Row> = vec![];
+    for tag in tags {
+        rows.push(Row::new(vec![
+            Cell::from(Span::styled(
+                tag.tag.clone(),
+                Style::default()
+                    .fg(theme::ACCENT)
+                    .add_modifier(Modifier::BOLD),
+            )),
+            Cell::from(Span::styled(
+                tag.date.clone(),
+                Style::default().fg(theme::FG_MUTED),
+            )),
+            Cell::from(Span::styled(
+                tag.subject.clone(),
+                Style::default().fg(theme::FG),
+            )),
+        ]));
+    }
+    if rows.is_empty() {
+        rows.push(Row::new(vec![Cell::from(Span::styled(
+            "(no git tags yet)",
+            Style::default().fg(theme::FG_MUTED),
+        ))]));
+    }
+    let releases = Table::new(
+        rows,
+        [
+            Constraint::Length(14),
+            Constraint::Length(12),
+            Constraint::Min(20),
+        ],
+    )
+    .block(content_block(&format!(
+        "Releases — git tags ({})",
+        tags.len()
+    )))
+    .style(theme::base());
+    frame.render_widget(releases, chunks[0]);
     let body = if app.publish_output.is_empty() {
-        "(nothing published — press p and enter text)"
+        "(nothing published — press p and enter text; the web app records each repo root in the release chain)"
     } else {
         app.publish_output.as_str()
     };
@@ -1075,6 +1122,6 @@ fn draw_publish_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         Paragraph::new(body)
             .block(content_block("Publish"))
             .wrap(Wrap { trim: false }),
-        area,
+        chunks[1],
     );
 }

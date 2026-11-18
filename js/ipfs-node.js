@@ -85,7 +85,8 @@ const repoGitMeta = {
   upstream: typeof REPO_UPSTREAM === 'string' ? REPO_UPSTREAM : '',
   ahead: typeof REPO_AHEAD === 'string' ? REPO_AHEAD : '',
   behind: typeof REPO_BEHIND === 'string' ? REPO_BEHIND : '',
-  dirty: typeof REPO_DIRTY === 'boolean' ? REPO_DIRTY : false
+  dirty: typeof REPO_DIRTY === 'boolean' ? REPO_DIRTY : false,
+  tags: typeof REPO_TAGS === 'string' ? JSON.parse(REPO_TAGS) : []
 };
 // Workflow summaries from .github/workflows (definitions only — run
 // status lives on the git host).

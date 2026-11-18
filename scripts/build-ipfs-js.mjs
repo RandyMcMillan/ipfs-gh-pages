@@ -61,6 +61,15 @@ function resolveGitMeta(root) {
     ahead = counts[1] || '';
   }
   const dirty = run('git status --porcelain') !== '';
+  // gitsocial-style releases view: recent tags with date + subject.
+  const tags = run("git for-each-ref refs/tags --sort=-creatordate --format='%(refname:short)%09%(creatordate:short)%09%(subject)'")
+    .split('\n')
+    .filter(Boolean)
+    .slice(0, 10)
+    .map((l) => {
+      const [tag = '', date = '', subject = ''] = l.split('\t');
+      return { tag, date, subject };
+    });
   return {
     branch: branch.replace(/^origin\//, ''),
     lastCommitMsg: run('git log -1 --pretty=%s'),
@@ -72,7 +81,8 @@ function resolveGitMeta(root) {
     upstream,
     ahead,
     behind,
-    dirty
+    dirty,
+    tags
   };
 }
 
@@ -189,6 +199,7 @@ const define = {
   REPO_AHEAD: JSON.stringify(gitMeta.ahead),
   REPO_BEHIND: JSON.stringify(gitMeta.behind),
   REPO_DIRTY: JSON.stringify(gitMeta.dirty),
+  REPO_TAGS: JSON.stringify(gitMeta.tags),
   REPO_WORKFLOWS: JSON.stringify(extractWorkflows(repoRoot))
 };
 

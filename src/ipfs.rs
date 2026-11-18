@@ -55,6 +55,13 @@ mod imp {
     }
 
     #[derive(Clone, Debug, Default)]
+    pub struct ReleaseTag {
+        pub tag: String,
+        pub date: String,
+        pub subject: String,
+    }
+
+    #[derive(Clone, Debug, Default)]
     pub struct Snapshot {
         pub node_status: String,
         pub peer_id: String,
@@ -85,6 +92,7 @@ mod imp {
         pub repo_ahead: String,
         pub repo_behind: String,
         pub repo_dirty: bool,
+        pub repo_tags: Vec<ReleaseTag>,
     }
 
     fn window() -> JsValue {
@@ -216,6 +224,19 @@ mod imp {
             snap.repo_ahead = get_string(&repo, "ahead");
             snap.repo_behind = get_string(&repo, "behind");
             snap.repo_dirty = get_bool(&repo, "dirty");
+            snap.repo_tags = get_array(&repo, "tags")
+                .into_iter()
+                .filter_map(|t| {
+                    if !t.is_object() {
+                        return None;
+                    }
+                    Some(ReleaseTag {
+                        tag: get_string(&t, "tag"),
+                        date: get_string(&t, "date"),
+                        subject: get_string(&t, "subject"),
+                    })
+                })
+                .collect();
             snap.workflows = get_array(&repo, "workflows")
                 .into_iter()
                 .filter_map(|w| {
@@ -362,6 +383,13 @@ mod imp {
     }
 
     #[derive(Clone, Debug, Default)]
+    pub struct ReleaseTag {
+        pub tag: String,
+        pub date: String,
+        pub subject: String,
+    }
+
+    #[derive(Clone, Debug, Default)]
     pub struct Snapshot {
         pub node_status: String,
         pub peer_id: String,
@@ -392,6 +420,7 @@ mod imp {
         pub repo_ahead: String,
         pub repo_behind: String,
         pub repo_dirty: bool,
+        pub repo_tags: Vec<ReleaseTag>,
     }
 
     pub fn poll() -> Snapshot {
@@ -412,6 +441,6 @@ mod imp {
 }
 
 pub use imp::{
-    cmd, json_field, poll, take_result, ChatMessage, Connection, IssueEntry, Snapshot, Workflow,
-    WorkflowJob,
+    cmd, json_field, poll, take_result, ChatMessage, Connection, IssueEntry, ReleaseTag, Snapshot,
+    Workflow, WorkflowJob,
 };
