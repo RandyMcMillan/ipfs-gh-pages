@@ -34,6 +34,10 @@ pub const ATTENTION: Color = Color::Rgb(0xd2, 0x99, 0x22);
 // The one warm accent GitHub uses: the active repo-tab underline.
 pub const TAB_UNDERLINE: Color = Color::Rgb(0xf7, 0x81, 0x66);
 
+// Primary button (the green "Code ▾" on the repo page, Primer dark).
+pub const PRIMARY: Color = Color::Rgb(0x23, 0x86, 0x36);
+pub const ON_PRIMARY: Color = Color::Rgb(0xff, 0xff, 0xff);
+
 /// Base application style: canvas background, default foreground.
 pub fn base() -> Style {
     Style::default().bg(CANVAS).fg(FG)

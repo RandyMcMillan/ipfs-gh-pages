@@ -32,10 +32,19 @@ var __toESM = (mod3, isNodeMode, target) => (target = mod3 != null ? __create(__
 ));
 var __toCommonJS = (mod3) => __copyProps(__defProp({}, "__esModule", { value: true }), mod3);
 
+// <define:REPO_FILES>
+var define_REPO_FILES_default;
+var init_define_REPO_FILES = __esm({
+  "<define:REPO_FILES>"() {
+    define_REPO_FILES_default = [".githooks/lib.sh", ".githooks/post-merge", ".githooks/pre-commit", ".githooks/pre-push", ".github/AGENTS.md", ".github/actions/test-setup/action.yml", ".github/workflows/action-smoke.yml", ".github/workflows/ai-triage.yml", ".github/workflows/deploy-gh-pages.yml", ".github/workflows/deployed-smoke.yml", ".github/workflows/release.yml", ".github/workflows/test-with-ai.yml", ".gitignore", ".gitmodules", ".nvmrc", "AGENTS.md", "Cargo.lock", "Cargo.toml", "README.md", "TODO-gnostr-p2p.md", "Trunk.toml", "action.yml", "actions-test/.github/workflows/deploy.yml", "actions-test/README.md", "actions-test/actions-test.car", "actions-test/data/sample.json", "actions-test/hello.txt", "assets/gnostr-b701b8-background-transparent-git-diamond.png", "assets/gnostr-b701b8-background-transparent-git-diamond.svg", "assets/gnostr.svg", "assets/ipfs-node.js", "assets/ipfs_pinning_service_website.2.html", "assets/ipfs_pinning_service_website.html", "assets/repo-files.json", "assets/repo-head.txt", "cdp-provide.mjs", "cdp-routing.mjs", "deploy-gh-pages.yml", "docs/STATUS.md", "docs/brig-ideas.md", "docs/git-over-ipfs.md", "docs/interop.md", "docs/ipfs-rehost-service.md", "docs/ipfs-uri-providers.md", "docs/issues-car.md", "docs/markdown-rendering.md", "docs/optional-services.md", "docs/rust-js-bridge.md", "githooks/README.md", "icons/icon.icns", "icons/icon.png", "index-rust.html", "index.html", "js/blame.js", "js/camo-fetch.js", "js/cid-links.js", "js/git-objects.js", "js/git-smart.js", "js/git-upload-pack.js", "js/github-auth.js", "js/github-issues.js", "js/index-merge.js", "js/ipfs-node.js", "js/kubo.js", "js/line-comments.js", "js/markdown.js", "js/rehost.js", "lib/shared.mjs", "main.js", "package-lock.json", "package.json", "public/theme-init.js", "scripts/build-car.mjs", "scripts/build-ipfs-js.mjs", "scripts/build-repo-files.mjs", "scripts/build-stego-fixtures.mjs", "scripts/bundle.sh", "scripts/cert-generate.mjs", "scripts/check-gitlink.mjs", "scripts/ci-chrome.mjs", "scripts/common.sh", "scripts/deploy.sh", "scripts/filebase-pin.mjs", "scripts/index-walk.mjs", "scripts/install-consumer-example.mjs", "scripts/ipfs-watch.sh", "scripts/kimi-endpoint.sh", "scripts/kubo-config-browser.mjs", "scripts/kubo-config-utils.mjs", "scripts/kubo-config-webrtc.mjs", "scripts/kubo-config-ws.mjs", "scripts/kubo-config-wss.mjs", "scripts/kubo-rpc-id.mjs", "scripts/lib/nvidia-chat.mjs", "scripts/lib/repo-files.mjs", "scripts/lib/repo-info.mjs", "scripts/nvidia-ai-triage.mjs", "scripts/nvidia-ai.mjs", "scripts/pinata-pin.mjs", "scripts/rehost-mirror.mjs", "scripts/rehost-service.mjs", "scripts/release-app.sh", "scripts/release.mjs", "scripts/sign-app.sh", "scripts/test-e2e.mjs", "scripts/wss-proxy.mjs", "src/app.rs", "src/backend.rs", "src/cli.rs", "src/effects.rs", "src/fps.rs", "src/ipfs.rs", "src/lib.rs", "src/main.rs", "src/theme.rs", "src/ui.rs", "src/utils.rs", "src/wry_app.rs", "tests/action-metadata.test.mjs", "tests/blame.test.mjs", "tests/car.test.mjs", "tests/cdp-blame.mjs", "tests/cdp-cid-links.mjs", "tests/cdp-connect.mjs", "tests/cdp-deployed-interop.mjs", "tests/cdp-download.mjs", "tests/cdp-eval.mjs", "tests/cdp-git-bridge.mjs", "tests/cdp-interop-vector.mjs", "tests/cdp-ipns-chip.mjs", "tests/cdp-issues.mjs", "tests/cdp-line-comments.mjs", "tests/cdp-markdown.mjs", "tests/cdp-share-link.mjs", "tests/cdp-test-debug.mjs", "tests/cdp-test.mjs", "tests/cdp-ui.mjs", "tests/cdp-zip.mjs", "tests/check-gitlink.test.mjs", "tests/cid-links.test.mjs", "tests/debug-download.mjs", "tests/debug-share-dial.mjs", "tests/debug-share-full.mjs", "tests/debug-ui-merge.mjs", "tests/filebase-pin.test.mjs", "tests/fixtures/interop-vectors.json", "tests/fixtures/stego/gnostr-clean.svg", "tests/fixtures/stego/gnostr-lsb.ppm", "tests/fixtures/stego/gnostr-matrix-stego.svg", "tests/fixtures/stego/gnostr-phantom-stego.svg", "tests/fixtures/stego/manifest.json", "tests/gateway.test.mjs", "tests/git-clone-smart.test.mjs", "tests/git-notes-bridge.test.mjs", "tests/git-objects.test.mjs", "tests/git-pull-smart.test.mjs", "tests/git-upload-pack.test.mjs", "tests/github-auth.test.mjs", "tests/github-issues.test.mjs", "tests/index-merge.test.mjs", "tests/index-walk.test.mjs", "tests/install-consumer-example.test.mjs", "tests/interop-vectors.test.mjs", "tests/kubo.test.mjs", "tests/line-comments.test.mjs", "tests/markdown.test.mjs", "tests/pinata-pin.test.mjs", "tests/rehost-mirror.test.mjs", "tests/rehost-service.test.mjs", "tests/rehost.test.mjs", "tests/repo-files.test.mjs", "tests/repo-info.test.mjs", "tests/stego-fixtures.test.mjs", "tests/unit.test.mjs", "tests/utils.mjs", "vite.config.js"];
+  }
+});
+
 // node_modules/eventemitter3/index.js
 var require_eventemitter3 = __commonJS({
   "node_modules/eventemitter3/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var has = Object.prototype.hasOwnProperty;
     var prefix = "~";
     function Events() {
@@ -197,6 +206,7 @@ var require_eventemitter3 = __commonJS({
 // node_modules/hashlru/index.js
 var require_hashlru = __commonJS({
   "node_modules/hashlru/index.js"(exports, module) {
+    init_define_REPO_FILES();
     module.exports = function(max2) {
       if (!max2) throw Error("hashlru must have a max value, of type number, greater than 0");
       var size = 0, cache10 = /* @__PURE__ */ Object.create(null), _cache = /* @__PURE__ */ Object.create(null);
@@ -244,6 +254,7 @@ var require_hashlru = __commonJS({
 var require_netmask4 = __commonJS({
   "node_modules/netmask/dist/netmask4.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Netmask4Impl = void 0;
     exports.ip2long = ip2long;
@@ -429,6 +440,7 @@ var require_netmask4 = __commonJS({
 var require_netmask6 = __commonJS({
   "node_modules/netmask/dist/netmask6.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Netmask6Impl = void 0;
     exports.ip6bigint = ip6bigint;
@@ -608,6 +620,7 @@ var require_netmask6 = __commonJS({
 var require_netmask = __commonJS({
   "node_modules/netmask/dist/netmask.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.long2ip = exports.ip2long = exports.Netmask = void 0;
     var netmask4_1 = require_netmask4();
@@ -678,6 +691,7 @@ var require_netmask = __commonJS({
 // node_modules/timestamp-nano/dist/timestamp.min.js
 var require_timestamp_min = __commonJS({
   "node_modules/timestamp-nano/dist/timestamp.min.js"(exports, module) {
+    init_define_REPO_FILES();
     var Timestamp = function() {
       "undefined" != typeof module && (module.exports = d2);
       var l = 86400, s2 = 3200, T = 146097 * s2 / 400, e = l * T, f = 1e3 * e, c = 864e13, g = 4294967296, h2 = 1e6, u = "000000000", m2 = Math.trunc || function(n2) {
@@ -808,6 +822,7 @@ var require_timestamp_min = __commonJS({
 // node_modules/retry/lib/retry_operation.js
 var require_retry_operation = __commonJS({
   "node_modules/retry/lib/retry_operation.js"(exports, module) {
+    init_define_REPO_FILES();
     function RetryOperation(timeouts, options2) {
       if (typeof options2 === "boolean") {
         options2 = { forever: options2 };
@@ -943,6 +958,7 @@ var require_retry_operation = __commonJS({
 // node_modules/retry/lib/retry.js
 var require_retry = __commonJS({
   "node_modules/retry/lib/retry.js"(exports) {
+    init_define_REPO_FILES();
     var RetryOperation = require_retry_operation();
     exports.operation = function(options2) {
       var timeouts = exports.timeouts(options2);
@@ -1029,6 +1045,7 @@ var require_retry = __commonJS({
 // node_modules/retry/index.js
 var require_retry2 = __commonJS({
   "node_modules/retry/index.js"(exports, module) {
+    init_define_REPO_FILES();
     module.exports = require_retry();
   }
 });
@@ -1037,6 +1054,7 @@ var require_retry2 = __commonJS({
 var require_truncate = __commonJS({
   "node_modules/truncate-utf8-bytes/lib/truncate.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     function isHighSurrogate(codePoint) {
       return codePoint >= 55296 && codePoint <= 56319;
     }
@@ -1074,6 +1092,7 @@ var require_truncate = __commonJS({
 var require_browser = __commonJS({
   "node_modules/utf8-byte-length/browser.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     function isHighSurrogate(codePoint) {
       return codePoint >= 55296 && codePoint <= 56319;
     }
@@ -1114,6 +1133,7 @@ var require_browser = __commonJS({
 var require_browser2 = __commonJS({
   "node_modules/truncate-utf8-bytes/browser.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var truncate = require_truncate();
     var getLength = require_browser();
     module.exports = truncate.bind(null, getLength);
@@ -1124,6 +1144,7 @@ var require_browser2 = __commonJS({
 var require_sanitize_filename = __commonJS({
   "node_modules/sanitize-filename/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var truncate = require_browser2();
     var illegalRe = /[\/\?<>\\:\*\|"]/g;
     var controlRe = /[\x00-\x1f\x80-\x9f]/g;
@@ -1157,6 +1178,7 @@ var require_sanitize_filename = __commonJS({
 var require_build = __commonJS({
   "node_modules/pvtsutils/build/index.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     var ARRAY_BUFFER_NAME = "[object ArrayBuffer]";
     var BufferSourceConverter4 = class _BufferSourceConverter {
       static isArrayBuffer(data) {
@@ -1520,6 +1542,7 @@ var require_build = __commonJS({
 // node_modules/reflect-metadata/Reflect.js
 var require_Reflect = __commonJS({
   "node_modules/reflect-metadata/Reflect.js"() {
+    init_define_REPO_FILES();
     var Reflect2;
     (function(Reflect3) {
       (function(factory) {
@@ -2606,6 +2629,7 @@ var require_Reflect = __commonJS({
 var require_event_iterator = __commonJS({
   "node_modules/event-iterator/lib/event-iterator.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     Object.defineProperty(exports, "__esModule", { value: true });
     var EventQueue = class {
       constructor() {
@@ -2724,6 +2748,7 @@ var require_event_iterator = __commonJS({
 var require_dom = __commonJS({
   "node_modules/event-iterator/lib/dom.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     Object.defineProperty(exports, "__esModule", { value: true });
     var event_iterator_1 = require_event_iterator();
     exports.EventIterator = event_iterator_1.EventIterator;
@@ -2742,6 +2767,7 @@ var require_dom = __commonJS({
 var require_denque = __commonJS({
   "node_modules/denque/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     function Denque2(array, options2) {
       var options2 = options2 || {};
       this._capacity = options2.capacity;
@@ -3057,6 +3083,7 @@ var require_denque = __commonJS({
 var require_sparse_array = __commonJS({
   "node_modules/sparse-array/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var BITS_PER_BYTE = 7;
     module.exports = class SparseArray {
       constructor() {
@@ -3273,6 +3300,7 @@ var require_sparse_array = __commonJS({
 // node_modules/inherits/inherits_browser.js
 var require_inherits_browser = __commonJS({
   "node_modules/inherits/inherits_browser.js"(exports, module) {
+    init_define_REPO_FILES();
     if (typeof Object.create === "function") {
       module.exports = function inherits(ctor, superCtor) {
         if (superCtor) {
@@ -3306,6 +3334,7 @@ var require_inherits_browser = __commonJS({
 var require_base64_js = __commonJS({
   "node_modules/base64-js/index.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     exports.byteLength = byteLength;
     exports.toByteArray = toByteArray;
     exports.fromByteArray = fromByteArray;
@@ -3406,6 +3435,7 @@ var require_base64_js = __commonJS({
 // node_modules/ieee754/index.js
 var require_ieee754 = __commonJS({
   "node_modules/ieee754/index.js"(exports) {
+    init_define_REPO_FILES();
     exports.read = function(buffer5, offset, isLE2, mLen, nBytes) {
       var e, m2;
       var eLen = nBytes * 8 - mLen - 1;
@@ -3490,6 +3520,7 @@ var require_ieee754 = __commonJS({
 var require_buffer = __commonJS({
   "node_modules/buffer/index.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     var base6410 = require_base64_js();
     var ieee754 = require_ieee754();
     var customInspectSymbol = typeof Symbol === "function" && typeof Symbol["for"] === "function" ? Symbol["for"]("nodejs.util.inspect.custom") : null;
@@ -5081,6 +5112,7 @@ var require_buffer = __commonJS({
 // node_modules/safe-buffer/index.js
 var require_safe_buffer = __commonJS({
   "node_modules/safe-buffer/index.js"(exports, module) {
+    init_define_REPO_FILES();
     var buffer5 = require_buffer();
     var Buffer2 = buffer5.Buffer;
     function copyProps(src10, dst) {
@@ -5139,6 +5171,7 @@ var require_safe_buffer = __commonJS({
 // node_modules/isarray/index.js
 var require_isarray = __commonJS({
   "node_modules/isarray/index.js"(exports, module) {
+    init_define_REPO_FILES();
     var toString15 = {}.toString;
     module.exports = Array.isArray || function(arr) {
       return toString15.call(arr) == "[object Array]";
@@ -5150,6 +5183,7 @@ var require_isarray = __commonJS({
 var require_type = __commonJS({
   "node_modules/es-errors/type.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = TypeError;
   }
 });
@@ -5158,6 +5192,7 @@ var require_type = __commonJS({
 var require_es_object_atoms = __commonJS({
   "node_modules/es-object-atoms/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = Object;
   }
 });
@@ -5166,6 +5201,7 @@ var require_es_object_atoms = __commonJS({
 var require_es_errors = __commonJS({
   "node_modules/es-errors/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = Error;
   }
 });
@@ -5174,6 +5210,7 @@ var require_es_errors = __commonJS({
 var require_eval = __commonJS({
   "node_modules/es-errors/eval.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = EvalError;
   }
 });
@@ -5182,6 +5219,7 @@ var require_eval = __commonJS({
 var require_range = __commonJS({
   "node_modules/es-errors/range.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = RangeError;
   }
 });
@@ -5190,6 +5228,7 @@ var require_range = __commonJS({
 var require_ref = __commonJS({
   "node_modules/es-errors/ref.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = ReferenceError;
   }
 });
@@ -5198,6 +5237,7 @@ var require_ref = __commonJS({
 var require_syntax = __commonJS({
   "node_modules/es-errors/syntax.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = SyntaxError;
   }
 });
@@ -5206,6 +5246,7 @@ var require_syntax = __commonJS({
 var require_uri = __commonJS({
   "node_modules/es-errors/uri.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = URIError;
   }
 });
@@ -5214,6 +5255,7 @@ var require_uri = __commonJS({
 var require_abs = __commonJS({
   "node_modules/math-intrinsics/abs.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = Math.abs;
   }
 });
@@ -5222,6 +5264,7 @@ var require_abs = __commonJS({
 var require_floor = __commonJS({
   "node_modules/math-intrinsics/floor.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = Math.floor;
   }
 });
@@ -5230,6 +5273,7 @@ var require_floor = __commonJS({
 var require_max = __commonJS({
   "node_modules/math-intrinsics/max.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = Math.max;
   }
 });
@@ -5238,6 +5282,7 @@ var require_max = __commonJS({
 var require_min = __commonJS({
   "node_modules/math-intrinsics/min.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = Math.min;
   }
 });
@@ -5246,6 +5291,7 @@ var require_min = __commonJS({
 var require_pow = __commonJS({
   "node_modules/math-intrinsics/pow.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = Math.pow;
   }
 });
@@ -5254,6 +5300,7 @@ var require_pow = __commonJS({
 var require_round = __commonJS({
   "node_modules/math-intrinsics/round.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = Math.round;
   }
 });
@@ -5262,6 +5309,7 @@ var require_round = __commonJS({
 var require_isNaN = __commonJS({
   "node_modules/math-intrinsics/isNaN.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = Number.isNaN || function isNaN2(a) {
       return a !== a;
     };
@@ -5272,6 +5320,7 @@ var require_isNaN = __commonJS({
 var require_sign = __commonJS({
   "node_modules/math-intrinsics/sign.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var $isNaN = require_isNaN();
     module.exports = function sign(number) {
       if ($isNaN(number) || number === 0) {
@@ -5286,6 +5335,7 @@ var require_sign = __commonJS({
 var require_gOPD = __commonJS({
   "node_modules/gopd/gOPD.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = Object.getOwnPropertyDescriptor;
   }
 });
@@ -5294,6 +5344,7 @@ var require_gOPD = __commonJS({
 var require_gopd = __commonJS({
   "node_modules/gopd/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var $gOPD = require_gOPD();
     if ($gOPD) {
       try {
@@ -5310,6 +5361,7 @@ var require_gopd = __commonJS({
 var require_es_define_property = __commonJS({
   "node_modules/es-define-property/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var $defineProperty = Object.defineProperty || false;
     if ($defineProperty) {
       try {
@@ -5326,6 +5378,7 @@ var require_es_define_property = __commonJS({
 var require_shams = __commonJS({
   "node_modules/has-symbols/shams.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = function hasSymbols() {
       if (typeof Symbol !== "function" || typeof Object.getOwnPropertySymbols !== "function") {
         return false;
@@ -5381,6 +5434,7 @@ var require_shams = __commonJS({
 var require_has_symbols = __commonJS({
   "node_modules/has-symbols/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var origSymbol = typeof Symbol !== "undefined" && Symbol;
     var hasSymbolSham = require_shams();
     module.exports = function hasNativeSymbols() {
@@ -5405,6 +5459,7 @@ var require_has_symbols = __commonJS({
 var require_Reflect_getPrototypeOf = __commonJS({
   "node_modules/get-proto/Reflect.getPrototypeOf.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = typeof Reflect !== "undefined" && Reflect.getPrototypeOf || null;
   }
 });
@@ -5413,6 +5468,7 @@ var require_Reflect_getPrototypeOf = __commonJS({
 var require_Object_getPrototypeOf = __commonJS({
   "node_modules/get-proto/Object.getPrototypeOf.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var $Object = require_es_object_atoms();
     module.exports = $Object.getPrototypeOf || null;
   }
@@ -5422,6 +5478,7 @@ var require_Object_getPrototypeOf = __commonJS({
 var require_implementation = __commonJS({
   "node_modules/function-bind/implementation.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var ERROR_MESSAGE = "Function.prototype.bind called on incompatible ";
     var toStr5 = Object.prototype.toString;
     var max2 = Math.max;
@@ -5498,6 +5555,7 @@ var require_implementation = __commonJS({
 var require_function_bind = __commonJS({
   "node_modules/function-bind/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var implementation2 = require_implementation();
     module.exports = Function.prototype.bind || implementation2;
   }
@@ -5507,6 +5565,7 @@ var require_function_bind = __commonJS({
 var require_functionCall = __commonJS({
   "node_modules/call-bind-apply-helpers/functionCall.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = Function.prototype.call;
   }
 });
@@ -5515,6 +5574,7 @@ var require_functionCall = __commonJS({
 var require_functionApply = __commonJS({
   "node_modules/call-bind-apply-helpers/functionApply.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = Function.prototype.apply;
   }
 });
@@ -5523,6 +5583,7 @@ var require_functionApply = __commonJS({
 var require_reflectApply = __commonJS({
   "node_modules/call-bind-apply-helpers/reflectApply.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = typeof Reflect !== "undefined" && Reflect && Reflect.apply;
   }
 });
@@ -5531,6 +5592,7 @@ var require_reflectApply = __commonJS({
 var require_actualApply = __commonJS({
   "node_modules/call-bind-apply-helpers/actualApply.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var bind = require_function_bind();
     var $apply = require_functionApply();
     var $call = require_functionCall();
@@ -5543,6 +5605,7 @@ var require_actualApply = __commonJS({
 var require_call_bind_apply_helpers = __commonJS({
   "node_modules/call-bind-apply-helpers/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var bind = require_function_bind();
     var $TypeError = require_type();
     var $call = require_functionCall();
@@ -5560,6 +5623,7 @@ var require_call_bind_apply_helpers = __commonJS({
 var require_get = __commonJS({
   "node_modules/dunder-proto/get.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var callBind = require_call_bind_apply_helpers();
     var gOPD = require_gopd();
     var hasProtoAccessor;
@@ -5591,6 +5655,7 @@ var require_get = __commonJS({
 var require_get_proto = __commonJS({
   "node_modules/get-proto/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var reflectGetProto = require_Reflect_getPrototypeOf();
     var originalGetProto = require_Object_getPrototypeOf();
     var getDunderProto = require_get();
@@ -5611,6 +5676,7 @@ var require_get_proto = __commonJS({
 var require_hasown = __commonJS({
   "node_modules/hasown/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var call = Function.prototype.call;
     var $hasOwn = Object.prototype.hasOwnProperty;
     var bind = require_function_bind();
@@ -5622,6 +5688,7 @@ var require_hasown = __commonJS({
 var require_get_intrinsic = __commonJS({
   "node_modules/get-intrinsic/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var undefined2;
     var $Object = require_es_object_atoms();
     var $Error = require_es_errors();
@@ -5953,6 +6020,7 @@ var require_get_intrinsic = __commonJS({
 var require_call_bound = __commonJS({
   "node_modules/call-bound/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var GetIntrinsic = require_get_intrinsic();
     var callBindBasic = require_call_bind_apply_helpers();
     var $indexOf = callBindBasic([GetIntrinsic("%String.prototype.indexOf%")]);
@@ -5976,6 +6044,7 @@ var require_call_bound = __commonJS({
 var require_is_callable = __commonJS({
   "node_modules/is-callable/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var fnToStr = Function.prototype.toString;
     var reflectApply = typeof Reflect === "object" && Reflect !== null && Reflect.apply;
     var badArrayLike;
@@ -6094,6 +6163,7 @@ var require_is_callable = __commonJS({
 var require_for_each = __commonJS({
   "node_modules/for-each/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var isCallable = require_is_callable();
     var toStr5 = Object.prototype.toString;
     var hasOwnProperty2 = Object.prototype.hasOwnProperty;
@@ -6154,6 +6224,7 @@ var require_for_each = __commonJS({
 var require_possible_typed_array_names = __commonJS({
   "node_modules/possible-typed-array-names/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = [
       "Float16Array",
       "Float32Array",
@@ -6175,6 +6246,7 @@ var require_possible_typed_array_names = __commonJS({
 var require_available_typed_arrays = __commonJS({
   "node_modules/available-typed-arrays/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var possibleNames = require_possible_typed_array_names();
     var g = typeof globalThis === "undefined" ? global : globalThis;
     module.exports = function availableTypedArrays() {
@@ -6193,6 +6265,7 @@ var require_available_typed_arrays = __commonJS({
 var require_define_data_property = __commonJS({
   "node_modules/define-data-property/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var $defineProperty = require_es_define_property();
     var $SyntaxError = require_syntax();
     var $TypeError = require_type();
@@ -6241,6 +6314,7 @@ var require_define_data_property = __commonJS({
 var require_has_property_descriptors = __commonJS({
   "node_modules/has-property-descriptors/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var $defineProperty = require_es_define_property();
     var hasPropertyDescriptors = function hasPropertyDescriptors2() {
       return !!$defineProperty;
@@ -6263,6 +6337,7 @@ var require_has_property_descriptors = __commonJS({
 var require_set_function_length = __commonJS({
   "node_modules/set-function-length/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var GetIntrinsic = require_get_intrinsic();
     var define2 = require_define_data_property();
     var hasDescriptors = require_has_property_descriptors()();
@@ -6316,6 +6391,7 @@ var require_set_function_length = __commonJS({
 var require_applyBind = __commonJS({
   "node_modules/call-bind-apply-helpers/applyBind.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var bind = require_function_bind();
     var $apply = require_functionApply();
     var actualApply = require_actualApply();
@@ -6329,6 +6405,7 @@ var require_applyBind = __commonJS({
 var require_call_bind = __commonJS({
   "node_modules/call-bind/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var setFunctionLength = require_set_function_length();
     var $defineProperty = require_es_define_property();
     var callBindBasic = require_call_bind_apply_helpers();
@@ -6354,6 +6431,7 @@ var require_call_bind = __commonJS({
 var require_shams2 = __commonJS({
   "node_modules/has-tostringtag/shams.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var hasSymbols = require_shams();
     module.exports = function hasToStringTagShams() {
       return hasSymbols() && !!Symbol.toStringTag;
@@ -6365,6 +6443,7 @@ var require_shams2 = __commonJS({
 var require_which_typed_array = __commonJS({
   "node_modules/which-typed-array/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var forEach2 = require_for_each();
     var availableTypedArrays = require_available_typed_arrays();
     var callBind = require_call_bind();
@@ -6490,6 +6569,7 @@ var require_which_typed_array = __commonJS({
 var require_is_typed_array = __commonJS({
   "node_modules/is-typed-array/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var whichTypedArray = require_which_typed_array();
     module.exports = function isTypedArray(value2) {
       return !!whichTypedArray(value2);
@@ -6501,6 +6581,7 @@ var require_is_typed_array = __commonJS({
 var require_typed_array_buffer = __commonJS({
   "node_modules/typed-array-buffer/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var $TypeError = require_type();
     var callBound = require_call_bound();
     var $typedArrayBuffer = callBound("TypedArray.prototype.buffer", true);
@@ -6518,6 +6599,7 @@ var require_typed_array_buffer = __commonJS({
 var require_to_buffer = __commonJS({
   "node_modules/to-buffer/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var Buffer2 = require_safe_buffer().Buffer;
     var isArray = require_isarray();
     var typedArrayBuffer = require_typed_array_buffer();
@@ -6582,6 +6664,7 @@ var require_to_buffer = __commonJS({
 var require_hash = __commonJS({
   "node_modules/sha.js/hash.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var Buffer2 = require_safe_buffer().Buffer;
     var toBuffer = require_to_buffer();
     function Hash5(blockSize, finalSize) {
@@ -6643,6 +6726,7 @@ var require_hash = __commonJS({
 var require_sha1 = __commonJS({
   "node_modules/sha.js/sha1.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var inherits = require_inherits_browser();
     var Hash5 = require_hash();
     var Buffer2 = require_safe_buffer().Buffer;
@@ -6730,6 +6814,7 @@ var require_sha1 = __commonJS({
 var require_lib = __commonJS({
   "node_modules/async-lock/lib/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var AsyncLock2 = function(opts) {
       opts = opts || {};
       this.Promise = opts.Promise || Promise;
@@ -6963,6 +7048,7 @@ var require_lib = __commonJS({
 var require_async_lock = __commonJS({
   "node_modules/async-lock/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = require_lib();
   }
 });
@@ -6971,6 +7057,7 @@ var require_async_lock = __commonJS({
 var require_lib2 = __commonJS({
   "node_modules/clean-git-ref/lib/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     function escapeRegExp(string9) {
       return string9.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     }
@@ -7003,6 +7090,7 @@ var require_lib2 = __commonJS({
 // node_modules/crc-32/crc32.js
 var require_crc32 = __commonJS({
   "node_modules/crc-32/crc32.js"(exports) {
+    init_define_REPO_FILES();
     var CRC32;
     (function(factory) {
       if (typeof DO_NOT_EXPORT_CRC === "undefined") {
@@ -7102,6 +7190,7 @@ var require_crc32 = __commonJS({
 var require_common = __commonJS({
   "node_modules/pako/lib/utils/common.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     var TYPED_OK = typeof Uint8Array !== "undefined" && typeof Uint16Array !== "undefined" && typeof Int32Array !== "undefined";
     function _has(obj, key) {
       return Object.prototype.hasOwnProperty.call(obj, key);
@@ -7193,6 +7282,7 @@ var require_common = __commonJS({
 var require_trees = __commonJS({
   "node_modules/pako/lib/zlib/trees.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     var utils = require_common();
     var Z_FIXED = 4;
     var Z_BINARY = 0;
@@ -7835,6 +7925,7 @@ var require_trees = __commonJS({
 var require_adler32 = __commonJS({
   "node_modules/pako/lib/zlib/adler32.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     function adler32(adler2, buf, len, pos) {
       var s1 = adler2 & 65535 | 0, s2 = adler2 >>> 16 & 65535 | 0, n = 0;
       while (len !== 0) {
@@ -7857,6 +7948,7 @@ var require_adler32 = __commonJS({
 var require_crc322 = __commonJS({
   "node_modules/pako/lib/zlib/crc32.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     function makeTable() {
       var c, table = [];
       for (var n = 0; n < 256; n++) {
@@ -7885,6 +7977,7 @@ var require_crc322 = __commonJS({
 var require_messages = __commonJS({
   "node_modules/pako/lib/zlib/messages.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = {
       2: "need dictionary",
       /* Z_NEED_DICT       2  */
@@ -7912,6 +8005,7 @@ var require_messages = __commonJS({
 var require_deflate = __commonJS({
   "node_modules/pako/lib/zlib/deflate.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     var utils = require_common();
     var trees = require_trees();
     var adler32 = require_adler32();
@@ -8961,6 +9055,7 @@ var require_deflate = __commonJS({
 var require_strings = __commonJS({
   "node_modules/pako/lib/utils/strings.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     var utils = require_common();
     var STR_APPLY_OK = true;
     var STR_APPLY_UIA_OK = true;
@@ -9103,6 +9198,7 @@ var require_strings = __commonJS({
 var require_zstream = __commonJS({
   "node_modules/pako/lib/zlib/zstream.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     function ZStream() {
       this.input = null;
       this.next_in = 0;
@@ -9125,6 +9221,7 @@ var require_zstream = __commonJS({
 var require_deflate2 = __commonJS({
   "node_modules/pako/lib/deflate.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     var zlib_deflate = require_deflate();
     var utils = require_common();
     var strings2 = require_strings();
@@ -9286,6 +9383,7 @@ var require_deflate2 = __commonJS({
 var require_inffast = __commonJS({
   "node_modules/pako/lib/zlib/inffast.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var BAD = 30;
     var TYPE = 12;
     module.exports = function inflate_fast(strm, start2) {
@@ -9515,6 +9613,7 @@ var require_inffast = __commonJS({
 var require_inftrees = __commonJS({
   "node_modules/pako/lib/zlib/inftrees.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var utils = require_common();
     var MAXBITS = 15;
     var ENOUGH_LENS = 852;
@@ -9831,6 +9930,7 @@ var require_inftrees = __commonJS({
 var require_inflate = __commonJS({
   "node_modules/pako/lib/zlib/inflate.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     var utils = require_common();
     var adler32 = require_adler32();
     var crc322 = require_crc322();
@@ -11047,6 +11147,7 @@ var require_inflate = __commonJS({
 var require_constants = __commonJS({
   "node_modules/pako/lib/zlib/constants.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     module.exports = {
       /* Allowed flush values; see deflate() and inflate() below for details */
       Z_NO_FLUSH: 0,
@@ -11094,6 +11195,7 @@ var require_constants = __commonJS({
 var require_gzheader = __commonJS({
   "node_modules/pako/lib/zlib/gzheader.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     function GZheader() {
       this.text = 0;
       this.time = 0;
@@ -11114,6 +11216,7 @@ var require_gzheader = __commonJS({
 var require_inflate2 = __commonJS({
   "node_modules/pako/lib/inflate.js"(exports) {
     "use strict";
+    init_define_REPO_FILES();
     var zlib_inflate = require_inflate();
     var utils = require_common();
     var strings2 = require_strings();
@@ -11288,6 +11391,7 @@ var require_inflate2 = __commonJS({
 var require_pako = __commonJS({
   "node_modules/pako/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var assign2 = require_common().assign;
     var deflate2 = require_deflate2();
     var inflate2 = require_inflate2();
@@ -11302,6 +11406,7 @@ var require_pako = __commonJS({
 var require_pify = __commonJS({
   "node_modules/pify/index.js"(exports, module) {
     "use strict";
+    init_define_REPO_FILES();
     var processFn = (fn, options2) => function(...args) {
       const P = options2.promiseModule;
       return new P((resolve8, reject) => {
@@ -11366,6 +11471,7 @@ var require_pify = __commonJS({
 // node_modules/ignore/index.js
 var require_ignore = __commonJS({
   "node_modules/ignore/index.js"(exports, module) {
+    init_define_REPO_FILES();
     function makeArray(subject) {
       return Array.isArray(subject) ? subject : [subject];
     }
@@ -11753,6 +11859,7 @@ var require_ignore = __commonJS({
 // node_modules/diff3/onp.js
 var require_onp = __commonJS({
   "node_modules/diff3/onp.js"(exports, module) {
+    init_define_REPO_FILES();
     module.exports = function(a_, b_) {
       var a = a_, b = b_, m2 = a.length, n = b.length, reverse = false, ed2 = null, offset = m2 + 1, path = [], pathposi = [], ses = [], lcs = "", SES_DELETE = -1, SES_COMMON = 0, SES_ADD = 1;
       var tmp1, tmp2;
@@ -11882,6 +11989,7 @@ var require_onp = __commonJS({
 // node_modules/diff3/diff3.js
 var require_diff3 = __commonJS({
   "node_modules/diff3/diff3.js"(exports, module) {
+    init_define_REPO_FILES();
     var onp = require_onp();
     function longestCommonSubsequence(file1, file2) {
       var diff = new onp(file1, file2);
@@ -20165,6 +20273,7 @@ async function writeTree({ fs, dir, gitdir = join(dir, ".git"), tree: tree2 }) {
 var import_sha1, import_async_lock, import_clean_git_ref, import_crc_32, import_pako, import_pify, import_ignore, import_diff3, BaseError, UnmergedPathsError, InternalError, UnsafeFilepathError, BufferCursor, NEEDS_CODE_POINT_ORDER, MAX_UINT32, supportsSubtleSHA1, SKIP_WORKTREE, INTENT_TO_ADD, GitIndex, lock, IndexCache, GitIndexManager, GitWalkerIndex, GitWalkSymbol, NotFoundError5, ObjectTypeError, InvalidOidError, InvalidRefNameError, NoRefspecError, GitPackedRefs, GitRefSpec, GitRefSpecSet, bad, num, bool, schema, SECTION_LINE_REGEX, SECTION_REGEX, VARIABLE_LINE_REGEX, VARIABLE_NAME_REGEX, extractSectionLine, extractVariableLine, ESCAPED_CHARS, parseValue, serializeValue, lower, getPath, normalizePath, findLastIndex, GitConfig, GitConfigManager, refpaths, GIT_FILES, GitRefManager, GitTree, GitObject, StreamReader, DecompressionError, supportsDecompressionStream, RESOLVE_CACHE_BYTES, ObjectCache, GitPackIndex, PackfileCache, AlreadyExistsError2, AmbiguousError, CheckoutConflictError, CherryPickLocalChangesError, CherryPickMergeCommitError, CherryPickRootCommitError, CommitNotFetchedError, EmptyCommitError, EmptyServerResponseError, FastForwardError, GitPushError, HttpError, InvalidFilepathError, MaxDepthError, MergeNotSupportedError, MergeConflictError, MissingNameError, MissingParameterError, MultipleGitError, ParseError, PushRejectedError, RemoteCapabilityError, SmartHttpError, UnknownTransportError, UrlParseError, UserCanceledError, IndexResetError, NoCommitError, Errors, GitAnnotatedTag, GitCommit, GitWalkerRepo, GitWalkerFs, flat, RunningMinimum, commands, FileSystem, GitIgnoreManager, supportsCompressionStream, EMPTY_TREE_OID, worthWalking, LINEBREAKS, _TreeMap, abbreviateRx, CREDENTIALS, GitPktLine, corsProxify, updateHeaders, stringifyBody, GitRemoteHTTP, GitRemoteManager, scpLike, GitShallowManager, pkg, FIFO2, GitSideBand, EMPTY_OID, types2, GitRefStash, GitStashManager, index, isomorphic_git_default;
 var init_isomorphic_git = __esm({
   "node_modules/isomorphic-git/index.js"() {
+    init_define_REPO_FILES();
     import_sha1 = __toESM(require_sha1(), 1);
     import_async_lock = __toESM(require_async_lock(), 1);
     import_clean_git_ref = __toESM(require_lib2(), 1);
@@ -24118,6 +24227,7 @@ ${obj.gpgsig ? obj.gpgsig : ""}`;
 // node_modules/just-once/index.cjs
 var require_just_once = __commonJS({
   "node_modules/just-once/index.cjs"(exports, module) {
+    init_define_REPO_FILES();
     module.exports = once;
     function once(fn) {
       var called, value2;
@@ -24140,6 +24250,7 @@ var require_just_once = __commonJS({
 // node_modules/fast-text-encoding/text.min.js
 var require_text_min = __commonJS({
   "node_modules/fast-text-encoding/text.min.js"(exports) {
+    init_define_REPO_FILES();
     (function(scope) {
       "use strict";
       function B(r, e) {
@@ -24248,6 +24359,7 @@ var require_text_min = __commonJS({
 // node_modules/isomorphic-textencoder/browser.js
 var require_browser3 = __commonJS({
   "node_modules/isomorphic-textencoder/browser.js"(exports, module) {
+    init_define_REPO_FILES();
     require_text_min();
     module.exports = {
       encode: (string9) => new TextEncoder().encode(string9),
@@ -24259,6 +24371,7 @@ var require_browser3 = __commonJS({
 // node_modules/just-debounce-it/index.cjs
 var require_just_debounce_it = __commonJS({
   "node_modules/just-debounce-it/index.cjs"(exports, module) {
+    init_define_REPO_FILES();
     module.exports = debounce3;
     function debounce3(fn, wait, callFirst) {
       var timeout = null;
@@ -24310,6 +24423,7 @@ var require_just_debounce_it = __commonJS({
 // node_modules/@isomorphic-git/lightning-fs/src/path.js
 var require_path = __commonJS({
   "node_modules/@isomorphic-git/lightning-fs/src/path.js"(exports, module) {
+    init_define_REPO_FILES();
     function normalizePath2(path) {
       if (path.length === 0) {
         return ".";
@@ -24405,6 +24519,7 @@ var require_path = __commonJS({
 // node_modules/@isomorphic-git/lightning-fs/src/errors.js
 var require_errors = __commonJS({
   "node_modules/@isomorphic-git/lightning-fs/src/errors.js"(exports, module) {
+    init_define_REPO_FILES();
     function Err(name15) {
       return class extends Error {
         constructor(...args) {
@@ -24431,6 +24546,7 @@ var require_errors = __commonJS({
 // node_modules/@isomorphic-git/lightning-fs/src/CacheFS.js
 var require_CacheFS = __commonJS({
   "node_modules/@isomorphic-git/lightning-fs/src/CacheFS.js"(exports, module) {
+    init_define_REPO_FILES();
     var path = require_path();
     var { EEXIST, ENOENT, ENOTDIR, ENOTEMPTY, EISDIR } = require_errors();
     var STAT = 0;
@@ -24801,6 +24917,7 @@ function close(store2 = getDefaultStore()) {
 var Store, store;
 var init_idb_keyval = __esm({
   "node_modules/@isomorphic-git/idb-keyval/dist/idb-keyval.mjs"() {
+    init_define_REPO_FILES();
     Store = class {
       constructor(dbName = "keyval-store", storeName = "keyval") {
         this.storeName = storeName;
@@ -24844,6 +24961,7 @@ var init_idb_keyval = __esm({
 // node_modules/@isomorphic-git/lightning-fs/src/IdbBackend.js
 var require_IdbBackend = __commonJS({
   "node_modules/@isomorphic-git/lightning-fs/src/IdbBackend.js"(exports, module) {
+    init_define_REPO_FILES();
     var idb = (init_idb_keyval(), __toCommonJS(idb_keyval_exports));
     module.exports = class IdbBackend {
       constructor(dbname, storename) {
@@ -24879,6 +24997,7 @@ var require_IdbBackend = __commonJS({
 // node_modules/@isomorphic-git/lightning-fs/src/HttpBackend.js
 var require_HttpBackend = __commonJS({
   "node_modules/@isomorphic-git/lightning-fs/src/HttpBackend.js"(exports, module) {
+    init_define_REPO_FILES();
     module.exports = class HttpBackend {
       constructor(url) {
         this._url = url;
@@ -24909,6 +25028,7 @@ var require_HttpBackend = __commonJS({
 // node_modules/@isomorphic-git/lightning-fs/src/Mutex.js
 var require_Mutex = __commonJS({
   "node_modules/@isomorphic-git/lightning-fs/src/Mutex.js"(exports, module) {
+    init_define_REPO_FILES();
     var idb = (init_idb_keyval(), __toCommonJS(idb_keyval_exports));
     var sleep = (ms2) => new Promise((r) => setTimeout(r, ms2));
     module.exports = class Mutex {
@@ -24996,6 +25116,7 @@ var require_Mutex = __commonJS({
 // node_modules/@isomorphic-git/lightning-fs/src/Mutex2.js
 var require_Mutex2 = __commonJS({
   "node_modules/@isomorphic-git/lightning-fs/src/Mutex2.js"(exports, module) {
+    init_define_REPO_FILES();
     module.exports = class Mutex {
       constructor(name15) {
         this._id = Math.random();
@@ -25051,6 +25172,7 @@ var require_Mutex2 = __commonJS({
 // node_modules/@isomorphic-git/lightning-fs/src/DefaultBackend.js
 var require_DefaultBackend = __commonJS({
   "node_modules/@isomorphic-git/lightning-fs/src/DefaultBackend.js"(exports, module) {
+    init_define_REPO_FILES();
     var { encode: encode55, decode: decode65 } = require_browser3();
     var debounce3 = require_just_debounce_it();
     var CacheFS = require_CacheFS();
@@ -25372,6 +25494,7 @@ var require_DefaultBackend = __commonJS({
 // node_modules/@isomorphic-git/lightning-fs/src/Stat.js
 var require_Stat = __commonJS({
   "node_modules/@isomorphic-git/lightning-fs/src/Stat.js"(exports, module) {
+    init_define_REPO_FILES();
     module.exports = class Stat {
       constructor(stats) {
         this.type = stats.type;
@@ -25401,6 +25524,7 @@ var require_Stat = __commonJS({
 // node_modules/@isomorphic-git/lightning-fs/src/PromisifiedFS.js
 var require_PromisifiedFS = __commonJS({
   "node_modules/@isomorphic-git/lightning-fs/src/PromisifiedFS.js"(exports, module) {
+    init_define_REPO_FILES();
     var DefaultBackend = require_DefaultBackend();
     var Stat = require_Stat();
     var path = require_path();
@@ -25654,6 +25778,7 @@ var require_PromisifiedFS = __commonJS({
 // node_modules/@isomorphic-git/lightning-fs/src/MemoryBackend.js
 var require_MemoryBackend = __commonJS({
   "node_modules/@isomorphic-git/lightning-fs/src/MemoryBackend.js"(exports, module) {
+    init_define_REPO_FILES();
     module.exports = class MemoryBackend {
       constructor() {
         this._map = /* @__PURE__ */ new Map();
@@ -25723,6 +25848,7 @@ var require_MemoryBackend = __commonJS({
 // node_modules/@isomorphic-git/lightning-fs/src/index.js
 var require_src = __commonJS({
   "node_modules/@isomorphic-git/lightning-fs/src/index.js"(exports, module) {
+    init_define_REPO_FILES();
     var once = require_just_once();
     var PromisifiedFS = require_PromisifiedFS();
     var MemoryBackend = require_MemoryBackend();
@@ -25842,28 +25968,47 @@ var require_src = __commonJS({
   }
 });
 
+// js/ipfs-node.js
+init_define_REPO_FILES();
+
+// node_modules/helia/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/utils/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/interface/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/interface/dist/src/connection.js
+init_define_REPO_FILES();
 var connectionSymbol = Symbol.for("@libp2p/connection");
 
 // node_modules/@libp2p/interface/dist/src/content-routing.js
+init_define_REPO_FILES();
 var contentRoutingSymbol = Symbol.for("@libp2p/content-routing");
 
 // node_modules/@libp2p/interface/dist/src/peer-discovery.js
+init_define_REPO_FILES();
 var peerDiscoverySymbol = Symbol.for("@libp2p/peer-discovery");
 
 // node_modules/@libp2p/interface/dist/src/peer-id.js
+init_define_REPO_FILES();
 var peerIdSymbol = Symbol.for("@libp2p/peer-id");
 function isPeerId(other) {
   return Boolean(other?.[peerIdSymbol]);
 }
 
 // node_modules/@libp2p/interface/dist/src/peer-routing.js
+init_define_REPO_FILES();
 var peerRoutingSymbol = Symbol.for("@libp2p/peer-routing");
 
 // node_modules/@libp2p/interface/dist/src/peer-store.js
+init_define_REPO_FILES();
 var KEEP_ALIVE = "keep-alive";
 
 // node_modules/@libp2p/interface/dist/src/pubsub.js
+init_define_REPO_FILES();
 var StrictSign = "StrictSign";
 var StrictNoSign = "StrictNoSign";
 var TopicValidatorResult;
@@ -25875,6 +26020,7 @@ var TopicValidatorResult;
 var pubSubSymbol = Symbol.for("@libp2p/pubsub");
 
 // node_modules/@libp2p/interface/dist/src/transport.js
+init_define_REPO_FILES();
 var transportSymbol = Symbol.for("@libp2p/transport");
 var FaultTolerance;
 (function(FaultTolerance2) {
@@ -25883,6 +26029,7 @@ var FaultTolerance;
 })(FaultTolerance || (FaultTolerance = {}));
 
 // node_modules/@libp2p/interface/dist/src/errors.js
+init_define_REPO_FILES();
 var AbortError = class extends Error {
   static name = "AbortError";
   constructor(message5 = "The operation was aborted") {
@@ -26073,7 +26220,11 @@ var UnsupportedKeyTypeError = class extends Error {
   }
 };
 
+// node_modules/main-event/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/main-event/dist/src/events.browser.js
+init_define_REPO_FILES();
 function setMaxListeners() {
 }
 
@@ -26181,6 +26332,7 @@ var TypedEventEmitter = class extends EventTarget {
 };
 
 // node_modules/@libp2p/interface/dist/src/startable.js
+init_define_REPO_FILES();
 function isStartable(obj) {
   return obj != null && typeof obj.start === "function" && typeof obj.stop === "function";
 }
@@ -26231,6 +26383,9 @@ async function stop(...objs) {
 var serviceCapabilities = Symbol.for("@libp2p/service-capabilities");
 var serviceDependencies = Symbol.for("@libp2p/service-dependencies");
 
+// node_modules/@libp2p/logger/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/multiformats/dist/src/bases/base32.js
 var base32_exports = {};
 __export(base32_exports, {
@@ -26244,8 +26399,13 @@ __export(base32_exports, {
   base32upper: () => base32upper,
   base32z: () => base32z
 });
+init_define_REPO_FILES();
+
+// node_modules/multiformats/dist/src/bases/base.js
+init_define_REPO_FILES();
 
 // node_modules/multiformats/dist/src/bytes.js
+init_define_REPO_FILES();
 var empty = new Uint8Array(0);
 function equals(aa, bb) {
   if (aa === bb) {
@@ -26281,6 +26441,7 @@ function toString(b) {
 }
 
 // node_modules/multiformats/dist/src/vendor/base-x.js
+init_define_REPO_FILES();
 function base(ALPHABET, name15) {
   if (ALPHABET.length >= 255) {
     throw new TypeError("Alphabet too long");
@@ -26654,6 +26815,7 @@ __export(base58_exports, {
   base58btc: () => base58btc,
   base58flickr: () => base58flickr
 });
+init_define_REPO_FILES();
 var base58btc = baseX({
   name: "base58btc",
   prefix: "z",
@@ -26673,6 +26835,7 @@ __export(base64_exports, {
   base64url: () => base64url,
   base64urlpad: () => base64urlpad
 });
+init_define_REPO_FILES();
 var base64 = rfc4648({
   prefix: "m",
   name: "base64",
@@ -26698,7 +26861,14 @@ var base64urlpad = rfc4648({
   bitsPerChar: 6
 });
 
+// node_modules/weald/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/weald/dist/src/browser.js
+init_define_REPO_FILES();
+
 // node_modules/weald/node_modules/ms/dist/index.js
+init_define_REPO_FILES();
 var s = 1e3;
 var m = s * 60;
 var h = m * 60;
@@ -26797,6 +26967,7 @@ function plural(ms$1, msAbs, n, name15) {
 }
 
 // node_modules/weald/dist/src/common.js
+init_define_REPO_FILES();
 function setup(env) {
   createDebug.debug = createDebug;
   createDebug.default = createDebug;
@@ -27182,7 +27353,14 @@ function notEmpty(str) {
   return str;
 }
 
+// node_modules/@multiformats/dns/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/dist/src/dns.js
+init_define_REPO_FILES();
+
 // node_modules/progress-events/dist/src/index.js
+init_define_REPO_FILES();
 var CustomProgressEvent = class extends Event {
   type;
   detail;
@@ -27194,6 +27372,7 @@ var CustomProgressEvent = class extends Event {
 };
 
 // node_modules/@multiformats/dns/dist/src/errors.js
+init_define_REPO_FILES();
 var DNSQueryFailedError = class extends AggregateError {
   static name = "DNSQueryFailedError";
   name = "DNSQueryFailedError";
@@ -27203,10 +27382,21 @@ var EmptyDNSAnswerError = class extends AggregateError {
   name = "EmptyDNSAnswerError";
 };
 
+// node_modules/@multiformats/dns/dist/src/resolvers/default.browser.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/dist/src/resolvers/dns-json-over-https.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/p-queue/dist/index.js
+init_define_REPO_FILES();
+
 // node_modules/eventemitter3/index.mjs
+init_define_REPO_FILES();
 var import_index = __toESM(require_eventemitter3(), 1);
 
 // node_modules/@multiformats/dns/node_modules/p-timeout/index.js
+init_define_REPO_FILES();
 var TimeoutError2 = class _TimeoutError extends Error {
   name = "TimeoutError";
   constructor(message5, options2) {
@@ -27280,7 +27470,11 @@ function pTimeout(promise, options2) {
   return cancelablePromise;
 }
 
+// node_modules/@multiformats/dns/node_modules/p-queue/dist/priority-queue.js
+init_define_REPO_FILES();
+
 // node_modules/@multiformats/dns/node_modules/p-queue/dist/lower-bound.js
+init_define_REPO_FILES();
 function lowerBound(array, value2, comparator) {
   let first2 = 0;
   let count = array.length;
@@ -28102,6 +28296,7 @@ var PQueue = class extends import_index.default {
 };
 
 // node_modules/@multiformats/dns/dist/src/utils/get-types.js
+init_define_REPO_FILES();
 function getTypes(types3) {
   const DEFAULT_TYPES = [
     RecordType.A
@@ -28120,13 +28315,30 @@ function getTypes(types3) {
   ];
 }
 
+// node_modules/@multiformats/dns/dist/src/utils/to-dns-response.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/uint8arrays/dist/src/to-string.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/uint8arrays/dist/src/util/bases.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/basics.js
+init_define_REPO_FILES();
+
 // node_modules/@multiformats/dns/node_modules/multiformats/dist/src/bases/base10.js
 var base10_exports = {};
 __export(base10_exports, {
   base10: () => base10
 });
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/bases/base.js
+init_define_REPO_FILES();
 
 // node_modules/@multiformats/dns/node_modules/multiformats/dist/src/bytes.js
+init_define_REPO_FILES();
 var empty2 = new Uint8Array(0);
 function equals2(aa, bb) {
   if (aa === bb) {
@@ -28189,6 +28401,7 @@ function toArrayBufferBackedArray(b) {
 }
 
 // node_modules/@multiformats/dns/node_modules/multiformats/dist/src/vendor/base-x.js
+init_define_REPO_FILES();
 function base2(ALPHABET, name15, caseInsensitive) {
   if (ALPHABET.length >= 255) {
     throw new TypeError("Alphabet too long");
@@ -28533,6 +28746,7 @@ __export(base16_exports, {
   base16: () => base16,
   base16upper: () => base16upper
 });
+init_define_REPO_FILES();
 var base16 = rfc46482({
   prefix: "f",
   name: "base16",
@@ -28553,6 +28767,7 @@ var base2_exports = {};
 __export(base2_exports, {
   base2: () => base22
 });
+init_define_REPO_FILES();
 var base22 = rfc46482({
   prefix: "0",
   name: "base2",
@@ -28565,6 +28780,7 @@ var base256emoji_exports = {};
 __export(base256emoji_exports, {
   base256emoji: () => base256emoji
 });
+init_define_REPO_FILES();
 var alphabet = Array.from("\u{1F680}\u{1FA90}\u2604\u{1F6F0}\u{1F30C}\u{1F311}\u{1F312}\u{1F313}\u{1F314}\u{1F315}\u{1F316}\u{1F317}\u{1F318}\u{1F30D}\u{1F30F}\u{1F30E}\u{1F409}\u2600\u{1F4BB}\u{1F5A5}\u{1F4BE}\u{1F4BF}\u{1F602}\u2764\u{1F60D}\u{1F923}\u{1F60A}\u{1F64F}\u{1F495}\u{1F62D}\u{1F618}\u{1F44D}\u{1F605}\u{1F44F}\u{1F601}\u{1F525}\u{1F970}\u{1F494}\u{1F496}\u{1F499}\u{1F622}\u{1F914}\u{1F606}\u{1F644}\u{1F4AA}\u{1F609}\u263A\u{1F44C}\u{1F917}\u{1F49C}\u{1F614}\u{1F60E}\u{1F607}\u{1F339}\u{1F926}\u{1F389}\u{1F49E}\u270C\u2728\u{1F937}\u{1F631}\u{1F60C}\u{1F338}\u{1F64C}\u{1F60B}\u{1F497}\u{1F49A}\u{1F60F}\u{1F49B}\u{1F642}\u{1F493}\u{1F929}\u{1F604}\u{1F600}\u{1F5A4}\u{1F603}\u{1F4AF}\u{1F648}\u{1F447}\u{1F3B6}\u{1F612}\u{1F92D}\u2763\u{1F61C}\u{1F48B}\u{1F440}\u{1F62A}\u{1F611}\u{1F4A5}\u{1F64B}\u{1F61E}\u{1F629}\u{1F621}\u{1F92A}\u{1F44A}\u{1F973}\u{1F625}\u{1F924}\u{1F449}\u{1F483}\u{1F633}\u270B\u{1F61A}\u{1F61D}\u{1F634}\u{1F31F}\u{1F62C}\u{1F643}\u{1F340}\u{1F337}\u{1F63B}\u{1F613}\u2B50\u2705\u{1F97A}\u{1F308}\u{1F608}\u{1F918}\u{1F4A6}\u2714\u{1F623}\u{1F3C3}\u{1F490}\u2639\u{1F38A}\u{1F498}\u{1F620}\u261D\u{1F615}\u{1F33A}\u{1F382}\u{1F33B}\u{1F610}\u{1F595}\u{1F49D}\u{1F64A}\u{1F639}\u{1F5E3}\u{1F4AB}\u{1F480}\u{1F451}\u{1F3B5}\u{1F91E}\u{1F61B}\u{1F534}\u{1F624}\u{1F33C}\u{1F62B}\u26BD\u{1F919}\u2615\u{1F3C6}\u{1F92B}\u{1F448}\u{1F62E}\u{1F646}\u{1F37B}\u{1F343}\u{1F436}\u{1F481}\u{1F632}\u{1F33F}\u{1F9E1}\u{1F381}\u26A1\u{1F31E}\u{1F388}\u274C\u270A\u{1F44B}\u{1F630}\u{1F928}\u{1F636}\u{1F91D}\u{1F6B6}\u{1F4B0}\u{1F353}\u{1F4A2}\u{1F91F}\u{1F641}\u{1F6A8}\u{1F4A8}\u{1F92C}\u2708\u{1F380}\u{1F37A}\u{1F913}\u{1F619}\u{1F49F}\u{1F331}\u{1F616}\u{1F476}\u{1F974}\u25B6\u27A1\u2753\u{1F48E}\u{1F4B8}\u2B07\u{1F628}\u{1F31A}\u{1F98B}\u{1F637}\u{1F57A}\u26A0\u{1F645}\u{1F61F}\u{1F635}\u{1F44E}\u{1F932}\u{1F920}\u{1F927}\u{1F4CC}\u{1F535}\u{1F485}\u{1F9D0}\u{1F43E}\u{1F352}\u{1F617}\u{1F911}\u{1F30A}\u{1F92F}\u{1F437}\u260E\u{1F4A7}\u{1F62F}\u{1F486}\u{1F446}\u{1F3A4}\u{1F647}\u{1F351}\u2744\u{1F334}\u{1F4A3}\u{1F438}\u{1F48C}\u{1F4CD}\u{1F940}\u{1F922}\u{1F445}\u{1F4A1}\u{1F4A9}\u{1F450}\u{1F4F8}\u{1F47B}\u{1F910}\u{1F92E}\u{1F3BC}\u{1F975}\u{1F6A9}\u{1F34E}\u{1F34A}\u{1F47C}\u{1F48D}\u{1F4E3}\u{1F942}");
 var alphabetBytesToChars = alphabet.reduce((p, c, i) => {
   p[i] = c;
@@ -28619,6 +28835,7 @@ __export(base32_exports2, {
   base32upper: () => base32upper2,
   base32z: () => base32z2
 });
+init_define_REPO_FILES();
 var base322 = rfc46482({
   prefix: "b",
   name: "base32",
@@ -28688,6 +28905,7 @@ __export(base36_exports, {
   base36: () => base36,
   base36upper: () => base36upper
 });
+init_define_REPO_FILES();
 var base36 = baseX2({
   prefix: "k",
   name: "base36",
@@ -28707,6 +28925,7 @@ __export(base58_exports2, {
   base58btc: () => base58btc2,
   base58flickr: () => base58flickr2
 });
+init_define_REPO_FILES();
 var base58btc2 = baseX2({
   name: "base58btc",
   prefix: "z",
@@ -28726,6 +28945,7 @@ __export(base64_exports2, {
   base64url: () => base64url2,
   base64urlpad: () => base64urlpad2
 });
+init_define_REPO_FILES();
 var base642 = rfc46482({
   prefix: "m",
   name: "base64",
@@ -28756,6 +28976,7 @@ var base8_exports = {};
 __export(base8_exports, {
   base8: () => base8
 });
+init_define_REPO_FILES();
 var base8 = rfc46482({
   prefix: "7",
   name: "base8",
@@ -28768,6 +28989,7 @@ var identity_exports = {};
 __export(identity_exports, {
   identity: () => identity
 });
+init_define_REPO_FILES();
 var identity = from2({
   prefix: "\0",
   name: "identity",
@@ -28776,16 +28998,28 @@ var identity = from2({
 });
 
 // node_modules/@multiformats/dns/node_modules/multiformats/dist/src/codecs/json.js
+init_define_REPO_FILES();
 var textEncoder = new TextEncoder();
 var textDecoder = new TextDecoder();
+
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/codecs/raw.js
+init_define_REPO_FILES();
 
 // node_modules/@multiformats/dns/node_modules/multiformats/dist/src/hashes/identity.js
 var identity_exports2 = {};
 __export(identity_exports2, {
   identity: () => identity2
 });
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/hashes/digest.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/varint.js
+init_define_REPO_FILES();
 
 // node_modules/@multiformats/dns/node_modules/multiformats/dist/src/vendor/varint.js
+init_define_REPO_FILES();
 var encode_1 = encode4;
 var MSB = 128;
 var REST = 127;
@@ -28930,8 +29164,10 @@ __export(sha2_browser_exports, {
   sha256: () => sha256,
   sha512: () => sha512
 });
+init_define_REPO_FILES();
 
 // node_modules/@multiformats/dns/node_modules/multiformats/dist/src/hashes/hasher.js
+init_define_REPO_FILES();
 var DEFAULT_MIN_DIGEST_LENGTH = 20;
 function from3({ name: name15, code: code14, encode: encode55, minDigestLength, maxDigestLength }) {
   return new Hasher(name15, code14, encode55, minDigestLength, maxDigestLength);
@@ -28993,6 +29229,15 @@ var sha512 = from3({
   code: 19,
   encode: sha("SHA-512")
 });
+
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/cid.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/link/interface.js
+init_define_REPO_FILES();
 
 // node_modules/@multiformats/dns/node_modules/multiformats/dist/src/cid.js
 function format2(link, base13) {
@@ -29329,11 +29574,27 @@ function encodeCID(version4, code14, multihash) {
 }
 var cidSymbol = Symbol.for("@ipld/js-cid/CID");
 
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/bases/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/hashes/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/codecs/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/dns/node_modules/multiformats/dist/src/block/interface.js
+init_define_REPO_FILES();
+
 // node_modules/@multiformats/dns/node_modules/multiformats/dist/src/basics.js
 var bases = { ...identity_exports, ...base2_exports, ...base8_exports, ...base10_exports, ...base16_exports, ...base32_exports2, ...base36_exports, ...base58_exports2, ...base64_exports2, ...base256emoji_exports };
 var hashes = { ...sha2_browser_exports, ...identity_exports2 };
 
 // node_modules/@multiformats/dns/node_modules/uint8arrays/dist/src/alloc.js
+init_define_REPO_FILES();
 function allocUnsafe(size = 0) {
   return new Uint8Array(size);
 }
@@ -29469,6 +29730,7 @@ function defaultResolver() {
 }
 
 // node_modules/@multiformats/dns/dist/src/utils/cache.js
+init_define_REPO_FILES();
 var import_hashlru = __toESM(require_hashlru(), 1);
 var CachedAnswers = class {
   lru;
@@ -29612,6 +29874,7 @@ function dns(init2 = {}) {
 }
 
 // node_modules/it-drain/dist/src/index.js
+init_define_REPO_FILES();
 function isAsyncIterable(thing) {
   return thing[Symbol.asyncIterator] != null;
 }
@@ -29628,7 +29891,17 @@ function drain(source) {
 }
 var src_default2 = drain;
 
+// node_modules/@helia/utils/dist/src/pins.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/utils/dist/src/queue/index.js
+init_define_REPO_FILES();
+
+// node_modules/it-pushable/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/p-defer/index.js
+init_define_REPO_FILES();
 function pDefer() {
   const deferred = {};
   deferred.promise = new Promise((resolve8, reject) => {
@@ -29639,6 +29912,7 @@ function pDefer() {
 }
 
 // node_modules/it-pushable/dist/src/fifo.js
+init_define_REPO_FILES();
 var FixedFIFO = class {
   buffer;
   mask;
@@ -29911,7 +30185,11 @@ function _pushable(getNext, options2) {
   return pushable2;
 }
 
+// node_modules/race-event/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/abort-error/dist/src/index.js
+init_define_REPO_FILES();
 var AbortError3 = class extends Error {
   static name = "AbortError";
   name = "AbortError";
@@ -29991,6 +30269,7 @@ function isEventTarget(emitter) {
 }
 
 // node_modules/@libp2p/utils/dist/src/debounce.js
+init_define_REPO_FILES();
 function debounce(func, wait) {
   let timeout;
   const output = function() {
@@ -30010,6 +30289,7 @@ function debounce(func, wait) {
 }
 
 // node_modules/@libp2p/utils/dist/src/errors.js
+init_define_REPO_FILES();
 var RateLimitError = class extends Error {
   remainingPoints;
   msBeforeNext;
@@ -30032,7 +30312,11 @@ var QueueFullError = class extends Error {
   }
 };
 
+// node_modules/@libp2p/utils/dist/src/queue/job.js
+init_define_REPO_FILES();
+
 // node_modules/race-signal/dist/src/index.js
+init_define_REPO_FILES();
 var AbortError4 = class extends Error {
   type;
   code;
@@ -30072,6 +30356,7 @@ async function raceSignal(promise, signal, opts) {
 }
 
 // node_modules/@libp2p/utils/dist/src/queue/recipient.js
+init_define_REPO_FILES();
 var JobRecipient = class {
   deferred;
   signal;
@@ -30404,7 +30689,14 @@ var Queue = class extends TypedEventEmitter {
   }
 };
 
+// node_modules/cborg/cborg.js
+init_define_REPO_FILES();
+
+// node_modules/cborg/lib/encode.js
+init_define_REPO_FILES();
+
 // node_modules/cborg/lib/is.js
+init_define_REPO_FILES();
 var objectTypeNames = [
   "Object",
   // for Object.create(null) and other non-plain objects
@@ -30473,6 +30765,7 @@ function getObjectType(value2) {
 }
 
 // node_modules/cborg/lib/token.js
+init_define_REPO_FILES();
 var Type = class {
   /**
    * @param {number} major
@@ -30540,7 +30833,11 @@ var Token = class {
   }
 };
 
+// node_modules/cborg/lib/bl.js
+init_define_REPO_FILES();
+
 // node_modules/cborg/lib/byte-utils.js
+init_define_REPO_FILES();
 var useBuffer = globalThis.process && // @ts-ignore
 !globalThis.process.browser && // @ts-ignore
 globalThis.Buffer && // @ts-ignore
@@ -30816,6 +31113,7 @@ var U8Bl = class {
 };
 
 // node_modules/cborg/lib/common.js
+init_define_REPO_FILES();
 var decodeErrPrefix = "CBOR decode error:";
 var encodeErrPrefix = "CBOR encode error:";
 var uintMinorPrefixBytes = [];
@@ -30830,7 +31128,11 @@ function assertEnoughData(data, pos, need) {
   }
 }
 
+// node_modules/cborg/lib/jump.js
+init_define_REPO_FILES();
+
 // node_modules/cborg/lib/0uint.js
+init_define_REPO_FILES();
 var uintBoundaries = [24, 256, 65536, 4294967296, BigInt("18446744073709551616")];
 function readUint8(data, offset, options2) {
   assertEnoughData(data, offset, 1);
@@ -30952,6 +31254,7 @@ encodeUint.compareTokens = function compareTokens(tok1, tok2) {
 };
 
 // node_modules/cborg/lib/1negint.js
+init_define_REPO_FILES();
 function decodeNegint8(data, pos, _minor, options2) {
   return new Token(Type.negint, -1 - readUint8(data, pos + 1, options2), 2);
 }
@@ -31006,6 +31309,7 @@ encodeNegint.compareTokens = function compareTokens2(tok1, tok2) {
 };
 
 // node_modules/cborg/lib/2bytes.js
+init_define_REPO_FILES();
 function toToken(data, pos, prefix, length15) {
   assertEnoughData(data, pos, prefix + length15);
   const buf = data.slice(pos + prefix, pos + prefix + length15);
@@ -31053,6 +31357,7 @@ function compareBytes(b1, b2) {
 }
 
 // node_modules/cborg/lib/3string.js
+init_define_REPO_FILES();
 var textDecoder2 = new TextDecoder();
 var ASCII_THRESHOLD = 32;
 function toStr(bytes, start2, end) {
@@ -31101,6 +31406,7 @@ function decodeString64(data, pos, _minor, options2) {
 var encodeString = encodeBytes;
 
 // node_modules/cborg/lib/4array.js
+init_define_REPO_FILES();
 function toToken3(_data, _pos, prefix, length15) {
   return new Token(Type.array, length15, prefix);
 }
@@ -31138,6 +31444,7 @@ encodeArray.encodedSize = function encodedSize5(token) {
 };
 
 // node_modules/cborg/lib/5map.js
+init_define_REPO_FILES();
 function toToken4(_data, _pos, prefix, length15) {
   return new Token(Type.map, length15, prefix);
 }
@@ -31175,6 +31482,7 @@ encodeMap.encodedSize = function encodedSize6(token) {
 };
 
 // node_modules/cborg/lib/6tag.js
+init_define_REPO_FILES();
 function decodeTagCompact(_data, _pos, minor, _options) {
   return new Token(Type.tag, minor, 1);
 }
@@ -31199,6 +31507,7 @@ encodeTag.encodedSize = function encodedSize7(token) {
 };
 
 // node_modules/cborg/lib/7float.js
+init_define_REPO_FILES();
 var MINOR_FALSE = 20;
 var MINOR_TRUE = 21;
 var MINOR_NULL = 22;
@@ -31967,6 +32276,7 @@ function encode6(data, options2) {
 }
 
 // node_modules/cborg/lib/decode.js
+init_define_REPO_FILES();
 var defaultDecodeOptions = {
   strict: false,
   allowIndefinite: true,
@@ -32109,11 +32419,27 @@ function decode7(data, options2) {
   return decoded;
 }
 
+// node_modules/interface-datastore/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/interface-datastore/dist/src/key.js
+init_define_REPO_FILES();
+
+// node_modules/uint8arrays/dist/src/from-string.js
+init_define_REPO_FILES();
+
+// node_modules/uint8arrays/dist/src/util/bases.js
+init_define_REPO_FILES();
+
+// node_modules/multiformats/dist/src/basics.js
+init_define_REPO_FILES();
+
 // node_modules/multiformats/dist/src/bases/base10.js
 var base10_exports2 = {};
 __export(base10_exports2, {
   base10: () => base102
 });
+init_define_REPO_FILES();
 var base102 = baseX({
   prefix: "9",
   name: "base10",
@@ -32126,6 +32452,7 @@ __export(base16_exports2, {
   base16: () => base162,
   base16upper: () => base16upper2
 });
+init_define_REPO_FILES();
 var base162 = rfc4648({
   prefix: "f",
   name: "base16",
@@ -32144,6 +32471,7 @@ var base2_exports2 = {};
 __export(base2_exports2, {
   base2: () => base23
 });
+init_define_REPO_FILES();
 var base23 = rfc4648({
   prefix: "0",
   name: "base2",
@@ -32156,6 +32484,7 @@ var base256emoji_exports2 = {};
 __export(base256emoji_exports2, {
   base256emoji: () => base256emoji2
 });
+init_define_REPO_FILES();
 var alphabet2 = Array.from("\u{1F680}\u{1FA90}\u2604\u{1F6F0}\u{1F30C}\u{1F311}\u{1F312}\u{1F313}\u{1F314}\u{1F315}\u{1F316}\u{1F317}\u{1F318}\u{1F30D}\u{1F30F}\u{1F30E}\u{1F409}\u2600\u{1F4BB}\u{1F5A5}\u{1F4BE}\u{1F4BF}\u{1F602}\u2764\u{1F60D}\u{1F923}\u{1F60A}\u{1F64F}\u{1F495}\u{1F62D}\u{1F618}\u{1F44D}\u{1F605}\u{1F44F}\u{1F601}\u{1F525}\u{1F970}\u{1F494}\u{1F496}\u{1F499}\u{1F622}\u{1F914}\u{1F606}\u{1F644}\u{1F4AA}\u{1F609}\u263A\u{1F44C}\u{1F917}\u{1F49C}\u{1F614}\u{1F60E}\u{1F607}\u{1F339}\u{1F926}\u{1F389}\u{1F49E}\u270C\u2728\u{1F937}\u{1F631}\u{1F60C}\u{1F338}\u{1F64C}\u{1F60B}\u{1F497}\u{1F49A}\u{1F60F}\u{1F49B}\u{1F642}\u{1F493}\u{1F929}\u{1F604}\u{1F600}\u{1F5A4}\u{1F603}\u{1F4AF}\u{1F648}\u{1F447}\u{1F3B6}\u{1F612}\u{1F92D}\u2763\u{1F61C}\u{1F48B}\u{1F440}\u{1F62A}\u{1F611}\u{1F4A5}\u{1F64B}\u{1F61E}\u{1F629}\u{1F621}\u{1F92A}\u{1F44A}\u{1F973}\u{1F625}\u{1F924}\u{1F449}\u{1F483}\u{1F633}\u270B\u{1F61A}\u{1F61D}\u{1F634}\u{1F31F}\u{1F62C}\u{1F643}\u{1F340}\u{1F337}\u{1F63B}\u{1F613}\u2B50\u2705\u{1F97A}\u{1F308}\u{1F608}\u{1F918}\u{1F4A6}\u2714\u{1F623}\u{1F3C3}\u{1F490}\u2639\u{1F38A}\u{1F498}\u{1F620}\u261D\u{1F615}\u{1F33A}\u{1F382}\u{1F33B}\u{1F610}\u{1F595}\u{1F49D}\u{1F64A}\u{1F639}\u{1F5E3}\u{1F4AB}\u{1F480}\u{1F451}\u{1F3B5}\u{1F91E}\u{1F61B}\u{1F534}\u{1F624}\u{1F33C}\u{1F62B}\u26BD\u{1F919}\u2615\u{1F3C6}\u{1F92B}\u{1F448}\u{1F62E}\u{1F646}\u{1F37B}\u{1F343}\u{1F436}\u{1F481}\u{1F632}\u{1F33F}\u{1F9E1}\u{1F381}\u26A1\u{1F31E}\u{1F388}\u274C\u270A\u{1F44B}\u{1F630}\u{1F928}\u{1F636}\u{1F91D}\u{1F6B6}\u{1F4B0}\u{1F353}\u{1F4A2}\u{1F91F}\u{1F641}\u{1F6A8}\u{1F4A8}\u{1F92C}\u2708\u{1F380}\u{1F37A}\u{1F913}\u{1F619}\u{1F49F}\u{1F331}\u{1F616}\u{1F476}\u{1F974}\u25B6\u27A1\u2753\u{1F48E}\u{1F4B8}\u2B07\u{1F628}\u{1F31A}\u{1F98B}\u{1F637}\u{1F57A}\u26A0\u{1F645}\u{1F61F}\u{1F635}\u{1F44E}\u{1F932}\u{1F920}\u{1F927}\u{1F4CC}\u{1F535}\u{1F485}\u{1F9D0}\u{1F43E}\u{1F352}\u{1F617}\u{1F911}\u{1F30A}\u{1F92F}\u{1F437}\u260E\u{1F4A7}\u{1F62F}\u{1F486}\u{1F446}\u{1F3A4}\u{1F647}\u{1F351}\u2744\u{1F334}\u{1F4A3}\u{1F438}\u{1F48C}\u{1F4CD}\u{1F940}\u{1F922}\u{1F445}\u{1F4A1}\u{1F4A9}\u{1F450}\u{1F4F8}\u{1F47B}\u{1F910}\u{1F92E}\u{1F3BC}\u{1F975}\u{1F6A9}\u{1F34E}\u{1F34A}\u{1F47C}\u{1F48D}\u{1F4E3}\u{1F942}");
 var alphabetBytesToChars2 = alphabet2.reduce((p, c, i) => {
   p[i] = c;
@@ -32203,6 +32532,7 @@ __export(base36_exports2, {
   base36: () => base362,
   base36upper: () => base36upper2
 });
+init_define_REPO_FILES();
 var base362 = baseX({
   prefix: "k",
   name: "base36",
@@ -32219,6 +32549,7 @@ var base8_exports2 = {};
 __export(base8_exports2, {
   base8: () => base82
 });
+init_define_REPO_FILES();
 var base82 = rfc4648({
   prefix: "7",
   name: "base8",
@@ -32231,6 +32562,7 @@ var identity_exports3 = {};
 __export(identity_exports3, {
   identity: () => identity3
 });
+init_define_REPO_FILES();
 var identity3 = from({
   prefix: "\0",
   name: "identity",
@@ -32246,6 +32578,7 @@ __export(json_exports2, {
   encode: () => encode8,
   name: () => name2
 });
+init_define_REPO_FILES();
 var textEncoder3 = new TextEncoder();
 var textDecoder3 = new TextDecoder();
 var name2 = "json";
@@ -32265,6 +32598,7 @@ __export(raw_exports2, {
   encode: () => encode9,
   name: () => name3
 });
+init_define_REPO_FILES();
 var name3 = "raw";
 var code3 = 85;
 function encode9(node) {
@@ -32279,6 +32613,7 @@ var identity_exports4 = {};
 __export(identity_exports4, {
   identity: () => identity4
 });
+init_define_REPO_FILES();
 
 // node_modules/multiformats/dist/src/hashes/digest.js
 var digest_exports2 = {};
@@ -32289,8 +32624,13 @@ __export(digest_exports2, {
   equals: () => equals4,
   hasCode: () => hasCode
 });
+init_define_REPO_FILES();
+
+// node_modules/multiformats/dist/src/varint.js
+init_define_REPO_FILES();
 
 // node_modules/multiformats/dist/src/vendor/varint.js
+init_define_REPO_FILES();
 var encode_12 = encode10;
 var MSB2 = 128;
 var REST2 = 127;
@@ -32431,8 +32771,10 @@ __export(sha2_browser_exports2, {
   sha256: () => sha2562,
   sha512: () => sha5122
 });
+init_define_REPO_FILES();
 
 // node_modules/multiformats/dist/src/hashes/hasher.js
+init_define_REPO_FILES();
 var DEFAULT_MIN_DIGEST_LENGTH2 = 20;
 function from4({ name: name15, code: code14, encode: encode55, minDigestLength, maxDigestLength }) {
   return new Hasher2(name15, code14, encode55, minDigestLength, maxDigestLength);
@@ -32494,6 +32836,15 @@ var sha5122 = from4({
   code: 19,
   encode: sha2("SHA-512")
 });
+
+// node_modules/multiformats/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/multiformats/dist/src/cid.js
+init_define_REPO_FILES();
+
+// node_modules/multiformats/dist/src/link/interface.js
+init_define_REPO_FILES();
 
 // node_modules/multiformats/dist/src/cid.js
 function format3(link, base13) {
@@ -32830,11 +33181,27 @@ function encodeCID2(version4, code14, multihash) {
 }
 var cidSymbol2 = Symbol.for("@ipld/js-cid/CID");
 
+// node_modules/multiformats/dist/src/interface.js
+init_define_REPO_FILES();
+
+// node_modules/multiformats/dist/src/bases/interface.js
+init_define_REPO_FILES();
+
+// node_modules/multiformats/dist/src/hashes/interface.js
+init_define_REPO_FILES();
+
+// node_modules/multiformats/dist/src/codecs/interface.js
+init_define_REPO_FILES();
+
+// node_modules/multiformats/dist/src/block/interface.js
+init_define_REPO_FILES();
+
 // node_modules/multiformats/dist/src/basics.js
 var bases2 = { ...identity_exports3, ...base2_exports2, ...base8_exports2, ...base10_exports2, ...base16_exports2, ...base32_exports, ...base36_exports2, ...base58_exports, ...base64_exports, ...base256emoji_exports2 };
 var hashes2 = { ...sha2_browser_exports2, ...identity_exports4 };
 
 // node_modules/uint8arrays/dist/src/alloc.js
+init_define_REPO_FILES();
 function alloc2(size = 0) {
   return new Uint8Array(size);
 }
@@ -32899,6 +33266,7 @@ function fromString4(string9, encoding = "utf8") {
 }
 
 // node_modules/uint8arrays/dist/src/to-string.js
+init_define_REPO_FILES();
 function toString4(array, encoding = "utf8") {
   const base13 = bases_default2[encoding];
   if (base13 == null) {
@@ -33264,6 +33632,7 @@ function flatten(arr) {
 }
 
 // node_modules/multiformats/dist/src/block.js
+init_define_REPO_FILES();
 function readonly({ enumerable = true, configurable = false } = {}) {
   return { enumerable, configurable, writable: false };
 }
@@ -33384,6 +33753,7 @@ function createUnsafe({ bytes, cid, value: maybeValue, codec }) {
 }
 
 // node_modules/uint8arrays/dist/src/equals.js
+init_define_REPO_FILES();
 function equals5(a, b) {
   if (a === b) {
     return true;
@@ -33553,11 +33923,16 @@ var PinsImpl = class {
   }
 };
 
+// node_modules/@helia/utils/dist/src/routing.js
+init_define_REPO_FILES();
+
 // node_modules/@helia/interface/dist/src/blocks.js
+init_define_REPO_FILES();
 var DEFAULT_SESSION_MIN_PROVIDERS = 1;
 var DEFAULT_SESSION_MAX_PROVIDERS = 5;
 
 // node_modules/@helia/interface/dist/src/errors.js
+init_define_REPO_FILES();
 var InsufficientProvidersError = class extends Error {
   static name = "InsufficientProvidersError";
   constructor(message5 = "Insufficient providers found") {
@@ -33588,6 +33963,7 @@ var UnknownCodecError = class extends Error {
 };
 
 // node_modules/@libp2p/utils/dist/src/peer-queue.js
+init_define_REPO_FILES();
 var PeerQueue = class extends Queue {
   has(peerId) {
     return this.find(peerId) != null;
@@ -33599,7 +33975,14 @@ var PeerQueue = class extends Queue {
   }
 };
 
+// node_modules/it-merge/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/it-queueless-pushable/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/it-queueless-pushable/node_modules/race-signal/dist/src/index.js
+init_define_REPO_FILES();
 function defaultTranslate(signal) {
   return signal.reason;
 }
@@ -33935,7 +34318,17 @@ function supports(routers, key) {
   return routers.filter((router) => router[key] != null);
 }
 
+// node_modules/@helia/utils/dist/src/storage.js
+init_define_REPO_FILES();
+
+// node_modules/mortice/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/it-queue/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/it-queue/dist/src/errors.js
+init_define_REPO_FILES();
 var QueueFullError2 = class extends Error {
   static name = "QueueFullError";
   constructor(message5 = "The queue was full") {
@@ -33944,7 +34337,11 @@ var QueueFullError2 = class extends Error {
   }
 };
 
+// node_modules/it-queue/dist/src/job.js
+init_define_REPO_FILES();
+
 // node_modules/it-queue/node_modules/race-signal/dist/src/index.js
+init_define_REPO_FILES();
 function defaultTranslate2(signal) {
   return signal.reason;
 }
@@ -33975,6 +34372,7 @@ function raceSignal3(promise, signal, opts) {
 }
 
 // node_modules/it-queue/dist/src/recipient.js
+init_define_REPO_FILES();
 var JobRecipient2 = class {
   deferred;
   signal;
@@ -34067,6 +34465,7 @@ var Job2 = class {
 };
 
 // node_modules/it-queue/dist/src/utils.js
+init_define_REPO_FILES();
 function debounce2(func, wait) {
   let timeout;
   const output = function() {
@@ -34340,7 +34739,14 @@ var Queue2 = class extends TypedEventEmitter {
   }
 };
 
+// node_modules/mortice/dist/src/mortice.js
+init_define_REPO_FILES();
+
+// node_modules/mortice/dist/src/browser.js
+init_define_REPO_FILES();
+
 // node_modules/mortice/dist/src/constants.js
+init_define_REPO_FILES();
 var WORKER_REQUEST_READ_LOCK = "lock:worker:request-read";
 var WORKER_ABORT_READ_LOCK_REQUEST = "lock:worker:abort-read-request";
 var WORKER_RELEASE_READ_LOCK = "lock:worker:release-read";
@@ -34358,6 +34764,7 @@ var defaultOptions = {
 };
 
 // node_modules/mortice/dist/src/main/channel.js
+init_define_REPO_FILES();
 var handleChannelWorkerLockRequest = (emitter, channel, masterEvent, abortMasterEvent, requestType, abortType, errorType, releaseType, grantType) => {
   return (event) => {
     if (event.data == null) {
@@ -34430,7 +34837,11 @@ var handleChannelWorkerLockRequest = (emitter, channel, masterEvent, abortMaster
   };
 };
 
+// node_modules/mortice/dist/src/workers/channel.js
+init_define_REPO_FILES();
+
 // node_modules/mortice/dist/src/utils.js
+init_define_REPO_FILES();
 var nanoid = (size = 10) => {
   return Math.random().toString().substring(2, size + 2);
 };
@@ -34832,6 +35243,7 @@ var BlockStorage = class {
 };
 
 // node_modules/@helia/utils/dist/src/utils/datastore-version.js
+init_define_REPO_FILES();
 var DS_VERSION_KEY = new Key("/version");
 var CURRENT_VERSION = 1;
 async function assertDatastoreVersionIsCurrent(datastore) {
@@ -34847,6 +35259,9 @@ async function assertDatastoreVersionIsCurrent(datastore) {
   }
 }
 
+// node_modules/@helia/utils/dist/src/utils/get-codec.js
+init_define_REPO_FILES();
+
 // node_modules/@ipld/dag-cbor/src/index.js
 var src_exports = {};
 __export(src_exports, {
@@ -34858,8 +35273,16 @@ __export(src_exports, {
   name: () => name5,
   toByteView: () => toByteView
 });
+init_define_REPO_FILES();
+
+// node_modules/@ipld/dag-cbor/node_modules/cborg/cborg.js
+init_define_REPO_FILES();
+
+// node_modules/@ipld/dag-cbor/node_modules/cborg/lib/encode.js
+init_define_REPO_FILES();
 
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/is.js
+init_define_REPO_FILES();
 var objectTypeNames2 = [
   "Object",
   // for Object.create(null) and other non-plain objects
@@ -34929,6 +35352,7 @@ function getObjectType2(value2) {
 }
 
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/token.js
+init_define_REPO_FILES();
 var Type2 = class {
   /**
    * @param {number} major
@@ -34994,7 +35418,11 @@ var Token2 = class {
   }
 };
 
+// node_modules/@ipld/dag-cbor/node_modules/cborg/lib/bl.js
+init_define_REPO_FILES();
+
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/byte-utils.js
+init_define_REPO_FILES();
 var useBuffer2 = globalThis.process && // @ts-ignore
 !globalThis.process.browser && // @ts-ignore
 globalThis.Buffer && // @ts-ignore
@@ -35273,6 +35701,7 @@ var U8Bl2 = class {
 };
 
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/common.js
+init_define_REPO_FILES();
 var decodeErrPrefix2 = "CBOR decode error:";
 var encodeErrPrefix2 = "CBOR encode error:";
 var uintMinorPrefixBytes2 = [];
@@ -35287,7 +35716,11 @@ function assertEnoughData2(data, pos, need) {
   }
 }
 
+// node_modules/@ipld/dag-cbor/node_modules/cborg/lib/jump.js
+init_define_REPO_FILES();
+
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/0uint.js
+init_define_REPO_FILES();
 var uintBoundaries2 = [24, 256, 65536, 4294967296, BigInt("18446744073709551616")];
 function readUint82(data, offset, options2) {
   assertEnoughData2(data, offset, 1);
@@ -35406,6 +35839,7 @@ encodeUint2.compareTokens = function compareTokens4(tok1, tok2) {
 };
 
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/1negint.js
+init_define_REPO_FILES();
 function decodeNegint82(data, pos, _minor, options2) {
   return new Token2(Type2.negint, -1 - readUint82(data, pos + 1, options2), 2);
 }
@@ -35457,6 +35891,7 @@ encodeNegint2.compareTokens = function compareTokens5(tok1, tok2) {
 };
 
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/2bytes.js
+init_define_REPO_FILES();
 function toToken5(data, pos, prefix, length15) {
   assertEnoughData2(data, pos, prefix + length15);
   const buf = data.slice(pos + prefix, pos + prefix + length15);
@@ -35504,6 +35939,7 @@ function compareBytes2(b1, b2) {
 }
 
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/3string.js
+init_define_REPO_FILES();
 var textDecoder4 = new TextDecoder();
 var ASCII_THRESHOLD2 = 32;
 function toStr2(bytes, start2, end) {
@@ -35552,6 +35988,7 @@ function decodeString642(data, pos, _minor, options2) {
 var encodeString2 = encodeBytes2;
 
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/4array.js
+init_define_REPO_FILES();
 function toToken7(_data, _pos, prefix, length15) {
   return new Token2(Type2.array, length15, prefix);
 }
@@ -35589,6 +36026,7 @@ encodeArray2.encodedSize = function encodedSize13(token) {
 };
 
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/5map.js
+init_define_REPO_FILES();
 function toToken8(_data, _pos, prefix, length15) {
   return new Token2(Type2.map, length15, prefix);
 }
@@ -35626,6 +36064,7 @@ encodeMap2.encodedSize = function encodedSize14(token) {
 };
 
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/6tag.js
+init_define_REPO_FILES();
 function decodeTagCompact2(_data, _pos, minor, _options) {
   return new Token2(Type2.tag, minor, 1);
 }
@@ -35650,6 +36089,7 @@ encodeTag2.encodedSize = function encodedSize15(token) {
 };
 
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/7float.js
+init_define_REPO_FILES();
 var MINOR_FALSE2 = 20;
 var MINOR_TRUE2 = 21;
 var MINOR_NULL2 = 22;
@@ -36434,6 +36874,7 @@ function encode12(data, options2) {
 }
 
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/decode.js
+init_define_REPO_FILES();
 var defaultDecodeOptions2 = {
   strict: false,
   allowIndefinite: true,
@@ -36639,6 +37080,7 @@ function decode14(data, options2) {
 }
 
 // node_modules/@ipld/dag-cbor/node_modules/cborg/lib/tagged.js
+init_define_REPO_FILES();
 var Tagged = class _Tagged {
   /**
    * @param {number} tag - CBOR tag number, a non-negative integer
@@ -36793,8 +37235,16 @@ __export(src_exports2, {
   parse: () => parse2,
   stringify: () => format4
 });
+init_define_REPO_FILES();
+
+// node_modules/@ipld/dag-json/node_modules/cborg/cborg.js
+init_define_REPO_FILES();
+
+// node_modules/@ipld/dag-json/node_modules/cborg/lib/encode.js
+init_define_REPO_FILES();
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/is.js
+init_define_REPO_FILES();
 var objectTypeNames3 = [
   "Object",
   // for Object.create(null) and other non-plain objects
@@ -36864,6 +37314,7 @@ function getObjectType3(value2) {
 }
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/token.js
+init_define_REPO_FILES();
 var Type3 = class {
   /**
    * @param {number} major
@@ -36929,7 +37380,11 @@ var Token3 = class {
   }
 };
 
+// node_modules/@ipld/dag-json/node_modules/cborg/lib/bl.js
+init_define_REPO_FILES();
+
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/byte-utils.js
+init_define_REPO_FILES();
 var useBuffer3 = globalThis.process && // @ts-ignore
 !globalThis.process.browser && // @ts-ignore
 globalThis.Buffer && // @ts-ignore
@@ -37224,6 +37679,7 @@ var U8Bl3 = class {
 };
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/common.js
+init_define_REPO_FILES();
 var decodeErrPrefix3 = "CBOR decode error:";
 var encodeErrPrefix3 = "CBOR encode error:";
 var uintMinorPrefixBytes3 = [];
@@ -37238,7 +37694,11 @@ function assertEnoughData3(data, pos, need) {
   }
 }
 
+// node_modules/@ipld/dag-json/node_modules/cborg/lib/jump.js
+init_define_REPO_FILES();
+
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/0uint.js
+init_define_REPO_FILES();
 var uintBoundaries3 = [24, 256, 65536, 4294967296, BigInt("18446744073709551616")];
 function readUint83(data, offset, options2) {
   assertEnoughData3(data, offset, 1);
@@ -37357,6 +37817,7 @@ encodeUint3.compareTokens = function compareTokens7(tok1, tok2) {
 };
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/1negint.js
+init_define_REPO_FILES();
 function decodeNegint83(data, pos, _minor, options2) {
   return new Token3(Type3.negint, -1 - readUint83(data, pos + 1, options2), 2);
 }
@@ -37408,6 +37869,7 @@ encodeNegint3.compareTokens = function compareTokens8(tok1, tok2) {
 };
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/2bytes.js
+init_define_REPO_FILES();
 function toToken9(data, pos, prefix, length15) {
   assertEnoughData3(data, pos, prefix + length15);
   const buf = data.slice(pos + prefix, pos + prefix + length15);
@@ -37455,6 +37917,7 @@ function compareBytes3(b1, b2) {
 }
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/3string.js
+init_define_REPO_FILES();
 var textDecoder5 = new TextDecoder();
 var ASCII_THRESHOLD3 = 32;
 function toStr3(bytes, start2, end) {
@@ -37503,6 +37966,7 @@ function decodeString643(data, pos, _minor, options2) {
 var encodeString3 = encodeBytes3;
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/4array.js
+init_define_REPO_FILES();
 function toToken11(_data, _pos, prefix, length15) {
   return new Token3(Type3.array, length15, prefix);
 }
@@ -37540,6 +38004,7 @@ encodeArray3.encodedSize = function encodedSize21(token) {
 };
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/5map.js
+init_define_REPO_FILES();
 function toToken12(_data, _pos, prefix, length15) {
   return new Token3(Type3.map, length15, prefix);
 }
@@ -37577,6 +38042,7 @@ encodeMap3.encodedSize = function encodedSize22(token) {
 };
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/6tag.js
+init_define_REPO_FILES();
 function decodeTagCompact3(_data, _pos, minor, _options) {
   return new Token3(Type3.tag, minor, 1);
 }
@@ -37601,6 +38067,7 @@ encodeTag3.encodedSize = function encodedSize23(token) {
 };
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/7float.js
+init_define_REPO_FILES();
 var MINOR_FALSE3 = 20;
 var MINOR_TRUE3 = 21;
 var MINOR_NULL3 = 22;
@@ -38281,6 +38748,7 @@ function encodeCustom3(data, encoders, options2, destination) {
 }
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/decode.js
+init_define_REPO_FILES();
 var defaultDecodeOptions3 = {
   strict: false,
   allowIndefinite: true,
@@ -38486,6 +38954,7 @@ function decode16(data, options2) {
 }
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/tagged.js
+init_define_REPO_FILES();
 var Tagged2 = class _Tagged {
   /**
    * @param {number} tag - CBOR tag number, a non-negative integer
@@ -38538,7 +39007,11 @@ Object.defineProperty(Tagged2.prototype, Symbol.toStringTag, {
   value: "Tagged"
 });
 
+// node_modules/@ipld/dag-json/node_modules/cborg/lib/json/json.js
+init_define_REPO_FILES();
+
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/json/encode.js
+init_define_REPO_FILES();
 var JSONEncoder = class extends Array {
   constructor() {
     super();
@@ -38701,6 +39174,7 @@ function encode15(data, options2) {
 }
 
 // node_modules/@ipld/dag-json/node_modules/cborg/lib/json/decode.js
+init_define_REPO_FILES();
 var Tokenizer = class {
   /**
    * @param {Uint8Array} data
@@ -39276,8 +39750,19 @@ __export(src_exports3, {
   prepare: () => prepare,
   validate: () => validate
 });
+init_define_REPO_FILES();
+
+// node_modules/@ipld/dag-pb/node_modules/multiformats/dist/src/cid.js
+init_define_REPO_FILES();
+
+// node_modules/@ipld/dag-pb/node_modules/multiformats/dist/src/bases/base32.js
+init_define_REPO_FILES();
+
+// node_modules/@ipld/dag-pb/node_modules/multiformats/dist/src/bases/base.js
+init_define_REPO_FILES();
 
 // node_modules/@ipld/dag-pb/node_modules/multiformats/dist/src/bytes.js
+init_define_REPO_FILES();
 var empty3 = new Uint8Array(0);
 function equals6(aa, bb) {
   if (aa === bb) {
@@ -39316,6 +39801,7 @@ function toArrayBufferBackedArray2(b) {
 }
 
 // node_modules/@ipld/dag-pb/node_modules/multiformats/dist/src/vendor/base-x.js
+init_define_REPO_FILES();
 function base3(ALPHABET, name15, caseInsensitive) {
   if (ALPHABET.length >= 255) {
     throw new TypeError("Alphabet too long");
@@ -39712,6 +40198,7 @@ var base32z3 = rfc46483({
 });
 
 // node_modules/@ipld/dag-pb/node_modules/multiformats/dist/src/bases/base36.js
+init_define_REPO_FILES();
 var base363 = baseX3({
   prefix: "k",
   name: "base36",
@@ -39726,6 +40213,7 @@ var base36upper3 = baseX3({
 });
 
 // node_modules/@ipld/dag-pb/node_modules/multiformats/dist/src/bases/base58.js
+init_define_REPO_FILES();
 var base58btc3 = baseX3({
   name: "base58btc",
   prefix: "z",
@@ -39737,7 +40225,14 @@ var base58flickr3 = baseX3({
   alphabet: "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
 });
 
+// node_modules/@ipld/dag-pb/node_modules/multiformats/dist/src/hashes/digest.js
+init_define_REPO_FILES();
+
+// node_modules/@ipld/dag-pb/node_modules/multiformats/dist/src/varint.js
+init_define_REPO_FILES();
+
 // node_modules/@ipld/dag-pb/node_modules/multiformats/dist/src/vendor/varint.js
+init_define_REPO_FILES();
 var encode_13 = encode18;
 var MSB3 = 128;
 var REST3 = 127;
@@ -39860,6 +40355,9 @@ var Digest3 = class {
     this.bytes = toArrayBufferBackedArray2(bytes);
   }
 };
+
+// node_modules/@ipld/dag-pb/node_modules/multiformats/dist/src/link/interface.js
+init_define_REPO_FILES();
 
 // node_modules/@ipld/dag-pb/node_modules/multiformats/dist/src/cid.js
 function format5(link, base13) {
@@ -40197,6 +40695,7 @@ function encodeCID3(version4, code14, multihash) {
 var cidSymbol3 = Symbol.for("@ipld/js-cid/CID");
 
 // node_modules/@ipld/dag-pb/src/pb-decode.js
+init_define_REPO_FILES();
 var textDecoder6 = new TextDecoder();
 function decodeVarint(bytes, offset) {
   let v = 0;
@@ -40328,6 +40827,7 @@ function decodeNode(bytes) {
 }
 
 // node_modules/@ipld/dag-pb/src/pb-encode.js
+init_define_REPO_FILES();
 var textEncoder6 = new TextEncoder();
 var maxInt32 = 2 ** 32;
 var maxUInt32 = 2 ** 31;
@@ -40711,6 +41211,7 @@ var len8tab = [
 ];
 
 // node_modules/@ipld/dag-pb/src/util.js
+init_define_REPO_FILES();
 var pbNodeProperties = ["Data", "Links"];
 var pbLinkProperties = ["Hash", "Name", "Tsize"];
 var textEncoder7 = new TextEncoder();
@@ -40915,6 +41416,7 @@ function decode23(bytes) {
 }
 
 // node_modules/@helia/utils/dist/src/utils/is-promise.js
+init_define_REPO_FILES();
 function isPromise(p) {
   return p?.then != null;
 }
@@ -40950,6 +41452,7 @@ function getCodec(initialCodecs = [], loadCodec) {
 }
 
 // node_modules/@helia/utils/dist/src/utils/get-hasher.js
+init_define_REPO_FILES();
 function getHasher(initialHashers = [], loadHasher) {
   const hashers = {
     [sha2562.code]: sha2562,
@@ -40977,7 +41480,11 @@ function getHasher(initialHashers = [], loadHasher) {
   };
 }
 
+// node_modules/@helia/utils/dist/src/utils/networked-storage.js
+init_define_REPO_FILES();
+
 // node_modules/any-signal/dist/src/index.js
+init_define_REPO_FILES();
 function anySignal(signals) {
   const controller = new globalThis.AbortController();
   function onAbort() {
@@ -41010,7 +41517,14 @@ function anySignal(signals) {
   return signal;
 }
 
+// node_modules/blockstore-core/dist/src/identity.js
+init_define_REPO_FILES();
+
+// node_modules/interface-store/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/interface-store/dist/src/errors.js
+init_define_REPO_FILES();
 var NotFoundError2 = class _NotFoundError extends Error {
   static name = "NotFoundError";
   static code = "ERR_NOT_FOUND";
@@ -41022,6 +41536,7 @@ var NotFoundError2 = class _NotFoundError extends Error {
 };
 
 // node_modules/blockstore-core/dist/src/base.js
+init_define_REPO_FILES();
 var BaseBlockstore = class {
   has(key, options2) {
     return Promise.reject(new Error(".has is not implemented"));
@@ -41122,7 +41637,11 @@ var IdentityBlockstore = class extends BaseBlockstore {
   }
 };
 
+// node_modules/it-filter/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/it-peekable/dist/src/index.js
+init_define_REPO_FILES();
 function peekable(iterable) {
   const [iterator, symbol5] = iterable[Symbol.asyncIterator] != null ? [iterable[Symbol.asyncIterator](), Symbol.asyncIterator] : [iterable[Symbol.iterator](), Symbol.iterator];
   const queue = [];
@@ -41198,6 +41717,7 @@ function filter(source, fn) {
 var src_default5 = filter;
 
 // node_modules/it-foreach/dist/src/index.js
+init_define_REPO_FILES();
 function isAsyncIterable4(thing) {
   return thing[Symbol.asyncIterator] != null;
 }
@@ -41586,7 +42106,17 @@ async function raceBlockRetrievers(cid, blockBrokers, hasher, options2) {
   }
 }
 
+// node_modules/@helia/utils/dist/src/abstract-session.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/utils/dist/src/filters/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/node_modules/uint8arrays/dist/src/with-array-buffer.js
+init_define_REPO_FILES();
 function isArrayBufferBacked(arr) {
   return arr.buffer instanceof ArrayBuffer;
 }
@@ -41597,7 +42127,11 @@ function withArrayBuffer(arr) {
   return arr.slice();
 }
 
+// node_modules/@libp2p/crypto/dist/src/webcrypto/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/dist/src/errors.js
+init_define_REPO_FILES();
 var SigningError = class extends Error {
   constructor(message5 = "An error occurred while signing a message") {
     super(message5);
@@ -41628,7 +42162,11 @@ var webcrypto_default = {
   }
 };
 
+// node_modules/@libp2p/crypto/dist/src/keys/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/node_modules/@libp2p/interface/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidParametersError2 = class extends Error {
   static name = "InvalidParametersError";
   constructor(message5 = "Invalid parameters") {
@@ -41659,6 +42197,7 @@ var UnsupportedKeyTypeError2 = class extends Error {
 };
 
 // node_modules/@libp2p/crypto/node_modules/uint8arrays/dist/src/equals.js
+init_define_REPO_FILES();
 function equals8(a, b) {
   if (a === b) {
     return true;
@@ -41674,14 +42213,22 @@ function equals8(a, b) {
   return true;
 }
 
+// node_modules/@libp2p/crypto/dist/src/keys/ecdsa/ecdsa.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/bases/base58.js
 var base58_exports3 = {};
 __export(base58_exports3, {
   base58btc: () => base58btc4,
   base58flickr: () => base58flickr4
 });
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/bases/base.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/bytes.js
+init_define_REPO_FILES();
 var empty4 = new Uint8Array(0);
 function equals9(aa, bb) {
   if (aa === bb) {
@@ -41744,6 +42291,7 @@ function toArrayBufferBackedArray3(b) {
 }
 
 // node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/vendor/base-x.js
+init_define_REPO_FILES();
 function base4(ALPHABET, name15, caseInsensitive) {
   if (ALPHABET.length >= 255) {
     throw new TypeError("Alphabet too long");
@@ -42087,6 +42635,9 @@ var base58flickr4 = baseX4({
   alphabet: "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
 });
 
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/cid.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/bases/base32.js
 var base32_exports3 = {};
 __export(base32_exports3, {
@@ -42100,6 +42651,7 @@ __export(base32_exports3, {
   base32upper: () => base32upper4,
   base32z: () => base32z4
 });
+init_define_REPO_FILES();
 var base324 = rfc46484({
   prefix: "b",
   name: "base32",
@@ -42169,6 +42721,7 @@ __export(base36_exports3, {
   base36: () => base364,
   base36upper: () => base36upper4
 });
+init_define_REPO_FILES();
 var base364 = baseX4({
   prefix: "k",
   name: "base36",
@@ -42182,7 +42735,14 @@ var base36upper4 = baseX4({
   caseInsensitive: true
 });
 
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/hashes/digest.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/varint.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/vendor/varint.js
+init_define_REPO_FILES();
 var encode_14 = encode21;
 var MSB4 = 128;
 var REST4 = 127;
@@ -42305,6 +42865,9 @@ var Digest4 = class {
     this.bytes = toArrayBufferBackedArray3(bytes);
   }
 };
+
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/link/interface.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/cid.js
 function format6(link, base13) {
@@ -42646,6 +43209,7 @@ var identity_exports5 = {};
 __export(identity_exports5, {
   identity: () => identity5
 });
+init_define_REPO_FILES();
 var code8 = 0;
 var name8 = "identity";
 var encode22 = coerce4;
@@ -42661,6 +43225,7 @@ function digest3(input, options2) {
 var identity5 = { code: code8, name: name8, encode: encode22, digest: digest3 };
 
 // node_modules/@libp2p/crypto/dist/src/keys/ecdsa/index.js
+init_define_REPO_FILES();
 var ECDSA_P_256_OID = "1.2.840.10045.3.1.7";
 var ECDSA_P_384_OID = "1.3.132.0.34";
 var ECDSA_P_521_OID = "1.3.132.0.35";
@@ -42705,7 +43270,14 @@ async function hashAndVerify(key, sig, msg, options2) {
   return result2;
 }
 
+// node_modules/@libp2p/crypto/dist/src/keys/ecdsa/utils.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/uint8arraylist/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/node_modules/uint8arrays/dist/src/alloc.js
+init_define_REPO_FILES();
 function alloc5(size = 0) {
   return new Uint8Array(size);
 }
@@ -42713,7 +43285,11 @@ function allocUnsafe3(size = 0) {
   return new Uint8Array(size);
 }
 
+// node_modules/@libp2p/crypto/node_modules/uint8arrays/dist/src/concat.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/node_modules/uint8arrays/dist/src/util/as-uint8array.js
+init_define_REPO_FILES();
 function isByteArrayWithArrayBuffer4(b) {
   return b?.buffer instanceof ArrayBuffer;
 }
@@ -43168,11 +43744,21 @@ var Uint8ArrayList = class _Uint8ArrayList {
   }
 };
 
+// node_modules/@libp2p/crypto/node_modules/uint8arrays/dist/src/from-string.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/uint8arrays/dist/src/util/bases.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/basics.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/bases/base10.js
 var base10_exports3 = {};
 __export(base10_exports3, {
   base10: () => base103
 });
+init_define_REPO_FILES();
 var base103 = baseX4({
   prefix: "9",
   name: "base10",
@@ -43185,6 +43771,7 @@ __export(base16_exports3, {
   base16: () => base163,
   base16upper: () => base16upper3
 });
+init_define_REPO_FILES();
 var base163 = rfc46484({
   prefix: "f",
   name: "base16",
@@ -43205,6 +43792,7 @@ var base2_exports3 = {};
 __export(base2_exports3, {
   base2: () => base24
 });
+init_define_REPO_FILES();
 var base24 = rfc46484({
   prefix: "0",
   name: "base2",
@@ -43217,6 +43805,7 @@ var base256emoji_exports3 = {};
 __export(base256emoji_exports3, {
   base256emoji: () => base256emoji3
 });
+init_define_REPO_FILES();
 var alphabet3 = Array.from("\u{1F680}\u{1FA90}\u2604\u{1F6F0}\u{1F30C}\u{1F311}\u{1F312}\u{1F313}\u{1F314}\u{1F315}\u{1F316}\u{1F317}\u{1F318}\u{1F30D}\u{1F30F}\u{1F30E}\u{1F409}\u2600\u{1F4BB}\u{1F5A5}\u{1F4BE}\u{1F4BF}\u{1F602}\u2764\u{1F60D}\u{1F923}\u{1F60A}\u{1F64F}\u{1F495}\u{1F62D}\u{1F618}\u{1F44D}\u{1F605}\u{1F44F}\u{1F601}\u{1F525}\u{1F970}\u{1F494}\u{1F496}\u{1F499}\u{1F622}\u{1F914}\u{1F606}\u{1F644}\u{1F4AA}\u{1F609}\u263A\u{1F44C}\u{1F917}\u{1F49C}\u{1F614}\u{1F60E}\u{1F607}\u{1F339}\u{1F926}\u{1F389}\u{1F49E}\u270C\u2728\u{1F937}\u{1F631}\u{1F60C}\u{1F338}\u{1F64C}\u{1F60B}\u{1F497}\u{1F49A}\u{1F60F}\u{1F49B}\u{1F642}\u{1F493}\u{1F929}\u{1F604}\u{1F600}\u{1F5A4}\u{1F603}\u{1F4AF}\u{1F648}\u{1F447}\u{1F3B6}\u{1F612}\u{1F92D}\u2763\u{1F61C}\u{1F48B}\u{1F440}\u{1F62A}\u{1F611}\u{1F4A5}\u{1F64B}\u{1F61E}\u{1F629}\u{1F621}\u{1F92A}\u{1F44A}\u{1F973}\u{1F625}\u{1F924}\u{1F449}\u{1F483}\u{1F633}\u270B\u{1F61A}\u{1F61D}\u{1F634}\u{1F31F}\u{1F62C}\u{1F643}\u{1F340}\u{1F337}\u{1F63B}\u{1F613}\u2B50\u2705\u{1F97A}\u{1F308}\u{1F608}\u{1F918}\u{1F4A6}\u2714\u{1F623}\u{1F3C3}\u{1F490}\u2639\u{1F38A}\u{1F498}\u{1F620}\u261D\u{1F615}\u{1F33A}\u{1F382}\u{1F33B}\u{1F610}\u{1F595}\u{1F49D}\u{1F64A}\u{1F639}\u{1F5E3}\u{1F4AB}\u{1F480}\u{1F451}\u{1F3B5}\u{1F91E}\u{1F61B}\u{1F534}\u{1F624}\u{1F33C}\u{1F62B}\u26BD\u{1F919}\u2615\u{1F3C6}\u{1F92B}\u{1F448}\u{1F62E}\u{1F646}\u{1F37B}\u{1F343}\u{1F436}\u{1F481}\u{1F632}\u{1F33F}\u{1F9E1}\u{1F381}\u26A1\u{1F31E}\u{1F388}\u274C\u270A\u{1F44B}\u{1F630}\u{1F928}\u{1F636}\u{1F91D}\u{1F6B6}\u{1F4B0}\u{1F353}\u{1F4A2}\u{1F91F}\u{1F641}\u{1F6A8}\u{1F4A8}\u{1F92C}\u2708\u{1F380}\u{1F37A}\u{1F913}\u{1F619}\u{1F49F}\u{1F331}\u{1F616}\u{1F476}\u{1F974}\u25B6\u27A1\u2753\u{1F48E}\u{1F4B8}\u2B07\u{1F628}\u{1F31A}\u{1F98B}\u{1F637}\u{1F57A}\u26A0\u{1F645}\u{1F61F}\u{1F635}\u{1F44E}\u{1F932}\u{1F920}\u{1F927}\u{1F4CC}\u{1F535}\u{1F485}\u{1F9D0}\u{1F43E}\u{1F352}\u{1F617}\u{1F911}\u{1F30A}\u{1F92F}\u{1F437}\u260E\u{1F4A7}\u{1F62F}\u{1F486}\u{1F446}\u{1F3A4}\u{1F647}\u{1F351}\u2744\u{1F334}\u{1F4A3}\u{1F438}\u{1F48C}\u{1F4CD}\u{1F940}\u{1F922}\u{1F445}\u{1F4A1}\u{1F4A9}\u{1F450}\u{1F4F8}\u{1F47B}\u{1F910}\u{1F92E}\u{1F3BC}\u{1F975}\u{1F6A9}\u{1F34E}\u{1F34A}\u{1F47C}\u{1F48D}\u{1F4E3}\u{1F942}");
 var alphabetBytesToChars3 = alphabet3.reduce((p, c, i) => {
   p[i] = c;
@@ -43266,6 +43855,7 @@ __export(base64_exports3, {
   base64url: () => base64url3,
   base64urlpad: () => base64urlpad3
 });
+init_define_REPO_FILES();
 var base643 = rfc46484({
   prefix: "m",
   name: "base64",
@@ -43296,6 +43886,7 @@ var base8_exports3 = {};
 __export(base8_exports3, {
   base8: () => base83
 });
+init_define_REPO_FILES();
 var base83 = rfc46484({
   prefix: "7",
   name: "base8",
@@ -43308,6 +43899,7 @@ var identity_exports6 = {};
 __export(identity_exports6, {
   identity: () => identity6
 });
+init_define_REPO_FILES();
 var identity6 = from6({
   prefix: "\0",
   name: "identity",
@@ -43316,8 +43908,12 @@ var identity6 = from6({
 });
 
 // node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/codecs/json.js
+init_define_REPO_FILES();
 var textEncoder8 = new TextEncoder();
 var textDecoder7 = new TextDecoder();
+
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/codecs/raw.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/hashes/sha2-browser.js
 var sha2_browser_exports3 = {};
@@ -43325,8 +43921,10 @@ __export(sha2_browser_exports3, {
   sha256: () => sha2563,
   sha512: () => sha5123
 });
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/hashes/hasher.js
+init_define_REPO_FILES();
 var DEFAULT_MIN_DIGEST_LENGTH3 = 20;
 function from7({ name: name15, code: code14, encode: encode55, minDigestLength, maxDigestLength }) {
   return new Hasher3(name15, code14, encode55, minDigestLength, maxDigestLength);
@@ -43389,6 +43987,24 @@ var sha5123 = from7({
   encode: sha3("SHA-512")
 });
 
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/bases/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/hashes/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/codecs/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/block/interface.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/node_modules/multiformats/dist/src/basics.js
 var bases3 = { ...identity_exports6, ...base2_exports3, ...base8_exports3, ...base10_exports3, ...base16_exports3, ...base32_exports3, ...base36_exports3, ...base58_exports3, ...base64_exports3, ...base256emoji_exports3 };
 var hashes3 = { ...sha2_browser_exports3, ...identity_exports5 };
@@ -43450,6 +44066,7 @@ function fromString8(string9, encoding = "utf8") {
 }
 
 // node_modules/@libp2p/crypto/node_modules/uint8arrays/dist/src/to-string.js
+init_define_REPO_FILES();
 function toString6(array, encoding = "utf8") {
   const base13 = bases_default3[encoding];
   if (base13 == null) {
@@ -43459,6 +44076,7 @@ function toString6(array, encoding = "utf8") {
 }
 
 // node_modules/@libp2p/crypto/dist/src/keys/rsa/der.js
+init_define_REPO_FILES();
 var TAG_MASK = parseInt("11111", 2);
 var LONG_LENGTH_MASK = parseInt("10000000", 2);
 var LONG_LENGTH_BYTES_MASK = parseInt("01111111", 2);
@@ -43853,7 +44471,20 @@ var ECDSAPrivateKey = class {
   }
 };
 
+// node_modules/@libp2p/crypto/dist/src/keys/ed25519/index.browser.js
+init_define_REPO_FILES();
+
+// node_modules/@noble/curves/ed25519.js
+init_define_REPO_FILES();
+
+// node_modules/@noble/hashes/sha2.js
+init_define_REPO_FILES();
+
+// node_modules/@noble/hashes/_md.js
+init_define_REPO_FILES();
+
 // node_modules/@noble/hashes/_u64.js
+init_define_REPO_FILES();
 var U32_MASK64 = /* @__PURE__ */ (() => BigInt(2 ** 32 - 1))();
 var _32n = /* @__PURE__ */ BigInt(32);
 function fromBig(n, le = false) {
@@ -43897,6 +44528,7 @@ var add5L = (Al, Bl5, Cl, Dl, El) => (Al >>> 0) + (Bl5 >>> 0) + (Cl >>> 0) + (Dl
 var add5H = (low, Ah, Bh, Ch, Dh, Eh) => Ah + Bh + Ch + Dh + Eh + (low / 2 ** 32 | 0) | 0;
 
 // node_modules/@noble/hashes/utils.js
+init_define_REPO_FILES();
 function isBytes(a) {
   return a instanceof Uint8Array || ArrayBuffer.isView(a) && a.constructor.name === "Uint8Array" && "BYTES_PER_ELEMENT" in a && a.BYTES_PER_ELEMENT === 1;
 }
@@ -44632,7 +45264,11 @@ var sha5124 = /* @__PURE__ */ createHasher(
   /* @__PURE__ */ oidNist(3)
 );
 
+// node_modules/@noble/curves/abstract/curve.js
+init_define_REPO_FILES();
+
 // node_modules/@noble/curves/utils.js
+init_define_REPO_FILES();
 function aarray(item, title, inner = () => {
 }) {
   if (!Array.isArray(item))
@@ -44815,6 +45451,7 @@ function validateObject(object, fields = {}, optFields = {}, title = "object") {
 }
 
 // node_modules/@noble/curves/abstract/modular.js
+init_define_REPO_FILES();
 var _0n2 = /* @__PURE__ */ BigInt(0);
 var _1n2 = /* @__PURE__ */ BigInt(1);
 var _2n = /* @__PURE__ */ BigInt(2);
@@ -45665,6 +46302,7 @@ function createKeygen(randomSecretKey, getPublicKey) {
 }
 
 // node_modules/@noble/curves/abstract/edwards.js
+init_define_REPO_FILES();
 var _0n4 = /* @__PURE__ */ BigInt(0);
 var _1n4 = /* @__PURE__ */ BigInt(1);
 var _2n2 = /* @__PURE__ */ BigInt(2);
@@ -46273,7 +46911,14 @@ function concatKeys(privateKeyRaw, publicKey2) {
   return privateKey;
 }
 
+// node_modules/@libp2p/crypto/dist/src/keys/ed25519/utils.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/dist/src/keys/ed25519/ed25519.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/dist/src/util.js
+init_define_REPO_FILES();
 function isPromise3(thing) {
   if (thing == null) {
     return false;
@@ -46374,7 +47019,20 @@ function ensureEd25519Key(key, length15) {
   return key;
 }
 
+// node_modules/@libp2p/crypto/dist/src/keys/keys.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/decode.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/utils/reader.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/node_modules/uint8-varint/dist/src/index.js
+init_define_REPO_FILES();
 var N15 = Math.pow(2, 7);
 var N25 = Math.pow(2, 14);
 var N35 = Math.pow(2, 21);
@@ -46497,6 +47155,7 @@ function decodeUint8Array(buf, offset) {
 }
 
 // node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/utils/float.js
+init_define_REPO_FILES();
 var f32 = new Float32Array([-0]);
 var f8b = new Uint8Array(f32.buffer);
 function writeFloatLE(val, buf, pos) {
@@ -46539,6 +47198,7 @@ function readDoubleLE(buf, pos) {
 }
 
 // node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/utils/longbits.js
+init_define_REPO_FILES();
 var MAX_SAFE_NUMBER_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
 var MIN_SAFE_NUMBER_INTEGER = BigInt(Number.MIN_SAFE_INTEGER);
 var LongBits = class _LongBits {
@@ -46694,6 +47354,7 @@ zero.length = function() {
 var TWO_32 = 4294967296n;
 
 // node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/utils/utf8.js
+init_define_REPO_FILES();
 function length5(string9) {
   let len = 0;
   let c = 0;
@@ -47113,7 +47774,14 @@ function decodeMessage(buf, codec, opts) {
   return codec.decode(reader, void 0, opts);
 }
 
+// node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/encode.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/utils/writer.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/utils/pool.js
+init_define_REPO_FILES();
 function pool(size) {
   const SIZE = size ?? 8192;
   const MAX = SIZE >>> 1;
@@ -47526,12 +48194,17 @@ function encodeMessage(message5, codec) {
 }
 
 // node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/stream.js
+init_define_REPO_FILES();
 function* streamMessage(buf, codec, opts) {
   const reader = createReader(buf);
   yield* codec.stream(reader, void 0, ".", opts);
 }
 
+// node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/codecs/enum.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/codec.js
+init_define_REPO_FILES();
 var CODEC_TYPES = {
   VARINT: 0,
   BIT64: 1,
@@ -47572,6 +48245,7 @@ function enumeration(v) {
 }
 
 // node_modules/@libp2p/crypto/node_modules/protons-runtime/dist/src/codecs/message.js
+init_define_REPO_FILES();
 function message(encode55, decode65, stream) {
   return createCodec4("message", CODEC_TYPES.LENGTH_DELIMITED, encode55, decode65, stream);
 }
@@ -47763,7 +48437,11 @@ var PrivateKey;
   PrivateKey3.stream = stream;
 })(PrivateKey || (PrivateKey = {}));
 
+// node_modules/@libp2p/crypto/dist/src/keys/rsa/index.browser.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/dist/src/random-bytes.js
+init_define_REPO_FILES();
 function randomBytes3(length15) {
   if (isNaN(length15) || length15 <= 0) {
     throw new InvalidParametersError2("random bytes length must be a Number bigger than 0");
@@ -47789,8 +48467,10 @@ __export(utils_exports, {
   pkixToJwk: () => pkixToJwk,
   pkixToRSAPublicKey: () => pkixToRSAPublicKey
 });
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/crypto/dist/src/keys/rsa/rsa.js
+init_define_REPO_FILES();
 var RSAPublicKey = class {
   type = "RSA";
   jwk;
@@ -48056,7 +48736,17 @@ function rsaKeySize(jwk) {
   return bytes.length * 8;
 }
 
+// node_modules/@libp2p/crypto/dist/src/keys/secp256k1/index.browser.js
+init_define_REPO_FILES();
+
+// node_modules/@noble/curves/secp256k1.js
+init_define_REPO_FILES();
+
+// node_modules/@noble/curves/abstract/weierstrass.js
+init_define_REPO_FILES();
+
 // node_modules/@noble/hashes/hmac.js
+init_define_REPO_FILES();
 var _HMAC = class {
   oHash;
   iHash;
@@ -48134,6 +48824,7 @@ var hmac = /* @__PURE__ */ (() => {
 })();
 
 // node_modules/@noble/curves/abstract/der.js
+init_define_REPO_FILES();
 var _0n5 = /* @__PURE__ */ BigInt(0);
 var DERErr = class extends Error {
   constructor(m2 = "") {
@@ -49193,7 +49884,11 @@ function hashAndVerify4(key, sig, msg, options2) {
   }
 }
 
+// node_modules/@libp2p/crypto/dist/src/keys/secp256k1/utils.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/dist/src/keys/secp256k1/secp256k1.js
+init_define_REPO_FILES();
 var Secp256k1PublicKey = class {
   type = "secp256k1";
   raw;
@@ -49417,7 +50112,11 @@ async function privateKeyToCryptoKeyPair(privateKey) {
   throw new InvalidParametersError2("Only RSA and ECDSA keys are supported");
 }
 
+// node_modules/@libp2p/crypto/dist/src/pbkdf2.js
+init_define_REPO_FILES();
+
 // node_modules/@noble/hashes/legacy.js
+init_define_REPO_FILES();
 var SHA1_IV = /* @__PURE__ */ Uint32Array.from([
   1732584193,
   4023233417,
@@ -49497,6 +50196,7 @@ var _SHA1 = class extends HashMD {
 var sha1 = /* @__PURE__ */ createHasher(() => new _SHA1());
 
 // node_modules/@noble/hashes/pbkdf2.js
+init_define_REPO_FILES();
 function pbkdf2Init(hash, _password, _salt, _opts) {
   ahash(hash);
   const opts = checkOpts({ dkLen: 32, asyncTick: 10 }, _opts);
@@ -49605,7 +50305,14 @@ function pbkdf22(password, salt, iterations, keySize, hash) {
   return base643.encode(dek).substring(1);
 }
 
+// node_modules/uint8arraylist/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/uint8arrays/dist/src/concat.js
+init_define_REPO_FILES();
+
 // node_modules/uint8arrays/dist/src/util/as-uint8array.js
+init_define_REPO_FILES();
 function asUint8Array2(buf) {
   return buf;
 }
@@ -50053,7 +50760,11 @@ var Uint8ArrayList2 = class _Uint8ArrayList {
   }
 };
 
+// node_modules/@libp2p/utils/dist/src/filters/hashes.js
+init_define_REPO_FILES();
+
 // node_modules/@sindresorhus/fnv1a/index.js
+init_define_REPO_FILES();
 var FNV_PRIMES = {
   32: 16777619n,
   64: 1099511628211n,
@@ -50129,7 +50840,14 @@ function numberToBuffer(num2) {
   return fromString4(hex3, "base16");
 }
 
+// node_modules/@libp2p/utils/dist/src/filters/cuckoo-filter.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/utils/dist/src/filters/bucket.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/filters/fingerprint.js
+init_define_REPO_FILES();
 var MAX_FINGERPRINT_SIZE = 64;
 var Fingerprint = class {
   fp;
@@ -50163,6 +50881,7 @@ var Fingerprint = class {
 };
 
 // node_modules/@libp2p/utils/dist/src/filters/utils.js
+init_define_REPO_FILES();
 function getRandomInt(min, max2) {
   return Math.floor(Math.random() * (max2 - min)) + min;
 }
@@ -50340,6 +51059,7 @@ function optimize(maxItems, errorRate = 1e-3) {
 }
 
 // node_modules/@libp2p/utils/dist/src/filters/scalable-cuckoo-filter.js
+init_define_REPO_FILES();
 var ScalableCuckooFilter = class {
   filterSize;
   bucketSize;
@@ -50730,7 +51450,32 @@ var Helia = class {
   }
 };
 
+// node_modules/helia/dist/src/utils/helia-defaults.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/block-brokers/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/block-brokers/dist/src/bitswap.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/bitswap/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/bitswap/dist/src/bitswap.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/bitswap/dist/src/network.js
+init_define_REPO_FILES();
+
+// node_modules/it-length-prefixed/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/it-length-prefixed/dist/src/encode.js
+init_define_REPO_FILES();
+
 // node_modules/uint8-varint/dist/src/index.js
+init_define_REPO_FILES();
 var N16 = Math.pow(2, 7);
 var N26 = Math.pow(2, 14);
 var N36 = Math.pow(2, 21);
@@ -50954,10 +51699,12 @@ function decode29(buf, offset = 0) {
 }
 
 // node_modules/it-length-prefixed/dist/src/constants.js
+init_define_REPO_FILES();
 var MAX_LENGTH_LENGTH = 8;
 var MAX_DATA_LENGTH = 1024 * 1024 * 4;
 
 // node_modules/it-length-prefixed/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidMessageLengthError = class extends Error {
   name = "InvalidMessageLengthError";
   code = "ERR_INVALID_MSG_LENGTH";
@@ -50976,6 +51723,7 @@ var UnexpectedEOFError = class extends Error {
 };
 
 // node_modules/it-length-prefixed/dist/src/utils.js
+init_define_REPO_FILES();
 function isAsyncIterable5(thing) {
   return thing[Symbol.asyncIterator] != null;
 }
@@ -51034,6 +51782,7 @@ encode25.single = (chunk, options2) => {
 };
 
 // node_modules/it-length-prefixed/dist/src/decode.js
+init_define_REPO_FILES();
 var ReadMode;
 (function(ReadMode3) {
   ReadMode3[ReadMode3["LENGTH"] = 0] = "LENGTH";
@@ -51146,6 +51895,7 @@ decode30.fromReader = (reader, options2) => {
 };
 
 // node_modules/it-map/dist/src/index.js
+init_define_REPO_FILES();
 function isAsyncIterable6(thing) {
   return thing[Symbol.asyncIterator] != null;
 }
@@ -51184,6 +51934,7 @@ function map(source, func) {
 var src_default7 = map;
 
 // node_modules/it-pipe/dist/src/index.js
+init_define_REPO_FILES();
 function pipe(first2, ...rest) {
   if (first2 == null) {
     throw new Error("Empty pipeline");
@@ -51263,6 +52014,7 @@ var duplexPipelineFn = (duplex) => {
 };
 
 // node_modules/it-take/dist/src/index.js
+init_define_REPO_FILES();
 function isAsyncIterable8(thing) {
   return thing[Symbol.asyncIterator] != null;
 }
@@ -51299,6 +52051,7 @@ function take(source, limit) {
 var src_default8 = take;
 
 // node_modules/@helia/bitswap/dist/src/constants.js
+init_define_REPO_FILES();
 var BITSWAP_120 = "/ipfs/bitswap/1.2.0";
 var DEFAULT_MAX_SIZE_REPLACE_HAS_WITH_BLOCK = 1024;
 var DEFAULT_MAX_INBOUND_STREAMS = 1024;
@@ -51311,7 +52064,20 @@ var DEFAULT_MAX_PROVIDERS_PER_REQUEST = 3;
 var DEFAULT_MAX_OUTGOING_MESSAGE_SIZE = 1024 * 1024 * 4;
 var DEFAULT_MAX_INCOMING_MESSAGE_SIZE = DEFAULT_MAX_OUTGOING_MESSAGE_SIZE;
 
+// node_modules/@helia/bitswap/dist/src/pb/message.js
+init_define_REPO_FILES();
+
+// node_modules/protons-runtime/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/protons-runtime/dist/src/decode.js
+init_define_REPO_FILES();
+
+// node_modules/protons-runtime/dist/src/utils/reader.js
+init_define_REPO_FILES();
+
 // node_modules/protons-runtime/dist/src/utils/float.js
+init_define_REPO_FILES();
 var f322 = new Float32Array([-0]);
 var f8b2 = new Uint8Array(f322.buffer);
 function writeFloatLE2(val, buf, pos) {
@@ -51354,6 +52120,7 @@ function readDoubleLE2(buf, pos) {
 }
 
 // node_modules/protons-runtime/dist/src/utils/longbits.js
+init_define_REPO_FILES();
 var MAX_SAFE_NUMBER_INTEGER2 = BigInt(Number.MAX_SAFE_INTEGER);
 var MIN_SAFE_NUMBER_INTEGER2 = BigInt(Number.MIN_SAFE_INTEGER);
 var LongBits2 = class _LongBits {
@@ -51509,6 +52276,7 @@ zero2.length = function() {
 var TWO_322 = 4294967296n;
 
 // node_modules/protons-runtime/dist/src/utils/utf8.js
+init_define_REPO_FILES();
 function length6(string9) {
   let len = 0;
   let c = 0;
@@ -51928,7 +52696,14 @@ function decodeMessage2(buf, codec, opts) {
   return codec.decode(reader, void 0, opts);
 }
 
+// node_modules/protons-runtime/dist/src/encode.js
+init_define_REPO_FILES();
+
+// node_modules/protons-runtime/dist/src/utils/writer.js
+init_define_REPO_FILES();
+
 // node_modules/protons-runtime/dist/src/utils/pool.js
+init_define_REPO_FILES();
 function pool2(size) {
   const SIZE = size ?? 8192;
   const MAX = SIZE >>> 1;
@@ -52340,7 +53115,11 @@ function encodeMessage2(message5, codec) {
   return w2.finish();
 }
 
+// node_modules/protons-runtime/dist/src/codecs/enum.js
+init_define_REPO_FILES();
+
 // node_modules/protons-runtime/dist/src/codec.js
+init_define_REPO_FILES();
 var CODEC_TYPES2;
 (function(CODEC_TYPES5) {
   CODEC_TYPES5[CODEC_TYPES5["VARINT"] = 0] = "VARINT";
@@ -52379,6 +53158,7 @@ function enumeration2(v) {
 }
 
 // node_modules/protons-runtime/dist/src/codecs/message.js
+init_define_REPO_FILES();
 function message2(encode55, decode65) {
   return createCodec5("message", CODEC_TYPES2.LENGTH_DELIMITED, encode55, decode65);
 }
@@ -52774,6 +53554,7 @@ var BitswapMessage;
 })(BitswapMessage || (BitswapMessage = {}));
 
 // node_modules/@helia/bitswap/dist/src/utils/merge-messages.js
+init_define_REPO_FILES();
 function mergeMessages(existingMessage, newMessage) {
   for (const [key, entry] of newMessage.wantlist.entries()) {
     const existingEntry = existingMessage.wantlist.get(key);
@@ -52799,7 +53580,11 @@ function mergeMessages(existingMessage, newMessage) {
   return existingMessage;
 }
 
+// node_modules/@helia/bitswap/dist/src/utils/split-message.js
+init_define_REPO_FILES();
+
 // node_modules/@helia/bitswap/dist/src/errors.js
+init_define_REPO_FILES();
 var BlockTooLargeError = class extends Error {
   static name = "BlockTooLargeError";
   constructor(message5 = "Block too large") {
@@ -53127,7 +53912,23 @@ var Network = class extends TypedEventEmitter {
   }
 };
 
+// node_modules/@helia/bitswap/dist/src/peer-want-lists/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/peer-collections/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/peer-collections/dist/src/map.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/peer-collections/dist/src/util.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/peer-id/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/peer-id/dist/src/peer-id.js
+init_define_REPO_FILES();
 var inspect = Symbol.for("nodejs.util.inspect.custom");
 var LIBP2P_KEY_CODE = 114;
 var PeerIdImpl = class {
@@ -53414,6 +54215,7 @@ var PeerMap = class {
 };
 
 // node_modules/@libp2p/peer-collections/dist/src/set.js
+init_define_REPO_FILES();
 var PeerSet = class _PeerSet {
   set;
   constructor(set2) {
@@ -53493,6 +54295,7 @@ function peerSet() {
 }
 
 // node_modules/@libp2p/peer-collections/dist/src/filter.js
+init_define_REPO_FILES();
 var PeerFilter = class {
   filter;
   constructor(size, errorRate) {
@@ -53513,6 +54316,7 @@ function peerFilter(size, errorRate = 1e-3) {
 }
 
 // node_modules/@libp2p/peer-collections/dist/src/tracked-map.js
+init_define_REPO_FILES();
 var TrackedPeerMap = class extends PeerMap {
   metric;
   constructor(init2) {
@@ -53550,7 +54354,11 @@ function trackedPeerMap(config2) {
   return map3;
 }
 
+// node_modules/@helia/bitswap/dist/src/peer-want-lists/ledger.js
+init_define_REPO_FILES();
+
 // node_modules/@helia/bitswap/dist/src/utils/bitswap-message.js
+init_define_REPO_FILES();
 var QueuedBitswapMessage = class {
   full;
   pendingBytes;
@@ -53578,7 +54386,11 @@ var QueuedBitswapMessage = class {
   }
 };
 
+// node_modules/@helia/bitswap/dist/src/utils/cid-prefix.js
+init_define_REPO_FILES();
+
 // node_modules/@helia/bitswap/dist/src/utils/varint-encoder.js
+init_define_REPO_FILES();
 function varintEncoder(buf) {
   let out = new Uint8Array(buf.reduce((acc, curr) => {
     return acc + encodingLength6(curr);
@@ -53808,6 +54620,7 @@ var PeerWantLists = class {
 };
 
 // node_modules/@helia/bitswap/dist/src/session.js
+init_define_REPO_FILES();
 var BitswapSession = class extends AbstractSession {
   wantList;
   network;
@@ -53854,6 +54667,7 @@ function createBitswapSession(components, init2) {
 }
 
 // node_modules/@helia/bitswap/dist/src/stats.js
+init_define_REPO_FILES();
 var Stats = class {
   blocksReceived;
   duplicateBlocksReceived;
@@ -53903,7 +54717,11 @@ var Stats = class {
   }
 };
 
+// node_modules/@helia/bitswap/dist/src/want-list.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/tracked-map.js
+init_define_REPO_FILES();
 var TrackedMap = class extends Map {
   metric;
   constructor(init2) {
@@ -53942,6 +54760,7 @@ function trackedMap(config2) {
 }
 
 // node_modules/@helia/bitswap/dist/src/utils/varint-decoder.js
+init_define_REPO_FILES();
 function varintDecoder(buf) {
   if (!(buf instanceof Uint8Array)) {
     throw new Error("arg needs to be a Uint8Array");
@@ -54410,7 +55229,23 @@ function bitswap(init2 = {}) {
   return (components) => new BitswapBlockBroker(components, init2);
 }
 
+// node_modules/@helia/block-brokers/dist/src/trustless-gateway/index.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/block-brokers/dist/src/trustless-gateway/broker.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/block-brokers/dist/src/trustless-gateway/session.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/multiaddr-to-uri/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/multiaddr/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@multiformats/multiaddr/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidMultiaddrError2 = class extends Error {
   static name = "InvalidMultiaddrError";
   name = "InvalidMultiaddrError";
@@ -54428,7 +55263,23 @@ var UnknownProtocolError = class extends Error {
   name = "UnknownProtocolError";
 };
 
+// node_modules/@multiformats/multiaddr/dist/src/multiaddr.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/multiaddr/dist/src/components.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/multiaddr/dist/src/registry.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/is-ip/lib/is-ip.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/is-ip/lib/parse.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/is-ip/lib/parser.js
+init_define_REPO_FILES();
 var Parser = class {
   index = 0;
   input = "";
@@ -54656,6 +55507,7 @@ function isIPv6(input) {
 }
 
 // node_modules/@multiformats/multiaddr/dist/src/constants.js
+init_define_REPO_FILES();
 var CODE_IP4 = 4;
 var CODE_TCP = 6;
 var CODE_UDP = 273;
@@ -54698,6 +55550,7 @@ var CODE_P2P_CIRCUIT = 290;
 var CODE_MEMORY = 777;
 
 // node_modules/@multiformats/multiaddr/dist/src/utils.js
+init_define_REPO_FILES();
 function bytesToString(base13) {
   return (buf) => {
     return toString4(buf, base13);
@@ -54869,6 +55722,7 @@ function bytes2mb(base13) {
 }
 
 // node_modules/@multiformats/multiaddr/dist/src/validation.js
+init_define_REPO_FILES();
 function integer(value2) {
   const int = parseInt(value2);
   if (int.toString() !== value2) {
@@ -55554,7 +56408,26 @@ function validate3(addr) {
   });
 }
 
+// node_modules/@multiformats/multiaddr/dist/src/filter/multiaddr-filter.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/multiaddr/dist/src/convert.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/netmask/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/netmask/dist/src/ipnet.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/netmask/dist/src/cidr.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/netmask/dist/src/ip.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/netmask/dist/src/util.js
+init_define_REPO_FILES();
 function allFF(a, from18, to) {
   let i = 0;
   for (const e of a) {
@@ -55995,7 +56868,14 @@ function multiaddrToUri(input, opts) {
   return uri;
 }
 
+// node_modules/@helia/block-brokers/dist/src/trustless-gateway/trustless-gateway.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/block-brokers/dist/src/trustless-gateway/utils.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/private-ip.js
+init_define_REPO_FILES();
 var import_netmask2 = __toESM(require_netmask(), 1);
 var PRIVATE_IP_RANGES = [
   "0.0.0.0/8",
@@ -56071,7 +56951,11 @@ function isPrivateIp(ip) {
   }
 }
 
+// node_modules/@multiformats/multiaddr-matcher/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@multiformats/multiaddr-matcher/dist/src/utils.js
+init_define_REPO_FILES();
 var code9 = (code14) => {
   return {
     match: (vals) => {
@@ -56572,7 +57456,17 @@ function trustlessGateway(init2 = {}) {
   return (components) => new TrustlessGatewayBlockBroker(components, init2);
 }
 
+// node_modules/@helia/routers/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/delegated-routing-v1-http-api-client/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/delegated-routing-v1-http-api-client/dist/src/client.js
+init_define_REPO_FILES();
+
 // node_modules/browser-readablestream-to-it/dist/src/index.js
+init_define_REPO_FILES();
 async function* browserReadableStreamToIt(stream, options2 = {}) {
   const reader = stream.getReader();
   try {
@@ -56591,7 +57485,20 @@ async function* browserReadableStreamToIt(stream, options2 = {}) {
   }
 }
 
+// node_modules/ipns/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/ipns/node_modules/@libp2p/logger/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/ipns/node_modules/@libp2p/logger/node_modules/multiformats/dist/src/bases/base32.js
+init_define_REPO_FILES();
+
+// node_modules/ipns/node_modules/@libp2p/logger/node_modules/multiformats/dist/src/bases/base.js
+init_define_REPO_FILES();
+
 // node_modules/ipns/node_modules/@libp2p/logger/node_modules/multiformats/dist/src/bytes.js
+init_define_REPO_FILES();
 var empty5 = new Uint8Array(0);
 function coerce5(o) {
   if (o instanceof Uint8Array && o.constructor.name === "Uint8Array") {
@@ -56616,6 +57523,7 @@ function toArrayBufferBackedArray4(b) {
 }
 
 // node_modules/ipns/node_modules/@libp2p/logger/node_modules/multiformats/dist/src/vendor/base-x.js
+init_define_REPO_FILES();
 function base5(ALPHABET, name15, caseInsensitive) {
   if (ALPHABET.length >= 255) {
     throw new TypeError("Alphabet too long");
@@ -57012,6 +57920,7 @@ var base32z5 = rfc46485({
 });
 
 // node_modules/ipns/node_modules/@libp2p/logger/node_modules/multiformats/dist/src/bases/base58.js
+init_define_REPO_FILES();
 var base58btc5 = baseX5({
   name: "base58btc",
   prefix: "z",
@@ -57024,6 +57933,7 @@ var base58flickr5 = baseX5({
 });
 
 // node_modules/ipns/node_modules/@libp2p/logger/node_modules/multiformats/dist/src/bases/base64.js
+init_define_REPO_FILES();
 var base644 = rfc46485({
   prefix: "m",
   name: "base64",
@@ -57157,6 +58067,7 @@ function notEmpty2(str) {
 var import_timestamp_nano = __toESM(require_timestamp_min(), 1);
 
 // node_modules/ipns/dist/src/errors.js
+init_define_REPO_FILES();
 var SignatureVerificationError = class extends Error {
   static name = "SignatureVerificationError";
   constructor(message5 = "Record signature verification failed") {
@@ -57207,7 +58118,20 @@ var InvalidEmbeddedPublicKeyError = class extends Error {
   }
 };
 
+// node_modules/ipns/dist/src/pb/ipns.js
+init_define_REPO_FILES();
+
+// node_modules/ipns/node_modules/protons-runtime/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/ipns/node_modules/protons-runtime/dist/src/decode.js
+init_define_REPO_FILES();
+
+// node_modules/ipns/node_modules/protons-runtime/dist/src/utils/reader.js
+init_define_REPO_FILES();
+
 // node_modules/ipns/node_modules/protons-runtime/dist/src/utils/float.js
+init_define_REPO_FILES();
 var f323 = new Float32Array([-0]);
 var f8b3 = new Uint8Array(f323.buffer);
 function writeFloatLE3(val, buf, pos) {
@@ -57250,6 +58174,7 @@ function readDoubleLE3(buf, pos) {
 }
 
 // node_modules/ipns/node_modules/protons-runtime/dist/src/utils/longbits.js
+init_define_REPO_FILES();
 var MAX_SAFE_NUMBER_INTEGER3 = BigInt(Number.MAX_SAFE_INTEGER);
 var MIN_SAFE_NUMBER_INTEGER3 = BigInt(Number.MIN_SAFE_INTEGER);
 var LongBits3 = class _LongBits {
@@ -57405,6 +58330,7 @@ zero3.length = function() {
 var TWO_323 = 4294967296n;
 
 // node_modules/ipns/node_modules/protons-runtime/dist/src/utils/utf8.js
+init_define_REPO_FILES();
 function length7(string9) {
   let len = 0;
   let c = 0;
@@ -57824,7 +58750,14 @@ function decodeMessage3(buf, codec, opts) {
   return codec.decode(reader, void 0, opts);
 }
 
+// node_modules/ipns/node_modules/protons-runtime/dist/src/encode.js
+init_define_REPO_FILES();
+
+// node_modules/ipns/node_modules/protons-runtime/dist/src/utils/writer.js
+init_define_REPO_FILES();
+
 // node_modules/ipns/node_modules/protons-runtime/dist/src/utils/pool.js
+init_define_REPO_FILES();
 function pool3(size) {
   const SIZE = size ?? 8192;
   const MAX = SIZE >>> 1;
@@ -58237,12 +59170,17 @@ function encodeMessage3(message5, codec) {
 }
 
 // node_modules/ipns/node_modules/protons-runtime/dist/src/stream.js
+init_define_REPO_FILES();
 function* streamMessage2(buf, codec, opts) {
   const reader = createReader3(buf);
   yield* codec.stream(reader, void 0, "$", opts);
 }
 
+// node_modules/ipns/node_modules/protons-runtime/dist/src/codecs/enum.js
+init_define_REPO_FILES();
+
 // node_modules/ipns/node_modules/protons-runtime/dist/src/codec.js
+init_define_REPO_FILES();
 var CODEC_TYPES3 = {
   VARINT: 0,
   BIT64: 1,
@@ -58285,6 +59223,7 @@ function enumeration3(v) {
 }
 
 // node_modules/ipns/node_modules/protons-runtime/dist/src/codecs/message.js
+init_define_REPO_FILES();
 function message3(encode55, decode65, stream) {
   return createCodec6("message", CODEC_TYPES3.LENGTH_DELIMITED, encode55, decode65, stream);
 }
@@ -58492,7 +59431,11 @@ var IpnsEntry;
   IpnsEntry2.stream = stream;
 })(IpnsEntry || (IpnsEntry = {}));
 
+// node_modules/ipns/dist/src/utils.js
+init_define_REPO_FILES();
+
 // node_modules/ipns/node_modules/@libp2p/interface/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidMultihashError2 = class extends Error {
   static name = "InvalidMultihashError";
   constructor(message5 = "Invalid Multihash") {
@@ -58501,7 +59444,14 @@ var InvalidMultihashError2 = class extends Error {
   }
 };
 
+// node_modules/ipns/node_modules/cborg/cborg.js
+init_define_REPO_FILES();
+
+// node_modules/ipns/node_modules/cborg/lib/encode.js
+init_define_REPO_FILES();
+
 // node_modules/ipns/node_modules/cborg/lib/is.js
+init_define_REPO_FILES();
 var objectTypeNames4 = [
   "Object",
   // for Object.create(null) and other non-plain objects
@@ -58571,6 +59521,7 @@ function getObjectType4(value2) {
 }
 
 // node_modules/ipns/node_modules/cborg/lib/token.js
+init_define_REPO_FILES();
 var Type4 = class {
   /**
    * @param {number} major
@@ -58636,7 +59587,11 @@ var Token4 = class {
   }
 };
 
+// node_modules/ipns/node_modules/cborg/lib/bl.js
+init_define_REPO_FILES();
+
 // node_modules/ipns/node_modules/cborg/lib/byte-utils.js
+init_define_REPO_FILES();
 var useBuffer4 = globalThis.process && // @ts-ignore
 !globalThis.process.browser && // @ts-ignore
 globalThis.Buffer && // @ts-ignore
@@ -58915,6 +59870,7 @@ var U8Bl4 = class {
 };
 
 // node_modules/ipns/node_modules/cborg/lib/common.js
+init_define_REPO_FILES();
 var decodeErrPrefix4 = "CBOR decode error:";
 var encodeErrPrefix4 = "CBOR encode error:";
 var uintMinorPrefixBytes4 = [];
@@ -58929,7 +59885,11 @@ function assertEnoughData4(data, pos, need) {
   }
 }
 
+// node_modules/ipns/node_modules/cborg/lib/jump.js
+init_define_REPO_FILES();
+
 // node_modules/ipns/node_modules/cborg/lib/0uint.js
+init_define_REPO_FILES();
 var uintBoundaries4 = [24, 256, 65536, 4294967296, BigInt("18446744073709551616")];
 function readUint84(data, offset, options2) {
   assertEnoughData4(data, offset, 1);
@@ -59048,6 +60008,7 @@ encodeUint4.compareTokens = function compareTokens10(tok1, tok2) {
 };
 
 // node_modules/ipns/node_modules/cborg/lib/1negint.js
+init_define_REPO_FILES();
 function decodeNegint84(data, pos, _minor, options2) {
   return new Token4(Type4.negint, -1 - readUint84(data, pos + 1, options2), 2);
 }
@@ -59099,6 +60060,7 @@ encodeNegint4.compareTokens = function compareTokens11(tok1, tok2) {
 };
 
 // node_modules/ipns/node_modules/cborg/lib/2bytes.js
+init_define_REPO_FILES();
 function toToken13(data, pos, prefix, length15) {
   assertEnoughData4(data, pos, prefix + length15);
   const buf = data.slice(pos + prefix, pos + prefix + length15);
@@ -59146,6 +60108,7 @@ function compareBytes4(b1, b2) {
 }
 
 // node_modules/ipns/node_modules/cborg/lib/3string.js
+init_define_REPO_FILES();
 var textDecoder8 = new TextDecoder();
 var ASCII_THRESHOLD4 = 32;
 function toStr4(bytes, start2, end) {
@@ -59194,6 +60157,7 @@ function decodeString644(data, pos, _minor, options2) {
 var encodeString4 = encodeBytes4;
 
 // node_modules/ipns/node_modules/cborg/lib/4array.js
+init_define_REPO_FILES();
 function toToken15(_data, _pos, prefix, length15) {
   return new Token4(Type4.array, length15, prefix);
 }
@@ -59231,6 +60195,7 @@ encodeArray4.encodedSize = function encodedSize29(token) {
 };
 
 // node_modules/ipns/node_modules/cborg/lib/5map.js
+init_define_REPO_FILES();
 function toToken16(_data, _pos, prefix, length15) {
   return new Token4(Type4.map, length15, prefix);
 }
@@ -59268,6 +60233,7 @@ encodeMap4.encodedSize = function encodedSize30(token) {
 };
 
 // node_modules/ipns/node_modules/cborg/lib/6tag.js
+init_define_REPO_FILES();
 function decodeTagCompact4(_data, _pos, minor, _options) {
   return new Token4(Type4.tag, minor, 1);
 }
@@ -59292,6 +60258,7 @@ encodeTag4.encodedSize = function encodedSize31(token) {
 };
 
 // node_modules/ipns/node_modules/cborg/lib/7float.js
+init_define_REPO_FILES();
 var MINOR_FALSE4 = 20;
 var MINOR_TRUE4 = 21;
 var MINOR_NULL4 = 22;
@@ -59972,6 +60939,7 @@ function encodeCustom4(data, encoders, options2, destination) {
 }
 
 // node_modules/ipns/node_modules/cborg/lib/decode.js
+init_define_REPO_FILES();
 var defaultDecodeOptions4 = {
   strict: false,
   allowIndefinite: true,
@@ -60177,6 +61145,7 @@ function decode32(data, options2) {
 }
 
 // node_modules/ipns/node_modules/cborg/lib/tagged.js
+init_define_REPO_FILES();
 var Tagged3 = class _Tagged {
   /**
    * @param {number} tag - CBOR tag number, a non-negative integer
@@ -60390,6 +61359,7 @@ var namespace = "/ipns/";
 var namespaceLength = namespace.length;
 
 // node_modules/ipns/dist/src/validator.js
+init_define_REPO_FILES();
 var import_timestamp_nano2 = __toESM(require_timestamp_min(), 1);
 var log4 = logger2("ipns:validator");
 var MAX_RECORD_SIZE = 1024 * 10;
@@ -60438,7 +61408,14 @@ async function ipnsValidator(routingKey, marshalledRecord) {
   await validate4(recordPubKey, marshalledRecord);
 }
 
+// node_modules/it-ndjson/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/it-ndjson/dist/src/parse.js
+init_define_REPO_FILES();
+
 // node_modules/it-ndjson/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidMessageLengthError2 = class extends Error {
   name = "InvalidMessageLengthError";
   code = "ERR_INVALID_MESSAGE_LENGTH";
@@ -60472,7 +61449,14 @@ async function* parse3(source, opts = {}) {
   }
 }
 
+// node_modules/it-ndjson/dist/src/stringify.js
+init_define_REPO_FILES();
+
+// node_modules/p-queue/dist/index.js
+init_define_REPO_FILES();
+
 // node_modules/p-timeout/index.js
+init_define_REPO_FILES();
 var TimeoutError3 = class extends Error {
   constructor(message5) {
     super(message5);
@@ -60561,7 +61545,11 @@ function pTimeout2(promise, options2) {
   return cancelablePromise;
 }
 
+// node_modules/p-queue/dist/priority-queue.js
+init_define_REPO_FILES();
+
 // node_modules/p-queue/dist/lower-bound.js
+init_define_REPO_FILES();
 function lowerBound2(array, value2, comparator) {
   let first2 = 0;
   let count = array.length;
@@ -60954,6 +61942,7 @@ var PQueue2 = class extends import_index.default {
 };
 
 // node_modules/@helia/delegated-routing-v1-http-api-client/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidRequestError = class extends Error {
   static name = "InvalidRequestError";
   constructor(message5 = "Invalid request") {
@@ -60969,7 +61958,11 @@ var BadResponseError = class extends Error {
   }
 };
 
+// node_modules/@helia/delegated-routing-v1-http-api-client/dist/src/routings.js
+init_define_REPO_FILES();
+
 // node_modules/it-first/dist/src/index.js
+init_define_REPO_FILES();
 function isAsyncIterable9(thing) {
   return thing[Symbol.asyncIterator] != null;
 }
@@ -61398,6 +62391,7 @@ function createDelegatedRoutingV1HttpApiClient(url, init2 = {}) {
 }
 
 // node_modules/@helia/routers/dist/src/utils/delegated-http-routing-defaults.browser.js
+init_define_REPO_FILES();
 function delegatedHTTPRoutingDefaults() {
   return {
     filterProtocols: ["unknown", "transport-bitswap", "transport-ipfs-gateway-http"],
@@ -61405,7 +62399,17 @@ function delegatedHTTPRoutingDefaults() {
   };
 }
 
+// node_modules/@helia/routers/dist/src/http-gateway-routing.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/uri-to-multiaddr/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/is-ip/index.js
+init_define_REPO_FILES();
+
 // node_modules/ip-regex/index.js
+init_define_REPO_FILES();
 var word = "[a-fA-F\\d:]";
 var boundry = (options2) => options2 && options2.includeBoundaries ? `(?:(?<=\\s|^)(?=${word})|(?<=${word})(?=\\s|$))` : "";
 var v4 = "(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}";
@@ -61430,7 +62434,11 @@ ipRegex.v4 = (options2) => options2 && options2.exact ? v4exact : new RegExp(`${
 ipRegex.v6 = (options2) => options2 && options2.exact ? v6exact : new RegExp(`${boundry(options2)}${v6}${boundry(options2)}`, "g");
 var ip_regex_default = ipRegex;
 
+// node_modules/super-regex/index.js
+init_define_REPO_FILES();
+
 // node_modules/function-timeout/browser.js
+init_define_REPO_FILES();
 function functionTimeout(function_) {
   const wrappedFunction = (...arguments_) => function_(...arguments_);
   Object.defineProperty(wrappedFunction, "name", {
@@ -61443,7 +62451,14 @@ function isTimeoutError() {
   return false;
 }
 
+// node_modules/time-span/browser.js
+init_define_REPO_FILES();
+
+// node_modules/clone-regexp/index.js
+init_define_REPO_FILES();
+
 // node_modules/is-regexp/index.js
+init_define_REPO_FILES();
 var { toString: toString7 } = Object.prototype;
 function isRegexp(value2) {
   return toString7.call(value2) === "[object RegExp]";
@@ -61638,6 +62653,7 @@ function httpGatewayRouting(init2 = {}) {
 }
 
 // node_modules/@helia/routers/dist/src/libp2p-routing.js
+init_define_REPO_FILES();
 var Libp2pRouter = class {
   libp2p;
   constructor(libp2p) {
@@ -61669,7 +62685,11 @@ function libp2pRouting(libp2p) {
   return new Libp2pRouter(libp2p);
 }
 
+// node_modules/blockstore-core/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/blockstore-core/dist/src/memory.js
+init_define_REPO_FILES();
 var MemoryBlockstore = class extends BaseBlockstore {
   data;
   constructor() {
@@ -61709,13 +62729,28 @@ var MemoryBlockstore = class extends BaseBlockstore {
   }
 };
 
+// node_modules/blockstore-core/dist/src/black-hole.js
+init_define_REPO_FILES();
+
 // node_modules/blockstore-core/dist/src/tiered.js
+init_define_REPO_FILES();
 var log6 = logger("blockstore:core:tiered");
 
+// node_modules/datastore-core/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/datastore-core/dist/src/shard.js
+init_define_REPO_FILES();
 var SHARDING_FN = "SHARDING";
 
+// node_modules/datastore-core/dist/src/base.js
+init_define_REPO_FILES();
+
+// node_modules/it-sort/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/it-all/dist/src/index.js
+init_define_REPO_FILES();
 function isAsyncIterable10(thing) {
   return thing[Symbol.asyncIterator] != null;
 }
@@ -61868,6 +62903,7 @@ var BaseDatastore = class {
 };
 
 // node_modules/datastore-core/dist/src/memory.js
+init_define_REPO_FILES();
 var MemoryDatastore = class extends BaseDatastore {
   data;
   constructor() {
@@ -61911,13 +62947,34 @@ var MemoryDatastore = class extends BaseDatastore {
   }
 };
 
+// node_modules/datastore-core/dist/src/keytransform.js
+init_define_REPO_FILES();
+
 // node_modules/datastore-core/dist/src/sharding.js
+init_define_REPO_FILES();
 var shardKey = new Key(SHARDING_FN);
 
+// node_modules/datastore-core/dist/src/mount.js
+init_define_REPO_FILES();
+
 // node_modules/datastore-core/dist/src/tiered.js
+init_define_REPO_FILES();
 var log7 = logger("datastore:core:tiered");
 
+// node_modules/datastore-core/dist/src/namespace.js
+init_define_REPO_FILES();
+
+// node_modules/libp2p/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/libp2p/dist/src/config.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/utils/dist/src/merge-options.js
+init_define_REPO_FILES();
+
 // node_modules/is-plain-obj/index.js
+init_define_REPO_FILES();
 function isPlainObject(value2) {
   if (typeof value2 !== "object" || value2 === null) {
     return false;
@@ -62040,6 +63097,7 @@ function mergeOptions(...options2) {
 }
 
 // node_modules/libp2p/dist/src/connection-manager/resolvers/dnsaddr.js
+init_define_REPO_FILES();
 var DNSAddrResolver = class {
   dns;
   canResolve(ma) {
@@ -62108,7 +63166,20 @@ async function validateConfig(opts) {
   return resultingOptions;
 }
 
+// node_modules/libp2p/dist/src/libp2p.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/peer-store/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/peer-record/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/peer-record/dist/src/envelope/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/peer-record/dist/src/envelope/envelope.js
+init_define_REPO_FILES();
 var Envelope;
 (function(Envelope3) {
   let _codec;
@@ -62184,6 +63255,7 @@ var Envelope;
 })(Envelope || (Envelope = {}));
 
 // node_modules/@libp2p/peer-record/dist/src/envelope/errors.js
+init_define_REPO_FILES();
 var InvalidSignatureError = class extends Error {
   constructor(message5 = "Invalid signature") {
     super(message5);
@@ -62293,7 +63365,11 @@ var formatSignaturePayload = (domain, payloadType, payload) => {
   return new Uint8ArrayList2(domainLength, domainUint8Array, payloadTypeLength, payloadType, payloadLength, payload);
 };
 
+// node_modules/@libp2p/peer-record/dist/src/peer-record/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/array-equals.js
+init_define_REPO_FILES();
 function arrayEquals(a, b) {
   const sort2 = (a2, b2) => a2.toString().localeCompare(b2.toString());
   if (a.length !== b.length) {
@@ -62304,10 +63380,12 @@ function arrayEquals(a, b) {
 }
 
 // node_modules/@libp2p/peer-record/dist/src/peer-record/consts.js
+init_define_REPO_FILES();
 var ENVELOPE_DOMAIN_PEER_RECORD = "libp2p-peer-record";
 var ENVELOPE_PAYLOAD_TYPE_PEER_RECORD = Uint8Array.from([3, 1]);
 
 // node_modules/@libp2p/peer-record/dist/src/peer-record/peer-record.js
+init_define_REPO_FILES();
 var PeerRecord;
 (function(PeerRecord3) {
   let AddressInfo;
@@ -62487,11 +63565,16 @@ var PeerRecord2 = class _PeerRecord {
   }
 };
 
+// node_modules/@libp2p/peer-store/dist/src/store.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/peer-store/dist/src/constants.js
+init_define_REPO_FILES();
 var MAX_ADDRESS_AGE = 36e5;
 var MAX_PEER_AGE = 216e5;
 
 // node_modules/@libp2p/peer-store/dist/src/pb/peer.js
+init_define_REPO_FILES();
 var Peer;
 (function(Peer4) {
   let Peer$metadataEntry;
@@ -62846,6 +63929,7 @@ var Tag;
 })(Tag || (Tag = {}));
 
 // node_modules/@libp2p/peer-store/dist/src/utils/bytes-to-peer.js
+init_define_REPO_FILES();
 function populatePublicKey(peerId, protobuf) {
   if (peerId.publicKey != null || protobuf.publicKey == null) {
     return peerId;
@@ -62886,6 +63970,7 @@ function pbToPeer(peerId, peer, maxAddressAge) {
 }
 
 // node_modules/@libp2p/peer-store/dist/src/utils/peer-equals.js
+init_define_REPO_FILES();
 function peerEquals(peerA, peerB) {
   return addressesEqual(peerA.addresses, peerB.addresses) && protocolsEqual(peerA.protocols, peerB.protocols) && publicKeyEqual(peerA.publicKey, peerB.publicKey) && peerRecordEnvelope(peerA.peerRecordEnvelope, peerB.peerRecordEnvelope) && metadataEqual(peerA.metadata, peerB.metadata) && tagsEqual(peerA.tags, peerB.tags);
 }
@@ -62952,6 +64037,7 @@ function compareMaps(mapA, mapB, compare8) {
 }
 
 // node_modules/@libp2p/peer-store/dist/src/utils/peer-id-to-datastore-key.js
+init_define_REPO_FILES();
 var NAMESPACE_COMMON = "/peers/";
 function peerIdToDatastoreKey(peerId) {
   if (!isPeerId(peerId) || peerId.type == null) {
@@ -62961,7 +64047,11 @@ function peerIdToDatastoreKey(peerId) {
   return new Key(`${NAMESPACE_COMMON}${b32key}`);
 }
 
+// node_modules/@libp2p/peer-store/dist/src/utils/to-peer-pb.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/peer-store/dist/src/utils/dedupe-addresses.js
+init_define_REPO_FILES();
 async function dedupeFilterAndSortAddresses(peerId, filter2, addresses, existingAddresses, options2) {
   const addressMap = /* @__PURE__ */ new Map();
   for (const addr of addresses) {
@@ -63520,7 +64610,11 @@ function persistentPeerStore(components, init2 = {}) {
   return new PersistentPeerStore(components, init2);
 }
 
+// node_modules/libp2p/dist/src/address-manager/index.js
+init_define_REPO_FILES();
+
 // node_modules/libp2p/dist/src/address-manager/dns-mappings.js
+init_define_REPO_FILES();
 var MAX_DATE = 864e13;
 var CODEC_TLS = 448;
 var CODEC_SNI = 449;
@@ -63654,6 +64748,7 @@ var DNSMappings = class {
 };
 
 // node_modules/libp2p/dist/src/address-manager/ip-mappings.js
+init_define_REPO_FILES();
 var CODEC_IP4 = 4;
 var CODEC_IP6 = 41;
 var CODEC_TCP = 6;
@@ -63792,7 +64887,11 @@ var IPMappings = class {
   }
 };
 
+// node_modules/libp2p/dist/src/address-manager/observed-addresses.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/multiaddr/is-link-local.js
+init_define_REPO_FILES();
 function isLinkLocal(ma) {
   try {
     for (const { code: code14, value: value2 } of ma.getComponents()) {
@@ -63814,7 +64913,11 @@ function isLinkLocal(ma) {
   return false;
 }
 
+// node_modules/@libp2p/utils/dist/src/multiaddr/is-private.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/multiaddr/is-ip-based.js
+init_define_REPO_FILES();
 function isIpBased(ma) {
   try {
     for (const { code: code14 } of ma.getComponents()) {
@@ -63915,7 +65018,11 @@ var ObservedAddresses = class {
   }
 };
 
+// node_modules/libp2p/dist/src/address-manager/transport-addresses.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/multiaddr/is-network-address.js
+init_define_REPO_FILES();
 var NETWORK_CODECS = [
   CODE_IP4,
   CODE_IP6,
@@ -64334,7 +65441,11 @@ var AddressManager = class {
   }
 };
 
+// node_modules/libp2p/dist/src/components.js
+init_define_REPO_FILES();
+
 // node_modules/libp2p/dist/src/errors.js
+init_define_REPO_FILES();
 var messages;
 (function(messages2) {
   messages2["NOT_STARTED_YET"] = "The libp2p node is not started yet";
@@ -64558,6 +65669,7 @@ function getServiceName(service) {
 }
 
 // node_modules/libp2p/dist/src/config/connection-gater.browser.js
+init_define_REPO_FILES();
 var CODEC_IP42 = 4;
 var CODEC_IP62 = 41;
 function connectionGater(gater = {}) {
@@ -64584,7 +65696,14 @@ function connectionGater(gater = {}) {
   };
 }
 
+// node_modules/libp2p/dist/src/connection-manager/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/utils/dist/src/rate-limiter.js
+init_define_REPO_FILES();
+
 // node_modules/delay/index.js
+init_define_REPO_FILES();
 var createAbortError = () => {
   const error = new Error("Delay aborted");
   error.name = "AbortError";
@@ -64806,6 +65925,7 @@ var MemoryStorage = class {
 };
 
 // node_modules/libp2p/dist/src/get-peer.js
+init_define_REPO_FILES();
 function getPeerAddress(peer) {
   if (isPeerId(peer)) {
     return { peerId: peer, multiaddrs: [] };
@@ -64841,7 +65961,11 @@ function getPeerAddress(peer) {
   };
 }
 
+// node_modules/libp2p/dist/src/connection-manager/connection-pruner.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/close.js
+init_define_REPO_FILES();
 var DEFAULT_CLOSABLE_PROTOCOLS = [
   // identify
   "/ipfs/id/1.0.0",
@@ -64866,6 +65990,7 @@ async function safelyCloseConnectionIfUnused(connection, options2) {
 }
 
 // node_modules/libp2p/dist/src/connection-manager/utils.js
+init_define_REPO_FILES();
 function multiaddrToIpNet(ma) {
   try {
     let parsedMa;
@@ -65005,7 +66130,11 @@ var ConnectionPruner = class {
   }
 };
 
+// node_modules/libp2p/dist/src/connection-manager/constants.browser.js
+init_define_REPO_FILES();
+
 // node_modules/libp2p/dist/src/connection-manager/constants.defaults.js
+init_define_REPO_FILES();
 var DIAL_TIMEOUT = 1e4;
 var INBOUND_UPGRADE_TIMEOUT = 1e4;
 var PROTOCOL_NEGOTIATION_TIMEOUT = 1e4;
@@ -65022,7 +66151,11 @@ var MAX_RECURSIVE_DEPTH = 32;
 var MAX_CONNECTIONS = 100;
 var MAX_PARALLEL_DIALS = 50;
 
+// node_modules/libp2p/dist/src/connection-manager/dial-queue.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/priority-queue.js
+init_define_REPO_FILES();
 var PriorityQueue3 = class extends Queue {
   constructor(init2 = {}) {
     super({
@@ -65040,7 +66173,14 @@ var PriorityQueue3 = class extends Queue {
   }
 };
 
+// node_modules/libp2p/dist/src/connection-manager/address-sorter.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/utils/dist/src/multiaddr/is-loopback.js
+init_define_REPO_FILES();
+
 // node_modules/is-loopback-addr/dist/src/index.js
+init_define_REPO_FILES();
 function isLoopbackAddr(ip) {
   if (typeof ip !== "string" || !/^[0-9a-fA-FxX.:]+$/.test(ip)) {
     return false;
@@ -65167,6 +66307,7 @@ function defaultAddressSorter(addresses) {
 }
 
 // node_modules/libp2p/dist/src/connection-manager/resolvers/index.js
+init_define_REPO_FILES();
 async function resolveMultiaddr(address, resolvers3, options2) {
   const depth = options2.depth ?? 0;
   if (depth > (options2.maxRecursiveDepth ?? MAX_RECURSIVE_DEPTH)) {
@@ -65535,10 +66676,15 @@ var DialQueue = class {
   }
 };
 
+// node_modules/libp2p/dist/src/connection-manager/reconnect-queue.js
+init_define_REPO_FILES();
+
 // node_modules/p-retry/index.js
+init_define_REPO_FILES();
 var import_retry = __toESM(require_retry2(), 1);
 
 // node_modules/is-network-error/index.js
+init_define_REPO_FILES();
 var objectToString = Object.prototype.toString;
 var isError = (value2) => objectToString.call(value2) === "[object Error]";
 var errorMessages = /* @__PURE__ */ new Set([
@@ -66132,7 +67278,14 @@ var DefaultConnectionManager = class {
   }
 };
 
+// node_modules/libp2p/dist/src/connection-monitor.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/utils/dist/src/adaptive-timeout.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/moving-average.js
+init_define_REPO_FILES();
 var MovingAverage = class {
   movingAverage;
   variance;
@@ -66235,7 +67388,11 @@ var AdaptiveTimeout = class {
   }
 };
 
+// node_modules/it-byte-stream/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/it-byte-stream/node_modules/race-signal/dist/src/index.js
+init_define_REPO_FILES();
 function defaultTranslate3(signal) {
   return signal.reason;
 }
@@ -66266,6 +67423,7 @@ function raceSignal4(promise, signal, opts) {
 }
 
 // node_modules/it-byte-stream/dist/src/errors.js
+init_define_REPO_FILES();
 var UnexpectedEOFError2 = class extends Error {
   name = "UnexpectedEOFError";
   code = "ERR_UNEXPECTED_EOF";
@@ -66426,6 +67584,7 @@ var ConnectionMonitor = class {
 };
 
 // node_modules/libp2p/dist/src/content-routing.js
+init_define_REPO_FILES();
 var CompoundContentRouting = class {
   routers;
   started;
@@ -66564,7 +67723,11 @@ var CompoundContentRouting = class {
   }
 };
 
+// node_modules/libp2p/dist/src/peer-routing.js
+init_define_REPO_FILES();
+
 // node_modules/it-parallel/dist/src/index.js
+init_define_REPO_FILES();
 var CustomEvent2 = globalThis.CustomEvent ?? Event;
 async function* parallel(source, options2 = {}) {
   let concurrency = options2.concurrency ?? Infinity;
@@ -66795,6 +67958,7 @@ var DefaultPeerRouting = class {
 };
 
 // node_modules/libp2p/dist/src/random-walk.js
+init_define_REPO_FILES();
 var RandomWalk = class extends TypedEventEmitter {
   peerRouting;
   log;
@@ -66894,6 +68058,7 @@ var RandomWalk = class extends TypedEventEmitter {
 };
 
 // node_modules/libp2p/dist/src/registrar.js
+init_define_REPO_FILES();
 var DEFAULT_MAX_INBOUND_STREAMS2 = 32;
 var DEFAULT_MAX_OUTBOUND_STREAMS2 = 64;
 var Registrar = class {
@@ -67086,6 +68251,7 @@ var Registrar = class {
 };
 
 // node_modules/libp2p/dist/src/transport-manager.js
+init_define_REPO_FILES();
 var DefaultTransportManager = class {
   log;
   components;
@@ -67350,11 +68516,25 @@ ${[...listenStats.errors.entries()].map(([addr, err2]) => {
   }
 };
 
+// node_modules/libp2p/dist/src/upgrader.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/multistream-select/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/multistream-select/dist/src/constants.js
+init_define_REPO_FILES();
 var PROTOCOL_ID = "/multistream/1.0.0";
 var MAX_PROTOCOL_LENGTH = 1024;
 
+// node_modules/@libp2p/multistream-select/dist/src/select.js
+init_define_REPO_FILES();
+
+// node_modules/it-length-prefixed-stream/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/it-length-prefixed-stream/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidMessageLengthError3 = class extends Error {
   name = "InvalidMessageLengthError";
   code = "ERR_INVALID_MSG_LENGTH";
@@ -67426,6 +68606,7 @@ function lpStream(duplex, opts = {}) {
 }
 
 // node_modules/@libp2p/multistream-select/dist/src/multistream.js
+init_define_REPO_FILES();
 var NewLine = fromString4("\n");
 async function write4(writer, buffer5, options2) {
   await writer.write(buffer5, options2);
@@ -67668,6 +68849,7 @@ function optimisticSelect(stream, protocol, options2) {
 }
 
 // node_modules/@libp2p/multistream-select/dist/src/handle.js
+init_define_REPO_FILES();
 async function handle(stream, protocols2, options2) {
   protocols2 = Array.isArray(protocols2) ? protocols2 : [protocols2];
   options2.log.trace("handle: available protocols %s", protocols2);
@@ -67710,6 +68892,7 @@ async function handle(stream, protocols2, options2) {
 }
 
 // node_modules/libp2p/dist/src/connection.js
+init_define_REPO_FILES();
 var CLOSE_TIMEOUT = 500;
 var Connection = class {
   id;
@@ -68310,7 +69493,11 @@ var Upgrader = class {
   }
 };
 
+// node_modules/libp2p/dist/src/user-agent.browser.js
+init_define_REPO_FILES();
+
 // node_modules/libp2p/dist/src/version.js
+init_define_REPO_FILES();
 var version = "2.10.0";
 var name9 = "js-libp2p";
 
@@ -68623,7 +69810,26 @@ function isLibp2p(obj) {
   return LIBP2P_METHODS.every((m2) => typeof obj[m2] === "function");
 }
 
+// node_modules/helia/dist/src/utils/libp2p.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/dist/src/load-private-key.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/@libp2p/keychain/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/@libp2p/keychain/dist/src/keychain.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/@libp2p/interface/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/config/node_modules/@libp2p/interface/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidParametersError4 = class extends Error {
   static name = "InvalidParametersError";
   constructor(message5 = "Invalid parameters") {
@@ -68650,13 +69856,30 @@ var UnsupportedKeyTypeError3 = class extends Error {
 var serviceCapabilities2 = Symbol.for("@libp2p/service-capabilities");
 var serviceDependencies2 = Symbol.for("@libp2p/service-dependencies");
 
+// node_modules/@libp2p/config/node_modules/interface-datastore/dist/src/key.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/uint8arrays/dist/src/from-string.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/uint8arrays/dist/src/util/bases.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/basics.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/config/node_modules/multiformats/dist/src/bases/base10.js
 var base10_exports4 = {};
 __export(base10_exports4, {
   base10: () => base104
 });
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/bases/base.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/config/node_modules/multiformats/dist/src/bytes.js
+init_define_REPO_FILES();
 var empty6 = new Uint8Array(0);
 function equals11(aa, bb) {
   if (aa === bb) {
@@ -68719,6 +69942,7 @@ function toArrayBufferBackedArray5(b) {
 }
 
 // node_modules/@libp2p/config/node_modules/multiformats/dist/src/vendor/base-x.js
+init_define_REPO_FILES();
 function base6(ALPHABET, name15, caseInsensitive) {
   if (ALPHABET.length >= 255) {
     throw new TypeError("Alphabet too long");
@@ -69063,6 +70287,7 @@ __export(base16_exports4, {
   base16: () => base164,
   base16upper: () => base16upper4
 });
+init_define_REPO_FILES();
 var base164 = rfc46486({
   prefix: "f",
   name: "base16",
@@ -69083,6 +70308,7 @@ var base2_exports4 = {};
 __export(base2_exports4, {
   base2: () => base25
 });
+init_define_REPO_FILES();
 var base25 = rfc46486({
   prefix: "0",
   name: "base2",
@@ -69095,6 +70321,7 @@ var base256emoji_exports4 = {};
 __export(base256emoji_exports4, {
   base256emoji: () => base256emoji4
 });
+init_define_REPO_FILES();
 var alphabet4 = Array.from("\u{1F680}\u{1FA90}\u2604\u{1F6F0}\u{1F30C}\u{1F311}\u{1F312}\u{1F313}\u{1F314}\u{1F315}\u{1F316}\u{1F317}\u{1F318}\u{1F30D}\u{1F30F}\u{1F30E}\u{1F409}\u2600\u{1F4BB}\u{1F5A5}\u{1F4BE}\u{1F4BF}\u{1F602}\u2764\u{1F60D}\u{1F923}\u{1F60A}\u{1F64F}\u{1F495}\u{1F62D}\u{1F618}\u{1F44D}\u{1F605}\u{1F44F}\u{1F601}\u{1F525}\u{1F970}\u{1F494}\u{1F496}\u{1F499}\u{1F622}\u{1F914}\u{1F606}\u{1F644}\u{1F4AA}\u{1F609}\u263A\u{1F44C}\u{1F917}\u{1F49C}\u{1F614}\u{1F60E}\u{1F607}\u{1F339}\u{1F926}\u{1F389}\u{1F49E}\u270C\u2728\u{1F937}\u{1F631}\u{1F60C}\u{1F338}\u{1F64C}\u{1F60B}\u{1F497}\u{1F49A}\u{1F60F}\u{1F49B}\u{1F642}\u{1F493}\u{1F929}\u{1F604}\u{1F600}\u{1F5A4}\u{1F603}\u{1F4AF}\u{1F648}\u{1F447}\u{1F3B6}\u{1F612}\u{1F92D}\u2763\u{1F61C}\u{1F48B}\u{1F440}\u{1F62A}\u{1F611}\u{1F4A5}\u{1F64B}\u{1F61E}\u{1F629}\u{1F621}\u{1F92A}\u{1F44A}\u{1F973}\u{1F625}\u{1F924}\u{1F449}\u{1F483}\u{1F633}\u270B\u{1F61A}\u{1F61D}\u{1F634}\u{1F31F}\u{1F62C}\u{1F643}\u{1F340}\u{1F337}\u{1F63B}\u{1F613}\u2B50\u2705\u{1F97A}\u{1F308}\u{1F608}\u{1F918}\u{1F4A6}\u2714\u{1F623}\u{1F3C3}\u{1F490}\u2639\u{1F38A}\u{1F498}\u{1F620}\u261D\u{1F615}\u{1F33A}\u{1F382}\u{1F33B}\u{1F610}\u{1F595}\u{1F49D}\u{1F64A}\u{1F639}\u{1F5E3}\u{1F4AB}\u{1F480}\u{1F451}\u{1F3B5}\u{1F91E}\u{1F61B}\u{1F534}\u{1F624}\u{1F33C}\u{1F62B}\u26BD\u{1F919}\u2615\u{1F3C6}\u{1F92B}\u{1F448}\u{1F62E}\u{1F646}\u{1F37B}\u{1F343}\u{1F436}\u{1F481}\u{1F632}\u{1F33F}\u{1F9E1}\u{1F381}\u26A1\u{1F31E}\u{1F388}\u274C\u270A\u{1F44B}\u{1F630}\u{1F928}\u{1F636}\u{1F91D}\u{1F6B6}\u{1F4B0}\u{1F353}\u{1F4A2}\u{1F91F}\u{1F641}\u{1F6A8}\u{1F4A8}\u{1F92C}\u2708\u{1F380}\u{1F37A}\u{1F913}\u{1F619}\u{1F49F}\u{1F331}\u{1F616}\u{1F476}\u{1F974}\u25B6\u27A1\u2753\u{1F48E}\u{1F4B8}\u2B07\u{1F628}\u{1F31A}\u{1F98B}\u{1F637}\u{1F57A}\u26A0\u{1F645}\u{1F61F}\u{1F635}\u{1F44E}\u{1F932}\u{1F920}\u{1F927}\u{1F4CC}\u{1F535}\u{1F485}\u{1F9D0}\u{1F43E}\u{1F352}\u{1F617}\u{1F911}\u{1F30A}\u{1F92F}\u{1F437}\u260E\u{1F4A7}\u{1F62F}\u{1F486}\u{1F446}\u{1F3A4}\u{1F647}\u{1F351}\u2744\u{1F334}\u{1F4A3}\u{1F438}\u{1F48C}\u{1F4CD}\u{1F940}\u{1F922}\u{1F445}\u{1F4A1}\u{1F4A9}\u{1F450}\u{1F4F8}\u{1F47B}\u{1F910}\u{1F92E}\u{1F3BC}\u{1F975}\u{1F6A9}\u{1F34E}\u{1F34A}\u{1F47C}\u{1F48D}\u{1F4E3}\u{1F942}");
 var alphabetBytesToChars4 = alphabet4.reduce((p, c, i) => {
   p[i] = c;
@@ -69149,6 +70376,7 @@ __export(base32_exports4, {
   base32upper: () => base32upper6,
   base32z: () => base32z6
 });
+init_define_REPO_FILES();
 var base326 = rfc46486({
   prefix: "b",
   name: "base32",
@@ -69218,6 +70446,7 @@ __export(base36_exports4, {
   base36: () => base365,
   base36upper: () => base36upper5
 });
+init_define_REPO_FILES();
 var base365 = baseX6({
   prefix: "k",
   name: "base36",
@@ -69237,6 +70466,7 @@ __export(base58_exports4, {
   base58btc: () => base58btc6,
   base58flickr: () => base58flickr6
 });
+init_define_REPO_FILES();
 var base58btc6 = baseX6({
   name: "base58btc",
   prefix: "z",
@@ -69256,6 +70486,7 @@ __export(base64_exports4, {
   base64url: () => base64url5,
   base64urlpad: () => base64urlpad5
 });
+init_define_REPO_FILES();
 var base645 = rfc46486({
   prefix: "m",
   name: "base64",
@@ -69286,6 +70517,7 @@ var base8_exports4 = {};
 __export(base8_exports4, {
   base8: () => base84
 });
+init_define_REPO_FILES();
 var base84 = rfc46486({
   prefix: "7",
   name: "base8",
@@ -69298,6 +70530,7 @@ var identity_exports7 = {};
 __export(identity_exports7, {
   identity: () => identity7
 });
+init_define_REPO_FILES();
 var identity7 = from9({
   prefix: "\0",
   name: "identity",
@@ -69306,16 +70539,28 @@ var identity7 = from9({
 });
 
 // node_modules/@libp2p/config/node_modules/multiformats/dist/src/codecs/json.js
+init_define_REPO_FILES();
 var textEncoder10 = new TextEncoder();
 var textDecoder9 = new TextDecoder();
+
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/codecs/raw.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/config/node_modules/multiformats/dist/src/hashes/identity.js
 var identity_exports8 = {};
 __export(identity_exports8, {
   identity: () => identity8
 });
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/hashes/digest.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/varint.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/config/node_modules/multiformats/dist/src/vendor/varint.js
+init_define_REPO_FILES();
 var encode_15 = encode30;
 var MSB7 = 128;
 var REST7 = 127;
@@ -69460,8 +70705,10 @@ __export(sha2_browser_exports4, {
   sha256: () => sha2565,
   sha512: () => sha5125
 });
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/config/node_modules/multiformats/dist/src/hashes/hasher.js
+init_define_REPO_FILES();
 var DEFAULT_MIN_DIGEST_LENGTH4 = 20;
 function from10({ name: name15, code: code14, encode: encode55, minDigestLength, maxDigestLength }) {
   return new Hasher4(name15, code14, encode55, minDigestLength, maxDigestLength);
@@ -69523,6 +70770,15 @@ var sha5125 = from10({
   code: 19,
   encode: sha4("SHA-512")
 });
+
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/cid.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/link/interface.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/config/node_modules/multiformats/dist/src/cid.js
 function format7(link, base13) {
@@ -69859,11 +71115,27 @@ function encodeCID5(version4, code14, multihash) {
 }
 var cidSymbol5 = Symbol.for("@ipld/js-cid/CID");
 
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/bases/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/hashes/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/codecs/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/config/node_modules/multiformats/dist/src/block/interface.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/config/node_modules/multiformats/dist/src/basics.js
 var bases4 = { ...identity_exports7, ...base2_exports4, ...base8_exports4, ...base10_exports4, ...base16_exports4, ...base32_exports4, ...base36_exports4, ...base58_exports4, ...base64_exports4, ...base256emoji_exports4 };
 var hashes4 = { ...sha2_browser_exports4, ...identity_exports8 };
 
 // node_modules/@libp2p/config/node_modules/uint8arrays/dist/src/alloc.js
+init_define_REPO_FILES();
 function allocUnsafe4(size = 0) {
   return new Uint8Array(size);
 }
@@ -69925,6 +71197,7 @@ function fromString11(string9, encoding = "utf8") {
 }
 
 // node_modules/@libp2p/config/node_modules/uint8arrays/dist/src/to-string.js
+init_define_REPO_FILES();
 function toString9(array, encoding = "utf8") {
   const base13 = bases_default4[encoding];
   if (base13 == null) {
@@ -70293,6 +71566,7 @@ function flatten2(arr) {
 var import_sanitize_filename = __toESM(require_sanitize_filename(), 1);
 
 // node_modules/@libp2p/config/node_modules/@libp2p/keychain/dist/src/constants.js
+init_define_REPO_FILES();
 var DEK_INIT = {
   keyLength: 512 / 8,
   iterationCount: 1e4,
@@ -70300,12 +71574,19 @@ var DEK_INIT = {
   hash: "sha2-512"
 };
 
+// node_modules/@libp2p/config/node_modules/@libp2p/keychain/dist/src/utils/export.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/crypto/dist/src/ciphers/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/crypto/dist/src/ciphers/aes-gcm.browser.js
 var aes_gcm_browser_exports = {};
 __export(aes_gcm_browser_exports, {
   create: () => create6,
   derivedEmptyPasswordKey: () => derivedEmptyPasswordKey
 });
+init_define_REPO_FILES();
 var derivedEmptyPasswordKey = {
   alg: "A128GCM",
   ext: true,
@@ -70431,9 +71712,11 @@ __export(index_es_exports, {
   fromBER: () => fromBER,
   verifySchema: () => verifySchema
 });
+init_define_REPO_FILES();
 var pvtsutils = __toESM(require_build());
 
 // node_modules/pvutils/build/utils.es.js
+init_define_REPO_FILES();
 function utilFromBase(inputBuffer, inputBase) {
   let result2 = 0;
   if (inputBuffer.length === 1) {
@@ -74057,6 +75340,7 @@ registerBuiltinEncoder({ BitString, Integer, OctetString, Primitive, Constructed
 registerFastParser({ Integer, Null, Sequence });
 
 // node_modules/@libp2p/config/node_modules/uint8arrays/dist/src/with-array-buffer.js
+init_define_REPO_FILES();
 function isArrayBufferBacked2(arr) {
   return arr.buffer instanceof ArrayBuffer;
 }
@@ -74068,6 +75352,7 @@ function withArrayBuffer2(arr) {
 }
 
 // node_modules/@libp2p/config/node_modules/@libp2p/keychain/dist/src/utils/constants.js
+init_define_REPO_FILES();
 var SALT_LENGTH = 16;
 var KEY_SIZE = 32;
 var ITERATIONS = 1e4;
@@ -74228,6 +75513,7 @@ async function exportToPem(privateKey, password) {
 }
 
 // node_modules/@libp2p/config/node_modules/@libp2p/keychain/dist/src/utils/import.js
+init_define_REPO_FILES();
 async function importPrivateKey(encryptedKey, password) {
   try {
     const key = await importer(encryptedKey, password);
@@ -74635,6 +75921,7 @@ function keychain(init2 = {}) {
 }
 
 // node_modules/@libp2p/config/node_modules/@libp2p/logger/dist/src/index.js
+init_define_REPO_FILES();
 src_default.formatters.b = (v) => {
   return v == null ? "undefined" : base58btc6.baseEncode(v);
 };
@@ -74745,6 +76032,9 @@ function notEmpty3(str) {
   return str;
 }
 
+// node_modules/@libp2p/config/node_modules/interface-datastore/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/config/dist/src/load-private-key.js
 async function loadOrCreateSelfKey(datastore, init2 = {}) {
   const selfKey = init2.selfKey ?? "self";
@@ -74762,7 +76052,20 @@ async function loadOrCreateSelfKey(datastore, init2 = {}) {
   return privateKey;
 }
 
+// node_modules/helia/dist/src/utils/libp2p-defaults.browser.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/libp2p-noise/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/libp2p-noise/dist/src/noise.js
+init_define_REPO_FILES();
+
+// node_modules/it-pair/dist/src/duplex.js
+init_define_REPO_FILES();
+
 // node_modules/it-pair/dist/src/index.js
+init_define_REPO_FILES();
 function pair() {
   const deferred = pDefer();
   let piped = false;
@@ -74798,11 +76101,25 @@ function duplexPair() {
 }
 
 // node_modules/@chainsafe/libp2p-noise/dist/src/constants.js
+init_define_REPO_FILES();
 var NOISE_MSG_MAX_LENGTH_BYTES = 65535;
 var NOISE_MSG_MAX_LENGTH_BYTES_WITHOUT_TAG = NOISE_MSG_MAX_LENGTH_BYTES - 16;
 var DUMP_SESSION_KEYS = Boolean(globalThis.process?.env?.DUMP_SESSION_KEYS);
 
+// node_modules/@chainsafe/libp2p-noise/dist/src/crypto/index.browser.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/libp2p-noise/dist/src/crypto/js.js
+init_define_REPO_FILES();
+
+// node_modules/@noble/ciphers/esm/chacha.js
+init_define_REPO_FILES();
+
+// node_modules/@noble/ciphers/esm/_arx.js
+init_define_REPO_FILES();
+
 // node_modules/@noble/ciphers/esm/utils.js
+init_define_REPO_FILES();
 function isBytes3(a) {
   return a instanceof Uint8Array || ArrayBuffer.isView(a) && a.constructor.name === "Uint8Array";
 }
@@ -75067,6 +76384,7 @@ function createCipher(core, opts) {
 }
 
 // node_modules/@noble/ciphers/esm/_poly1305.js
+init_define_REPO_FILES();
 var u8to16 = (a, i) => a[i++] & 255 | (a[i++] & 255) << 8;
 var Poly1305 = class {
   constructor(key) {
@@ -75549,7 +76867,20 @@ var _poly1305_aead = (xorStream) => (key, nonce, AAD) => {
 var chacha20poly1305 = /* @__PURE__ */ wrapCipher({ blockSize: 64, nonceLength: 12, tagLength: 16 }, _poly1305_aead(chacha20));
 var xchacha20poly1305 = /* @__PURE__ */ wrapCipher({ blockSize: 64, nonceLength: 24, tagLength: 16 }, _poly1305_aead(xchacha20));
 
+// node_modules/@chainsafe/libp2p-noise/node_modules/@noble/curves/esm/ed25519.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/libp2p-noise/node_modules/@noble/hashes/esm/sha2.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/libp2p-noise/node_modules/@noble/hashes/esm/_md.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/libp2p-noise/node_modules/@noble/hashes/esm/utils.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-noise/node_modules/@noble/hashes/esm/crypto.js
+init_define_REPO_FILES();
 var crypto2 = typeof globalThis === "object" && "crypto" in globalThis ? globalThis.crypto : void 0;
 
 // node_modules/@chainsafe/libp2p-noise/node_modules/@noble/hashes/esm/utils.js
@@ -75827,6 +77158,7 @@ var SHA512_IV2 = /* @__PURE__ */ Uint32Array.from([
 ]);
 
 // node_modules/@chainsafe/libp2p-noise/node_modules/@noble/hashes/esm/_u64.js
+init_define_REPO_FILES();
 var U32_MASK642 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
 var _32n2 = /* @__PURE__ */ BigInt(32);
 function fromBig2(n, le = false) {
@@ -76199,7 +77531,11 @@ var SHA512 = class extends HashMD2 {
 var sha2566 = /* @__PURE__ */ createHasher2(() => new SHA256());
 var sha5126 = /* @__PURE__ */ createHasher2(() => new SHA512());
 
+// node_modules/@chainsafe/libp2p-noise/node_modules/@noble/curves/esm/abstract/curve.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-noise/node_modules/@noble/curves/esm/utils.js
+init_define_REPO_FILES();
 var _0n7 = /* @__PURE__ */ BigInt(0);
 var _1n7 = /* @__PURE__ */ BigInt(1);
 function _abool2(value2, title = "") {
@@ -76313,6 +77649,7 @@ function memoized(fn) {
 }
 
 // node_modules/@chainsafe/libp2p-noise/node_modules/@noble/curves/esm/abstract/modular.js
+init_define_REPO_FILES();
 var _0n8 = BigInt(0);
 var _1n8 = BigInt(1);
 var _2n6 = /* @__PURE__ */ BigInt(2);
@@ -76902,6 +78239,7 @@ function _createCurveFields(type, CURVE, curveOpts = {}, FpFnLE) {
 }
 
 // node_modules/@chainsafe/libp2p-noise/node_modules/@noble/curves/esm/abstract/edwards.js
+init_define_REPO_FILES();
 var _0n10 = BigInt(0);
 var _1n10 = BigInt(1);
 var _2n7 = BigInt(2);
@@ -77453,6 +78791,7 @@ function twistedEdwards(c) {
 }
 
 // node_modules/@chainsafe/libp2p-noise/node_modules/@noble/curves/esm/abstract/montgomery.js
+init_define_REPO_FILES();
 var _0n11 = BigInt(0);
 var _1n11 = BigInt(1);
 var _2n8 = BigInt(2);
@@ -77807,7 +79146,11 @@ _RistrettoPoint.ZERO = /* @__PURE__ */ (() => new _RistrettoPoint(ed255192.Point
 _RistrettoPoint.Fp = /* @__PURE__ */ (() => Fp2)();
 _RistrettoPoint.Fn = /* @__PURE__ */ (() => Fn)();
 
+// node_modules/@chainsafe/libp2p-noise/node_modules/@noble/hashes/esm/hkdf.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-noise/node_modules/@noble/hashes/esm/hmac.js
+init_define_REPO_FILES();
 var HMAC = class extends Hash2 {
   constructor(hash, _key) {
     super();
@@ -77910,6 +79253,7 @@ function expand(hash, prk, info, length15 = 32) {
 }
 
 // node_modules/@chainsafe/libp2p-noise/node_modules/@noble/hashes/esm/sha256.js
+init_define_REPO_FILES();
 var sha2567 = sha2566;
 
 // node_modules/@chainsafe/libp2p-noise/dist/src/crypto/js.js
@@ -77956,6 +79300,7 @@ var pureJsCrypto = {
 var defaultCrypto = pureJsCrypto;
 
 // node_modules/@chainsafe/libp2p-noise/dist/src/crypto.js
+init_define_REPO_FILES();
 function wrapCrypto(crypto3) {
   return {
     generateKeypair: crypto3.generateX25519KeyPair,
@@ -77968,6 +79313,7 @@ function wrapCrypto(crypto3) {
 }
 
 // node_modules/@chainsafe/libp2p-noise/dist/src/encoder.js
+init_define_REPO_FILES();
 var uint16BEEncode = (value2) => {
   const target = allocUnsafe2(2);
   target[0] = value2 >> 8;
@@ -77990,6 +79336,7 @@ var uint16BEDecode = (data) => {
 uint16BEDecode.bytes = 2;
 
 // node_modules/@chainsafe/libp2p-noise/dist/src/metrics.js
+init_define_REPO_FILES();
 function registerMetrics(metrics) {
   return {
     xxHandshakeSuccesses: metrics.registerCounter("libp2p_noise_xxhandshake_successes_total", {
@@ -78010,7 +79357,11 @@ function registerMetrics(metrics) {
   };
 }
 
+// node_modules/@chainsafe/libp2p-noise/dist/src/performHandshake.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-noise/dist/src/logger.js
+init_define_REPO_FILES();
 function logLocalStaticKeys(s2, keyLogger) {
   if (!keyLogger.enabled || !DUMP_SESSION_KEYS) {
     return;
@@ -78061,7 +79412,14 @@ function logCipherState(cs1, cs2, keyLogger) {
   keyLogger(`CIPHER_STATE_2 ${cs2.n.getUint64()} ${cs2.k && toString4(cs2.k, "hex")}`);
 }
 
+// node_modules/@chainsafe/libp2p-noise/dist/src/protocol.js
+init_define_REPO_FILES();
+
+// node_modules/uint8arrays/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/uint8arrays/dist/src/xor.js
+init_define_REPO_FILES();
 function xor(a, b) {
   if (a.length !== b.length) {
     throw new Error("Inputs should have the same length");
@@ -78073,7 +79431,11 @@ function xor(a, b) {
   return asUint8Array2(result2);
 }
 
+// node_modules/uint8arrays/dist/src/compare.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-noise/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidCryptoExchangeError2 = class _InvalidCryptoExchangeError extends Error {
   code;
   constructor(message5 = "Invalid crypto exchange") {
@@ -78084,6 +79446,7 @@ var InvalidCryptoExchangeError2 = class _InvalidCryptoExchangeError extends Erro
 };
 
 // node_modules/@chainsafe/libp2p-noise/dist/src/nonce.js
+init_define_REPO_FILES();
 var MIN_NONCE = 0;
 var MAX_NONCE = 4294967295;
 var ERR_MAX_NONCE = "Cipherstate has reached maximum n, a new handshake must be performed";
@@ -78356,7 +79719,11 @@ function hashProtocolName(crypto3, protocolName) {
   }
 }
 
+// node_modules/@chainsafe/libp2p-noise/dist/src/utils.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-noise/dist/src/proto/payload.js
+init_define_REPO_FILES();
 var NoiseExtensions;
 (function(NoiseExtensions2) {
   let _codec;
@@ -78593,6 +79960,7 @@ async function performHandshakeResponder(init2, options2) {
 }
 
 // node_modules/@chainsafe/libp2p-noise/dist/src/streaming.js
+init_define_REPO_FILES();
 var CHACHA_TAG_LENGTH = 16;
 function encryptStream(handshake, metrics) {
   return async function* (source) {
@@ -78823,7 +80191,14 @@ function noise(init2 = {}) {
   return (components) => new Noise(components, init2);
 }
 
+// node_modules/@chainsafe/libp2p-yamux/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/libp2p-yamux/dist/src/muxer.js
+init_define_REPO_FILES();
+
 // node_modules/get-iterator/dist/src/index.js
+init_define_REPO_FILES();
 function getIterator(obj) {
   if (obj != null) {
     if (typeof obj[Symbol.iterator] === "function") {
@@ -78839,7 +80214,14 @@ function getIterator(obj) {
   throw new Error("argument is not an iterator or iterable");
 }
 
+// node_modules/@chainsafe/libp2p-yamux/dist/src/config.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/libp2p-yamux/dist/src/constants.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-yamux/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidFrameError = class extends Error {
   static name = "InvalidFrameError";
   constructor(message5 = "The frame was invalid") {
@@ -78944,7 +80326,11 @@ function verifyConfig(config2) {
   }
 }
 
+// node_modules/@chainsafe/libp2p-yamux/dist/src/decode.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-yamux/dist/src/frame.js
+init_define_REPO_FILES();
 var FrameType;
 (function(FrameType2) {
   FrameType2[FrameType2["Data"] = 0] = "Data";
@@ -79069,6 +80455,7 @@ function returnlessSource(source) {
 }
 
 // node_modules/@chainsafe/libp2p-yamux/dist/src/encode.js
+init_define_REPO_FILES();
 function encodeHeader(header) {
   const frame = new Uint8Array(HEADER_LENGTH);
   frame[1] = header.type;
@@ -79085,7 +80472,17 @@ function encodeHeader(header) {
   return frame;
 }
 
+// node_modules/@chainsafe/libp2p-yamux/dist/src/stream.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/utils/dist/src/abstract-stream.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/utils/dist/src/close-source.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/is-promise.js
+init_define_REPO_FILES();
 function isPromise4(thing) {
   if (thing == null) {
     return false;
@@ -80118,7 +81515,14 @@ function yamux(init2 = {}) {
   return (components) => new Yamux(components, init2);
 }
 
+// node_modules/@libp2p/autonat/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/autonat/dist/src/autonat.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/multiaddr/is-global-unicast.js
+init_define_REPO_FILES();
 function isGlobalUnicast(ma) {
   try {
     for (const { code: code14, value: value2 } of ma.getComponents()) {
@@ -80135,6 +81539,7 @@ function isGlobalUnicast(ma) {
 }
 
 // node_modules/@libp2p/utils/dist/src/repeating-task.js
+init_define_REPO_FILES();
 function repeatingTask(fn, interval, options2) {
   let timeout;
   let shutdownController;
@@ -80208,6 +81613,7 @@ function repeatingTask(fn, interval, options2) {
 }
 
 // node_modules/it-protobuf-stream/dist/src/index.js
+init_define_REPO_FILES();
 function pbStream(duplex, opts) {
   const lp = lpStream(duplex, opts);
   const W = {
@@ -80237,6 +81643,7 @@ function pbStream(duplex, opts) {
 }
 
 // node_modules/@libp2p/autonat/dist/src/constants.js
+init_define_REPO_FILES();
 var PROTOCOL_PREFIX2 = "libp2p";
 var PROTOCOL_NAME2 = "autonat";
 var PROTOCOL_VERSION2 = "1.0.0";
@@ -80247,6 +81654,7 @@ var DEFAULT_CONNECTION_THRESHOLD = 80;
 var MAX_MESSAGE_SIZE = 8192;
 
 // node_modules/@libp2p/autonat/dist/src/pb/index.js
+init_define_REPO_FILES();
 var Message;
 (function(Message5) {
   let MessageType2;
@@ -81038,7 +82446,11 @@ function autoNAT(init2 = {}) {
   };
 }
 
+// node_modules/@libp2p/bootstrap/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@multiformats/mafmt/dist/src/index.js
+init_define_REPO_FILES();
 var DNS42 = base7("dns4");
 var DNS62 = base7("dns6");
 var DNSADDR2 = base7("dnsaddr");
@@ -81274,7 +82686,11 @@ function bootstrap(init2) {
   return (components) => new Bootstrap(components, init2);
 }
 
+// node_modules/@libp2p/circuit-relay-v2/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/circuit-relay-v2/dist/src/constants.js
+init_define_REPO_FILES();
 var second = 1e3;
 var minute = 60 * second;
 var CIRCUIT_PROTO_CODE = 290;
@@ -81295,6 +82711,7 @@ var DEFAULT_DISCOVERY_FILTER_SIZE = 4096;
 var DEFAULT_DISCOVERY_FILTER_ERROR_RATE = 1e-3;
 
 // node_modules/@libp2p/circuit-relay-v2/dist/src/pb/index.js
+init_define_REPO_FILES();
 var HopMessage;
 (function(HopMessage2) {
   let Type5;
@@ -81831,7 +83248,11 @@ var Envelope2;
   };
 })(Envelope2 || (Envelope2 = {}));
 
+// node_modules/@libp2p/circuit-relay-v2/dist/src/utils.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/circuit-relay-v2/dist/src/errors.js
+init_define_REPO_FILES();
 var HadEnoughRelaysError = class extends Error {
   static name = "HadEnoughRelaysError";
   name = "HadEnoughRelaysError";
@@ -81900,7 +83321,14 @@ var LimitTracker = class {
 var CircuitListen = fmt(and(P2P.matchers[0], code9(CODE_P2P_CIRCUIT)));
 var CircuitSearch = fmt(code9(CODE_P2P_CIRCUIT));
 
+// node_modules/@libp2p/circuit-relay-v2/dist/src/transport/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/circuit-relay-v2/dist/src/transport/transport.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/utils/dist/src/stream-to-ma-conn.js
+init_define_REPO_FILES();
 function streamToMaConnection(props) {
   const { stream, remoteAddr, log: log19, onDataRead, onDataWrite } = props;
   let closedRead = false;
@@ -81961,6 +83389,7 @@ function streamToMaConnection(props) {
 }
 
 // node_modules/@libp2p/circuit-relay-v2/dist/src/transport/discovery.js
+init_define_REPO_FILES();
 var RelayDiscovery = class extends TypedEventEmitter {
   components;
   started;
@@ -82152,6 +83581,7 @@ function getLastDial(peer) {
 }
 
 // node_modules/@libp2p/circuit-relay-v2/dist/src/transport/listener.js
+init_define_REPO_FILES();
 var CircuitRelayTransportListener = class extends TypedEventEmitter {
   connectionManager;
   addressManager;
@@ -82246,7 +83676,14 @@ function createListener(options2) {
   return new CircuitRelayTransportListener(options2);
 }
 
+// node_modules/@libp2p/circuit-relay-v2/dist/src/transport/reservation-store.js
+init_define_REPO_FILES();
+
+// node_modules/nanoid/index.browser.js
+init_define_REPO_FILES();
+
 // node_modules/nanoid/url-alphabet/index.js
+init_define_REPO_FILES();
 var urlAlphabet = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
 
 // node_modules/nanoid/index.browser.js
@@ -82870,7 +84307,14 @@ function circuitRelayTransport(init2 = {}) {
   };
 }
 
+// node_modules/@libp2p/dcutr/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/dcutr/dist/src/dcutr.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/dcutr/dist/src/pb/message.js
+init_define_REPO_FILES();
 var HolePunch;
 (function(HolePunch2) {
   let Type5;
@@ -82949,6 +84393,7 @@ var HolePunch;
 })(HolePunch || (HolePunch = {}));
 
 // node_modules/@libp2p/dcutr/dist/src/utils.js
+init_define_REPO_FILES();
 function isPublicAndDialable(ma, transportManager) {
   if (Circuit.matches(ma)) {
     return false;
@@ -83237,7 +84682,14 @@ function dcutr(init2 = {}) {
   return (components) => new DefaultDCUtRService(components, init2);
 }
 
+// node_modules/@libp2p/identify/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/identify/dist/src/identify-push.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/identify/dist/src/consts.js
+init_define_REPO_FILES();
 var IDENTIFY_PROTOCOL_VERSION = "0.1.0";
 var MULTICODEC_IDENTIFY_PROTOCOL_NAME = "id";
 var MULTICODEC_IDENTIFY_PUSH_PROTOCOL_NAME = "id/push";
@@ -83248,6 +84700,7 @@ var MAX_PUSH_CONCURRENCY = 32;
 var PUSH_DEBOUNCE_MS = 1e3;
 
 // node_modules/@libp2p/identify/dist/src/pb/message.js
+init_define_REPO_FILES();
 var Identify;
 (function(Identify3) {
   let _codec;
@@ -83355,6 +84808,7 @@ var Identify;
 })(Identify || (Identify = {}));
 
 // node_modules/@libp2p/identify/dist/src/utils.js
+init_define_REPO_FILES();
 var defaultValues6 = {
   protocolPrefix: "ipfs",
   timeout: 5e3,
@@ -83667,6 +85121,7 @@ var IdentifyPush = class extends AbstractIdentify {
 };
 
 // node_modules/@libp2p/identify/dist/src/identify.js
+init_define_REPO_FILES();
 var Identify2 = class extends AbstractIdentify {
   constructor(components, init2 = {}) {
     super(components, {
@@ -83810,7 +85265,14 @@ function identifyPush(init2 = {}) {
   return (components) => new IdentifyPush(components, init2);
 }
 
+// node_modules/@libp2p/kad-dht/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/kad-dht/dist/src/kad-dht.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/kad-dht/dist/src/constants.js
+init_define_REPO_FILES();
 var second2 = 1e3;
 var minute2 = 60 * second2;
 var hour = 60 * minute2;
@@ -83833,7 +85295,29 @@ var TABLE_REFRESH_QUERY_TIMEOUT = 30 * second2;
 var DEFAULT_QUERY_TIMEOUT = 180 * second2;
 var KEEP_ALIVE_TAG2 = `${KEEP_ALIVE}-kad-dht`;
 
+// node_modules/@libp2p/kad-dht/dist/src/content-fetching/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/dist/src/record.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/decode.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/utils/reader.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/uint8-varint/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/record/node_modules/uint8arrays/dist/src/alloc.js
+init_define_REPO_FILES();
 function alloc10(size = 0) {
   return new Uint8Array(size);
 }
@@ -83964,6 +85448,7 @@ function decodeUint8Array3(buf, offset) {
 }
 
 // node_modules/@libp2p/record/node_modules/uint8arrays/dist/src/with-array-buffer.js
+init_define_REPO_FILES();
 function isArrayBufferBacked3(arr) {
   return arr.buffer instanceof ArrayBuffer;
 }
@@ -83975,6 +85460,7 @@ function withArrayBuffer3(arr) {
 }
 
 // node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/utils/float.js
+init_define_REPO_FILES();
 var f324 = new Float32Array([-0]);
 var f8b4 = new Uint8Array(f324.buffer);
 function writeFloatLE4(val, buf, pos) {
@@ -84017,6 +85503,7 @@ function readDoubleLE4(buf, pos) {
 }
 
 // node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/utils/longbits.js
+init_define_REPO_FILES();
 var MAX_SAFE_NUMBER_INTEGER4 = BigInt(Number.MAX_SAFE_INTEGER);
 var MIN_SAFE_NUMBER_INTEGER4 = BigInt(Number.MIN_SAFE_INTEGER);
 var LongBits4 = class _LongBits {
@@ -84172,6 +85659,7 @@ zero4.length = function() {
 var TWO_324 = 4294967296n;
 
 // node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/utils/utf8.js
+init_define_REPO_FILES();
 function length9(string9) {
   let len = 0;
   let c = 0;
@@ -84591,13 +86079,33 @@ function decodeMessage4(buf, codec, opts) {
   return codec.decode(reader, void 0, opts);
 }
 
+// node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/encode.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/utils/writer.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/uint8arrays/dist/src/from-string.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/uint8arrays/dist/src/util/bases.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/basics.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/record/node_modules/multiformats/dist/src/bases/base10.js
 var base10_exports5 = {};
 __export(base10_exports5, {
   base10: () => base105
 });
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/bases/base.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/record/node_modules/multiformats/dist/src/bytes.js
+init_define_REPO_FILES();
 var empty7 = new Uint8Array(0);
 function equals13(aa, bb) {
   if (aa === bb) {
@@ -84660,6 +86168,7 @@ function toArrayBufferBackedArray6(b) {
 }
 
 // node_modules/@libp2p/record/node_modules/multiformats/dist/src/vendor/base-x.js
+init_define_REPO_FILES();
 function base9(ALPHABET, name15, caseInsensitive) {
   if (ALPHABET.length >= 255) {
     throw new TypeError("Alphabet too long");
@@ -85004,6 +86513,7 @@ __export(base16_exports5, {
   base16: () => base165,
   base16upper: () => base16upper5
 });
+init_define_REPO_FILES();
 var base165 = rfc46487({
   prefix: "f",
   name: "base16",
@@ -85024,6 +86534,7 @@ var base2_exports5 = {};
 __export(base2_exports5, {
   base2: () => base26
 });
+init_define_REPO_FILES();
 var base26 = rfc46487({
   prefix: "0",
   name: "base2",
@@ -85036,6 +86547,7 @@ var base256emoji_exports5 = {};
 __export(base256emoji_exports5, {
   base256emoji: () => base256emoji5
 });
+init_define_REPO_FILES();
 var alphabet5 = Array.from("\u{1F680}\u{1FA90}\u2604\u{1F6F0}\u{1F30C}\u{1F311}\u{1F312}\u{1F313}\u{1F314}\u{1F315}\u{1F316}\u{1F317}\u{1F318}\u{1F30D}\u{1F30F}\u{1F30E}\u{1F409}\u2600\u{1F4BB}\u{1F5A5}\u{1F4BE}\u{1F4BF}\u{1F602}\u2764\u{1F60D}\u{1F923}\u{1F60A}\u{1F64F}\u{1F495}\u{1F62D}\u{1F618}\u{1F44D}\u{1F605}\u{1F44F}\u{1F601}\u{1F525}\u{1F970}\u{1F494}\u{1F496}\u{1F499}\u{1F622}\u{1F914}\u{1F606}\u{1F644}\u{1F4AA}\u{1F609}\u263A\u{1F44C}\u{1F917}\u{1F49C}\u{1F614}\u{1F60E}\u{1F607}\u{1F339}\u{1F926}\u{1F389}\u{1F49E}\u270C\u2728\u{1F937}\u{1F631}\u{1F60C}\u{1F338}\u{1F64C}\u{1F60B}\u{1F497}\u{1F49A}\u{1F60F}\u{1F49B}\u{1F642}\u{1F493}\u{1F929}\u{1F604}\u{1F600}\u{1F5A4}\u{1F603}\u{1F4AF}\u{1F648}\u{1F447}\u{1F3B6}\u{1F612}\u{1F92D}\u2763\u{1F61C}\u{1F48B}\u{1F440}\u{1F62A}\u{1F611}\u{1F4A5}\u{1F64B}\u{1F61E}\u{1F629}\u{1F621}\u{1F92A}\u{1F44A}\u{1F973}\u{1F625}\u{1F924}\u{1F449}\u{1F483}\u{1F633}\u270B\u{1F61A}\u{1F61D}\u{1F634}\u{1F31F}\u{1F62C}\u{1F643}\u{1F340}\u{1F337}\u{1F63B}\u{1F613}\u2B50\u2705\u{1F97A}\u{1F308}\u{1F608}\u{1F918}\u{1F4A6}\u2714\u{1F623}\u{1F3C3}\u{1F490}\u2639\u{1F38A}\u{1F498}\u{1F620}\u261D\u{1F615}\u{1F33A}\u{1F382}\u{1F33B}\u{1F610}\u{1F595}\u{1F49D}\u{1F64A}\u{1F639}\u{1F5E3}\u{1F4AB}\u{1F480}\u{1F451}\u{1F3B5}\u{1F91E}\u{1F61B}\u{1F534}\u{1F624}\u{1F33C}\u{1F62B}\u26BD\u{1F919}\u2615\u{1F3C6}\u{1F92B}\u{1F448}\u{1F62E}\u{1F646}\u{1F37B}\u{1F343}\u{1F436}\u{1F481}\u{1F632}\u{1F33F}\u{1F9E1}\u{1F381}\u26A1\u{1F31E}\u{1F388}\u274C\u270A\u{1F44B}\u{1F630}\u{1F928}\u{1F636}\u{1F91D}\u{1F6B6}\u{1F4B0}\u{1F353}\u{1F4A2}\u{1F91F}\u{1F641}\u{1F6A8}\u{1F4A8}\u{1F92C}\u2708\u{1F380}\u{1F37A}\u{1F913}\u{1F619}\u{1F49F}\u{1F331}\u{1F616}\u{1F476}\u{1F974}\u25B6\u27A1\u2753\u{1F48E}\u{1F4B8}\u2B07\u{1F628}\u{1F31A}\u{1F98B}\u{1F637}\u{1F57A}\u26A0\u{1F645}\u{1F61F}\u{1F635}\u{1F44E}\u{1F932}\u{1F920}\u{1F927}\u{1F4CC}\u{1F535}\u{1F485}\u{1F9D0}\u{1F43E}\u{1F352}\u{1F617}\u{1F911}\u{1F30A}\u{1F92F}\u{1F437}\u260E\u{1F4A7}\u{1F62F}\u{1F486}\u{1F446}\u{1F3A4}\u{1F647}\u{1F351}\u2744\u{1F334}\u{1F4A3}\u{1F438}\u{1F48C}\u{1F4CD}\u{1F940}\u{1F922}\u{1F445}\u{1F4A1}\u{1F4A9}\u{1F450}\u{1F4F8}\u{1F47B}\u{1F910}\u{1F92E}\u{1F3BC}\u{1F975}\u{1F6A9}\u{1F34E}\u{1F34A}\u{1F47C}\u{1F48D}\u{1F4E3}\u{1F942}");
 var alphabetBytesToChars5 = alphabet5.reduce((p, c, i) => {
   p[i] = c;
@@ -85090,6 +86602,7 @@ __export(base32_exports5, {
   base32upper: () => base32upper7,
   base32z: () => base32z7
 });
+init_define_REPO_FILES();
 var base327 = rfc46487({
   prefix: "b",
   name: "base32",
@@ -85159,6 +86672,7 @@ __export(base36_exports5, {
   base36: () => base366,
   base36upper: () => base36upper6
 });
+init_define_REPO_FILES();
 var base366 = baseX7({
   prefix: "k",
   name: "base36",
@@ -85178,6 +86692,7 @@ __export(base58_exports5, {
   base58btc: () => base58btc7,
   base58flickr: () => base58flickr7
 });
+init_define_REPO_FILES();
 var base58btc7 = baseX7({
   name: "base58btc",
   prefix: "z",
@@ -85197,6 +86712,7 @@ __export(base64_exports5, {
   base64url: () => base64url6,
   base64urlpad: () => base64urlpad6
 });
+init_define_REPO_FILES();
 var base646 = rfc46487({
   prefix: "m",
   name: "base64",
@@ -85227,6 +86743,7 @@ var base8_exports5 = {};
 __export(base8_exports5, {
   base8: () => base85
 });
+init_define_REPO_FILES();
 var base85 = rfc46487({
   prefix: "7",
   name: "base8",
@@ -85239,6 +86756,7 @@ var identity_exports9 = {};
 __export(identity_exports9, {
   identity: () => identity9
 });
+init_define_REPO_FILES();
 var identity9 = from11({
   prefix: "\0",
   name: "identity",
@@ -85247,16 +86765,28 @@ var identity9 = from11({
 });
 
 // node_modules/@libp2p/record/node_modules/multiformats/dist/src/codecs/json.js
+init_define_REPO_FILES();
 var textEncoder11 = new TextEncoder();
 var textDecoder10 = new TextDecoder();
+
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/codecs/raw.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/record/node_modules/multiformats/dist/src/hashes/identity.js
 var identity_exports10 = {};
 __export(identity_exports10, {
   identity: () => identity10
 });
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/hashes/digest.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/varint.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/record/node_modules/multiformats/dist/src/vendor/varint.js
+init_define_REPO_FILES();
 var encode_16 = encode34;
 var MSB9 = 128;
 var REST9 = 127;
@@ -85401,8 +86931,10 @@ __export(sha2_browser_exports5, {
   sha256: () => sha2568,
   sha512: () => sha5127
 });
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/record/node_modules/multiformats/dist/src/hashes/hasher.js
+init_define_REPO_FILES();
 var DEFAULT_MIN_DIGEST_LENGTH5 = 20;
 function from12({ name: name15, code: code14, encode: encode55, minDigestLength, maxDigestLength }) {
   return new Hasher5(name15, code14, encode55, minDigestLength, maxDigestLength);
@@ -85464,6 +86996,15 @@ var sha5127 = from12({
   code: 19,
   encode: sha5("SHA-512")
 });
+
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/cid.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/link/interface.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/record/node_modules/multiformats/dist/src/cid.js
 function format8(link, base13) {
@@ -85800,6 +87341,21 @@ function encodeCID6(version4, code14, multihash) {
 }
 var cidSymbol6 = Symbol.for("@ipld/js-cid/CID");
 
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/bases/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/hashes/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/codecs/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/record/node_modules/multiformats/dist/src/block/interface.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/record/node_modules/multiformats/dist/src/basics.js
 var bases5 = { ...identity_exports9, ...base2_exports5, ...base8_exports5, ...base10_exports5, ...base16_exports5, ...base32_exports5, ...base36_exports5, ...base58_exports5, ...base64_exports5, ...base256emoji_exports5 };
 var hashes5 = { ...sha2_browser_exports5, ...identity_exports10 };
@@ -85861,6 +87417,7 @@ function fromString13(string9, encoding = "utf8") {
 }
 
 // node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/utils/pool.js
+init_define_REPO_FILES();
 function pool4(size) {
   const SIZE = size ?? 8192;
   const MAX = SIZE >>> 1;
@@ -86273,12 +87830,17 @@ function encodeMessage4(message5, codec) {
 }
 
 // node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/stream.js
+init_define_REPO_FILES();
 function* streamMessage3(buf, codec, opts) {
   const reader = createReader4(buf);
   yield* codec.stream(reader, void 0, ".", opts);
 }
 
+// node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/codecs/enum.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/codec.js
+init_define_REPO_FILES();
 var CODEC_TYPES4 = {
   VARINT: 0,
   BIT64: 1,
@@ -86298,6 +87860,7 @@ function createCodec9(name15, type, encode55, decode65, stream) {
 }
 
 // node_modules/@libp2p/record/node_modules/protons-runtime/dist/src/codecs/message.js
+init_define_REPO_FILES();
 function message4(encode55, decode65, stream) {
   return createCodec9("message", CODEC_TYPES4.LENGTH_DELIMITED, encode55, decode65, stream);
 }
@@ -86407,6 +87970,7 @@ var Record;
 })(Record || (Record = {}));
 
 // node_modules/@libp2p/record/dist/src/utils.js
+init_define_REPO_FILES();
 function toRFC3339(time) {
   const year = time.getUTCFullYear();
   const month = String(time.getUTCMonth() + 1).padStart(2, "0");
@@ -86490,6 +88054,7 @@ var Libp2pRecord = class _Libp2pRecord {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/errors.js
+init_define_REPO_FILES();
 var QueryError = class extends Error {
   constructor(message5 = "Query error") {
     super(message5);
@@ -86510,6 +88075,7 @@ var MissingSelectorError = class extends Error {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/message/dht.js
+init_define_REPO_FILES();
 var Record2;
 (function(Record3) {
   let _codec;
@@ -86800,6 +88366,7 @@ var Message2;
 })(Message2 || (Message2 = {}));
 
 // node_modules/@libp2p/kad-dht/dist/src/query/events.js
+init_define_REPO_FILES();
 function sendQueryEvent(fields, options2 = {}) {
   const event = {
     ...fields,
@@ -86879,6 +88446,7 @@ function pathEndedEvent(fields, options2 = {}) {
 }
 
 // node_modules/@libp2p/kad-dht/dist/src/record/selectors.js
+init_define_REPO_FILES();
 function bestRecord(selectors2, k, records) {
   if (records.length === 0) {
     throw new InvalidParametersError("No records given");
@@ -86905,6 +88473,7 @@ var selectors = {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/record/validators.js
+init_define_REPO_FILES();
 async function verifyRecord(validators2, record, options2) {
   const key = record.key;
   const keyString = toString4(key);
@@ -86940,6 +88509,7 @@ var validators = {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/utils.js
+init_define_REPO_FILES();
 var PK_PREFIX = fromString4("/pk/");
 function removePrivateAddressesMapper(peer) {
   return {
@@ -87300,7 +88870,11 @@ var ContentFetching = class {
   }
 };
 
+// node_modules/@libp2p/kad-dht/dist/src/content-routing/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/kad-dht/dist/src/message/utils.js
+init_define_REPO_FILES();
 function toPbPeerInfo(peer, connection) {
   const output = {
     id: peer.id.toMultihash().bytes,
@@ -87530,6 +89104,7 @@ var ContentRouting = class {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/network.js
+init_define_REPO_FILES();
 var Network2 = class extends TypedEventEmitter {
   log;
   protocol;
@@ -87743,7 +89318,14 @@ var Network2 = class extends TypedEventEmitter {
   }
 };
 
+// node_modules/@libp2p/kad-dht/dist/src/peer-routing/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/kad-dht/dist/src/peer-distance-list.js
+init_define_REPO_FILES();
+
 // node_modules/uint8arrays/dist/src/xor-compare.js
+init_define_REPO_FILES();
 function xorCompare(a, b) {
   if (a.byteLength !== b.byteLength) {
     throw new Error("Inputs should have the same length");
@@ -88129,6 +89711,7 @@ var PeerRouting = class {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/providers.js
+init_define_REPO_FILES();
 var Providers = class {
   log;
   datastore;
@@ -88184,7 +89767,11 @@ var Providers = class {
   }
 };
 
+// node_modules/@libp2p/kad-dht/dist/src/query/manager.js
+init_define_REPO_FILES();
+
 // node_modules/p-event/index.js
+init_define_REPO_FILES();
 var normalizeEmitter = (emitter) => {
   const addListener2 = emitter.addEventListener || emitter.on || emitter.addListener;
   const removeListener2 = emitter.removeEventListener || emitter.off || emitter.removeListener;
@@ -88274,6 +89861,7 @@ function pEvent(emitter, event, options2) {
 }
 
 // node_modules/@libp2p/kad-dht/dist/src/query/query-path.js
+init_define_REPO_FILES();
 async function* queryPath(options2) {
   const { key, startingPeers, ourPeerId, query, alpha, path, numPaths, log: log19, peersSeen, connectionManager, signal } = options2;
   const events = pushable({
@@ -88549,7 +90137,11 @@ var QueryManager = class {
   }
 };
 
+// node_modules/@libp2p/kad-dht/dist/src/query-self.js
+init_define_REPO_FILES();
+
 // node_modules/it-length/dist/src/index.js
+init_define_REPO_FILES();
 function isAsyncIterable12(thing) {
   return thing[Symbol.asyncIterator] != null;
 }
@@ -88684,6 +90276,7 @@ var QuerySelf = class {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/reprovider.js
+init_define_REPO_FILES();
 var Reprovider = class extends TypedEventEmitter {
   log;
   reprovideQueue;
@@ -88843,7 +90436,11 @@ var Reprovider = class extends TypedEventEmitter {
   }
 };
 
+// node_modules/@libp2p/kad-dht/dist/src/routing-table/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/kad-dht/dist/src/routing-table/closest-peers.js
+init_define_REPO_FILES();
 var PEER_SET_SIZE = 20;
 var REFRESH_INTERVAL = 5e3;
 var KAD_CLOSE_TAG_NAME = "kad-close";
@@ -88927,6 +90524,7 @@ var ClosestPeers = class {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/routing-table/k-bucket.js
+init_define_REPO_FILES();
 function isLeafBucket(obj) {
   return Array.isArray(obj?.peers);
 }
@@ -89623,7 +91221,11 @@ var RoutingTable = class extends TypedEventEmitter {
   }
 };
 
+// node_modules/@libp2p/kad-dht/dist/src/routing-table/refresh.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/kad-dht/dist/src/routing-table/generated-prefix-list-browser.js
+init_define_REPO_FILES();
 var generated_prefix_list_browser_default = [
   77591,
   22417,
@@ -106185,7 +107787,11 @@ var RoutingTableRefresh = class {
   }
 };
 
+// node_modules/@libp2p/kad-dht/dist/src/rpc/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/kad-dht/dist/src/rpc/handlers/add-provider.js
+init_define_REPO_FILES();
 var AddProviderHandler = class {
   peerId;
   providers;
@@ -106234,6 +107840,7 @@ var AddProviderHandler = class {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/rpc/handlers/find-node.js
+init_define_REPO_FILES();
 var FindNodeHandler = class {
   peerRouting;
   peerInfoMapper;
@@ -106294,6 +107901,7 @@ var FindNodeHandler = class {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/rpc/handlers/get-providers.js
+init_define_REPO_FILES();
 var GetProvidersHandler = class {
   peerId;
   peerRouting;
@@ -106354,6 +107962,7 @@ var GetProvidersHandler = class {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/rpc/handlers/get-value.js
+init_define_REPO_FILES();
 var GetValueHandler = class {
   peerStore;
   datastore;
@@ -106446,6 +108055,7 @@ var GetValueHandler = class {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/rpc/handlers/ping.js
+init_define_REPO_FILES();
 var PingHandler = class {
   log;
   constructor(components, init2) {
@@ -106458,6 +108068,7 @@ var PingHandler = class {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/rpc/handlers/put-value.js
+init_define_REPO_FILES();
 var PutValueHandler = class {
   components;
   validators;
@@ -106587,6 +108198,7 @@ var RPC = class {
 };
 
 // node_modules/@libp2p/kad-dht/dist/src/topology-listener.js
+init_define_REPO_FILES();
 var TopologyListener = class extends TypedEventEmitter {
   log;
   components;
@@ -107059,10 +108671,24 @@ function kadDHT(init2 = {}) {
   return (components) => new KadDHT(components, init2);
 }
 
+// node_modules/@libp2p/keychain/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/keychain/dist/src/keychain.js
+init_define_REPO_FILES();
 var import_sanitize_filename2 = __toESM(require_sanitize_filename(), 1);
 
+// node_modules/@libp2p/keychain/dist/src/utils/export.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/keychain/node_modules/@noble/hashes/esm/pbkdf2.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/keychain/node_modules/@noble/hashes/esm/hmac.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/keychain/node_modules/@noble/hashes/esm/utils.js
+init_define_REPO_FILES();
 function isBytes5(a) {
   return a instanceof Uint8Array || ArrayBuffer.isView(a) && a.constructor.name === "Uint8Array";
 }
@@ -107263,7 +108889,14 @@ async function pbkdf2Async2(hash, password, salt, opts) {
   return pbkdf2Output(PRF, PRFSalt, DK, prfW, u);
 }
 
+// node_modules/@libp2p/keychain/node_modules/@noble/hashes/esm/sha512.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/keychain/node_modules/@noble/hashes/esm/sha2.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/keychain/node_modules/@noble/hashes/esm/_md.js
+init_define_REPO_FILES();
 function setBigUint643(view, byteOffset, value2, isLE2) {
   if (typeof view.setBigUint64 === "function")
     return view.setBigUint64(byteOffset, value2, isLE2);
@@ -107386,6 +109019,7 @@ var SHA512_IV3 = /* @__PURE__ */ Uint32Array.from([
 ]);
 
 // node_modules/@libp2p/keychain/node_modules/@noble/hashes/esm/_u64.js
+init_define_REPO_FILES();
 var U32_MASK643 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
 var _32n3 = /* @__PURE__ */ BigInt(32);
 function fromBig3(n, le = false) {
@@ -107624,6 +109258,7 @@ var sha5128 = /* @__PURE__ */ createHasher3(() => new SHA5122());
 var sha5129 = sha5128;
 
 // node_modules/@libp2p/keychain/dist/src/utils/constants.js
+init_define_REPO_FILES();
 var SALT_LENGTH2 = 16;
 var KEY_SIZE2 = 32;
 var ITERATIONS2 = 1e4;
@@ -107784,6 +109419,7 @@ async function exportToPem2(privateKey, password) {
 }
 
 // node_modules/@libp2p/keychain/dist/src/utils/import.js
+init_define_REPO_FILES();
 async function importPrivateKey2(encryptedKey, password) {
   try {
     const key = await importer2(encryptedKey, password);
@@ -108187,7 +109823,17 @@ function keychain2(init2 = {}) {
   };
 }
 
+// node_modules/@libp2p/mplex/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/mplex/dist/src/mplex.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/mplex/dist/src/decode.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/mplex/dist/src/message-types.js
+init_define_REPO_FILES();
 var MessageTypes;
 (function(MessageTypes2) {
   MessageTypes2[MessageTypes2["NEW_STREAM"] = 0] = "NEW_STREAM";
@@ -108312,6 +109958,7 @@ function readVarInt(buf, offset = 0) {
 }
 
 // node_modules/@libp2p/mplex/dist/src/encode.js
+init_define_REPO_FILES();
 var POOL_SIZE = 10 * 1024;
 var Encoder8 = class {
   _pool;
@@ -108358,6 +110005,7 @@ async function* encode36(source) {
 }
 
 // node_modules/@libp2p/mplex/dist/src/errors.js
+init_define_REPO_FILES();
 var StreamInputBufferError = class extends Error {
   constructor(message5 = "Stream input buffer error") {
     super(message5);
@@ -108366,6 +110014,7 @@ var StreamInputBufferError = class extends Error {
 };
 
 // node_modules/@libp2p/mplex/dist/src/stream.js
+init_define_REPO_FILES();
 var MplexStream = class extends AbstractStream {
   name;
   streamId;
@@ -108700,7 +110349,14 @@ function mplex(init2 = {}) {
   return (components) => new Mplex(components, init2);
 }
 
+// node_modules/@libp2p/ping/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/ping/dist/src/ping.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/ping/dist/src/constants.js
+init_define_REPO_FILES();
 var PING_LENGTH2 = 32;
 var PROTOCOL_VERSION3 = "1.0.0";
 var PROTOCOL_NAME3 = "ping";
@@ -108844,7 +110500,17 @@ function ping(init2 = {}) {
   return (components) => new Ping(components, init2);
 }
 
+// node_modules/@libp2p/webrtc/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/webrtc/dist/src/private-to-private/transport.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/webrtc/dist/src/constants.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/webrtc/dist/src/private-to-public/pb/message.js
+init_define_REPO_FILES();
 var Message3;
 (function(Message5) {
   let Flag2;
@@ -108949,7 +110615,14 @@ var DEFAULT_CERTIFICATE_PRIVATE_KEY_NAME = "webrtc-direct-certificate-private-ke
 var DEFAULT_CERTIFICATE_LIFESPAN = 12096e5;
 var DEFAULT_CERTIFICATE_RENEWAL_THRESHOLD = 864e5;
 
+// node_modules/@libp2p/webrtc/dist/src/maconn.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/webrtc/dist/src/util.js
+init_define_REPO_FILES();
+
 // node_modules/detect-browser/es/index.js
+init_define_REPO_FILES();
 var __spreadArray = function(to, from18, pack) {
   if (pack || arguments.length === 2) for (var i = 0, l = from18.length, ar; i < l; i++) {
     if (ar || !(i in from18)) {
@@ -109275,7 +110948,11 @@ var WebRTCMultiaddrConnection = class {
   }
 };
 
+// node_modules/@libp2p/webrtc/dist/src/muxer.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/webrtc/dist/src/stream.js
+init_define_REPO_FILES();
 var WebRTCStream = class extends AbstractStream {
   /**
    * The data channel used to send and receive data
@@ -109703,11 +111380,16 @@ var DataChannelMuxer = class {
 };
 
 // node_modules/@libp2p/webrtc/dist/src/webrtc/index.browser.js
+init_define_REPO_FILES();
 var RTCPeerConnection2 = globalThis.RTCPeerConnection;
 var RTCSessionDescription = globalThis.RTCSessionDescription;
 var RTCIceCandidate = globalThis.RTCIceCandidate;
 
+// node_modules/@libp2p/webrtc/dist/src/private-to-private/initiate-connection.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/webrtc/dist/src/error.js
+init_define_REPO_FILES();
 var WebRTCTransportError = class extends Error {
   constructor(msg) {
     super(`WebRTC transport error: ${msg}`);
@@ -109740,6 +111422,7 @@ var UnsupportedHashAlgorithmError = class extends WebRTCTransportError {
 };
 
 // node_modules/@libp2p/webrtc/dist/src/private-to-private/pb/message.js
+init_define_REPO_FILES();
 var Message4;
 (function(Message5) {
   let Type5;
@@ -109811,6 +111494,7 @@ var Message4;
 })(Message4 || (Message4 = {}));
 
 // node_modules/@libp2p/webrtc/dist/src/private-to-private/util.js
+init_define_REPO_FILES();
 var readCandidatesUntilConnected = async (pc, stream, options2) => {
   try {
     const connectedPromise = pDefer();
@@ -109979,6 +111663,7 @@ async function initiateConnection({ rtcConfiguration, dataChannel, signal, metri
 }
 
 // node_modules/@libp2p/webrtc/dist/src/private-to-private/listener.js
+init_define_REPO_FILES();
 var Circuit3 = fmt(P2P.matchers[0], code9(CODE_P2P_CIRCUIT));
 var WebRTCPeerListener = class _WebRTCPeerListener extends TypedEventEmitter {
   transportManager;
@@ -110019,6 +111704,7 @@ var WebRTCPeerListener = class _WebRTCPeerListener extends TypedEventEmitter {
 };
 
 // node_modules/@libp2p/webrtc/dist/src/private-to-private/signaling-stream-handler.js
+init_define_REPO_FILES();
 async function handleIncomingStream({ peerConnection, stream, signal, connection, log: log19 }) {
   log19.trace("new inbound signaling stream");
   const messageStream = pbStream(stream).pb(Message4);
@@ -110251,10 +111937,27 @@ function splitAddr(ma) {
   return { circuitAddress, targetPeer: peerIdFromString(target) };
 }
 
+// node_modules/@libp2p/webrtc/dist/src/private-to-public/transport.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/x509/build/x509.es.js
+init_define_REPO_FILES();
 var import_reflect_metadata = __toESM(require_Reflect());
 
+// node_modules/@peculiar/asn1-schema/build/es2015/index.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-schema/build/es2015/converters.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/utils/build/esm/index.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/utils/build/esm/bytes/index.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/utils/build/esm/bytes/buffer-source.js
+init_define_REPO_FILES();
 var ARRAY_BUFFER_TAG = "[object ArrayBuffer]";
 var SHARED_ARRAY_BUFFER_TAG = "[object SharedArrayBuffer]";
 function tagOf(value2) {
@@ -110307,7 +112010,11 @@ function toArrayBuffer(data) {
   return buffer5;
 }
 
+// node_modules/@peculiar/utils/build/esm/bytes/concat.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/utils/build/esm/bytes/equal.js
+init_define_REPO_FILES();
 function equal(a, b, options2 = {}) {
   const left = toUint8Array3(a);
   const right = toUint8Array3(b);
@@ -110322,6 +112029,12 @@ function equal(a, b, options2 = {}) {
   return diff === 0;
 }
 
+// node_modules/@peculiar/utils/build/esm/bytes/sequence.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/utils/build/esm/encoding/index.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/utils/build/esm/encoding/binary.js
 var binary_exports = {};
 __export(binary_exports, {
@@ -110330,6 +112043,7 @@ __export(binary_exports, {
   encode: () => encode37,
   is: () => is5
 });
+init_define_REPO_FILES();
 function encode37(data) {
   const bytes = toUint8Array3(data);
   let result2 = "";
@@ -110362,6 +112076,7 @@ __export(hex_exports, {
   normalize: () => normalize,
   parse: () => parse4
 });
+init_define_REPO_FILES();
 var HEX_CHARACTER_REGEX = /^[0-9a-f]$/i;
 var COMMON_SEPARATORS = [" ", "	", "\n", "\r", ":", "-", "."];
 function resolveSeparators(options2) {
@@ -110587,6 +112302,7 @@ __export(utf8_exports5, {
   encode: () => encode39,
   utf8: () => utf8
 });
+init_define_REPO_FILES();
 function encode39(text) {
   return new TextEncoder().encode(text);
 }
@@ -110602,6 +112318,7 @@ __export(utf16_exports, {
   encode: () => encode40,
   utf16: () => utf16
 });
+init_define_REPO_FILES();
 function encode40(text, options2 = {}) {
   const result2 = new ArrayBuffer(text.length * 2);
   const view = new DataView(result2);
@@ -110631,6 +112348,7 @@ __export(base64_exports6, {
   normalize: () => normalize2,
   pad: () => pad
 });
+init_define_REPO_FILES();
 var BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 function nodeBuffer() {
   return globalThis.Buffer;
@@ -110679,6 +112397,7 @@ __export(base64url_exports, {
   is: () => is8,
   normalize: () => normalize3
 });
+init_define_REPO_FILES();
 var BASE64URL_REGEX = /^[A-Za-z0-9_-]*$/;
 function normalize3(text) {
   return text.replace(/[\n\r\t ]/g, "");
@@ -110698,7 +112417,11 @@ function decode48(text, _options) {
 }
 var base64url7 = { encode: encode42, decode: decode48, is: is8, normalize: normalize3 };
 
+// node_modules/@peculiar/utils/build/esm/pem/index.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/utils/build/esm/pem/pem.js
+init_define_REPO_FILES();
 var LABEL_REGEX = /^[A-Z0-9][A-Z0-9 ._-]*[A-Z0-9]$/i;
 var PEM_BLOCK_REGEX = /-----BEGIN ([^-]+)-----([\s\S]*?)-----END \1-----/g;
 function assertLabel(label) {
@@ -110816,7 +112539,11 @@ var pemConverter = {
   parse: parse5
 };
 
+// node_modules/@peculiar/utils/build/esm/converters/index.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/utils/build/esm/converters/registry.js
+init_define_REPO_FILES();
 function keyOf(name15) {
   return name15.trim().toLowerCase();
 }
@@ -110998,6 +112725,7 @@ function createConverterRegistry(initialConverters = []) {
 }
 
 // node_modules/@peculiar/utils/build/esm/converters/defaults.js
+init_define_REPO_FILES();
 var binaryConverter = {
   name: "binary",
   aliases: ["latin1"],
@@ -111064,6 +112792,7 @@ var defaultConverters = [
 var defaultConverterRegistry = createConverterRegistry(defaultConverters);
 
 // node_modules/@peculiar/utils/build/esm/converters/convert.js
+init_define_REPO_FILES();
 function encode44(name15, data, ...args) {
   return defaultConverterRegistry.encode(name15, data, ...args);
 }
@@ -111133,7 +112862,20 @@ var convert = {
   formatString: base64_exports6.normalize
 };
 
+// node_modules/@peculiar/utils/build/esm/legacy/index.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/utils/build/esm/legacy/buffer-source-converter.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/utils/build/esm/legacy/convert.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/utils/build/esm/legacy/functions.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-schema/build/es2015/enums.js
+init_define_REPO_FILES();
 var AsnTypeTypes;
 (function(AsnTypeTypes2) {
   AsnTypeTypes2[AsnTypeTypes2["Sequence"] = 0] = "Sequence";
@@ -111172,7 +112914,11 @@ var AsnPropTypes;
   AsnPropTypes2[AsnPropTypes2["RelativeObjectIdentifier"] = 28] = "RelativeObjectIdentifier";
 })(AsnPropTypes || (AsnPropTypes = {}));
 
+// node_modules/@peculiar/asn1-schema/build/es2015/types/index.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-schema/build/es2015/types/bit_string.js
+init_define_REPO_FILES();
 var BitString2 = class {
   unusedBits = 0;
   value = new ArrayBuffer(0);
@@ -111233,6 +112979,7 @@ var BitString2 = class {
 };
 
 // node_modules/@peculiar/asn1-schema/build/es2015/types/octet_string.js
+init_define_REPO_FILES();
 var OctetString2 = class {
   buffer;
   get byteLength() {
@@ -111404,7 +113151,17 @@ function defaultConverter(type) {
   }
 }
 
+// node_modules/@peculiar/asn1-schema/build/es2015/decorators.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-schema/build/es2015/storage.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-schema/build/es2015/schema.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-schema/build/es2015/helper.js
+init_define_REPO_FILES();
 function isConvertible(target) {
   if (typeof target === "function" && target.prototype) {
     if (target.prototype.toASN && target.prototype.fromASN) {
@@ -111629,7 +113386,14 @@ var AsnProp = (options2) => (target, propertyKey) => {
   schema2.items[propertyKey] = copyOptions;
 };
 
+// node_modules/@peculiar/asn1-schema/build/es2015/parser.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-schema/build/es2015/errors/index.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-schema/build/es2015/errors/schema_validation.js
+init_define_REPO_FILES();
 var AsnSchemaValidationError = class extends Error {
   schemas = [];
 };
@@ -111912,6 +113676,7 @@ var AsnParser = class {
 };
 
 // node_modules/@peculiar/asn1-schema/build/es2015/serializer.js
+init_define_REPO_FILES();
 var AsnSerializer = class _AsnSerializer {
   static serialize(obj) {
     if (obj instanceof BaseBlock) {
@@ -112042,6 +113807,7 @@ var AsnSerializer = class _AsnSerializer {
 };
 
 // node_modules/@peculiar/asn1-schema/build/es2015/objects.js
+init_define_REPO_FILES();
 var AsnArray = class extends Array {
   constructor(items = []) {
     if (typeof items === "number") {
@@ -112056,6 +113822,7 @@ var AsnArray = class extends Array {
 };
 
 // node_modules/@peculiar/asn1-schema/build/es2015/convert.js
+init_define_REPO_FILES();
 var AsnConvert = class _AsnConvert {
   static serialize(obj) {
     return AsnSerializer.serialize(obj);
@@ -112073,7 +113840,17 @@ var AsnConvert = class _AsnConvert {
   }
 };
 
+// node_modules/@peculiar/asn1-x509/build/es2015/index.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-x509/build/es2015/extensions/index.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-x509/build/es2015/extensions/authority_information_access.js
+init_define_REPO_FILES();
+
 // node_modules/tslib/tslib.es6.mjs
+init_define_REPO_FILES();
 function __decorate(decorators, target, key, desc) {
   var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d2;
   if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -112092,7 +113869,11 @@ function __classPrivateFieldSet(receiver, state2, value2, kind, f) {
   return kind === "a" ? f.call(receiver, value2) : f ? f.value = value2 : state2.set(receiver, value2), value2;
 }
 
+// node_modules/@peculiar/asn1-x509/build/es2015/general_name.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509/build/es2015/ip_converter.js
+init_define_REPO_FILES();
 var IpConverter = class {
   static isIPv4(ip) {
     return /^(\d{1,3}\.){3}\d{1,3}$/.test(ip);
@@ -112260,6 +114041,7 @@ var IpConverter = class {
 };
 
 // node_modules/@peculiar/asn1-x509/build/es2015/name.js
+init_define_REPO_FILES();
 var RelativeDistinguishedName_1;
 var RDNSequence_1;
 var Name_1;
@@ -112486,6 +114268,7 @@ GeneralName = __decorate([
 ], GeneralName);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/object_identifiers.js
+init_define_REPO_FILES();
 var id_pkix = "1.3.6.1.5.5.7";
 var id_pe = `${id_pkix}.1`;
 var id_qt = `${id_pkix}.2`;
@@ -112529,6 +114312,7 @@ AuthorityInfoAccessSyntax = AuthorityInfoAccessSyntax_1 = __decorate([
 ], AuthorityInfoAccessSyntax);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/authority_key_identifier.js
+init_define_REPO_FILES();
 var id_ce_authorityKeyIdentifier = `${id_ce}.35`;
 var KeyIdentifier = class extends OctetString2 {
 };
@@ -112570,6 +114354,7 @@ __decorate([
 ], AuthorityKeyIdentifier.prototype, "authorityCertSerialNumber", void 0);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/basic_constraints.js
+init_define_REPO_FILES();
 var id_ce_basicConstraints = `${id_ce}.19`;
 var BasicConstraints = class {
   cA = false;
@@ -112591,7 +114376,11 @@ __decorate([
   })
 ], BasicConstraints.prototype, "pathLenConstraint", void 0);
 
+// node_modules/@peculiar/asn1-x509/build/es2015/extensions/certificate_issuer.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509/build/es2015/general_names.js
+init_define_REPO_FILES();
 var GeneralNames_1;
 var GeneralNames = GeneralNames_1 = class GeneralNames2 extends AsnArray {
   constructor(items) {
@@ -112620,6 +114409,7 @@ CertificateIssuer = CertificateIssuer_1 = __decorate([
 ], CertificateIssuer);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/certificate_policies.js
+init_define_REPO_FILES();
 var CertificatePolicies_1;
 var id_ce_certificatePolicies = `${id_ce}.32`;
 var id_ce_certificatePolicies_anyPolicy = `${id_ce_certificatePolicies}.0`;
@@ -112744,7 +114534,11 @@ CertificatePolicies = CertificatePolicies_1 = __decorate([
   })
 ], CertificatePolicies);
 
+// node_modules/@peculiar/asn1-x509/build/es2015/extensions/crl_delta_indicator.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/crl_number.js
+init_define_REPO_FILES();
 var id_ce_cRLNumber = `${id_ce}.20`;
 var CRLNumber = class CRLNumber2 {
   value;
@@ -112768,6 +114562,7 @@ BaseCRLNumber = __decorate([
 ], BaseCRLNumber);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/crl_distribution_points.js
+init_define_REPO_FILES();
 var CRLDistributionPoints_1;
 var id_ce_cRLDistributionPoints = `${id_ce}.31`;
 var ReasonFlags;
@@ -112890,6 +114685,7 @@ CRLDistributionPoints = CRLDistributionPoints_1 = __decorate([
 ], CRLDistributionPoints);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/crl_freshest.js
+init_define_REPO_FILES();
 var FreshestCRL_1;
 var id_ce_freshestCRL = `${id_ce}.46`;
 var FreshestCRL = FreshestCRL_1 = class FreshestCRL2 extends CRLDistributionPoints {
@@ -112906,6 +114702,7 @@ FreshestCRL = FreshestCRL_1 = __decorate([
 ], FreshestCRL);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/crl_issuing_distribution_point.js
+init_define_REPO_FILES();
 var id_ce_issuingDistributionPoint = `${id_ce}.28`;
 var IssuingDistributionPoint = class _IssuingDistributionPoint {
   static ONLY = false;
@@ -112968,6 +114765,7 @@ __decorate([
 ], IssuingDistributionPoint.prototype, "onlyContainsAttributeCerts", void 0);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/crl_reason.js
+init_define_REPO_FILES();
 var id_ce_cRLReasons = `${id_ce}.21`;
 var CRLReasons;
 (function(CRLReasons2) {
@@ -113002,6 +114800,7 @@ CRLReason = __decorate([
 ], CRLReason);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/extended_key_usage.js
+init_define_REPO_FILES();
 var ExtendedKeyUsage_1;
 var id_ce_extKeyUsage = `${id_ce}.37`;
 var ExtendedKeyUsage = ExtendedKeyUsage_1 = class ExtendedKeyUsage2 extends AsnArray {
@@ -113025,6 +114824,7 @@ var id_kp_timeStamping = `${id_kp}.8`;
 var id_kp_OCSPSigning = `${id_kp}.9`;
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/inhibit_any_policy.js
+init_define_REPO_FILES();
 var id_ce_inhibitAnyPolicy = `${id_ce}.54`;
 var InhibitAnyPolicy = class InhibitAnyPolicy2 {
   value;
@@ -113043,6 +114843,7 @@ InhibitAnyPolicy = __decorate([
 ], InhibitAnyPolicy);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/invalidity_date.js
+init_define_REPO_FILES();
 var id_ce_invalidityDate = `${id_ce}.24`;
 var InvalidityDate = class InvalidityDate2 {
   value = /* @__PURE__ */ new Date();
@@ -113060,6 +114861,7 @@ InvalidityDate = __decorate([
 ], InvalidityDate);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/issuer_alternative_name.js
+init_define_REPO_FILES();
 var IssueAlternativeName_1;
 var id_ce_issuerAltName = `${id_ce}.18`;
 var IssueAlternativeName = IssueAlternativeName_1 = class IssueAlternativeName2 extends GeneralNames {
@@ -113073,6 +114875,7 @@ IssueAlternativeName = IssueAlternativeName_1 = __decorate([
 ], IssueAlternativeName);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/key_usage.js
+init_define_REPO_FILES();
 var id_ce_keyUsage = `${id_ce}.15`;
 var KeyUsageFlags;
 (function(KeyUsageFlags3) {
@@ -113125,6 +114928,7 @@ var KeyUsage = class extends BitString2 {
 };
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/name_constraints.js
+init_define_REPO_FILES();
 var GeneralSubtrees_1;
 var id_ce_nameConstraints = `${id_ce}.30`;
 var GeneralSubtree = class {
@@ -113191,6 +114995,7 @@ __decorate([
 ], NameConstraints.prototype, "excludedSubtrees", void 0);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/policy_constraints.js
+init_define_REPO_FILES();
 var id_ce_policyConstraints = `${id_ce}.36`;
 var PolicyConstraints = class {
   requireExplicitPolicy;
@@ -113219,6 +115024,7 @@ __decorate([
 ], PolicyConstraints.prototype, "inhibitPolicyMapping", void 0);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/policy_mappings.js
+init_define_REPO_FILES();
 var PolicyMappings_1;
 var id_ce_policyMappings = `${id_ce}.33`;
 var PolicyMapping = class {
@@ -113248,6 +115054,7 @@ PolicyMappings = PolicyMappings_1 = __decorate([
 ], PolicyMappings);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/subject_alternative_name.js
+init_define_REPO_FILES();
 var SubjectAlternativeName_1;
 var id_ce_subjectAltName = `${id_ce}.17`;
 var SubjectAlternativeName = SubjectAlternativeName_1 = class SubjectAlternativeName2 extends GeneralNames {
@@ -113260,7 +115067,11 @@ SubjectAlternativeName = SubjectAlternativeName_1 = __decorate([
   AsnType({ type: AsnTypeTypes.Sequence })
 ], SubjectAlternativeName);
 
+// node_modules/@peculiar/asn1-x509/build/es2015/extensions/subject_directory_attributes.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509/build/es2015/attribute.js
+init_define_REPO_FILES();
 var Attribute = class {
   type = "";
   values = [];
@@ -113295,11 +115106,13 @@ SubjectDirectoryAttributes = SubjectDirectoryAttributes_1 = __decorate([
 ], SubjectDirectoryAttributes);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/subject_key_identifier.js
+init_define_REPO_FILES();
 var id_ce_subjectKeyIdentifier = `${id_ce}.14`;
 var SubjectKeyIdentifier = class extends KeyIdentifier {
 };
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/private_key_usage_period.js
+init_define_REPO_FILES();
 var id_ce_privateKeyUsagePeriod = `${id_ce}.16`;
 var PrivateKeyUsagePeriod = class {
   notBefore;
@@ -113326,6 +115139,7 @@ __decorate([
 ], PrivateKeyUsagePeriod.prototype, "notAfter", void 0);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/entrust_version_info.js
+init_define_REPO_FILES();
 var EntrustInfoFlags;
 (function(EntrustInfoFlags2) {
   EntrustInfoFlags2[EntrustInfoFlags2["keyUpdateAllowed"] = 1] = "keyUpdateAllowed";
@@ -113366,6 +115180,7 @@ __decorate([
 ], EntrustVersionInfo.prototype, "entrustInfoFlags", void 0);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extensions/subject_info_access.js
+init_define_REPO_FILES();
 var SubjectInfoAccessSyntax_1;
 var id_pe_subjectInfoAccess = `${id_pe}.11`;
 var SubjectInfoAccessSyntax = SubjectInfoAccessSyntax_1 = class SubjectInfoAccessSyntax2 extends AsnArray {
@@ -113382,6 +115197,7 @@ SubjectInfoAccessSyntax = SubjectInfoAccessSyntax_1 = __decorate([
 ], SubjectInfoAccessSyntax);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/algorithm_identifier.js
+init_define_REPO_FILES();
 var AlgorithmIdentifier = class _AlgorithmIdentifier {
   algorithm = "";
   parameters;
@@ -113402,7 +115218,14 @@ __decorate([
   })
 ], AlgorithmIdentifier.prototype, "parameters", void 0);
 
+// node_modules/@peculiar/asn1-x509/build/es2015/certificate.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-x509/build/es2015/tbs_certificate.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509/build/es2015/subject_public_key_info.js
+init_define_REPO_FILES();
 var SubjectPublicKeyInfo = class {
   algorithm = new AlgorithmIdentifier();
   subjectPublicKey = new ArrayBuffer(0);
@@ -113417,7 +115240,11 @@ __decorate([
   AsnProp({ type: AsnPropTypes.BitString })
 ], SubjectPublicKeyInfo.prototype, "subjectPublicKey", void 0);
 
+// node_modules/@peculiar/asn1-x509/build/es2015/validity.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509/build/es2015/time.js
+init_define_REPO_FILES();
 var Time = class Time2 {
   utcTime;
   generalTime;
@@ -113473,6 +115300,7 @@ __decorate([
 ], Validity.prototype, "notAfter", void 0);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/extension.js
+init_define_REPO_FILES();
 var Extensions_1;
 var Extension = class _Extension {
   static CRITICAL = false;
@@ -113509,6 +115337,7 @@ Extensions = Extensions_1 = __decorate([
 ], Extensions);
 
 // node_modules/@peculiar/asn1-x509/build/es2015/types.js
+init_define_REPO_FILES();
 var Version;
 (function(Version3) {
   Version3[Version3["v1"] = 0] = "v1";
@@ -113607,7 +115436,11 @@ __decorate([
   AsnProp({ type: AsnPropTypes.BitString })
 ], Certificate.prototype, "signatureValue", void 0);
 
+// node_modules/@peculiar/asn1-x509/build/es2015/certificate_list.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509/build/es2015/tbs_cert_list.js
+init_define_REPO_FILES();
 var RevokedCertificate = class {
   userCertificate = new ArrayBuffer(0);
   revocationDate = new Time();
@@ -113707,7 +115540,23 @@ __decorate([
 // node_modules/@peculiar/x509/build/x509.es.js
 var import_pvtsutils = __toESM(require_build());
 
+// node_modules/@peculiar/asn1-cms/build/es2015/index.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-cms/build/es2015/attributes/index.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-cms/build/es2015/attributes/counter_signature.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-cms/build/es2015/signer_info.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-cms/build/es2015/signer_identifier.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-cms/build/es2015/issuer_and_serial_number.js
+init_define_REPO_FILES();
 var IssuerAndSerialNumber = class {
   issuer = new Name();
   serialNumber = new ArrayBuffer(0);
@@ -113748,6 +115597,7 @@ SignerIdentifier = __decorate([
 ], SignerIdentifier);
 
 // node_modules/@peculiar/asn1-cms/build/es2015/types.js
+init_define_REPO_FILES();
 var CMSVersion;
 (function(CMSVersion2) {
   CMSVersion2[CMSVersion2["v0"] = 0] = "v0";
@@ -113789,6 +115639,7 @@ KeyDerivationAlgorithmIdentifier = __decorate([
 ], KeyDerivationAlgorithmIdentifier);
 
 // node_modules/@peculiar/asn1-cms/build/es2015/attribute.js
+init_define_REPO_FILES();
 var Attribute2 = class {
   attrType = "";
   attrValues = [];
@@ -113875,14 +115726,25 @@ CounterSignature = __decorate([
   AsnType({ type: AsnTypeTypes.Sequence })
 ], CounterSignature);
 
+// node_modules/@peculiar/asn1-cms/build/es2015/attributes/message_digest.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-cms/build/es2015/attributes/signing_time.js
+init_define_REPO_FILES();
 var SigningTime = class SigningTime2 extends Time {
 };
 SigningTime = __decorate([
   AsnType({ type: AsnTypeTypes.Choice })
 ], SigningTime);
 
+// node_modules/@peculiar/asn1-cms/build/es2015/certificate_choices.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-x509-attr/build/es2015/index.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/aa_clear_attrs.js
+init_define_REPO_FILES();
 var ACClearAttrs = class {
   acIssuer = new GeneralName();
   acSerial = 0;
@@ -113904,7 +115766,11 @@ __decorate([
   })
 ], ACClearAttrs.prototype, "attrs", void 0);
 
+// node_modules/@peculiar/asn1-x509-attr/build/es2015/aa_controls.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/attr_spec.js
+init_define_REPO_FILES();
 var AttrSpec_1;
 var AttrSpec = AttrSpec_1 = class AttrSpec2 extends AsnArray {
   constructor(items) {
@@ -113958,7 +115824,14 @@ __decorate([
   })
 ], AAControls.prototype, "permitUnSpecified", void 0);
 
+// node_modules/@peculiar/asn1-x509-attr/build/es2015/attr_cert_issuer.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-x509-attr/build/es2015/v2_form.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/issuer_serial.js
+init_define_REPO_FILES();
 var IssuerSerial = class {
   issuer = new GeneralNames();
   serial = new ArrayBuffer(0);
@@ -113984,6 +115857,7 @@ __decorate([
 ], IssuerSerial.prototype, "issuerUID", void 0);
 
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/object_digest_info.js
+init_define_REPO_FILES();
 var DigestedObjectType;
 (function(DigestedObjectType2) {
   DigestedObjectType2[DigestedObjectType2["publicKey"] = 0] = "publicKey";
@@ -114073,6 +115947,7 @@ AttCertIssuer = __decorate([
 ], AttCertIssuer);
 
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/attr_cert_validity_period.js
+init_define_REPO_FILES();
 var AttCertValidityPeriod = class {
   notBeforeTime = /* @__PURE__ */ new Date();
   notAfterTime = /* @__PURE__ */ new Date();
@@ -114087,7 +115962,14 @@ __decorate([
   AsnProp({ type: AsnPropTypes.GeneralizedTime })
 ], AttCertValidityPeriod.prototype, "notAfterTime", void 0);
 
+// node_modules/@peculiar/asn1-x509-attr/build/es2015/attribute_certificate.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-x509-attr/build/es2015/attribute_certificate_info.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/holder.js
+init_define_REPO_FILES();
 var Holder = class {
   baseCertificateID;
   entityName;
@@ -114200,6 +116082,7 @@ __decorate([
 ], AttributeCertificate.prototype, "signatureValue", void 0);
 
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/class_list.js
+init_define_REPO_FILES();
 var ClassListFlags;
 (function(ClassListFlags2) {
   ClassListFlags2[ClassListFlags2["unmarked"] = 1] = "unmarked";
@@ -114212,7 +116095,11 @@ var ClassListFlags;
 var ClassList = class extends BitString2 {
 };
 
+// node_modules/@peculiar/asn1-x509-attr/build/es2015/clearance.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/security_category.js
+init_define_REPO_FILES();
 var SecurityCategory = class {
   type = "";
   value = new ArrayBuffer(0);
@@ -114261,6 +116148,7 @@ __decorate([
 ], Clearance.prototype, "securityCategories", void 0);
 
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/ietf_attr_syntax.js
+init_define_REPO_FILES();
 var IetfAttrSyntaxValueChoices = class {
   cotets;
   oid;
@@ -114301,6 +116189,7 @@ __decorate([
 ], IetfAttrSyntax.prototype, "values", void 0);
 
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/object_identifiers.js
+init_define_REPO_FILES();
 var id_pe_ac_auditIdentity = `${id_pe}.4`;
 var id_pe_aaControls = `${id_pe}.6`;
 var id_pe_ac_proxying = `${id_pe}.10`;
@@ -114314,7 +116203,11 @@ var id_aca_encAttrs = `${id_aca}.6`;
 var id_at = "2.5.4";
 var id_at_role = `${id_at}.72`;
 
+// node_modules/@peculiar/asn1-x509-attr/build/es2015/proxy_info.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/target.js
+init_define_REPO_FILES();
 var Targets_1;
 var TargetCert = class {
   targetCertificate = new IssuerSerial();
@@ -114400,6 +116293,7 @@ ProxyInfo = ProxyInfo_1 = __decorate([
 ], ProxyInfo);
 
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/role_syntax.js
+init_define_REPO_FILES();
 var RoleSyntax = class {
   roleAuthority;
   roleName;
@@ -114424,6 +116318,7 @@ __decorate([
 ], RoleSyntax.prototype, "roleName", void 0);
 
 // node_modules/@peculiar/asn1-x509-attr/build/es2015/svce_auth_info.js
+init_define_REPO_FILES();
 var SvceAuthInfo = class {
   service = new GeneralName();
   ident = new GeneralName();
@@ -114502,6 +116397,7 @@ CertificateSet = CertificateSet_1 = __decorate([
 ], CertificateSet);
 
 // node_modules/@peculiar/asn1-cms/build/es2015/content_info.js
+init_define_REPO_FILES();
 var ContentInfo = class {
   contentType = "";
   content = new ArrayBuffer(0);
@@ -114520,6 +116416,7 @@ __decorate([
 ], ContentInfo.prototype, "content", void 0);
 
 // node_modules/@peculiar/asn1-cms/build/es2015/encapsulated_content_info.js
+init_define_REPO_FILES();
 var EncapsulatedContent = class EncapsulatedContent2 {
   single;
   any;
@@ -114555,6 +116452,7 @@ __decorate([
 ], EncapsulatedContentInfo.prototype, "eContent", void 0);
 
 // node_modules/@peculiar/asn1-cms/build/es2015/encrypted_content_info.js
+init_define_REPO_FILES();
 var EncryptedContent = class EncryptedContent2 {
   value;
   constructedValue;
@@ -114604,7 +116502,20 @@ __decorate([
   })
 ], EncryptedContentInfo.prototype, "encryptedContent", void 0);
 
+// node_modules/@peculiar/asn1-cms/build/es2015/enveloped_data.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-cms/build/es2015/recipient_infos.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-cms/build/es2015/recipient_info.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-cms/build/es2015/key_agree_recipient_info.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-cms/build/es2015/other_key_attribute.js
+init_define_REPO_FILES();
 var OtherKeyAttribute = class {
   keyAttrId = "";
   keyAttr;
@@ -114776,6 +116687,7 @@ __decorate([
 ], KeyAgreeRecipientInfo.prototype, "recipientEncryptedKeys", void 0);
 
 // node_modules/@peculiar/asn1-cms/build/es2015/key_trans_recipient_info.js
+init_define_REPO_FILES();
 var RecipientIdentifier = class RecipientIdentifier2 {
   subjectKeyIdentifier;
   issuerAndSerialNumber;
@@ -114819,6 +116731,7 @@ __decorate([
 ], KeyTransRecipientInfo.prototype, "encryptedKey", void 0);
 
 // node_modules/@peculiar/asn1-cms/build/es2015/kek_recipient_info.js
+init_define_REPO_FILES();
 var KEKIdentifier = class {
   keyIdentifier = new OctetString2();
   date;
@@ -114865,6 +116778,7 @@ __decorate([
 ], KEKRecipientInfo.prototype, "encryptedKey", void 0);
 
 // node_modules/@peculiar/asn1-cms/build/es2015/password_recipient_info.js
+init_define_REPO_FILES();
 var PasswordRecipientInfo = class {
   version = CMSVersion.v0;
   keyDerivationAlgorithm;
@@ -114972,7 +116886,11 @@ RecipientInfos = RecipientInfos_1 = __decorate([
   })
 ], RecipientInfos);
 
+// node_modules/@peculiar/asn1-cms/build/es2015/originator_info.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-cms/build/es2015/revocation_info_choice.js
+init_define_REPO_FILES();
 var RevocationInfoChoices_1;
 var id_ri = `${id_pkix}.16`;
 var id_ri_ocsp_response = `${id_ri}.2`;
@@ -115095,9 +117013,11 @@ __decorate([
 ], EnvelopedData.prototype, "unprotectedAttrs", void 0);
 
 // node_modules/@peculiar/asn1-cms/build/es2015/object_identifiers.js
+init_define_REPO_FILES();
 var id_signedData = "1.2.840.113549.1.7.2";
 
 // node_modules/@peculiar/asn1-cms/build/es2015/signed_data.js
+init_define_REPO_FILES();
 var DigestAlgorithmIdentifiers_1;
 var DigestAlgorithmIdentifiers = DigestAlgorithmIdentifiers_1 = class DigestAlgorithmIdentifiers2 extends AsnArray {
   constructor(items) {
@@ -115151,7 +117071,14 @@ __decorate([
   AsnProp({ type: SignerInfos })
 ], SignedData.prototype, "signerInfos", void 0);
 
+// node_modules/@peculiar/asn1-ecc/build/es2015/index.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-ecc/build/es2015/algorithms.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-ecc/build/es2015/object_identifiers.js
+init_define_REPO_FILES();
 var id_ecPublicKey = "1.2.840.10045.2.1";
 var id_ecdsaWithSHA1 = "1.2.840.10045.4.1";
 var id_ecdsaWithSHA224 = "1.2.840.10045.4.3.1";
@@ -115172,7 +117099,11 @@ var ecdsaWithSHA256 = create8(id_ecdsaWithSHA256);
 var ecdsaWithSHA384 = create8(id_ecdsaWithSHA384);
 var ecdsaWithSHA512 = create8(id_ecdsaWithSHA512);
 
+// node_modules/@peculiar/asn1-ecc/build/es2015/ec_parameters.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-ecc/build/es2015/rfc3279.js
+init_define_REPO_FILES();
 var FieldID = class FieldID2 {
   fieldType;
   parameters;
@@ -115280,6 +117211,7 @@ ECParameters = __decorate([
 ], ECParameters);
 
 // node_modules/@peculiar/asn1-ecc/build/es2015/ec_private_key.js
+init_define_REPO_FILES();
 var ECPrivateKey = class {
   version = 1;
   privateKey = new OctetString2();
@@ -115311,6 +117243,7 @@ __decorate([
 ], ECPrivateKey.prototype, "publicKey", void 0);
 
 // node_modules/@peculiar/asn1-ecc/build/es2015/ec_signature_value.js
+init_define_REPO_FILES();
 var ECDSASigValue = class {
   r = new ArrayBuffer(0);
   s = new ArrayBuffer(0);
@@ -115331,7 +117264,17 @@ __decorate([
   })
 ], ECDSASigValue.prototype, "s", void 0);
 
+// node_modules/@peculiar/asn1-rsa/build/es2015/index.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-rsa/build/es2015/parameters/index.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-rsa/build/es2015/parameters/rsaes_oaep.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-rsa/build/es2015/object_identifiers.js
+init_define_REPO_FILES();
 var id_pkcs_1 = "1.2.840.113549.1.1";
 var id_rsaEncryption = `${id_pkcs_1}.1`;
 var id_RSAES_OAEP = `${id_pkcs_1}.7`;
@@ -115358,6 +117301,7 @@ var id_md5 = "1.2.840.113549.2.5";
 var id_mgf1 = `${id_pkcs_1}.8`;
 
 // node_modules/@peculiar/asn1-rsa/build/es2015/algorithms.js
+init_define_REPO_FILES();
 function create9(algorithm) {
   return new AlgorithmIdentifier({
     algorithm,
@@ -115431,6 +117375,7 @@ var RSAES_OAEP = new AlgorithmIdentifier({
 });
 
 // node_modules/@peculiar/asn1-rsa/build/es2015/parameters/rsassa_pss.js
+init_define_REPO_FILES();
 var RsaSaPssParams = class {
   hashAlgorithm = new AlgorithmIdentifier(sha12);
   maskGenAlgorithm = new AlgorithmIdentifier({
@@ -115477,6 +117422,7 @@ var RSASSA_PSS = new AlgorithmIdentifier({
 });
 
 // node_modules/@peculiar/asn1-rsa/build/es2015/parameters/rsassa_pkcs1_v1_5.js
+init_define_REPO_FILES();
 var DigestInfo = class {
   digestAlgorithm = new AlgorithmIdentifier();
   digest = new OctetString2();
@@ -115492,6 +117438,7 @@ __decorate([
 ], DigestInfo.prototype, "digest", void 0);
 
 // node_modules/@peculiar/asn1-rsa/build/es2015/other_prime_info.js
+init_define_REPO_FILES();
 var OtherPrimeInfos_1;
 var OtherPrimeInfo = class {
   prime = new ArrayBuffer(0);
@@ -115533,6 +117480,7 @@ OtherPrimeInfos = OtherPrimeInfos_1 = __decorate([
 ], OtherPrimeInfos);
 
 // node_modules/@peculiar/asn1-rsa/build/es2015/rsa_private_key.js
+init_define_REPO_FILES();
 var RSAPrivateKey2 = class {
   version = 0;
   modulus = new ArrayBuffer(0);
@@ -115607,6 +117555,7 @@ __decorate([
 ], RSAPrivateKey2.prototype, "otherPrimeInfos", void 0);
 
 // node_modules/@peculiar/asn1-rsa/build/es2015/rsa_public_key.js
+init_define_REPO_FILES();
 var RSAPublicKey2 = class {
   modulus = new ArrayBuffer(0);
   publicExponent = new ArrayBuffer(0);
@@ -115627,7 +117576,14 @@ __decorate([
   })
 ], RSAPublicKey2.prototype, "publicExponent", void 0);
 
+// node_modules/tsyringe/dist/esm5/index.js
+init_define_REPO_FILES();
+
+// node_modules/tsyringe/dist/esm5/types/index.js
+init_define_REPO_FILES();
+
 // node_modules/tsyringe/dist/esm5/types/lifecycle.js
+init_define_REPO_FILES();
 var Lifecycle;
 (function(Lifecycle2) {
   Lifecycle2[Lifecycle2["Transient"] = 0] = "Transient";
@@ -115637,7 +117593,14 @@ var Lifecycle;
 })(Lifecycle || (Lifecycle = {}));
 var lifecycle_default = Lifecycle;
 
+// node_modules/tsyringe/dist/esm5/decorators/index.js
+init_define_REPO_FILES();
+
+// node_modules/tsyringe/dist/esm5/decorators/auto-injectable.js
+init_define_REPO_FILES();
+
 // node_modules/tsyringe/node_modules/tslib/tslib.es6.js
+init_define_REPO_FILES();
 var extendStatics = function(d2, b) {
   extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d3, b2) {
     d3.__proto__ = b2;
@@ -115784,6 +117747,7 @@ function __spread() {
 }
 
 // node_modules/tsyringe/dist/esm5/reflection-helpers.js
+init_define_REPO_FILES();
 var INJECTION_TOKEN_METADATA_KEY = "injectionTokens";
 function getParamInfo(target) {
   var params = Reflect.getMetadata("design:paramtypes", target) || [];
@@ -115794,17 +117758,29 @@ function getParamInfo(target) {
   return params;
 }
 
+// node_modules/tsyringe/dist/esm5/dependency-container.js
+init_define_REPO_FILES();
+
+// node_modules/tsyringe/dist/esm5/providers/index.js
+init_define_REPO_FILES();
+
 // node_modules/tsyringe/dist/esm5/providers/class-provider.js
+init_define_REPO_FILES();
 function isClassProvider(provider) {
   return !!provider.useClass;
 }
 
 // node_modules/tsyringe/dist/esm5/providers/factory-provider.js
+init_define_REPO_FILES();
 function isFactoryProvider(provider) {
   return !!provider.useFactory;
 }
 
+// node_modules/tsyringe/dist/esm5/providers/injection-token.js
+init_define_REPO_FILES();
+
 // node_modules/tsyringe/dist/esm5/lazy-helpers.js
+init_define_REPO_FILES();
 var DelayedConstructor = function() {
   function DelayedConstructor2(wrap2) {
     this.wrap = wrap2;
@@ -115870,21 +117846,28 @@ function isConstructorToken(token) {
 }
 
 // node_modules/tsyringe/dist/esm5/providers/token-provider.js
+init_define_REPO_FILES();
 function isTokenProvider(provider) {
   return !!provider.useToken;
 }
 
 // node_modules/tsyringe/dist/esm5/providers/value-provider.js
+init_define_REPO_FILES();
 function isValueProvider(provider) {
   return provider.useValue != void 0;
 }
 
 // node_modules/tsyringe/dist/esm5/providers/provider.js
+init_define_REPO_FILES();
 function isProvider(provider) {
   return isClassProvider(provider) || isValueProvider(provider) || isTokenProvider(provider) || isFactoryProvider(provider);
 }
 
+// node_modules/tsyringe/dist/esm5/registry.js
+init_define_REPO_FILES();
+
 // node_modules/tsyringe/dist/esm5/registry-base.js
+init_define_REPO_FILES();
 var RegistryBase = function() {
   function RegistryBase2() {
     this._registryMap = /* @__PURE__ */ new Map();
@@ -115935,6 +117918,7 @@ var Registry2 = function(_super) {
 var registry_default = Registry2;
 
 // node_modules/tsyringe/dist/esm5/resolution-context.js
+init_define_REPO_FILES();
 var ResolutionContext = /* @__PURE__ */ function() {
   function ResolutionContext2() {
     this.scopedResolutions = /* @__PURE__ */ new Map();
@@ -115944,6 +117928,7 @@ var ResolutionContext = /* @__PURE__ */ function() {
 var resolution_context_default = ResolutionContext;
 
 // node_modules/tsyringe/dist/esm5/error-helpers.js
+init_define_REPO_FILES();
 function formatDependency(params, idx) {
   if (params === null) {
     return "at position #" + idx;
@@ -115966,6 +117951,7 @@ function formatErrorCtor(ctor, paramIdx, error) {
 }
 
 // node_modules/tsyringe/dist/esm5/types/disposable.js
+init_define_REPO_FILES();
 function isDisposable(value2) {
   if (typeof value2.dispose !== "function")
     return false;
@@ -115977,6 +117963,7 @@ function isDisposable(value2) {
 }
 
 // node_modules/tsyringe/dist/esm5/interceptors.js
+init_define_REPO_FILES();
 var PreResolutionInterceptors = function(_super) {
   __extends(PreResolutionInterceptors2, _super);
   function PreResolutionInterceptors2() {
@@ -116394,7 +118381,11 @@ var InternalDependencyContainer = function() {
 }();
 var instance = new InternalDependencyContainer();
 
+// node_modules/tsyringe/dist/esm5/decorators/inject.js
+init_define_REPO_FILES();
+
 // node_modules/tsyringe/dist/esm5/decorators/injectable.js
+init_define_REPO_FILES();
 function injectable(options2) {
   return function(target) {
     typeInfo.set(target, getParamInfo(target));
@@ -116411,12 +118402,49 @@ function injectable(options2) {
 }
 var injectable_default = injectable;
 
+// node_modules/tsyringe/dist/esm5/decorators/registry.js
+init_define_REPO_FILES();
+
+// node_modules/tsyringe/dist/esm5/decorators/singleton.js
+init_define_REPO_FILES();
+
+// node_modules/tsyringe/dist/esm5/decorators/inject-all.js
+init_define_REPO_FILES();
+
+// node_modules/tsyringe/dist/esm5/decorators/inject-all-with-transform.js
+init_define_REPO_FILES();
+
+// node_modules/tsyringe/dist/esm5/decorators/inject-with-transform.js
+init_define_REPO_FILES();
+
+// node_modules/tsyringe/dist/esm5/decorators/scoped.js
+init_define_REPO_FILES();
+
+// node_modules/tsyringe/dist/esm5/factories/index.js
+init_define_REPO_FILES();
+
+// node_modules/tsyringe/dist/esm5/factories/instance-caching-factory.js
+init_define_REPO_FILES();
+
+// node_modules/tsyringe/dist/esm5/factories/instance-per-container-caching-factory.js
+init_define_REPO_FILES();
+
+// node_modules/tsyringe/dist/esm5/factories/predicate-aware-class-factory.js
+init_define_REPO_FILES();
+
 // node_modules/tsyringe/dist/esm5/index.js
 if (typeof Reflect === "undefined" || !Reflect.getMetadata) {
   throw new Error(`tsyringe requires a reflect polyfill. Please add 'import "reflect-metadata"' to the top of your entry point.`);
 }
 
+// node_modules/@peculiar/asn1-pkcs9/build/es2015/index.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-pfx/build/es2015/index.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-pfx/build/es2015/attribute.js
+init_define_REPO_FILES();
 var PKCS12AttrSet_1;
 var PKCS12Attribute = class {
   attrId = "";
@@ -116448,6 +118476,7 @@ PKCS12AttrSet = PKCS12AttrSet_1 = __decorate([
 ], PKCS12AttrSet);
 
 // node_modules/@peculiar/asn1-pfx/build/es2015/authenticated_safe.js
+init_define_REPO_FILES();
 var AuthenticatedSafe_1;
 var AuthenticatedSafe = AuthenticatedSafe_1 = class AuthenticatedSafe2 extends AsnArray {
   constructor(items) {
@@ -116462,7 +118491,17 @@ AuthenticatedSafe = AuthenticatedSafe_1 = __decorate([
   })
 ], AuthenticatedSafe);
 
+// node_modules/@peculiar/asn1-pfx/build/es2015/bags/index.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-pfx/build/es2015/bags/cert_bag.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-pfx/build/es2015/bags/types.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-pfx/build/es2015/object_identifiers.js
+init_define_REPO_FILES();
 var id_rsadsi = "1.2.840.113549";
 var id_pkcs = `${id_rsadsi}.1`;
 var id_pkcs_12 = `${id_pkcs}.12`;
@@ -116506,6 +118545,7 @@ var id_x509Certificate = `${id_certTypes}.1`;
 var id_sdsiCertificate = `${id_certTypes}.2`;
 
 // node_modules/@peculiar/asn1-pfx/build/es2015/bags/crl_bag.js
+init_define_REPO_FILES();
 var CRLBag = class {
   crlId = "";
   crltValue = new ArrayBuffer(0);
@@ -116525,7 +118565,14 @@ __decorate([
 var id_crlTypes = `${id_pkcs_9}.23`;
 var id_x509CRL = `${id_crlTypes}.1`;
 
+// node_modules/@peculiar/asn1-pfx/build/es2015/bags/key_bag.js
+init_define_REPO_FILES();
+
+// node_modules/@peculiar/asn1-pkcs8/build/es2015/index.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-pkcs8/build/es2015/encrypted_private_key_info.js
+init_define_REPO_FILES();
 var EncryptedData = class extends OctetString2 {
 };
 var EncryptedPrivateKeyInfo = class {
@@ -116543,6 +118590,7 @@ __decorate([
 ], EncryptedPrivateKeyInfo.prototype, "encryptedData", void 0);
 
 // node_modules/@peculiar/asn1-pkcs8/build/es2015/private_key_info.js
+init_define_REPO_FILES();
 var Attributes_1;
 var Version2;
 (function(Version3) {
@@ -116597,6 +118645,7 @@ KeyBag = __decorate([
 ], KeyBag);
 
 // node_modules/@peculiar/asn1-pfx/build/es2015/bags/pkcs8_shrouded_key_bag.js
+init_define_REPO_FILES();
 var PKCS8ShroudedKeyBag = class PKCS8ShroudedKeyBag2 extends EncryptedPrivateKeyInfo {
 };
 PKCS8ShroudedKeyBag = __decorate([
@@ -116604,6 +118653,7 @@ PKCS8ShroudedKeyBag = __decorate([
 ], PKCS8ShroudedKeyBag);
 
 // node_modules/@peculiar/asn1-pfx/build/es2015/bags/secret_bag.js
+init_define_REPO_FILES();
 var SecretBag = class {
   secretTypeId = "";
   secretValue = new ArrayBuffer(0);
@@ -116622,6 +118672,7 @@ __decorate([
 ], SecretBag.prototype, "secretValue", void 0);
 
 // node_modules/@peculiar/asn1-pfx/build/es2015/mac_data.js
+init_define_REPO_FILES();
 var MacData = class {
   mac = new DigestInfo();
   macSalt = new OctetString2();
@@ -116644,6 +118695,7 @@ __decorate([
 ], MacData.prototype, "iterations", void 0);
 
 // node_modules/@peculiar/asn1-pfx/build/es2015/pfx.js
+init_define_REPO_FILES();
 var PFX = class {
   version = 3;
   authSafe = new ContentInfo();
@@ -116666,6 +118718,7 @@ __decorate([
 ], PFX.prototype, "macData", void 0);
 
 // node_modules/@peculiar/asn1-pfx/build/es2015/safe_bag.js
+init_define_REPO_FILES();
 var SafeContents_1;
 var SafeBag = class {
   bagId = "";
@@ -116962,7 +119015,11 @@ SMIMECapabilities = SMIMECapabilities_1 = __decorate([
   })
 ], SMIMECapabilities);
 
+// node_modules/@peculiar/asn1-csr/build/es2015/index.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-csr/build/es2015/attributes.js
+init_define_REPO_FILES();
 var Attributes_12;
 var Attributes3 = Attributes_12 = class Attributes4 extends AsnArray {
   constructor(items) {
@@ -116977,7 +119034,11 @@ Attributes3 = Attributes_12 = __decorate([
   })
 ], Attributes3);
 
+// node_modules/@peculiar/asn1-csr/build/es2015/certification_request.js
+init_define_REPO_FILES();
+
 // node_modules/@peculiar/asn1-csr/build/es2015/certification_request_info.js
+init_define_REPO_FILES();
 var CertificationRequestInfo = class {
   version = 0;
   subject = new Name();
@@ -119683,6 +121744,7 @@ AsnEcSignatureFormatter.namedCurveSize.set("P-384", 48);
 AsnEcSignatureFormatter.namedCurveSize.set("P-521", 66);
 
 // node_modules/@libp2p/webrtc/dist/src/private-to-public/listener.browser.js
+init_define_REPO_FILES();
 var WebRTCDirectListener = class extends TypedEventEmitter {
   async listen() {
     throw new UnimplementedError("WebRTCTransport.createListener");
@@ -119696,7 +121758,14 @@ var WebRTCDirectListener = class extends TypedEventEmitter {
   }
 };
 
+// node_modules/@libp2p/webrtc/dist/src/private-to-public/utils/connect.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/webrtc/dist/src/private-to-public/utils/generate-noise-prologue.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/webrtc/dist/src/private-to-public/utils/sdp.js
+init_define_REPO_FILES();
 var multibaseDecoder = Object.values(bases2).map((b) => b.decoder).reduce((d2, b) => d2.or(b));
 var fingerprintRegex = /^a=fingerprint:(?:\w+-[0-9]+)\s(?<fingerprint>(:?[0-9a-fA-F]{2})+)$/m;
 function getFingerprintFromSdp(sdp) {
@@ -119931,6 +122000,7 @@ async function connect(peerConnection, ufrag, options2) {
 }
 
 // node_modules/@libp2p/webrtc/dist/src/private-to-public/utils/get-rtcpeerconnection.browser.js
+init_define_REPO_FILES();
 async function createDialerRTCPeerConnection(role, ufrag, rtcConfiguration, certificate) {
   if (certificate == null) {
     certificate = await RTCPeerConnection.generateCertificate({
@@ -119948,6 +122018,7 @@ async function createDialerRTCPeerConnection(role, ufrag, rtcConfiguration, cert
 }
 
 // node_modules/@libp2p/webrtc/dist/src/private-to-public/utils/pem.js
+init_define_REPO_FILES();
 async function formatAsPem(privateKey) {
   const keyPair = await privateKeyToCryptoKeyPair(privateKey);
   const exported = await crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
@@ -120205,7 +122276,20 @@ function webRTC(init2) {
   return (components) => new WebRTCTransport(components, init2);
 }
 
+// node_modules/@libp2p/websockets/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/it-ws/dist/src/client.js
+init_define_REPO_FILES();
+
+// node_modules/it-ws/dist/src/duplex.js
+init_define_REPO_FILES();
+
+// node_modules/it-ws/dist/src/sink.js
+init_define_REPO_FILES();
+
 // node_modules/it-ws/dist/src/ready.js
+init_define_REPO_FILES();
 var ready_default = async (socket) => {
   if (socket.readyState >= 2) {
     throw new Error("socket closed");
@@ -120269,6 +122353,7 @@ var sink_default = (socket, options2) => {
 };
 
 // node_modules/it-ws/dist/src/source.js
+init_define_REPO_FILES();
 var import_event_iterator = __toESM(require_dom(), 1);
 function isArrayBuffer2(obj) {
   return obj instanceof ArrayBuffer || obj?.constructor?.name === "ArrayBuffer" && typeof obj?.byteLength === "number";
@@ -120405,9 +122490,11 @@ var duplex_default = (socket, options2) => {
 };
 
 // node_modules/it-ws/dist/src/web-socket.browser.js
+init_define_REPO_FILES();
 var web_socket_browser_default = WebSocket;
 
 // node_modules/it-ws/dist/src/ws-url.js
+init_define_REPO_FILES();
 var map2 = { "http:": "ws:", "https:": "wss:" };
 var defaultProtocol = "ws:";
 var ws_url_default = (url, location) => {
@@ -120439,6 +122526,7 @@ function connect2(addr, opts) {
 }
 
 // node_modules/@libp2p/websockets/dist/src/filters.js
+init_define_REPO_FILES();
 function all2(multiaddrs) {
   return multiaddrs.filter((ma) => {
     return WebSocketsSecure.exactMatch(ma) || WebSockets.exactMatch(ma);
@@ -120446,11 +122534,16 @@ function all2(multiaddrs) {
 }
 
 // node_modules/@libp2p/websockets/dist/src/listener.browser.js
+init_define_REPO_FILES();
 function createListener2() {
   throw new Error("WebSocket Servers can not be created in the browser!");
 }
 
+// node_modules/@libp2p/websockets/dist/src/socket-to-conn.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/websockets/dist/src/constants.js
+init_define_REPO_FILES();
 var CLOSE_TIMEOUT4 = 500;
 
 // node_modules/@libp2p/websockets/dist/src/socket-to-conn.js
@@ -120637,6 +122730,7 @@ function webSockets(init2 = {}) {
 }
 
 // node_modules/ipns/dist/src/selector.js
+init_define_REPO_FILES();
 var import_timestamp_nano3 = __toESM(require_timestamp_min(), 1);
 function ipnsSelector(key, data) {
   const entries = data.map((buf, index2) => ({
@@ -120667,10 +122761,12 @@ function ipnsSelector(key, data) {
 }
 
 // node_modules/helia/dist/src/version.js
+init_define_REPO_FILES();
 var version2 = "5.5.1";
 var name12 = "helia";
 
 // node_modules/helia/dist/src/utils/bootstrappers.js
+init_define_REPO_FILES();
 var bootstrapConfig = {
   list: [
     "/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN",
@@ -120798,7 +122894,17 @@ async function createHelia(init2 = {}) {
   return helia;
 }
 
+// node_modules/@chainsafe/libp2p-gossipsub/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/libp2p-gossipsub/node_modules/it-length-prefixed/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@chainsafe/libp2p-gossipsub/node_modules/it-length-prefixed/dist/src/encode.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-gossipsub/node_modules/it-length-prefixed/dist/src/utils.js
+init_define_REPO_FILES();
 function isAsyncIterable13(thing) {
   return thing[Symbol.asyncIterator] != null;
 }
@@ -120847,7 +122953,11 @@ encode45.single = (chunk, options2) => {
   return new Uint8ArrayList2(encodeLength2(chunk.byteLength), chunk);
 };
 
+// node_modules/@chainsafe/libp2p-gossipsub/node_modules/it-length-prefixed/dist/src/decode.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-gossipsub/node_modules/it-length-prefixed/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidMessageLengthError4 = class extends Error {
   name = "InvalidMessageLengthError";
   code = "ERR_INVALID_MSG_LENGTH";
@@ -120980,6 +123090,7 @@ decode51.fromReader = (reader, options2) => {
 };
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/constants.js
+init_define_REPO_FILES();
 var second3 = 1e3;
 var minute3 = 60 * second3;
 var FloodsubID = "/floodsub/1.0.0";
@@ -121025,6 +123136,7 @@ var GossipsubIdontwantMinDataSize = 512;
 var GossipsubIdontwantMaxMessages = 512;
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/message/decodeRpc.js
+init_define_REPO_FILES();
 var defaultDecodeRpcLimits = {
   maxSubscriptions: Infinity,
   maxMessages: Infinity,
@@ -121036,6 +123148,7 @@ var defaultDecodeRpcLimits = {
 };
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/message/rpc.js
+init_define_REPO_FILES();
 var RPC2;
 (function(RPC3) {
   let SubOpts;
@@ -121698,6 +123811,7 @@ var RPC2;
 })(RPC2 || (RPC2 = {}));
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/message-cache.js
+init_define_REPO_FILES();
 var MessageCache = class {
   gossip;
   msgs = /* @__PURE__ */ new Map();
@@ -121831,7 +123945,11 @@ var MessageCache = class {
   }
 };
 
+// node_modules/@chainsafe/libp2p-gossipsub/dist/src/metrics.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/types.js
+init_define_REPO_FILES();
 var SignaturePolicy;
 (function(SignaturePolicy2) {
   SignaturePolicy2["StrictSign"] = "StrictSign";
@@ -122716,7 +124834,11 @@ function getMetrics(register, topicStrToLabel, opts) {
   };
 }
 
+// node_modules/@chainsafe/libp2p-gossipsub/dist/src/score/peer-score-params.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidPeerScoreParamsError = class extends Error {
   static name = "InvalidPeerScoreParamsError";
   constructor(message5 = "Invalid peer score params") {
@@ -122867,6 +124989,7 @@ function validateTopicScoreParams(p) {
 }
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/score/peer-score-thresholds.js
+init_define_REPO_FILES();
 var defaultPeerScoreThresholds = {
   gossipThreshold: -10,
   publishThreshold: -50,
@@ -122881,7 +125004,11 @@ function createPeerScoreThresholds(p = {}) {
   };
 }
 
+// node_modules/@chainsafe/libp2p-gossipsub/dist/src/score/peer-score.js
+init_define_REPO_FILES();
+
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/utils/set.js
+init_define_REPO_FILES();
 function removeItemsFromSet(superSet, ineed, cond = () => true) {
   const subset = /* @__PURE__ */ new Set();
   if (ineed <= 0)
@@ -122916,6 +125043,7 @@ var MapDef = class extends Map {
 };
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/score/compute-score.js
+init_define_REPO_FILES();
 function computeScore(peer, pstats, params, peerIPs) {
   let score = 0;
   Object.entries(pstats.topics).forEach(([topic, tstats]) => {
@@ -122973,6 +125101,7 @@ function computeScore(peer, pstats, params, peerIPs) {
 }
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/score/message-deliveries.js
+init_define_REPO_FILES();
 var import_denque = __toESM(require_denque(), 1);
 var DeliveryRecordStatus;
 (function(DeliveryRecordStatus2) {
@@ -123438,6 +125567,7 @@ var PeerScore = class {
 };
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/score/scoreMetrics.js
+init_define_REPO_FILES();
 function computeScoreWeights(peer, pstats, params, peerIPs, topicStrToLabel) {
   let score = 0;
   const byTopic = /* @__PURE__ */ new Map();
@@ -123572,6 +125702,7 @@ function computeAllPeersScoreWeights(peerIdStrs, peerStats, params, peerIPs, top
 }
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/stream.js
+init_define_REPO_FILES();
 var OutboundStream = class {
   rawStream;
   pushable;
@@ -123632,6 +125763,7 @@ var InboundStream = class {
 };
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/tracer.js
+init_define_REPO_FILES();
 var IWantTracer = class {
   gossipsubIWantFollowupMs;
   msgIdToStrFn;
@@ -123764,6 +125896,7 @@ var IWantTracer = class {
 };
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/utils/buildRawMessage.js
+init_define_REPO_FILES();
 var SignPrefix = fromString4("libp2p-pubsub:");
 async function buildRawMessage(publishConfig, topic, originalData, transformedData) {
   switch (publishConfig.type) {
@@ -123887,6 +126020,7 @@ async function validateToRawMessage(signaturePolicy, msg) {
 }
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/utils/create-gossip-rpc.js
+init_define_REPO_FILES();
 function createGossipRpc(messages2 = [], control) {
   return {
     subscriptions: [],
@@ -123914,6 +126048,7 @@ function ensureControl(rpc) {
 }
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/utils/shuffle.js
+init_define_REPO_FILES();
 function shuffle(arr) {
   if (arr.length <= 1) {
     return arr;
@@ -123931,11 +126066,13 @@ function shuffle(arr) {
 }
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/utils/messageIdToString.js
+init_define_REPO_FILES();
 function messageIdToString(msgId2) {
   return toString4(msgId2, "base64");
 }
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/utils/publishConfig.js
+init_define_REPO_FILES();
 function getPublishConfigFromPeerId(signaturePolicy, peerId, privateKey) {
   switch (signaturePolicy) {
     case StrictSign: {
@@ -123955,7 +126092,11 @@ function getPublishConfigFromPeerId(signaturePolicy, peerId, privateKey) {
   }
 }
 
+// node_modules/@chainsafe/libp2p-gossipsub/dist/src/utils/msgIdFn.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/pubsub/dist/src/utils.js
+init_define_REPO_FILES();
 var msgId = (key, seqno) => {
   const seqnoBytes = fromString4(seqno.toString(16).padStart(16, "0"), "base16");
   const keyBytes = publicKeyToProtobuf(key);
@@ -123979,6 +126120,7 @@ async function msgIdFnStrictNoSign(msg) {
 }
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/utils/multiaddr.js
+init_define_REPO_FILES();
 var Protocol;
 (function(Protocol2) {
   Protocol2[Protocol2["ip4"] = 4] = "ip4";
@@ -123998,6 +126140,7 @@ function multiaddrToIPStr(multiaddr3) {
 }
 
 // node_modules/@chainsafe/libp2p-gossipsub/dist/src/utils/time-cache.js
+init_define_REPO_FILES();
 var SimpleTimeCache = class {
   entries = /* @__PURE__ */ new Map();
   validityMs;
@@ -126150,7 +128293,11 @@ function gossipsub(init2 = {}) {
   return (components) => new GossipSub(components, init2);
 }
 
+// node_modules/@libp2p/pubsub-peer-discovery/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@libp2p/interface/dist/src/errors.js
+init_define_REPO_FILES();
 var UnsupportedKeyTypeError4 = class extends Error {
   static name = "UnsupportedKeyTypeError";
   constructor(message5 = "Unsupported key type") {
@@ -126160,10 +128307,15 @@ var UnsupportedKeyTypeError4 = class extends Error {
 };
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@libp2p/interface/dist/src/peer-discovery.js
+init_define_REPO_FILES();
 var peerDiscoverySymbol2 = Symbol.for("@libp2p/peer-discovery");
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@libp2p/interface/dist/src/peer-id.js
+init_define_REPO_FILES();
 var peerIdSymbol2 = Symbol.for("@libp2p/peer-id");
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@libp2p/peer-id/dist/src/index.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/bases/base58.js
 var base58_exports6 = {};
@@ -126171,8 +128323,13 @@ __export(base58_exports6, {
   base58btc: () => base58btc8,
   base58flickr: () => base58flickr8
 });
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/bases/base.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/bytes.js
+init_define_REPO_FILES();
 var empty8 = new Uint8Array(0);
 function equals15(aa, bb) {
   if (aa === bb) {
@@ -126235,6 +128392,7 @@ function toArrayBufferBackedArray7(b) {
 }
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/vendor/base-x.js
+init_define_REPO_FILES();
 function base11(ALPHABET, name15, caseInsensitive) {
   if (ALPHABET.length >= 255) {
     throw new TypeError("Alphabet too long");
@@ -126578,6 +128736,9 @@ var base58flickr8 = baseX8({
   alphabet: "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
 });
 
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/cid.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/bases/base32.js
 var base32_exports6 = {};
 __export(base32_exports6, {
@@ -126591,6 +128752,7 @@ __export(base32_exports6, {
   base32upper: () => base32upper8,
   base32z: () => base32z8
 });
+init_define_REPO_FILES();
 var base328 = rfc46488({
   prefix: "b",
   name: "base32",
@@ -126660,6 +128822,7 @@ __export(base36_exports6, {
   base36: () => base367,
   base36upper: () => base36upper7
 });
+init_define_REPO_FILES();
 var base367 = baseX8({
   prefix: "k",
   name: "base36",
@@ -126673,7 +128836,14 @@ var base36upper7 = baseX8({
   caseInsensitive: true
 });
 
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/hashes/digest.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/varint.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/vendor/varint.js
+init_define_REPO_FILES();
 var encode_17 = encode47;
 var MSB11 = 128;
 var REST11 = 127;
@@ -126796,6 +128966,9 @@ var Digest7 = class {
     this.bytes = toArrayBufferBackedArray7(bytes);
   }
 };
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/link/interface.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/cid.js
 function format12(link, base13) {
@@ -127137,6 +129310,7 @@ var identity_exports11 = {};
 __export(identity_exports11, {
   identity: () => identity11
 });
+init_define_REPO_FILES();
 var code12 = 0;
 var name13 = "identity";
 var encode48 = coerce8;
@@ -127157,8 +129331,10 @@ __export(sha2_browser_exports6, {
   sha256: () => sha25610,
   sha512: () => sha51211
 });
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/hashes/hasher.js
+init_define_REPO_FILES();
 var DEFAULT_MIN_DIGEST_LENGTH6 = 20;
 function from14({ name: name15, code: code14, encode: encode55, minDigestLength, maxDigestLength }) {
   return new Hasher6(name15, code14, encode55, minDigestLength, maxDigestLength);
@@ -127221,11 +129397,21 @@ var sha51211 = from14({
   encode: sha6("SHA-512")
 });
 
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@libp2p/peer-id/node_modules/uint8arrays/dist/src/to-string.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@libp2p/peer-id/node_modules/uint8arrays/dist/src/util/bases.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/basics.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/bases/base10.js
 var base10_exports6 = {};
 __export(base10_exports6, {
   base10: () => base106
 });
+init_define_REPO_FILES();
 var base106 = baseX8({
   prefix: "9",
   name: "base10",
@@ -127238,6 +129424,7 @@ __export(base16_exports6, {
   base16: () => base166,
   base16upper: () => base16upper6
 });
+init_define_REPO_FILES();
 var base166 = rfc46488({
   prefix: "f",
   name: "base16",
@@ -127258,6 +129445,7 @@ var base2_exports6 = {};
 __export(base2_exports6, {
   base2: () => base27
 });
+init_define_REPO_FILES();
 var base27 = rfc46488({
   prefix: "0",
   name: "base2",
@@ -127270,6 +129458,7 @@ var base256emoji_exports6 = {};
 __export(base256emoji_exports6, {
   base256emoji: () => base256emoji6
 });
+init_define_REPO_FILES();
 var alphabet6 = Array.from("\u{1F680}\u{1FA90}\u2604\u{1F6F0}\u{1F30C}\u{1F311}\u{1F312}\u{1F313}\u{1F314}\u{1F315}\u{1F316}\u{1F317}\u{1F318}\u{1F30D}\u{1F30F}\u{1F30E}\u{1F409}\u2600\u{1F4BB}\u{1F5A5}\u{1F4BE}\u{1F4BF}\u{1F602}\u2764\u{1F60D}\u{1F923}\u{1F60A}\u{1F64F}\u{1F495}\u{1F62D}\u{1F618}\u{1F44D}\u{1F605}\u{1F44F}\u{1F601}\u{1F525}\u{1F970}\u{1F494}\u{1F496}\u{1F499}\u{1F622}\u{1F914}\u{1F606}\u{1F644}\u{1F4AA}\u{1F609}\u263A\u{1F44C}\u{1F917}\u{1F49C}\u{1F614}\u{1F60E}\u{1F607}\u{1F339}\u{1F926}\u{1F389}\u{1F49E}\u270C\u2728\u{1F937}\u{1F631}\u{1F60C}\u{1F338}\u{1F64C}\u{1F60B}\u{1F497}\u{1F49A}\u{1F60F}\u{1F49B}\u{1F642}\u{1F493}\u{1F929}\u{1F604}\u{1F600}\u{1F5A4}\u{1F603}\u{1F4AF}\u{1F648}\u{1F447}\u{1F3B6}\u{1F612}\u{1F92D}\u2763\u{1F61C}\u{1F48B}\u{1F440}\u{1F62A}\u{1F611}\u{1F4A5}\u{1F64B}\u{1F61E}\u{1F629}\u{1F621}\u{1F92A}\u{1F44A}\u{1F973}\u{1F625}\u{1F924}\u{1F449}\u{1F483}\u{1F633}\u270B\u{1F61A}\u{1F61D}\u{1F634}\u{1F31F}\u{1F62C}\u{1F643}\u{1F340}\u{1F337}\u{1F63B}\u{1F613}\u2B50\u2705\u{1F97A}\u{1F308}\u{1F608}\u{1F918}\u{1F4A6}\u2714\u{1F623}\u{1F3C3}\u{1F490}\u2639\u{1F38A}\u{1F498}\u{1F620}\u261D\u{1F615}\u{1F33A}\u{1F382}\u{1F33B}\u{1F610}\u{1F595}\u{1F49D}\u{1F64A}\u{1F639}\u{1F5E3}\u{1F4AB}\u{1F480}\u{1F451}\u{1F3B5}\u{1F91E}\u{1F61B}\u{1F534}\u{1F624}\u{1F33C}\u{1F62B}\u26BD\u{1F919}\u2615\u{1F3C6}\u{1F92B}\u{1F448}\u{1F62E}\u{1F646}\u{1F37B}\u{1F343}\u{1F436}\u{1F481}\u{1F632}\u{1F33F}\u{1F9E1}\u{1F381}\u26A1\u{1F31E}\u{1F388}\u274C\u270A\u{1F44B}\u{1F630}\u{1F928}\u{1F636}\u{1F91D}\u{1F6B6}\u{1F4B0}\u{1F353}\u{1F4A2}\u{1F91F}\u{1F641}\u{1F6A8}\u{1F4A8}\u{1F92C}\u2708\u{1F380}\u{1F37A}\u{1F913}\u{1F619}\u{1F49F}\u{1F331}\u{1F616}\u{1F476}\u{1F974}\u25B6\u27A1\u2753\u{1F48E}\u{1F4B8}\u2B07\u{1F628}\u{1F31A}\u{1F98B}\u{1F637}\u{1F57A}\u26A0\u{1F645}\u{1F61F}\u{1F635}\u{1F44E}\u{1F932}\u{1F920}\u{1F927}\u{1F4CC}\u{1F535}\u{1F485}\u{1F9D0}\u{1F43E}\u{1F352}\u{1F617}\u{1F911}\u{1F30A}\u{1F92F}\u{1F437}\u260E\u{1F4A7}\u{1F62F}\u{1F486}\u{1F446}\u{1F3A4}\u{1F647}\u{1F351}\u2744\u{1F334}\u{1F4A3}\u{1F438}\u{1F48C}\u{1F4CD}\u{1F940}\u{1F922}\u{1F445}\u{1F4A1}\u{1F4A9}\u{1F450}\u{1F4F8}\u{1F47B}\u{1F910}\u{1F92E}\u{1F3BC}\u{1F975}\u{1F6A9}\u{1F34E}\u{1F34A}\u{1F47C}\u{1F48D}\u{1F4E3}\u{1F942}");
 var alphabetBytesToChars6 = alphabet6.reduce((p, c, i) => {
   p[i] = c;
@@ -127319,6 +129508,7 @@ __export(base64_exports7, {
   base64url: () => base64url8,
   base64urlpad: () => base64urlpad7
 });
+init_define_REPO_FILES();
 var base648 = rfc46488({
   prefix: "m",
   name: "base64",
@@ -127349,6 +129539,7 @@ var base8_exports6 = {};
 __export(base8_exports6, {
   base8: () => base86
 });
+init_define_REPO_FILES();
 var base86 = rfc46488({
   prefix: "7",
   name: "base8",
@@ -127361,6 +129552,7 @@ var identity_exports12 = {};
 __export(identity_exports12, {
   identity: () => identity12
 });
+init_define_REPO_FILES();
 var identity12 = from13({
   prefix: "\0",
   name: "identity",
@@ -127369,14 +129561,37 @@ var identity12 = from13({
 });
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/codecs/json.js
+init_define_REPO_FILES();
 var textEncoder12 = new TextEncoder();
 var textDecoder11 = new TextDecoder();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/codecs/raw.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/bases/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/hashes/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/codecs/interface.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/block/interface.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/multiformats/dist/src/basics.js
 var bases6 = { ...identity_exports12, ...base2_exports6, ...base8_exports6, ...base10_exports6, ...base16_exports6, ...base32_exports6, ...base36_exports6, ...base58_exports6, ...base64_exports7, ...base256emoji_exports6 };
 var hashes6 = { ...sha2_browser_exports6, ...identity_exports11 };
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@libp2p/peer-id/node_modules/uint8arrays/dist/src/alloc.js
+init_define_REPO_FILES();
 function allocUnsafe6(size = 0) {
   return new Uint8Array(size);
 }
@@ -127437,7 +129652,11 @@ function toString12(array, encoding = "utf8") {
   return base13.encoder.encode(array).substring(1);
 }
 
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@libp2p/peer-id/dist/src/peer-id.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@libp2p/peer-id/node_modules/uint8arrays/dist/src/equals.js
+init_define_REPO_FILES();
 function equals17(a, b) {
   if (a === b) {
     return true;
@@ -127454,6 +129673,7 @@ function equals17(a, b) {
 }
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@libp2p/peer-id/node_modules/uint8arrays/dist/src/from-string.js
+init_define_REPO_FILES();
 function fromString15(string9, encoding = "utf8") {
   const base13 = bases_default6[encoding];
   if (base13 == null) {
@@ -127614,7 +129834,14 @@ function peerIdFromPublicKey2(publicKey2) {
   throw new UnsupportedKeyTypeError4();
 }
 
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/dist/src/multiaddr.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/node_modules/uint8arrays/dist/src/equals.js
+init_define_REPO_FILES();
 function equals18(a, b) {
   if (a === b) {
     return true;
@@ -127629,6 +129856,15 @@ function equals18(a, b) {
   }
   return true;
 }
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/dist/src/components.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/uint8-varint/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/uint8-varint/node_modules/uint8arrays/dist/src/alloc.js
+init_define_REPO_FILES();
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/uint8-varint/dist/src/index.js
 var N111 = Math.pow(2, 7);
@@ -127803,7 +130039,11 @@ function decode57(buf, offset = 0) {
   }
 }
 
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/node_modules/uint8arrays/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/node_modules/uint8arrays/dist/src/with-array-buffer.js
+init_define_REPO_FILES();
 function isArrayBufferBacked4(arr) {
   return arr.buffer instanceof ArrayBuffer;
 }
@@ -127814,12 +130054,20 @@ function withArrayBuffer4(arr) {
   return arr.slice();
 }
 
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/node_modules/uint8arrays/dist/src/xor-compare.js
+init_define_REPO_FILES();
+
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/node_modules/uint8arrays/dist/src/xor.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/node_modules/uint8arrays/dist/src/alloc.js
+init_define_REPO_FILES();
 function allocUnsafe8(size = 0) {
   return new Uint8Array(size);
 }
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/node_modules/uint8arrays/dist/src/util/as-uint8array.js
+init_define_REPO_FILES();
 function isByteArrayWithArrayBuffer9(b) {
   return b?.buffer instanceof ArrayBuffer;
 }
@@ -127831,7 +130079,11 @@ function asUint8Array3(buf) {
   return new Uint8Array(b.buffer, 0, b.byteLength);
 }
 
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/node_modules/uint8arrays/dist/src/compare.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/node_modules/uint8arrays/dist/src/concat.js
+init_define_REPO_FILES();
 function concat9(arrays, length15) {
   if (length15 == null) {
     length15 = arrays.reduce((acc, curr) => acc + curr.length, 0);
@@ -127845,7 +130097,11 @@ function concat9(arrays, length15) {
   return asUint8Array3(output);
 }
 
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/node_modules/uint8arrays/dist/src/from-string.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/node_modules/uint8arrays/dist/src/util/bases.js
+init_define_REPO_FILES();
 function createCodec11(name15, prefix, encode55, decode65) {
   return {
     name: name15,
@@ -127902,6 +130158,7 @@ function fromString16(string9, encoding = "utf8") {
 }
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/node_modules/uint8arrays/dist/src/to-string.js
+init_define_REPO_FILES();
 function toString13(array, encoding = "utf8") {
   const base13 = bases_default7[encoding];
   if (base13 == null) {
@@ -127911,6 +130168,7 @@ function toString13(array, encoding = "utf8") {
 }
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidMultiaddrError3 = class extends Error {
   static name = "InvalidMultiaddrError";
   name = "InvalidMultiaddrError";
@@ -127928,7 +130186,11 @@ var UnknownProtocolError2 = class extends Error {
   name = "UnknownProtocolError";
 };
 
+// node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/dist/src/registry.js
+init_define_REPO_FILES();
+
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/dist/src/constants.js
+init_define_REPO_FILES();
 var CODE_IP42 = 4;
 var CODE_TCP2 = 6;
 var CODE_UDP2 = 273;
@@ -127971,6 +130233,7 @@ var CODE_P2P_CIRCUIT2 = 290;
 var CODE_MEMORY2 = 777;
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/dist/src/utils.js
+init_define_REPO_FILES();
 function bytesToString2(base13) {
   return (buf) => {
     return toString13(buf, base13);
@@ -128142,6 +130405,7 @@ function bytes2mb2(base13) {
 }
 
 // node_modules/@libp2p/pubsub-peer-discovery/node_modules/@multiformats/multiaddr/dist/src/validation.js
+init_define_REPO_FILES();
 function integer2(value2) {
   const int = parseInt(value2);
   if (int.toString() !== value2) {
@@ -128674,6 +130938,7 @@ function multiaddr2(addr) {
 }
 
 // node_modules/@libp2p/pubsub-peer-discovery/dist/src/peer.js
+init_define_REPO_FILES();
 var Peer3;
 (function(Peer4) {
   let _codec;
@@ -128869,6 +131134,7 @@ function pubsubPeerDiscovery(init2 = {}) {
 }
 
 // node_modules/@helia/strings/dist/src/index.js
+init_define_REPO_FILES();
 var DefaultStrings = class {
   components;
   constructor(components) {
@@ -128891,7 +131157,23 @@ function strings(helia) {
   return new DefaultStrings(helia);
 }
 
+// node_modules/@helia/unixfs/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/unixfs/dist/src/unixfs.js
+init_define_REPO_FILES();
+
+// node_modules/@helia/unixfs/dist/src/commands/add.js
+init_define_REPO_FILES();
+
+// node_modules/ipfs-unixfs-importer/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/it-parallel-batch/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/it-batch/dist/src/index.js
+init_define_REPO_FILES();
 function isAsyncIterable14(thing) {
   return thing[Symbol.asyncIterator] != null;
 }
@@ -128960,6 +131242,7 @@ async function* parallelBatch(source, size = 1) {
 }
 
 // node_modules/ipfs-unixfs-importer/dist/src/chunker/fixed-size.js
+init_define_REPO_FILES();
 var DEFAULT_CHUNK_SIZE = 262144;
 var fixedSize = (options2 = {}) => {
   const chunkSize = options2.chunkSize ?? DEFAULT_CHUNK_SIZE;
@@ -128990,7 +131273,14 @@ var fixedSize = (options2 = {}) => {
   };
 };
 
+// node_modules/ipfs-unixfs-importer/dist/src/dag-builder/buffer-importer.js
+init_define_REPO_FILES();
+
+// node_modules/ipfs-unixfs/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/ipfs-unixfs/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidTypeError = class _InvalidTypeError extends Error {
   static name = "InvalidTypeError";
   static code = "ERR_INVALID_TYPE";
@@ -129011,6 +131301,7 @@ var InvalidUnixFSMessageError = class _InvalidUnixFSMessageError extends Error {
 };
 
 // node_modules/ipfs-unixfs/dist/src/unixfs.js
+init_define_REPO_FILES();
 var Data;
 (function(Data2) {
   let DataType;
@@ -129381,6 +131672,7 @@ var UnixFS = class _UnixFS {
 };
 
 // node_modules/ipfs-unixfs-importer/dist/src/utils/persist.js
+init_define_REPO_FILES();
 var persist = async (buffer5, blockstore, options2) => {
   if (options2.codec == null) {
     options2.codec = src_exports3;
@@ -129434,7 +131726,11 @@ function defaultBufferImporter(options2) {
   };
 }
 
+// node_modules/ipfs-unixfs-importer/dist/src/dag-builder/index.js
+init_define_REPO_FILES();
+
 // node_modules/ipfs-unixfs-importer/dist/src/errors.js
+init_define_REPO_FILES();
 var InvalidParametersError7 = class _InvalidParametersError extends Error {
   static name = "InvalidParametersError";
   static code = "ERR_INVALID_PARAMS";
@@ -129455,6 +131751,7 @@ var InvalidContentError = class _InvalidContentError extends Error {
 };
 
 // node_modules/ipfs-unixfs-importer/dist/src/dag-builder/dir.js
+init_define_REPO_FILES();
 var defaultDirBuilder = async (dir, blockstore, options2) => {
   const unixfs2 = new UnixFS({
     type: "directory",
@@ -129475,6 +131772,7 @@ var defaultDirBuilder = async (dir, blockstore, options2) => {
 };
 
 // node_modules/ipfs-unixfs-importer/dist/src/dag-builder/file.js
+init_define_REPO_FILES();
 async function* buildFileBatch(file, blockstore, options2) {
   let count = -1;
   let previous;
@@ -129671,6 +131969,7 @@ function isFileCandidate(entry) {
 }
 
 // node_modules/ipfs-unixfs-importer/dist/src/dag-builder/validate-chunks.js
+init_define_REPO_FILES();
 var defaultChunkValidator = () => {
   return async function* validateChunks(source) {
     for await (const content of source) {
@@ -129690,7 +131989,11 @@ var defaultChunkValidator = () => {
   };
 };
 
+// node_modules/ipfs-unixfs-importer/dist/src/layout/index.js
+init_define_REPO_FILES();
+
 // node_modules/ipfs-unixfs-importer/dist/src/layout/balanced.js
+init_define_REPO_FILES();
 var DEFAULT_MAX_CHILDREN_PER_NODE = 174;
 function balanced(options2) {
   const maxChildrenPerNode = options2?.maxChildrenPerNode ?? DEFAULT_MAX_CHILDREN_PER_NODE;
@@ -129706,7 +132009,14 @@ function balanced(options2) {
   };
 }
 
+// node_modules/ipfs-unixfs-importer/dist/src/tree-builder.js
+init_define_REPO_FILES();
+
+// node_modules/ipfs-unixfs-importer/dist/src/dir-flat.js
+init_define_REPO_FILES();
+
 // node_modules/ipfs-unixfs-importer/dist/src/dir.js
+init_define_REPO_FILES();
 var Dir = class {
   options;
   root;
@@ -129829,7 +132139,23 @@ var DirFlat = class extends Dir {
   }
 };
 
+// node_modules/ipfs-unixfs-importer/dist/src/flat-to-shard.js
+init_define_REPO_FILES();
+
+// node_modules/ipfs-unixfs-importer/dist/src/dir-sharded.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/murmur3/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/murmur3/node_modules/multiformats/dist/src/hashes/hasher.js
+init_define_REPO_FILES();
+
+// node_modules/@multiformats/murmur3/node_modules/multiformats/dist/src/hashes/digest.js
+init_define_REPO_FILES();
+
 // node_modules/@multiformats/murmur3/node_modules/multiformats/dist/src/bytes.js
+init_define_REPO_FILES();
 var empty9 = new Uint8Array(0);
 function isByteArrayWithArrayBuffer10(b) {
   return b?.buffer instanceof ArrayBuffer;
@@ -129841,7 +132167,11 @@ function toArrayBufferBackedArray8(b) {
   return b.slice();
 }
 
+// node_modules/@multiformats/murmur3/node_modules/multiformats/dist/src/varint.js
+init_define_REPO_FILES();
+
 // node_modules/@multiformats/murmur3/node_modules/multiformats/dist/src/vendor/varint.js
+init_define_REPO_FILES();
 var encode_18 = encode50;
 var MSB13 = 128;
 var REST13 = 127;
@@ -129985,6 +132315,7 @@ function createDigest7(digest8, code14, truncate) {
 }
 
 // node_modules/@multiformats/murmur3/src/vendor/murmur.js
+init_define_REPO_FILES();
 function add64(a, b) {
   const lo = a.lo + b.lo >>> 0;
   const hi = a.hi + b.hi + (lo < a.lo ? 1 : 0) >>> 0;
@@ -130231,16 +132562,34 @@ var murmur364 = from15({
   encode: (input) => murmurHash3_x64_128(input).subarray(0, 8)
 });
 
+// node_modules/hamt-sharding/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/hamt-sharding/dist/src/bucket.js
+init_define_REPO_FILES();
 var import_sparse_array = __toESM(require_sparse_array(), 1);
+
+// node_modules/hamt-sharding/node_modules/uint8arrays/dist/src/from-string.js
+init_define_REPO_FILES();
+
+// node_modules/hamt-sharding/node_modules/uint8arrays/dist/src/util/bases.js
+init_define_REPO_FILES();
+
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/basics.js
+init_define_REPO_FILES();
 
 // node_modules/hamt-sharding/node_modules/multiformats/dist/src/bases/base10.js
 var base10_exports7 = {};
 __export(base10_exports7, {
   base10: () => base107
 });
+init_define_REPO_FILES();
+
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/bases/base.js
+init_define_REPO_FILES();
 
 // node_modules/hamt-sharding/node_modules/multiformats/dist/src/bytes.js
+init_define_REPO_FILES();
 var empty10 = new Uint8Array(0);
 function equals20(aa, bb) {
   if (aa === bb) {
@@ -130303,6 +132652,7 @@ function toArrayBufferBackedArray9(b) {
 }
 
 // node_modules/hamt-sharding/node_modules/multiformats/dist/src/vendor/base-x.js
+init_define_REPO_FILES();
 function base12(ALPHABET, name15, caseInsensitive) {
   if (ALPHABET.length >= 255) {
     throw new TypeError("Alphabet too long");
@@ -130647,6 +132997,7 @@ __export(base16_exports7, {
   base16: () => base167,
   base16upper: () => base16upper7
 });
+init_define_REPO_FILES();
 var base167 = rfc46489({
   prefix: "f",
   name: "base16",
@@ -130667,6 +133018,7 @@ var base2_exports7 = {};
 __export(base2_exports7, {
   base2: () => base28
 });
+init_define_REPO_FILES();
 var base28 = rfc46489({
   prefix: "0",
   name: "base2",
@@ -130679,6 +133031,7 @@ var base256emoji_exports7 = {};
 __export(base256emoji_exports7, {
   base256emoji: () => base256emoji7
 });
+init_define_REPO_FILES();
 var alphabet7 = Array.from("\u{1F680}\u{1FA90}\u2604\u{1F6F0}\u{1F30C}\u{1F311}\u{1F312}\u{1F313}\u{1F314}\u{1F315}\u{1F316}\u{1F317}\u{1F318}\u{1F30D}\u{1F30F}\u{1F30E}\u{1F409}\u2600\u{1F4BB}\u{1F5A5}\u{1F4BE}\u{1F4BF}\u{1F602}\u2764\u{1F60D}\u{1F923}\u{1F60A}\u{1F64F}\u{1F495}\u{1F62D}\u{1F618}\u{1F44D}\u{1F605}\u{1F44F}\u{1F601}\u{1F525}\u{1F970}\u{1F494}\u{1F496}\u{1F499}\u{1F622}\u{1F914}\u{1F606}\u{1F644}\u{1F4AA}\u{1F609}\u263A\u{1F44C}\u{1F917}\u{1F49C}\u{1F614}\u{1F60E}\u{1F607}\u{1F339}\u{1F926}\u{1F389}\u{1F49E}\u270C\u2728\u{1F937}\u{1F631}\u{1F60C}\u{1F338}\u{1F64C}\u{1F60B}\u{1F497}\u{1F49A}\u{1F60F}\u{1F49B}\u{1F642}\u{1F493}\u{1F929}\u{1F604}\u{1F600}\u{1F5A4}\u{1F603}\u{1F4AF}\u{1F648}\u{1F447}\u{1F3B6}\u{1F612}\u{1F92D}\u2763\u{1F61C}\u{1F48B}\u{1F440}\u{1F62A}\u{1F611}\u{1F4A5}\u{1F64B}\u{1F61E}\u{1F629}\u{1F621}\u{1F92A}\u{1F44A}\u{1F973}\u{1F625}\u{1F924}\u{1F449}\u{1F483}\u{1F633}\u270B\u{1F61A}\u{1F61D}\u{1F634}\u{1F31F}\u{1F62C}\u{1F643}\u{1F340}\u{1F337}\u{1F63B}\u{1F613}\u2B50\u2705\u{1F97A}\u{1F308}\u{1F608}\u{1F918}\u{1F4A6}\u2714\u{1F623}\u{1F3C3}\u{1F490}\u2639\u{1F38A}\u{1F498}\u{1F620}\u261D\u{1F615}\u{1F33A}\u{1F382}\u{1F33B}\u{1F610}\u{1F595}\u{1F49D}\u{1F64A}\u{1F639}\u{1F5E3}\u{1F4AB}\u{1F480}\u{1F451}\u{1F3B5}\u{1F91E}\u{1F61B}\u{1F534}\u{1F624}\u{1F33C}\u{1F62B}\u26BD\u{1F919}\u2615\u{1F3C6}\u{1F92B}\u{1F448}\u{1F62E}\u{1F646}\u{1F37B}\u{1F343}\u{1F436}\u{1F481}\u{1F632}\u{1F33F}\u{1F9E1}\u{1F381}\u26A1\u{1F31E}\u{1F388}\u274C\u270A\u{1F44B}\u{1F630}\u{1F928}\u{1F636}\u{1F91D}\u{1F6B6}\u{1F4B0}\u{1F353}\u{1F4A2}\u{1F91F}\u{1F641}\u{1F6A8}\u{1F4A8}\u{1F92C}\u2708\u{1F380}\u{1F37A}\u{1F913}\u{1F619}\u{1F49F}\u{1F331}\u{1F616}\u{1F476}\u{1F974}\u25B6\u27A1\u2753\u{1F48E}\u{1F4B8}\u2B07\u{1F628}\u{1F31A}\u{1F98B}\u{1F637}\u{1F57A}\u26A0\u{1F645}\u{1F61F}\u{1F635}\u{1F44E}\u{1F932}\u{1F920}\u{1F927}\u{1F4CC}\u{1F535}\u{1F485}\u{1F9D0}\u{1F43E}\u{1F352}\u{1F617}\u{1F911}\u{1F30A}\u{1F92F}\u{1F437}\u260E\u{1F4A7}\u{1F62F}\u{1F486}\u{1F446}\u{1F3A4}\u{1F647}\u{1F351}\u2744\u{1F334}\u{1F4A3}\u{1F438}\u{1F48C}\u{1F4CD}\u{1F940}\u{1F922}\u{1F445}\u{1F4A1}\u{1F4A9}\u{1F450}\u{1F4F8}\u{1F47B}\u{1F910}\u{1F92E}\u{1F3BC}\u{1F975}\u{1F6A9}\u{1F34E}\u{1F34A}\u{1F47C}\u{1F48D}\u{1F4E3}\u{1F942}");
 var alphabetBytesToChars7 = alphabet7.reduce((p, c, i) => {
   p[i] = c;
@@ -130733,6 +133086,7 @@ __export(base32_exports7, {
   base32upper: () => base32upper9,
   base32z: () => base32z9
 });
+init_define_REPO_FILES();
 var base329 = rfc46489({
   prefix: "b",
   name: "base32",
@@ -130802,6 +133156,7 @@ __export(base36_exports7, {
   base36: () => base368,
   base36upper: () => base36upper8
 });
+init_define_REPO_FILES();
 var base368 = baseX9({
   prefix: "k",
   name: "base36",
@@ -130821,6 +133176,7 @@ __export(base58_exports7, {
   base58btc: () => base58btc9,
   base58flickr: () => base58flickr9
 });
+init_define_REPO_FILES();
 var base58btc9 = baseX9({
   name: "base58btc",
   prefix: "z",
@@ -130840,6 +133196,7 @@ __export(base64_exports8, {
   base64url: () => base64url9,
   base64urlpad: () => base64urlpad8
 });
+init_define_REPO_FILES();
 var base649 = rfc46489({
   prefix: "m",
   name: "base64",
@@ -130870,6 +133227,7 @@ var base8_exports7 = {};
 __export(base8_exports7, {
   base8: () => base87
 });
+init_define_REPO_FILES();
 var base87 = rfc46489({
   prefix: "7",
   name: "base8",
@@ -130882,6 +133240,7 @@ var identity_exports13 = {};
 __export(identity_exports13, {
   identity: () => identity13
 });
+init_define_REPO_FILES();
 var identity13 = from16({
   prefix: "\0",
   name: "identity",
@@ -130890,16 +133249,28 @@ var identity13 = from16({
 });
 
 // node_modules/hamt-sharding/node_modules/multiformats/dist/src/codecs/json.js
+init_define_REPO_FILES();
 var textEncoder13 = new TextEncoder();
 var textDecoder12 = new TextDecoder();
+
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/codecs/raw.js
+init_define_REPO_FILES();
 
 // node_modules/hamt-sharding/node_modules/multiformats/dist/src/hashes/identity.js
 var identity_exports14 = {};
 __export(identity_exports14, {
   identity: () => identity14
 });
+init_define_REPO_FILES();
+
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/hashes/digest.js
+init_define_REPO_FILES();
+
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/varint.js
+init_define_REPO_FILES();
 
 // node_modules/hamt-sharding/node_modules/multiformats/dist/src/vendor/varint.js
+init_define_REPO_FILES();
 var encode_19 = encode53;
 var MSB14 = 128;
 var REST14 = 127;
@@ -131044,8 +133415,10 @@ __export(sha2_browser_exports7, {
   sha256: () => sha25611,
   sha512: () => sha51212
 });
+init_define_REPO_FILES();
 
 // node_modules/hamt-sharding/node_modules/multiformats/dist/src/hashes/hasher.js
+init_define_REPO_FILES();
 var DEFAULT_MIN_DIGEST_LENGTH8 = 20;
 function from17({ name: name15, code: code14, encode: encode55, minDigestLength, maxDigestLength }) {
   return new Hasher8(name15, code14, encode55, minDigestLength, maxDigestLength);
@@ -131107,6 +133480,15 @@ var sha51212 = from17({
   code: 19,
   encode: sha7("SHA-512")
 });
+
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/index.js
+init_define_REPO_FILES();
+
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/cid.js
+init_define_REPO_FILES();
+
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/link/interface.js
+init_define_REPO_FILES();
 
 // node_modules/hamt-sharding/node_modules/multiformats/dist/src/cid.js
 function format13(link, base13) {
@@ -131443,11 +133825,27 @@ function encodeCID8(version4, code14, multihash) {
 }
 var cidSymbol8 = Symbol.for("@ipld/js-cid/CID");
 
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/interface.js
+init_define_REPO_FILES();
+
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/bases/interface.js
+init_define_REPO_FILES();
+
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/hashes/interface.js
+init_define_REPO_FILES();
+
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/codecs/interface.js
+init_define_REPO_FILES();
+
+// node_modules/hamt-sharding/node_modules/multiformats/dist/src/block/interface.js
+init_define_REPO_FILES();
+
 // node_modules/hamt-sharding/node_modules/multiformats/dist/src/basics.js
 var bases7 = { ...identity_exports13, ...base2_exports7, ...base8_exports7, ...base10_exports7, ...base16_exports7, ...base32_exports7, ...base36_exports7, ...base58_exports7, ...base64_exports8, ...base256emoji_exports7 };
 var hashes7 = { ...sha2_browser_exports7, ...identity_exports14 };
 
 // node_modules/hamt-sharding/node_modules/uint8arrays/dist/src/alloc.js
+init_define_REPO_FILES();
 function allocUnsafe9(size = 0) {
   return new Uint8Array(size);
 }
@@ -131697,7 +134095,14 @@ async function asyncTransformBucket(bucket, asyncMap, asyncReduce) {
   return asyncReduce(output);
 }
 
+// node_modules/hamt-sharding/dist/src/consumable-hash.js
+init_define_REPO_FILES();
+
+// node_modules/hamt-sharding/node_modules/uint8arrays/dist/src/concat.js
+init_define_REPO_FILES();
+
 // node_modules/hamt-sharding/node_modules/uint8arrays/dist/src/util/as-uint8array.js
+init_define_REPO_FILES();
 function isByteArrayWithArrayBuffer12(b) {
   return b?.buffer instanceof ArrayBuffer;
 }
@@ -131724,6 +134129,7 @@ function concat10(arrays, length15) {
 }
 
 // node_modules/hamt-sharding/dist/src/consumable-buffer.js
+init_define_REPO_FILES();
 var START_MASKS = [
   255,
   254,
@@ -132115,6 +134521,7 @@ async function convertToShard(oldDir, options2) {
 }
 
 // node_modules/ipfs-unixfs-importer/dist/src/utils/to-path-components.js
+init_define_REPO_FILES();
 var toPathComponents = (path = "") => {
   return path.split(/(?<!\\)\//).filter(Boolean);
 };
@@ -132278,7 +134685,11 @@ async function importByteStream(bufs, blockstore, options2 = {}) {
   }, blockstore, options2);
 }
 
+// node_modules/ipfs-unixfs-importer/dist/src/chunker/index.js
+init_define_REPO_FILES();
+
 // node_modules/it-last/dist/src/index.js
+init_define_REPO_FILES();
 function isAsyncIterable16(thing) {
   return thing[Symbol.asyncIterator] != null;
 }
@@ -132301,6 +134712,7 @@ function last(source) {
 var src_default14 = last;
 
 // node_modules/@helia/unixfs/dist/src/errors.js
+init_define_REPO_FILES();
 var UnixFSError = class extends Error {
   name;
   code;
@@ -132423,7 +134835,14 @@ async function addDirectory(dir, blockstore, options2 = {}) {
   return result2.cid;
 }
 
+// node_modules/@helia/unixfs/dist/src/commands/cat.js
+init_define_REPO_FILES();
+
+// node_modules/ipfs-unixfs-exporter/dist/src/index.js
+init_define_REPO_FILES();
+
 // node_modules/ipfs-unixfs-exporter/dist/src/errors.js
+init_define_REPO_FILES();
 var BadPathError = class _BadPathError extends Error {
   static name = "BadPathError";
   static code = "ERR_BAD_PATH";
@@ -132497,7 +134916,14 @@ var InvalidParametersError9 = class _InvalidParametersError extends Error {
   }
 };
 
+// node_modules/ipfs-unixfs-exporter/dist/src/resolvers/index.js
+init_define_REPO_FILES();
+
+// node_modules/ipfs-unixfs-exporter/dist/src/resolvers/dag-cbor.js
+init_define_REPO_FILES();
+
 // node_modules/ipfs-unixfs-exporter/dist/src/utils/resolve-object-path.js
+init_define_REPO_FILES();
 function resolveObjectPath(object, block, cid, name15, path, toResolve, depth) {
   let subObject = object;
   let subPath = path;
@@ -132559,6 +134985,7 @@ var resolve = async (cid, name15, path, toResolve, resolve8, depth, blockstore, 
 var dag_cbor_default = resolve;
 
 // node_modules/ipfs-unixfs-exporter/dist/src/resolvers/dag-json.js
+init_define_REPO_FILES();
 var resolve2 = async (cid, name15, path, toResolve, resolve8, depth, blockstore, options2) => {
   const block = await blockstore.get(cid, options2);
   const object = decode18(block);
@@ -132566,7 +134993,11 @@ var resolve2 = async (cid, name15, path, toResolve, resolve8, depth, blockstore,
 };
 var dag_json_default = resolve2;
 
+// node_modules/ipfs-unixfs-exporter/dist/src/resolvers/identity.js
+init_define_REPO_FILES();
+
 // node_modules/ipfs-unixfs-exporter/dist/src/utils/extract-data-from-block.js
+init_define_REPO_FILES();
 function extractDataFromBlock(block, blockStart, requestedStart, requestedEnd) {
   const blockLength = BigInt(block.length);
   const blockEnd = BigInt(blockStart + blockLength);
@@ -132584,6 +135015,7 @@ function extractDataFromBlock(block, blockStart, requestedStart, requestedEnd) {
 var extract_data_from_block_default = extractDataFromBlock;
 
 // node_modules/ipfs-unixfs-exporter/dist/src/utils/validate-offset-and-length.js
+init_define_REPO_FILES();
 var validateOffsetAndLength = (size, offset = 0, length15 = size) => {
   const fileSize = BigInt(size);
   const start2 = BigInt(offset ?? 0);
@@ -132648,6 +135080,7 @@ var resolve3 = async (cid, name15, path, toResolve, resolve8, depth, blockstore,
 var identity_default = resolve3;
 
 // node_modules/ipfs-unixfs-exporter/dist/src/resolvers/json.js
+init_define_REPO_FILES();
 var resolve4 = async (cid, name15, path, toResolve, resolve8, depth, blockstore, options2) => {
   const block = await blockstore.get(cid, options2);
   const object = decode9(block);
@@ -132656,6 +135089,7 @@ var resolve4 = async (cid, name15, path, toResolve, resolve8, depth, blockstore,
 var json_default = resolve4;
 
 // node_modules/ipfs-unixfs-exporter/dist/src/resolvers/raw.js
+init_define_REPO_FILES();
 var rawContent2 = (node) => {
   async function* contentGenerator(options2 = {}) {
     const { start: start2, end } = validate_offset_and_length_default(node.length, options2.offset, options2.length);
@@ -132689,7 +135123,11 @@ var resolve5 = async (cid, name15, path, toResolve, resolve8, depth, blockstore,
 };
 var raw_default = resolve5;
 
+// node_modules/ipfs-unixfs-exporter/dist/src/resolvers/unixfs-v1/index.js
+init_define_REPO_FILES();
+
 // node_modules/ipfs-unixfs-exporter/dist/src/utils/find-cid-in-shard.js
+init_define_REPO_FILES();
 var hashFn = async function(buf) {
   return (await murmur3128.encode(buf)).slice(0, 8).reverse();
 };
@@ -132787,11 +135225,13 @@ var findShardCid = async (node, name15, blockstore, context, options2) => {
 var find_cid_in_shard_default = findShardCid;
 
 // node_modules/ipfs-unixfs-exporter/dist/src/utils/is-basic-exporter-options.js
+init_define_REPO_FILES();
 function isBasicExporterOptions(obj) {
   return obj?.extended === false;
 }
 
 // node_modules/ipfs-unixfs-exporter/dist/src/resolvers/unixfs-v1/content/directory.js
+init_define_REPO_FILES();
 var directoryContent = (cid, node, unixfs2, path, resolve8, depth, blockstore) => {
   async function* yieldDirectoryContent(options2 = {}) {
     const offset = options2.offset ?? 0;
@@ -132825,6 +135265,7 @@ var directoryContent = (cid, node, unixfs2, path, resolve8, depth, blockstore) =
 var directory_default = directoryContent;
 
 // node_modules/ipfs-unixfs-exporter/dist/src/resolvers/unixfs-v1/content/file.js
+init_define_REPO_FILES();
 async function walkDAG(blockstore, node, queue, streamPosition, start2, end, options2) {
   if (node instanceof Uint8Array) {
     const buf = extract_data_from_block_default(node, streamPosition, start2, end);
@@ -132958,6 +135399,7 @@ var fileContent = (cid, node, unixfs2, path, resolve8, depth, blockstore) => {
 var file_default = fileContent;
 
 // node_modules/ipfs-unixfs-exporter/dist/src/resolvers/unixfs-v1/content/hamt-sharded-directory.js
+init_define_REPO_FILES();
 var hamtShardedDirectoryContent = (cid, node, unixfs2, path, resolve8, depth, blockstore) => {
   function yieldHamtDirectoryContent(options2 = {}) {
     options2.onProgress?.(new CustomProgressEvent("unixfs:exporter:walk:hamt-sharded-directory", {
@@ -133229,10 +135671,15 @@ async function* recursive(path, blockstore, options2 = {}) {
   }
 }
 
+// node_modules/@helia/unixfs/dist/src/commands/utils/resolve.js
+init_define_REPO_FILES();
+
 // node_modules/@helia/unixfs/dist/src/commands/utils/add-link.js
+init_define_REPO_FILES();
 var import_sparse_array3 = __toESM(require_sparse_array(), 1);
 
 // node_modules/@helia/unixfs/dist/src/commands/utils/consumable-hash.js
+init_define_REPO_FILES();
 function wrapHash2(hashFn2) {
   function hashing(value2) {
     if (value2 instanceof InfiniteHash2) {
@@ -133376,6 +135823,7 @@ function maskFor2(start2, length15) {
 }
 
 // node_modules/@helia/unixfs/dist/src/commands/utils/hamt-constants.js
+init_define_REPO_FILES();
 var hamtHashCode = BigInt(murmur3128.code);
 var hamtBucketBits = 8;
 async function hamtHashFn2(buf) {
@@ -133383,9 +135831,14 @@ async function hamtHashFn2(buf) {
 }
 
 // node_modules/@helia/unixfs/dist/src/commands/utils/hamt-utils.js
+init_define_REPO_FILES();
 var import_sparse_array2 = __toESM(require_sparse_array(), 1);
 
+// node_modules/@helia/unixfs/dist/src/commands/utils/dir-sharded.js
+init_define_REPO_FILES();
+
 // node_modules/@helia/unixfs/dist/src/commands/utils/persist.js
+init_define_REPO_FILES();
 var persist2 = async (buffer5, blockstore, options2) => {
   if (options2.codec == null) {
     options2.codec = src_exports3;
@@ -133737,6 +136190,7 @@ var recreateShardedDirectory = async (cid, fileName, blockstore, options2) => {
 };
 
 // node_modules/@helia/unixfs/dist/src/commands/utils/is-over-shard-threshold.js
+init_define_REPO_FILES();
 async function isOverShardThreshold(node, blockstore, threshold, options2) {
   if (node.Data == null) {
     throw new Error("DagPB node had no data");
@@ -133946,6 +136400,7 @@ var addToShardedDirectory = async (parent, child, blockstore, options2) => {
 };
 
 // node_modules/@helia/unixfs/dist/src/commands/utils/cid-to-directory.js
+init_define_REPO_FILES();
 async function cidToDirectory(cid, blockstore, options2 = {}) {
   const entry = await exporter3(cid, blockstore, options2);
   if (entry.type !== "directory") {
@@ -133958,6 +136413,7 @@ async function cidToDirectory(cid, blockstore, options2 = {}) {
 }
 
 // node_modules/@helia/unixfs/dist/src/commands/utils/cid-to-pblink.js
+init_define_REPO_FILES();
 async function cidToPBLink(cid, name15, blockstore, options2) {
   const sourceEntry = await exporter3(cid, blockstore, options2);
   if (sourceEntry.type !== "directory" && sourceEntry.type !== "file" && sourceEntry.type !== "raw") {
@@ -134035,7 +136491,11 @@ async function* cat(cid, blockstore, options2 = {}) {
   yield* result2.content(opts);
 }
 
+// node_modules/@helia/unixfs/dist/src/commands/chmod.js
+init_define_REPO_FILES();
+
 // node_modules/@helia/unixfs/dist/src/commands/utils/constants.js
+init_define_REPO_FILES();
 var SHARD_SPLIT_THRESHOLD_BYTES = 262144;
 
 // node_modules/@helia/unixfs/dist/src/commands/chmod.js
@@ -134132,6 +136592,7 @@ async function chmod(cid, mode, blockstore, options2 = {}) {
 }
 
 // node_modules/@helia/unixfs/dist/src/commands/cp.js
+init_define_REPO_FILES();
 var mergeOptions4 = mergeOptions.bind({ ignoreUndefined: true });
 var log12 = logger("helia:unixfs:cp");
 var defaultOptions8 = {
@@ -134157,6 +136618,7 @@ async function cp(source, target, name15, blockstore, options2 = {}) {
 }
 
 // node_modules/@helia/unixfs/dist/src/commands/ls.js
+init_define_REPO_FILES();
 var mergeOptions5 = mergeOptions.bind({ ignoreUndefined: true });
 var defaultOptions9 = {};
 async function* ls(cid, blockstore, options2 = {}) {
@@ -134189,6 +136651,7 @@ async function* ls(cid, blockstore, options2 = {}) {
 }
 
 // node_modules/@helia/unixfs/dist/src/commands/mkdir.js
+init_define_REPO_FILES();
 var mergeOptions6 = mergeOptions.bind({ ignoreUndefined: true });
 var log13 = logger("helia:unixfs:mkdir");
 var defaultOptions10 = {
@@ -134231,7 +136694,11 @@ async function mkdir(parentCid, dirname2, blockstore, options2 = {}) {
   return result2.cid;
 }
 
+// node_modules/@helia/unixfs/dist/src/commands/rm.js
+init_define_REPO_FILES();
+
 // node_modules/@helia/unixfs/dist/src/commands/utils/remove-link.js
+init_define_REPO_FILES();
 var log14 = logger("helia:unixfs:utils:remove-link");
 async function removeLink(parent, name15, blockstore, options2) {
   if (parent.node.Data == null) {
@@ -134363,6 +136830,7 @@ async function rm(target, name15, blockstore, options2 = {}) {
 }
 
 // node_modules/@helia/unixfs/dist/src/commands/stat.js
+init_define_REPO_FILES();
 var DEFAULT_DIR_MODE = 1877;
 var DEFAULT_FILE_MODE2 = 1604;
 var mergeOptions8 = mergeOptions.bind({ ignoreUndefined: true });
@@ -134518,6 +136986,7 @@ function linkIsFile(link, parent) {
 }
 
 // node_modules/@helia/unixfs/dist/src/commands/touch.js
+init_define_REPO_FILES();
 var mergeOptions9 = mergeOptions.bind({ ignoreUndefined: true });
 var log17 = logger("helia:unixfs:touch");
 var defaultOptions13 = {
@@ -134668,6 +137137,7 @@ function unixfs(helia) {
 }
 
 // js/camo-fetch.js
+init_define_REPO_FILES();
 var MIME_WHITELIST = /* @__PURE__ */ new Set([
   "image/png",
   "image/jpeg",
@@ -134741,6 +137211,7 @@ async function fetchAsset(url, fetchImpl = fetch) {
 }
 
 // node_modules/fflate/esm/browser.js
+init_define_REPO_FILES();
 var u8 = Uint8Array;
 var u16 = Uint16Array;
 var i32 = Int32Array;
@@ -135655,6 +138126,7 @@ function zipSync(data, opts) {
 }
 
 // js/git-objects.js
+init_define_REPO_FILES();
 var textDecoder13 = new TextDecoder();
 function hex2(bytes) {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
@@ -135927,7 +138399,11 @@ var GitStore = class {
   }
 };
 
+// js/git-smart.js
+init_define_REPO_FILES();
+
 // js/git-upload-pack.js
+init_define_REPO_FILES();
 var encoder2 = new TextEncoder();
 function pktLine(payload) {
   const bytes = encoder2.encode(payload);
@@ -136108,6 +138584,7 @@ function makeSmartHttp(store2) {
 }
 
 // js/index-merge.js
+init_define_REPO_FILES();
 function classifyIndexSync(local, remote, remoteDescendsLocal, localDescendsRemote) {
   if (!local) {
     return { action: "adopt-remote", height: remote.height, lamport: remote.lamport };
@@ -136124,7 +138601,7 @@ function classifyIndexSync(local, remote, remoteDescendsLocal, localDescendsRemo
 }
 
 // js/ipfs-node.js
-var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "2.9.0" };
+var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "4.0.1" };
 var { repoOwner, repoName } = (() => {
   const host = window.location.hostname;
   const m2 = host.match(/^([^.]+)\.github\.io$/);
@@ -136138,6 +138615,15 @@ var { repoOwner, repoName } = (() => {
   return { repoOwner: "gnostr", repoName: "gnostr-repo" };
 })();
 var repoFullName = `${repoOwner}/${repoName}`;
+var repoFilesList = typeof define_REPO_FILES_default === "string" ? JSON.parse(define_REPO_FILES_default) : [];
+var repoReadmeText = true ? "# Helia IPFS - [deploy-gh-pages](deploy-gh-pages.yml)\n\n[![Deploy IPFS site](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/deploy-gh-pages.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/deploy-gh-pages.yml)\n[![Release](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/release.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/release.yml)\n\nA browser-based IPFS node built with [Helia](https://github.com/ipfs/helia) that runs entirely on GitHub Pages. On load it automatically adds every file in the repository to IPFS and exposes a root CID, plus a browsable file tree, content fetch, and download support.\n\nLive demo: https://randymcmillan.github.io/ipfs-gh-pages/\n\n## Features\n\n- In-browser Helia IPFS node (no backend required)\n- Automatically adds all repository files to IPFS on startup\n- Root directory CID displayed after import\n- Repository file/folder tree view with per-file CIDs\n- Click any CID to fetch its content (text, binary, or directory listing)\n- Download button saves the actual retrieved bytes (files download as themselves, directories as a `.zip`)\n- Publish arbitrary text and fetch by CID\n\n## Development\n\n```bash\nnpm install\nnpm run dev\n```\n\nOpen http://localhost:5173.\n\n## Build\n\n```bash\nnpm run build\nnpm run preview\n```\n\nThe production bundle is written to `./dist`.\n\n## Tests\n\nIntegration tests use headless Chrome/Chromium via the Chrome DevTools Protocol.\n\n```bash\n# start the dev server in another terminal\nnpm run dev\n\n# run tests\nnpm run test          # all tests (unit + headless Chrome integration)\nnpm run test:unit     # pure functions only, no browser needed\nnpm run test:eval     # inspect fetched bytes\nnpm run test:zip      # zip a directory\nnpm run test:download # download flow\nnpm run test:share    # share link: two headless browsers, auto-connect via ?connect=\nnode tests/cdp-ui.mjs # UI chrome regression tests (dropdown, tabs, blob view, theme)\nnode tests/car.test.mjs  # CAR round-trip: export/import with locked deps only\nnpm run test:gateway  # public gateway reachability for the repo root (needs a provider)\n\n## Submodules & releases\n\n`actions-test` is a small submodule kept as the fixture for the\nper-submodule CAR build (`build-car` writes `<submodule>/<name>.car`).\nIts `.car` artifacts are ignored (`ignore = untracked` in `.gitmodules`)\nso the superproject stays clean.\n\nRelease procedure with submodules:\n\n1. To update the fixture's content: commit and push inside the\n   submodule, then bump the gitlink here (the normal two-step).\n2. Every build installs the repo's own `.github/workflows/deploy-gh-pages.yml`\n   as the fixture's `actions-test/.github/workflows/deploy.yml` \u2014 one\n   deploy workflow shared by this repo, its consumers, and the fixture\n   (the repo-root `deploy-gh-pages.yml` is a symlink to it) \u2014 then\n   rebuilds every submodule CAR from the checked-out commit. The CAR's\n   root CID changes only when the submodule's tracked files change.\n3. CI checkouts that don't initialize submodules skip the submodule\n   CARs gracefully; the main `dist/ipfs-gh-pages.car` is unaffected.\n\nPush order is critical: the submodule's commits must be on ITS remote\nBEFORE any superproject commit referencing them is pushed \u2014 a gitlink\npointing at an unpushed commit breaks every `submodules: recursive`\ncheckout (CI: \"upload-pack: not our ref\"). Verify with:\n\n```\nnode scripts/check-gitlink.mjs\n```\n\nSync the fixture workflow by hand with:\n\n```\nnpm run install:consumer-example\n```\n\nReleases are cut with `npm run release <version>` \u2014 it bumps,\ncommits, tags, and pushes this repo AND tags the actions-test\nsubmodule at the gitlink's commit, keeping its tags in lockstep.\nnode tests/cdp-ui.mjs # UI chrome regression tests (dropdown, tabs, blob view, theme)\n```\n\nSet `CHROME_PATH` to point at your browser binary if it is not auto-detected.\n\n## Using this as a GitHub Action\n\nThis repository is also a reusable GitHub Action. Other repositories can build (and deploy) a\nbrowser IPFS node that embeds all of their own files with a few lines of YAML:\n\n```yaml\nname: Deploy IPFS site\n\non:\n  push:\n    branches: [main]\n\npermissions:\n  contents: read\n  pages: write\n  id-token: write\n\nconcurrency:\n  group: pages\n  cancel-in-progress: true\n\njobs:\n  build-and-deploy:\n    runs-on: ubuntu-latest\n    environment:\n      name: github-pages\n      url: ${{ steps.deploy.outputs.page_url }}\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v4\n\n      - name: Build and deploy IPFS site\n        id: deploy\n        uses: RandyMcMillan/ipfs-gh-pages@v3.1.5\n        with:\n          node-version: '20'\n          deploy: 'true'\n```\n\nThe example above pins a release tag. A self-updating variant \u2014 it auto-detects the\nnewest `v*` tag of this action at run time (falling back to the default-branch HEAD),\nand takes an explicit pin via `workflow_dispatch` \u2014 is the very workflow this repo\ndeploys itself with:\n[`.github/workflows/deploy-gh-pages.yml`](https://github.com/RandyMcMillan/ipfs-gh-pages/blob/main/.github/workflows/deploy-gh-pages.yml)\n(copy it as `.github/workflows/deploy.yml`; a `deploy-gh-pages.yml` symlink at the\nrepo root points at the same file).\n\nInputs:\n\n- `node-version` (default `20`) \u2014 Node.js version used for the build.\n- `repo-root` (default `${{ github.workspace }}`) \u2014 directory whose tracked files are embedded.\n- `out-dir` (default `${{ github.workspace }}/dist`) \u2014 where the production bundle is written.\n- `deploy` (default `true`) \u2014 whether to deploy to GitHub Pages.\n- `run-tests` (default `false`) \u2014 run the integration suite (installs Chromium) before building.\n- `pinata-jwt` (default empty) \u2014 a Pinata JWT, normally passed as a repo secret (`pinata-jwt: ${{ secrets.PINATA_JWT }}`). When set, the built `ipfs-gh-pages.car` is pinned to Pinata's public IPFS network (`car=true` \u2014 the CAR's roots are what gets pinned). Empty = skipped; failures only warn (optional service).\n- `filebase-access-key-id` / `filebase-secret-access-key` / `filebase-bucket` (default empty) \u2014 Filebase credentials in Filebase's own terms (`accessKeyId` / `secretAccessKey` from the dashboard \u2192 Access Keys, plus your bucket), normally repo secrets `FILEBASE_ACCESS_KEY_ID`, `FILEBASE_SECRET_ACCESS_KEY`, `FILEBASE_BUCKET`. When all three are set, the built `ipfs-gh-pages.car` is pinned to Filebase's IPFS network via an S3 `PUT` (endpoint `https://s3.filebase.io`, region `auto`, signature v4; the pinned CID comes back in the `x-amz-meta-cid` header). Empty = skipped; failures only warn (optional service).\n\nOutputs:\n\n- `dist-path` \u2014 absolute path to the built bundle directory.\n\nSet `deploy: 'false'` to only produce the bundle (e.g. to attach it to a release) and skip\nthe Pages deployment step.\n\n## CI / CD\n\n- `.github/workflows/deploy-gh-pages.yml` is the deploy workflow \u2014 this repo runs it as its own deploy, and consumers copy the same file (auto-detects the newest `v*` tag of the action at run time). It deploys on every push to `main` and re-checks daily.\n- `.github/workflows/release.yml` runs tests, builds the project, archives `./dist` as `dist.zip`, and attaches it to a GitHub Release (triggered by `v*` tags or manually).\n\n## Project Structure\n\n```\nindex.html          # app shell + UI\nmain.js             # Helia node, IPFS import, tree, fetch, download\nvite.config.js      # Vite config + virtual repo-files module\ntests/              # Chrome DevTools Protocol integration tests\n.github/workflows/  # CI/CD pipelines\n```\n\n## License\n\nMIT" : "";
+var repoGitMeta = {
+  branch: true ? "main" : "main",
+  lastCommitMsg: true ? "rust: GitHub tab vocabulary \u2014 demo tabs/state/widgets out, 11 repo tabs in" : "",
+  lastCommitTime: true ? "2026-11-18T18:09:29-05:00" : "",
+  shortSha: true ? "9e89675" : "",
+  commitCount: true ? "521" : ""
+};
 var GOSSIP_TOPIC = `repo-gossip:${repoFullName}`;
 var CHAT_TOPIC = `${GOSSIP_TOPIC}:chat`;
 function uint8ArrayToBase64(bytes) {
@@ -136174,7 +138660,7 @@ function resolveEndpoints(field) {
   return out;
 }
 var state = {
-  repo: { owner: repoOwner, name: repoName, fullName: repoFullName, version: repoIdentity.version },
+  repo: { owner: repoOwner, name: repoName, fullName: repoFullName, version: repoIdentity.version, files: repoFilesList, readme: repoReadmeText, ...repoGitMeta },
   node: { status: "starting", peerId: null, multiaddrs: [], protocols: [], connections: [] },
   chat: { inbox: [] },
   // { signer, verified, text, timestamp } — newest first, cap 50

@@ -2,7 +2,7 @@ use ratzilla::ratatui::{
     layout::{Constraint, Layout, Rect},
     style::{Modifier, Style},
     text::{self, Span},
-    widgets::{Block, Paragraph, Wrap},
+    widgets::{Block, Cell, Paragraph, Row, Table, Wrap},
     Frame,
 };
 use tachyonfx::Duration;
@@ -216,23 +216,186 @@ fn content_block(title: &str) -> Block<'static> {
 
 // ---- Code -----------------------------------------------------------------
 
+/// GitHub's Code tab: branch bar, latest-commit line, the file listing,
+/// then the clone box (after publish) and the README, with the key hints
+/// in the footer.
 fn draw_code_tab(frame: &mut Frame, app: &mut App, area: Rect) {
-    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
-    let body = if app.repo_output.is_empty() {
-        "(repo not published — press p to add the whole repo tree to IPFS and advertise it)"
-    } else {
-        app.repo_output.as_str()
-    };
-    frame.render_widget(
-        Paragraph::new(body)
-            .block(content_block("Code"))
-            .wrap(Wrap { trim: false }),
-        chunks[0],
-    );
+    let show_clone = !app.repo_output.is_empty();
+    let show_readme = !app.ipfs.repo_readme.is_empty();
+    let mut constraints = vec![
+        Constraint::Length(1),
+        Constraint::Length(1),
+        Constraint::Min(5),
+    ];
+    if show_clone {
+        constraints.push(Constraint::Length(7));
+    }
+    if show_readme {
+        constraints.push(Constraint::Min(4));
+    }
+    constraints.push(Constraint::Length(2));
+    let chunks = Layout::vertical(constraints).split(area);
+    let mut i = 0;
+    draw_branch_bar(frame, app, chunks[i]);
+    i += 1;
+    draw_commit_bar(frame, app, chunks[i]);
+    i += 1;
+    draw_file_table(frame, app, chunks[i]);
+    i += 1;
+    if show_clone {
+        frame.render_widget(
+            Paragraph::new(app.repo_output.as_str())
+                .block(content_block("Clone from IPFS"))
+                .wrap(Wrap { trim: false }),
+            chunks[i],
+        );
+        i += 1;
+    }
+    if show_readme {
+        let lines: Vec<text::Line> = app
+            .ipfs
+            .repo_readme
+            .lines()
+            .take(200)
+            .map(|l| text::Line::from(l.to_string()))
+            .collect();
+        frame.render_widget(
+            Paragraph::new(lines)
+                .block(content_block("README.md"))
+                .wrap(Wrap { trim: false }),
+            chunks[i],
+        );
+        i += 1;
+    }
     frame.render_widget(
         footer(app, "publish", "p = publish repo tree to IPFS"),
-        chunks[1],
+        chunks[i],
     );
+}
+
+/// ` ⎇ main ▾   Go to file …                     + Add file ▾  [ Code ▾ ] `
+fn draw_branch_bar(frame: &mut Frame, app: &App, area: Rect) {
+    let snap = &app.ipfs;
+    let branch = if snap.repo_branch.is_empty() {
+        "main"
+    } else {
+        snap.repo_branch.as_str()
+    };
+    let mut spans = vec![
+        Span::styled(" ⎇ ", Style::default().fg(theme::FG)),
+        Span::styled(
+            format!(" {branch} ▾ "),
+            Style::default().bg(theme::BTN_BG).fg(theme::FG_MUTED),
+        ),
+        Span::raw("  "),
+        Span::styled(
+            " Go to file ",
+            Style::default().bg(theme::BTN_BG).fg(theme::FG_SUBTLE),
+        ),
+    ];
+    let right = " + Add file ▾   Code ▾ ";
+    let left_width = 3 + branch.chars().count() + 4 + 2 + " Go to file ".len();
+    let pad = (area.width as usize).saturating_sub(left_width + right.chars().count());
+    spans.push(Span::styled(" ".repeat(pad), Style::default()));
+    spans.push(Span::styled(
+        " + Add file ▾ ",
+        Style::default().bg(theme::BTN_BG).fg(theme::FG_MUTED),
+    ));
+    spans.push(Span::raw(" "));
+    spans.push(Span::styled(
+        " Code ▾ ",
+        Style::default()
+            .bg(theme::PRIMARY)
+            .fg(theme::ON_PRIMARY)
+            .add_modifier(Modifier::BOLD),
+    ));
+    frame.render_widget(
+        Paragraph::new(text::Line::from(spans)).style(theme::base()),
+        area,
+    );
+}
+
+/// Latest-commit line above the listing: dot, message, sha, age, count.
+fn draw_commit_bar(frame: &mut Frame, app: &App, area: Rect) {
+    let snap = &app.ipfs;
+    let (msg, meta) = if snap.repo_last_commit.is_empty() {
+        (
+            "(no commit metadata — rebuild the bridge bundle: node scripts/build-ipfs-js.mjs)"
+                .to_string(),
+            String::new(),
+        )
+    } else {
+        let mut meta = snap.repo_short_sha.clone();
+        if !snap.repo_last_commit_time.is_empty() {
+            meta.push_str(" · ");
+            meta.push_str(&snap.repo_last_commit_time);
+        }
+        if !snap.repo_commit_count.is_empty() {
+            meta.push_str(&format!(" · {} commits", snap.repo_commit_count));
+        }
+        (snap.repo_last_commit.clone(), meta)
+    };
+    let msg_width = msg.chars().count() + 4;
+    let meta_width = meta.chars().count();
+    let pad = (area.width as usize).saturating_sub(msg_width + meta_width);
+    let mut spans = vec![
+        Span::styled(" ● ", Style::default().fg(theme::SUCCESS)),
+        Span::styled(msg, Style::default().fg(theme::FG)),
+    ];
+    if !meta.is_empty() {
+        spans.push(Span::styled(" ".repeat(pad), Style::default()));
+        spans.push(Span::styled(meta, Style::default().fg(theme::FG_MUTED)));
+    }
+    frame.render_widget(
+        Paragraph::new(text::Line::from(spans)).style(theme::base()),
+        area,
+    );
+}
+
+/// The repo root listing: directories first (accent, trailing `/`), then
+/// files — the same set the web app's Code tab renders.
+fn draw_file_table(frame: &mut Frame, app: &App, area: Rect) {
+    let files = &app.ipfs.repo_files;
+    let mut dirs: Vec<&str> = vec![];
+    let mut plain: Vec<&str> = vec![];
+    for path in files {
+        let (name, is_dir) = match path.split_once('/') {
+            Some((head, _)) => (head, true),
+            None => (path.as_str(), false),
+        };
+        if is_dir {
+            if !dirs.contains(&name) {
+                dirs.push(name);
+            }
+        } else {
+            plain.push(name);
+        }
+    }
+    dirs.sort_by_key(|a| a.to_lowercase());
+    plain.sort_by_key(|a| a.to_lowercase());
+
+    let mut rows: Vec<Row> = vec![];
+    for name in dirs {
+        rows.push(Row::new(vec![Cell::from(Span::styled(
+            format!(" {name}/"),
+            Style::default().fg(theme::ACCENT),
+        ))]));
+    }
+    for name in plain {
+        rows.push(Row::new(vec![Cell::from(Span::styled(
+            format!(" {name}"),
+            Style::default().fg(theme::FG),
+        ))]));
+    }
+    let title = if files.is_empty() {
+        "Files".to_string()
+    } else {
+        format!("Files ({} path(s))", files.len())
+    };
+    let table = Table::new(rows, [Constraint::Percentage(100)])
+        .block(content_block(&title))
+        .style(theme::base());
+    frame.render_widget(table, area);
 }
 
 // ---- Issues ---------------------------------------------------------------

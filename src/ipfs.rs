@@ -57,6 +57,13 @@ mod imp {
         pub repo_owner: String,
         pub repo_name: String,
         pub repo_version: String,
+        pub repo_files: Vec<String>,
+        pub repo_readme: String,
+        pub repo_branch: String,
+        pub repo_last_commit: String,
+        pub repo_last_commit_time: String,
+        pub repo_short_sha: String,
+        pub repo_commit_count: String,
     }
 
     fn window() -> JsValue {
@@ -172,6 +179,16 @@ mod imp {
             snap.repo_owner = get_string(&repo, "owner");
             snap.repo_name = get_string(&repo, "name");
             snap.repo_version = get_string(&repo, "version");
+            snap.repo_files = get_array(&repo, "files")
+                .into_iter()
+                .filter_map(|v| v.as_string())
+                .collect();
+            snap.repo_readme = get_string(&repo, "readme");
+            snap.repo_branch = get_string(&repo, "branch");
+            snap.repo_last_commit = get_string(&repo, "lastCommitMsg");
+            snap.repo_last_commit_time = get_string(&repo, "lastCommitTime");
+            snap.repo_short_sha = get_string(&repo, "shortSha");
+            snap.repo_commit_count = get_string(&repo, "commitCount");
         }
 
         snap
@@ -294,6 +311,13 @@ mod imp {
         pub repo_owner: String,
         pub repo_name: String,
         pub repo_version: String,
+        pub repo_files: Vec<String>,
+        pub repo_readme: String,
+        pub repo_branch: String,
+        pub repo_last_commit: String,
+        pub repo_last_commit_time: String,
+        pub repo_short_sha: String,
+        pub repo_commit_count: String,
     }
 
     pub fn poll() -> Snapshot {

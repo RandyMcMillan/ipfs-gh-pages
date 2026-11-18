@@ -69,6 +69,19 @@ const { repoOwner, repoName } = (() => {
 })();
 const repoFullName = `${repoOwner}/${repoName}`;
 
+// Repo file listing + root README, injected by scripts/build-ipfs-js.mjs
+// (REPO_ROOT-aware, same walk as the vite bundle). The Rust TUI renders
+// these on its Code tab. Absent when loaded unbundled — default to empty.
+const repoFilesList = typeof REPO_FILES === 'string' ? JSON.parse(REPO_FILES) : [];
+const repoReadmeText = typeof REPO_README === 'string' ? REPO_README : '';
+const repoGitMeta = {
+  branch: typeof REPO_BRANCH === 'string' ? REPO_BRANCH : 'main',
+  lastCommitMsg: typeof REPO_LAST_COMMIT === 'string' ? REPO_LAST_COMMIT : '',
+  lastCommitTime: typeof REPO_LAST_TIME === 'string' ? REPO_LAST_TIME : '',
+  shortSha: typeof REPO_SHORT_SHA === 'string' ? REPO_SHORT_SHA : '',
+  commitCount: typeof REPO_COMMIT_COUNT === 'string' ? REPO_COMMIT_COUNT : ''
+};
+
 const GOSSIP_TOPIC = `repo-gossip:${repoFullName}`;
 const CHAT_TOPIC = `${GOSSIP_TOPIC}:chat`;
 
@@ -118,7 +131,7 @@ function resolveEndpoints(field) {
 // ---- state (JS -> Rust) -----------------------------------------------------
 
 const state = {
-  repo: { owner: repoOwner, name: repoName, fullName: repoFullName, version: repoIdentity.version },
+  repo: { owner: repoOwner, name: repoName, fullName: repoFullName, version: repoIdentity.version, files: repoFilesList, readme: repoReadmeText, ...repoGitMeta },
   node: { status: 'starting', peerId: null, multiaddrs: [], protocols: [], connections: [] },
   chat: { inbox: [] }, // { signer, verified, text, timestamp } — newest first, cap 50
   issues: [], // { cid, title, timestamp } — newest first (local index view)
