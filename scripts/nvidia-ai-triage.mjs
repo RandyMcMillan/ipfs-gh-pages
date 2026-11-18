@@ -180,12 +180,15 @@ const prompt = [
 
 // 'high' reasoning effort on multi-kilobyte log tails regularly exceeds
 // 5 minutes on this model; 'medium' reliably answers inside the timeout.
-const result = await nvidiaChat({ prompt, apiKey, model: MODEL, maxTokens: 1024, reasoningEffort: 'medium', timeoutMs: 240_000 });
+const result = await nvidiaChat({ prompt, apiKey, model: MODEL, maxTokens: 2048, reasoningEffort: 'medium', timeoutMs: 240_000 });
 if (!result.ok) {
   warn(result.warning);
   process.exit(0);
 }
 verbose(`HTTP 200 in ${result.statusMs}ms`);
+if (result.finishReason && result.finishReason !== 'stop') {
+  warn(`triage may be truncated (finish_reason=${result.finishReason})`);
+}
 
 const usageComment = result.usage
   ? `\n<!-- usage: prompt=${result.usage.prompt_tokens} completion=${result.usage.completion_tokens} total=${result.usage.total_tokens} -->`

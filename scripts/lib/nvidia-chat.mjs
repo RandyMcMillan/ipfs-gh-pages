@@ -67,12 +67,13 @@ export async function nvidiaChat({
   }
 
   const data = await response.json().catch(() => null);
-  const message = data?.choices?.[0]?.message;
+  const choice = data?.choices?.[0];
+  const message = choice?.message;
   // kimi reasoning models may answer in reasoning_content when content is empty
   const content = message?.content || message?.reasoning_content;
   if (!content) {
     return { ok: false, warning: 'NVIDIA API response had no choices; continuing without AI review' };
   }
 
-  return { ok: true, content, usage: data.usage || null, statusMs, model };
+  return { ok: true, content, usage: data.usage || null, statusMs, model, finishReason: choice?.finish_reason || null };
 }

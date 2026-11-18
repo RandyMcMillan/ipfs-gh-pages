@@ -65,13 +65,17 @@ const prompt = process.env.AI_PROMPT || [
 // 'high' reasoning effort on a multi-kilobyte diff exceeds the default
 // 120s client timeout (seen on the v4.0.0 push: timed out, job stayed
 // green via warn-and-continue but produced no review); 'medium' with a
-// 5-minute bound completes reliably.
-const result = await nvidiaChat({ prompt, apiKey, model: MODEL, maxTokens: 1024, reasoningEffort: 'medium', timeoutMs: 300_000 });
+// 5-minute bound completes reliably. 2048 tokens because the model's own
+// review of this script hit the 1024 ceiling mid-sentence.
+const result = await nvidiaChat({ prompt, apiKey, model: MODEL, maxTokens: 2048, reasoningEffort: 'medium', timeoutMs: 300_000 });
 if (!result.ok) {
   warn(result.warning);
   process.exit(0);
 }
 verbose(`HTTP 200 in ${result.statusMs}ms`);
+if (result.finishReason && result.finishReason !== 'stop') {
+  warn(`review may be truncated (finish_reason=${result.finishReason})`);
+}
 
 console.log(`## AI review (NVIDIA · ${MODEL})\n`);
 console.log(result.content);
