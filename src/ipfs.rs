@@ -79,6 +79,12 @@ mod imp {
         pub repo_last_commit_time: String,
         pub repo_short_sha: String,
         pub repo_commit_count: String,
+        pub repo_latest_tag: String,
+        pub repo_commits_since_tag: String,
+        pub repo_upstream: String,
+        pub repo_ahead: String,
+        pub repo_behind: String,
+        pub repo_dirty: bool,
     }
 
     fn window() -> JsValue {
@@ -204,6 +210,12 @@ mod imp {
             snap.repo_last_commit_time = get_string(&repo, "lastCommitTime");
             snap.repo_short_sha = get_string(&repo, "shortSha");
             snap.repo_commit_count = get_string(&repo, "commitCount");
+            snap.repo_latest_tag = get_string(&repo, "latestTag");
+            snap.repo_commits_since_tag = get_string(&repo, "commitsSinceTag");
+            snap.repo_upstream = get_string(&repo, "upstream");
+            snap.repo_ahead = get_string(&repo, "ahead");
+            snap.repo_behind = get_string(&repo, "behind");
+            snap.repo_dirty = get_bool(&repo, "dirty");
             snap.workflows = get_array(&repo, "workflows")
                 .into_iter()
                 .filter_map(|w| {
@@ -374,6 +386,12 @@ mod imp {
         pub repo_last_commit_time: String,
         pub repo_short_sha: String,
         pub repo_commit_count: String,
+        pub repo_latest_tag: String,
+        pub repo_commits_since_tag: String,
+        pub repo_upstream: String,
+        pub repo_ahead: String,
+        pub repo_behind: String,
+        pub repo_dirty: bool,
     }
 
     pub fn poll() -> Snapshot {

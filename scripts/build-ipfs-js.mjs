@@ -41,18 +41,38 @@ function resolveIdentity() {
 }
 
 // Same git probes vite.config.js's resolveIdentity uses for the web app's
-// Code tab — the TUI renders them identically.
+// Code tab — the TUI renders them identically. The drydock-style release
+// metrics (latest tag, commits since it, upstream ahead/behind, tree
+// cleanliness) round out the TUI's Repository panel; values are baked at
+// bundle build time.
 function resolveGitMeta(root) {
   const run = (cmd) => {
     try { return execSync(cmd, { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { return ''; }
   };
   const branch = run('git symbolic-ref --short -q refs/remotes/origin/HEAD') || run('git rev-parse --abbrev-ref HEAD') || 'main';
+  const latestTag = run('git describe --tags --abbrev=0');
+  const commitsSinceTag = latestTag ? run(`git rev-list --count ${latestTag}..HEAD`) : '';
+  const upstream = run("git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}'");
+  let ahead = '';
+  let behind = '';
+  if (upstream) {
+    const counts = run(`git rev-list --left-right --count '${upstream}'...HEAD`).split('\t');
+    behind = counts[0] || '';
+    ahead = counts[1] || '';
+  }
+  const dirty = run('git status --porcelain') !== '';
   return {
     branch: branch.replace(/^origin\//, ''),
     lastCommitMsg: run('git log -1 --pretty=%s'),
     lastCommitTime: run('git log -1 --pretty=%cI'),
     shortSha: run('git log -1 --pretty=%h'),
-    commitCount: run('git rev-list --count HEAD')
+    commitCount: run('git rev-list --count HEAD'),
+    latestTag,
+    commitsSinceTag,
+    upstream,
+    ahead,
+    behind,
+    dirty
   };
 }
 
@@ -163,6 +183,12 @@ const define = {
   REPO_LAST_TIME: JSON.stringify(gitMeta.lastCommitTime),
   REPO_SHORT_SHA: JSON.stringify(gitMeta.shortSha),
   REPO_COMMIT_COUNT: JSON.stringify(gitMeta.commitCount),
+  REPO_LATEST_TAG: JSON.stringify(gitMeta.latestTag),
+  REPO_COMMITS_SINCE_TAG: JSON.stringify(gitMeta.commitsSinceTag),
+  REPO_UPSTREAM: JSON.stringify(gitMeta.upstream),
+  REPO_AHEAD: JSON.stringify(gitMeta.ahead),
+  REPO_BEHIND: JSON.stringify(gitMeta.behind),
+  REPO_DIRTY: JSON.stringify(gitMeta.dirty),
   REPO_WORKFLOWS: JSON.stringify(extractWorkflows(repoRoot))
 };
 

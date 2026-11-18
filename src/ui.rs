@@ -854,7 +854,48 @@ fn draw_insights_tab(frame: &mut Frame, app: &mut App, area: Rect) {
             Style::default().fg(theme::FG).add_modifier(Modifier::BOLD),
         ))
     };
+    let upstream = if snap.repo_upstream.is_empty() {
+        "—".to_string()
+    } else {
+        let mut parts = vec![snap.repo_upstream.clone()];
+        if !snap.repo_ahead.is_empty() {
+            parts.push(format!("ahead {}", snap.repo_ahead));
+        }
+        if !snap.repo_behind.is_empty() {
+            parts.push(format!("behind {}", snap.repo_behind));
+        }
+        parts.join(" · ")
+    };
     let mut lines = vec![
+        head("Repository (at bundle build)"),
+        kv("Branch", snap.repo_branch.clone()),
+        kv("Commits", snap.repo_commit_count.clone()),
+        kv(
+            "Latest release",
+            if snap.repo_latest_tag.is_empty() {
+                "—".to_string()
+            } else {
+                snap.repo_latest_tag.clone()
+            },
+        ),
+        kv(
+            "Commits since release",
+            if snap.repo_commits_since_tag.is_empty() {
+                "—".to_string()
+            } else {
+                snap.repo_commits_since_tag.clone()
+            },
+        ),
+        kv("Upstream", upstream),
+        kv(
+            "Working tree",
+            if snap.repo_dirty {
+                "uncommitted changes".to_string()
+            } else {
+                "clean".to_string()
+            },
+        ),
+        text::Line::from(""),
         head("Node"),
         kv("Status", snap.node_status.clone()),
         kv("Peer ID", snap.peer_id.clone()),

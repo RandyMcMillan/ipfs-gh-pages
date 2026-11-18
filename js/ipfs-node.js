@@ -79,7 +79,13 @@ const repoGitMeta = {
   lastCommitMsg: typeof REPO_LAST_COMMIT === 'string' ? REPO_LAST_COMMIT : '',
   lastCommitTime: typeof REPO_LAST_TIME === 'string' ? REPO_LAST_TIME : '',
   shortSha: typeof REPO_SHORT_SHA === 'string' ? REPO_SHORT_SHA : '',
-  commitCount: typeof REPO_COMMIT_COUNT === 'string' ? REPO_COMMIT_COUNT : ''
+  commitCount: typeof REPO_COMMIT_COUNT === 'string' ? REPO_COMMIT_COUNT : '',
+  latestTag: typeof REPO_LATEST_TAG === 'string' ? REPO_LATEST_TAG : '',
+  commitsSinceTag: typeof REPO_COMMITS_SINCE_TAG === 'string' ? REPO_COMMITS_SINCE_TAG : '',
+  upstream: typeof REPO_UPSTREAM === 'string' ? REPO_UPSTREAM : '',
+  ahead: typeof REPO_AHEAD === 'string' ? REPO_AHEAD : '',
+  behind: typeof REPO_BEHIND === 'string' ? REPO_BEHIND : '',
+  dirty: typeof REPO_DIRTY === 'boolean' ? REPO_DIRTY : false
 };
 // Workflow summaries from .github/workflows (definitions only — run
 // status lives on the git host).
