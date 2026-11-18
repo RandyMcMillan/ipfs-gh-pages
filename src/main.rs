@@ -16,14 +16,13 @@
 //!
 //! - `terminal.draw_web(closure)` drives the closure EVERY animation frame
 //!   (requestAnimationFrame). The closure borrows `App` mutably, calls
-//!   `on_tick()` (which advances demo data per frame — progress, sparkline,
-//!   sine signals, rotating log/event lists — and returns elapsed ms), then
-//!   `ui::draw(elapsed, frame, app)` renders, then tachyonfx effects are
-//!   processed with the same elapsed. State advances at DISPLAY REFRESH
-//!   RATE, not on a fixed timer.
-//! - `terminal.on_key_event(...)`: arrows = tab/task navigation, `q` sets
+//!   `on_tick()` (which refreshes the IPFS bridge snapshot and returns
+//!   elapsed ms), then `ui::draw(elapsed, frame, app)` renders, then
+//!   tachyonfx effects are processed with the same elapsed.
+//! - `terminal.on_key_event(...)`: Left/Right switch repo tabs, `q` sets
 //!   `should_quit` (unreachable in the browser loop — kept for parity),
-//!   `t` toggles the chart.
+//!   `:` opens the command bar, and each tab has its own single-letter
+//!   affordances (see `App::on_key`).
 //! - Backend selection: `MultiBackendBuilder::with_fallback(WebGl2)` in
 //!   src/backend.rs, overridable with `?backend=dom|canvas|webgl2`. The
 //!   builder INJECTS A FIXED FOOTER into <body> (src/utils.rs): IPFS
@@ -64,7 +63,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 #[cfg(all(not(feature = "bundle-wry"), target_arch = "wasm32"))]
 fn browser_main() -> Result<(), Box<dyn Error>> {
-    let app_state = Rc::new(RefCell::new(App::new("ipfs-gh-pages", true)));
+    let app_state = Rc::new(RefCell::new(App::new("ipfs-gh-pages")));
 
     let webgl2_options = WebGl2BackendOptions::new()
         .measure_performance(true)
@@ -108,12 +107,6 @@ fn browser_main() -> Result<(), Box<dyn Error>> {
                 }
                 KeyCode::Left => {
                     app_state.on_left();
-                }
-                KeyCode::Up => {
-                    app_state.on_up();
-                }
-                KeyCode::Down => {
-                    app_state.on_down();
                 }
                 KeyCode::Char(c) => app_state.on_key(c),
                 _ => {}
