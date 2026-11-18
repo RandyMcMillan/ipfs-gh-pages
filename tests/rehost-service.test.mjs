@@ -16,6 +16,15 @@ import { unixfs } from '@helia/unixfs';
 import { CID } from 'multiformats/cid';
 import { createRehostServer } from '../scripts/rehost-service.mjs';
 
+// helia/libp2p (it-queue) use Promise.withResolvers (Node 22+); CI runs Node 20.
+if (typeof Promise.withResolvers !== 'function') {
+  Promise.withResolvers = function () {
+    let resolve, reject;
+    const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+    return { promise, resolve, reject };
+  };
+}
+
 const PNG = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d4944415478da63fcffff3f0300050201a371cbd00000000049454e44ae426082', 'hex');
 
 let origin;
