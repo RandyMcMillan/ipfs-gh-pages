@@ -79,6 +79,14 @@ fn browser_main() -> Result<(), Box<dyn Error>> {
         let app_state_cloned = app_state.clone();
         move |event| {
             let mut app_state = app_state_cloned.borrow_mut();
+            if app_state.help_open {
+                match event.code {
+                    KeyCode::Esc => app_state.help_open = false,
+                    KeyCode::Char('?') => app_state.help_open = false,
+                    _ => {}
+                }
+                return;
+            }
             if app_state.input_active {
                 match event.code {
                     KeyCode::Enter => app_state.submit_input(),

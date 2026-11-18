@@ -14,27 +14,26 @@ use crate::theme;
 /// badge, Watch/Star/Fork), Primer tabnav with the orange active
 /// underline, then the active tab's content and the `:` command bar.
 pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
-    let show_cmd_bar = app.cmd_open || !app.cmd_output.is_empty();
+    let show_status = app.input_active || !app.last_result.is_empty();
+    let show_cmd = app.cmd_open || !app.cmd_output.is_empty();
     let area = frame.area();
     frame.render_widget(Block::default().style(theme::base()), area);
-    let chunks = if show_cmd_bar {
-        Layout::vertical([
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(2),
-            Constraint::Min(3),
-            Constraint::Length(1),
-        ])
-        .split(area)
-    } else {
-        Layout::vertical([
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(2),
-            Constraint::Min(0),
-        ])
-        .split(area)
-    };
+    // lazygit-style bottom: a status line (input prompt / last result)
+    // over a persistent keybar, with the `:` command bar last.
+    let mut constraints = vec![
+        Constraint::Length(1),
+        Constraint::Length(1),
+        Constraint::Length(2),
+        Constraint::Min(3),
+    ];
+    if show_status {
+        constraints.push(Constraint::Length(1));
+    }
+    constraints.push(Constraint::Length(1));
+    if show_cmd {
+        constraints.push(Constraint::Length(1));
+    }
+    let chunks = Layout::vertical(constraints).split(area);
     draw_header(frame, app, chunks[0]);
     draw_repo_header(frame, app, chunks[1]);
     draw_tabnav(frame, app, chunks[2]);
@@ -56,7 +55,33 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
     app.effects
         .process_effects(elapsed, frame.buffer_mut(), area);
 
-    if show_cmd_bar {
+    let mut row = 4;
+    if show_status {
+        let text = if app.input_active {
+            format!(
+                "{}: > {}_   (Enter submits, Esc cancels)",
+                input_prompt(app),
+                app.input_buffer
+            )
+        } else {
+            app.last_result.clone()
+        };
+        frame.render_widget(
+            Paragraph::new(text).style(Style::default().fg(theme::FG)),
+            chunks[row],
+        );
+        row += 1;
+    }
+    frame.render_widget(
+        Paragraph::new(keybar(app)).style(
+            Style::default()
+                .fg(theme::FG_SUBTLE)
+                .bg(theme::CANVAS_INSET),
+        ),
+        chunks[row],
+    );
+    row += 1;
+    if show_cmd {
         let bar = if app.cmd_open {
             format!(":{}_", app.cmd_buffer)
         } else {
@@ -66,12 +91,96 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
             let flat: String = trimmed.chars().filter(|c| *c != '\n').collect();
             flat
         };
-        let rect = if chunks.len() > 4 { chunks[4] } else { area };
         frame.render_widget(
             Paragraph::new(bar).style(Style::default().fg(theme::FG_MUTED)),
-            rect,
+            chunks[row],
         );
     }
+
+    if app.help_open {
+        draw_help_overlay(frame);
+    }
+}
+
+/// Input prompt label for the status line, per input target.
+fn input_prompt(app: &App) -> &'static str {
+    match app.input_target {
+        InputTarget::Connect => "connect multiaddr",
+        InputTarget::Fetch => "fetch CID",
+        InputTarget::Publish => "publish text",
+        InputTarget::Chat => "chat message",
+        InputTarget::KuboRpc => "kubo rpc",
+        InputTarget::ServicesSet => "set services JSON array",
+        InputTarget::GitClone => "clone CID",
+        InputTarget::GitAdvertise => "advertise CID",
+        InputTarget::GitCloneSmart => "live clone CID",
+        InputTarget::GitPullSmart => "pull CID",
+        InputTarget::IssueCreate => "file issue",
+        InputTarget::RepoPublish => "publish repo tree",
+        InputTarget::RawCommand => "command",
+    }
+}
+
+/// The persistent keybar: active tab's affordances + global keys
+/// (lazygit's options bar).
+fn keybar(app: &App) -> String {
+    let tab = match app.tabs.index {
+        0 => "↑/↓ move · Enter expand/collapse · ⌫ collapse all · p publish",
+        1 => "↑/↓/j/k move · i file issue · s sync",
+        2 => "c clone · s live clone · u pull · a advertise · l list",
+        3 => "↑/↓/j/k move · definitions only, run status on the git host",
+        5 => "f fetch CID",
+        8 => "s set services",
+        9 => "c connect · m chat",
+        10 => "p publish text",
+        _ => "",
+    };
+    format!(" {tab}    ←/→ tabs · 1-9/0 jump · : cmd · ? help · q quit")
+}
+
+/// lazygit-style `?` cheat sheet, drawn over everything.
+fn draw_help_overlay(frame: &mut Frame) {
+    let area = frame.area();
+    let w = ((area.width as f32) * 0.62) as u16;
+    let h = ((area.height as f32) * 0.72) as u16;
+    let rect = Rect::new(
+        area.x + (area.width.saturating_sub(w)) / 2,
+        area.y + (area.height.saturating_sub(h)) / 2,
+        w,
+        h,
+    );
+    let section = |title: &str| {
+        text::Line::from(Span::styled(
+            title.to_string(),
+            Style::default()
+                .fg(theme::ACCENT)
+                .add_modifier(Modifier::BOLD),
+        ))
+    };
+    let lines = vec![
+        section("Navigation"),
+        text::Line::from("  ←/→  switch tabs    1-9, 0  jump to a tab"),
+        text::Line::from("  ↑/↓   move cursor   j/k      move (Issues, Actions)"),
+        text::Line::from("  Enter expand/collapse a directory · ⌫ collapse all (Code)"),
+        text::Line::from(""),
+        section("Command bar"),
+        text::Line::from("  :     any bridge op — e.g. \"kubo pin/add <cid>\", \"fetch <cid>\""),
+        text::Line::from(""),
+        section("Tabs"),
+        text::Line::from("  1 Code · 2 Issues · 3 Pulls · 4 Actions · 5 Projects"),
+        text::Line::from("  6 Wiki · 7 Security · 8 Insights · 9 Settings · 0 Peer"),
+        text::Line::from("  (Publish follows Peer on →)"),
+        text::Line::from(""),
+        section("Other"),
+        text::Line::from("  ?  this help    q  quit (desktop)"),
+    ];
+    frame.render_widget(ratzilla::ratatui::widgets::Clear, rect);
+    frame.render_widget(
+        Paragraph::new(lines)
+            .block(content_block("Help — ? or Esc to close"))
+            .wrap(Wrap { trim: false }),
+        rect,
+    );
 }
 
 /// Top-of-page dark bar: app mark + name, the search pill, and the live
@@ -194,22 +303,6 @@ fn draw_tabnav(frame: &mut Frame, app: &App, area: Rect) {
     );
 }
 
-/// Standard tab footer: the input prompt while editing, the last result
-/// when there is one, otherwise the idle key hints.
-fn footer(app: &App, prompt: &str, idle: &str) -> Paragraph<'static> {
-    let text = if app.input_active {
-        format!(
-            "{prompt}: > {}_   (Enter submits, Esc cancels)",
-            app.input_buffer
-        )
-    } else if app.last_result.is_empty() {
-        idle.to_string()
-    } else {
-        app.last_result.clone()
-    };
-    Paragraph::new(text).style(Style::default().fg(theme::FG_MUTED))
-}
-
 fn content_block(title: &str) -> Block<'static> {
     theme::block(title)
 }
@@ -233,7 +326,6 @@ fn draw_code_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     if show_readme {
         constraints.push(Constraint::Min(4));
     }
-    constraints.push(Constraint::Length(2));
     let chunks = Layout::vertical(constraints).split(area);
     let mut i = 0;
     draw_branch_bar(frame, app, chunks[i]);
@@ -259,16 +351,7 @@ fn draw_code_tab(frame: &mut Frame, app: &mut App, area: Rect) {
                 .wrap(Wrap { trim: false }),
             chunks[i],
         );
-        i += 1;
     }
-    frame.render_widget(
-        footer(
-            app,
-            "publish",
-            "↑/↓ = move   Enter = expand/collapse   ⌫ = collapse all   p = publish repo tree",
-        ),
-        chunks[i],
-    );
 }
 
 /// GitHub-flavored README rendering, line-based (terminal markdown à la
@@ -484,9 +567,8 @@ fn draw_file_table(frame: &mut Frame, app: &mut App, area: Rect) {
 // ---- Issues ---------------------------------------------------------------
 
 fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
-    let outer = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
-    let panes = Layout::horizontal([Constraint::Percentage(55), Constraint::Percentage(45)])
-        .split(outer[0]);
+    let panes =
+        Layout::horizontal([Constraint::Percentage(55), Constraint::Percentage(45)]).split(area);
     let issues = &app.ipfs.issues;
     let cursor = app.issue_cursor.min(issues.len().saturating_sub(1));
     // GitHub's row hover: a hair lighter than the canvas.
@@ -565,20 +647,11 @@ fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
             .wrap(Wrap { trim: true }),
         panes[1],
     );
-    frame.render_widget(
-        footer(
-            app,
-            "file issue",
-            "↑/↓/j/k = move   i = file issue   s = sync from IPNS",
-        ),
-        outer[1],
-    );
 }
 
 // ---- Pulls ----------------------------------------------------------------
 
 fn draw_pulls_tab(frame: &mut Frame, app: &mut App, area: Rect) {
-    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
     let snap = &app.ipfs;
     let mut lines = vec![
         text::Line::from(
@@ -602,42 +675,15 @@ fn draw_pulls_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         Paragraph::new(lines)
             .block(content_block("Pull requests"))
             .wrap(Wrap { trim: false }),
-        chunks[0],
-    );
-    let footer = if app.input_active {
-        match app.input_target {
-            InputTarget::GitClone => format!(
-                "clone CID: > {}_   (Enter clones to zip, Esc cancels)",
-                app.input_buffer
-            ),
-            InputTarget::GitCloneSmart => format!(
-                "live clone CID: > {}_   (Enter clones in-browser, Esc cancels)",
-                app.input_buffer
-            ),
-            InputTarget::GitPullSmart => format!(
-                "pull CID: > {}_   (Enter pulls newer state, Esc cancels)",
-                app.input_buffer
-            ),
-            _ => format!(
-                "advertise CID: > {}_   (Enter publishes serve envelope, Esc cancels)",
-                app.input_buffer
-            ),
-        }
-    } else {
-        "c = clone zip   s = live clone   u = pull   a = advertise   l = list clones".to_string()
-    };
-    frame.render_widget(
-        Paragraph::new(footer).style(Style::default().fg(theme::FG_MUTED)),
-        chunks[1],
+        area,
     );
 }
 
 // ---- Actions / Projects / Security (web-app parity gaps) ------------------
 
 fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
-    let outer = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
-    let panes = Layout::horizontal([Constraint::Percentage(40), Constraint::Percentage(60)])
-        .split(outer[0]);
+    let panes =
+        Layout::horizontal([Constraint::Percentage(40), Constraint::Percentage(60)]).split(area);
     let workflows = &app.ipfs.workflows;
     let cursor = app.wf_cursor.min(workflows.len().saturating_sub(1));
     let hover = Style::default().bg(Color::Rgb(0x16, 0x1b, 0x22));
@@ -732,13 +778,6 @@ fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     )))
     .style(theme::base());
     frame.render_widget(jobs, panes[1]);
-    frame.render_widget(
-        Paragraph::new(
-            "↑/↓/j/k = move   definitions from .github/workflows — run status lives on the git host",
-        )
-        .style(Style::default().fg(theme::FG_MUTED)),
-        outer[1],
-    );
 }
 
 fn draw_projects_tab(frame: &mut Frame, app: &mut App, area: Rect) {
@@ -770,7 +809,6 @@ fn draw_security_tab(frame: &mut Frame, app: &mut App, area: Rect) {
 }
 
 fn draw_placeholder_tab(frame: &mut Frame, app: &App, area: Rect, title: &str, note: &[&str]) {
-    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
     let mut lines: Vec<text::Line> = note.iter().map(|l| text::Line::from(*l)).collect();
     if !app.last_result.is_empty() {
         lines.push(text::Line::from(""));
@@ -780,18 +818,13 @@ fn draw_placeholder_tab(frame: &mut Frame, app: &App, area: Rect, title: &str, n
         Paragraph::new(lines)
             .block(content_block(title))
             .wrap(Wrap { trim: false }),
-        chunks[0],
-    );
-    frame.render_widget(
-        Paragraph::new("").style(Style::default().fg(theme::FG_MUTED)),
-        chunks[1],
+        area,
     );
 }
 
 // ---- Wiki (CID content reading) --------------------------------------------
 
 fn draw_wiki_tab(frame: &mut Frame, app: &mut App, area: Rect) {
-    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
     let body = if app.fetch_output.is_empty() {
         "(no content fetched — press f and enter a CID)"
     } else {
@@ -801,11 +834,7 @@ fn draw_wiki_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         Paragraph::new(body)
             .block(content_block("Wiki"))
             .wrap(Wrap { trim: false }),
-        chunks[0],
-    );
-    frame.render_widget(
-        footer(app, "fetch CID", "f = fetch CID for reading"),
-        chunks[1],
+        area,
     );
 }
 
@@ -870,7 +899,6 @@ fn draw_insights_tab(frame: &mut Frame, app: &mut App, area: Rect) {
 // ---- Settings (optional services) ------------------------------------------
 
 fn draw_settings_tab(frame: &mut Frame, app: &mut App, area: Rect) {
-    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
     let names = &app.ipfs.service_names;
     let mut lines = vec![
         text::Line::from(
@@ -895,27 +923,14 @@ fn draw_settings_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         Paragraph::new(lines)
             .block(content_block("Settings"))
             .wrap(Wrap { trim: false }),
-        chunks[0],
-    );
-    frame.render_widget(
-        footer(
-            app,
-            "set services JSON array",
-            "s = set services (paste a JSON array, e.g. [{\"name\":\"gnostr.org\",\"gateways\":[...]}])",
-        ),
-        chunks[1],
+        area,
     );
 }
 
 // ---- Peer (connections + gossipsub chat) -----------------------------------
 
 fn draw_peer_tab(frame: &mut Frame, app: &mut App, area: Rect) {
-    let chunks = Layout::vertical([
-        Constraint::Percentage(45),
-        Constraint::Min(3),
-        Constraint::Length(2),
-    ])
-    .split(area);
+    let chunks = Layout::vertical([Constraint::Percentage(45), Constraint::Min(3)]).split(area);
     let snap = &app.ipfs;
     let mut rows: Vec<Row> = vec![];
     for conn in &snap.connections {
@@ -1005,29 +1020,11 @@ fn draw_peer_tab(frame: &mut Frame, app: &mut App, area: Rect) {
             .wrap(Wrap { trim: false }),
         chunks[1],
     );
-    let footer = if app.input_active {
-        match app.input_target {
-            InputTarget::Connect => format!(
-                "connect: > {}_   (Enter dials, Esc cancels)",
-                app.input_buffer
-            ),
-            _ => format!("chat: > {}_   (Enter sends, Esc cancels)", app.input_buffer),
-        }
-    } else if app.last_result.is_empty() {
-        "c = connect   m = chat message".to_string()
-    } else {
-        app.last_result.clone()
-    };
-    frame.render_widget(
-        Paragraph::new(footer).style(Style::default().fg(theme::FG_MUTED)),
-        chunks[2],
-    );
 }
 
 // ---- Publish ---------------------------------------------------------------
 
 fn draw_publish_tab(frame: &mut Frame, app: &mut App, area: Rect) {
-    let chunks = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
     let body = if app.publish_output.is_empty() {
         "(nothing published — press p and enter text)"
     } else {
@@ -1037,7 +1034,6 @@ fn draw_publish_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         Paragraph::new(body)
             .block(content_block("Publish"))
             .wrap(Wrap { trim: false }),
-        chunks[0],
+        area,
     );
-    frame.render_widget(footer(app, "publish text", "p = publish text"), chunks[1]);
 }

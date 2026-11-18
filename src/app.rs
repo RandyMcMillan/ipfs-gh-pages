@@ -94,6 +94,8 @@ pub struct App<'a> {
     pub cmd_open: bool,
     pub cmd_buffer: String,
     pub cmd_output: String,
+    /// lazygit-style `?` help overlay.
+    pub help_open: bool,
 }
 
 #[derive(Clone, Copy, Debug, Default, Ord, PartialOrd, Eq, PartialEq)]
@@ -132,6 +134,7 @@ impl<'a> App<'a> {
             cmd_open: false,
             cmd_buffer: String::new(),
             cmd_output: String::new(),
+            help_open: false,
         }
     }
 
@@ -261,6 +264,23 @@ impl<'a> App<'a> {
         match c {
             'q' => {
                 self.should_quit = true;
+            }
+            '?' => {
+                self.help_open = !self.help_open;
+            }
+            // lazygit-style digit jumps: 1-9 select tabs 1-9, 0 selects tab 10.
+            '1'..='9' => {
+                let idx = (c as usize) - ('1' as usize);
+                if idx < self.tabs.titles.len() {
+                    self.tabs.index = idx;
+                    self.add_transition_tab_effect();
+                }
+            }
+            '0' => {
+                if self.tabs.titles.len() > 9 {
+                    self.tabs.index = 9;
+                    self.add_transition_tab_effect();
+                }
             }
             ':' | '\\' => {
                 // Vim-style command bar, available on every tab.
