@@ -69,6 +69,10 @@ pub struct App<'a> {
     pub publish_output: String,
     /// Repo publish result (root CID + commands).
     pub repo_output: String,
+    /// Current directory within the repo file tree on the Code tab
+    /// ("" = root), and the cursor row in its listing.
+    pub code_dir: String,
+    pub code_cursor: usize,
     /// Vim-style `:` command bar (any bridge op, any tab). A true PTY
     /// terminal is impossible here — the TUI renders from wasm, which
     /// cannot spawn processes — so this is the in-app command line.
@@ -106,6 +110,8 @@ impl<'a> App<'a> {
             fetch_output: String::new(),
             publish_output: String::new(),
             repo_output: String::new(),
+            code_dir: String::new(),
+            code_cursor: 0,
             cmd_open: false,
             cmd_buffer: String::new(),
             cmd_output: String::new(),
@@ -120,6 +126,89 @@ impl<'a> App<'a> {
     pub fn on_left(&mut self) {
         self.tabs.previous();
         self.add_transition_tab_effect();
+    }
+
+    /// Immediate children of `code_dir` in the repo file tree: directories
+    /// first (flagged true), then files — the Code tab listing.
+    pub fn code_entries(&self) -> Vec<(String, bool)> {
+        let prefix = if self.code_dir.is_empty() {
+            String::new()
+        } else {
+            format!("{}/", self.code_dir)
+        };
+        let mut dirs: Vec<String> = vec![];
+        let mut files: Vec<String> = vec![];
+        for path in &self.ipfs.repo_files {
+            if !path.starts_with(&prefix) {
+                continue;
+            }
+            let rest = &path[prefix.len()..];
+            if rest.is_empty() {
+                continue;
+            }
+            match rest.split_once('/') {
+                Some((head, _)) => {
+                    if !dirs.iter().any(|d| d == head) {
+                        dirs.push(head.to_string());
+                    }
+                }
+                None => files.push(rest.to_string()),
+            }
+        }
+        dirs.sort_by_key(|a| a.to_lowercase());
+        files.sort_by_key(|a| a.to_lowercase());
+        dirs.into_iter()
+            .map(|d| (d, true))
+            .chain(files.into_iter().map(|f| (f, false)))
+            .collect()
+    }
+
+    fn on_code_tab(&self) -> bool {
+        self.tabs.index == 0
+    }
+
+    pub fn on_code_up(&mut self) {
+        if self.on_code_tab() && self.code_cursor > 0 {
+            self.code_cursor -= 1;
+        }
+    }
+
+    pub fn on_code_down(&mut self) {
+        if self.on_code_tab() {
+            // Clamped at render time against the live entry count.
+            self.code_cursor += 1;
+        }
+    }
+
+    /// Enter on a directory row descends into it (files are leaf rows).
+    pub fn on_code_enter(&mut self) {
+        if !self.on_code_tab() {
+            return;
+        }
+        let entries = self.code_entries();
+        let Some((name, is_dir)) = entries.get(self.code_cursor) else {
+            return;
+        };
+        if *is_dir {
+            self.code_dir = if self.code_dir.is_empty() {
+                name.clone()
+            } else {
+                format!("{}/{}", self.code_dir, name)
+            };
+            self.code_cursor = 0;
+        }
+    }
+
+    /// Backspace climbs to the parent directory (root when at top).
+    pub fn on_code_back(&mut self) {
+        if !self.on_code_tab() {
+            return;
+        }
+        match self.code_dir.rsplit_once('/') {
+            Some((parent, _)) => self.code_dir = parent.to_string(),
+            None => self.code_dir.clear(),
+        }
+        self.code_cursor = 0;
     }
 
     pub fn on_key(&mut self, c: char) {

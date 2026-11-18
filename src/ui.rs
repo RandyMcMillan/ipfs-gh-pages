@@ -1,6 +1,6 @@
 use ratzilla::ratatui::{
     layout::{Constraint, Layout, Rect},
-    style::{Modifier, Style},
+    style::{Color, Modifier, Style},
     text::{self, Span},
     widgets::{Block, Cell, Paragraph, Row, Table, Wrap},
     Frame,
@@ -268,7 +268,11 @@ fn draw_code_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         i += 1;
     }
     frame.render_widget(
-        footer(app, "publish", "p = publish repo tree to IPFS"),
+        footer(
+            app,
+            "publish",
+            "↑/↓ = move   Enter = open directory   ⌫ = up directory   p = publish repo tree",
+        ),
         chunks[i],
     );
 }
@@ -352,45 +356,45 @@ fn draw_commit_bar(frame: &mut Frame, app: &App, area: Rect) {
     );
 }
 
-/// The repo root listing: directories first (accent, trailing `/`), then
-/// files — the same set the web app's Code tab renders.
-fn draw_file_table(frame: &mut Frame, app: &App, area: Rect) {
-    let files = &app.ipfs.repo_files;
-    let mut dirs: Vec<&str> = vec![];
-    let mut plain: Vec<&str> = vec![];
-    for path in files {
-        let (name, is_dir) = match path.split_once('/') {
-            Some((head, _)) => (head, true),
-            None => (path.as_str(), false),
-        };
-        if is_dir {
-            if !dirs.contains(&name) {
-                dirs.push(name);
-            }
-        } else {
-            plain.push(name);
-        }
-    }
-    dirs.sort_by_key(|a| a.to_lowercase());
-    plain.sort_by_key(|a| a.to_lowercase());
-
+/// The repo file tree: immediate children of the current directory
+/// (dirs first, accent, trailing `/`), cursor-highlighted like GitHub's
+/// hover, breadcrumb in the panel title.
+fn draw_file_table(frame: &mut Frame, app: &mut App, area: Rect) {
+    let entries = app.code_entries();
+    let total = app.ipfs.repo_files.len();
+    let cursor = app.code_cursor.min(entries.len().saturating_sub(1));
+    // GitHub's row hover: a hair lighter than the canvas.
+    let hover = Style::default().bg(Color::Rgb(0x16, 0x1b, 0x22));
     let mut rows: Vec<Row> = vec![];
-    for name in dirs {
+    if entries.is_empty() {
         rows.push(Row::new(vec![Cell::from(Span::styled(
-            format!(" {name}/"),
-            Style::default().fg(theme::ACCENT),
+            if total == 0 {
+                "(repo file listing unavailable — the bridge bundle predates REPO_FILES; rebuild: node scripts/build-ipfs-js.mjs)"
+            } else {
+                "(empty directory)"
+            },
+            Style::default().fg(theme::FG_MUTED),
         ))]));
     }
-    for name in plain {
-        rows.push(Row::new(vec![Cell::from(Span::styled(
-            format!(" {name}"),
-            Style::default().fg(theme::FG),
-        ))]));
+    for (i, (name, is_dir)) in entries.iter().enumerate() {
+        let selected = i == cursor;
+        let (text, style) = if *is_dir {
+            (
+                format!(" {name}/"),
+                Style::default()
+                    .fg(theme::ACCENT)
+                    .add_modifier(Modifier::BOLD),
+            )
+        } else {
+            (format!(" {name}"), Style::default().fg(theme::FG))
+        };
+        let style = if selected { hover.patch(style) } else { style };
+        rows.push(Row::new(vec![Cell::from(Span::styled(text, style))]));
     }
-    let title = if files.is_empty() {
-        "Files".to_string()
+    let title = if app.code_dir.is_empty() {
+        format!("Files ({} path(s))", total)
     } else {
-        format!("Files ({} path(s))", files.len())
+        format!("{}/", app.code_dir)
     };
     let table = Table::new(rows, [Constraint::Percentage(100)])
         .block(content_block(&title))
