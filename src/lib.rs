@@ -5,5 +5,6 @@ pub mod cli;
 pub mod effects;
 pub mod fps;
 pub mod ipfs;
+pub mod theme;
 pub mod ui;
 pub mod utils;

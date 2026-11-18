@@ -6,7 +6,7 @@ use ratzilla::ratatui::{
     widgets::{
         canvas::{self, Canvas, Circle, Map, MapResolution, Rectangle},
         Axis, BarChart, Block, Cell, Chart, Dataset, Gauge, LineGauge, List, ListItem, Paragraph,
-        Row, Sparkline, Table, Tabs, Wrap,
+        Row, Sparkline, Table, Wrap,
     },
     Frame,
 };
@@ -14,57 +14,53 @@ use tachyonfx::Duration;
 // use tui_big_text::{BigText, PixelSize};
 
 use crate::app::App;
+use crate::theme;
 
+/// The GitHub chrome: dark app header, repo header (owner/name, Public
+/// badge, Watch/Star/Fork), Primer tabnav with the orange active
+/// underline, then the active tab's content and the `:` command bar.
 pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
     let show_cmd_bar = app.cmd_open || !app.cmd_output.is_empty();
+    let area = frame.area();
+    frame.render_widget(Block::default().style(theme::base()), area);
     let chunks = if show_cmd_bar {
         Layout::vertical([
-            Constraint::Length(3),
+            Constraint::Length(1),
+            Constraint::Length(1),
+            Constraint::Length(2),
             Constraint::Min(3),
             Constraint::Length(1),
         ])
-        .split(frame.area())
+        .split(area)
     } else {
-        Layout::vertical([Constraint::Length(3), Constraint::Min(0)]).split(frame.area())
+        Layout::vertical([
+            Constraint::Length(1),
+            Constraint::Length(1),
+            Constraint::Length(2),
+            Constraint::Min(0),
+        ])
+        .split(area)
     };
-    let tabs = app
-        .tabs
-        .titles
-        .iter()
-        .map(|t| text::Line::from(Span::styled(*t, Style::default().fg(Color::LightGreen))))
-        .collect::<Tabs>()
-        .block(Block::bordered().title(app.title))
-        .highlight_style(Style::default().fg(Color::LightYellow))
-        .select(app.tabs.index);
-    frame.render_widget(tabs, chunks[0]);
+    draw_header(frame, app, chunks[0]);
+    draw_repo_header(frame, app, chunks[1]);
+    draw_tabnav(frame, app, chunks[2]);
     match app.tabs.index {
-        0 => draw_first_tab(frame, app, chunks[1]),
-        1 => draw_about_tab(frame, chunks[1]),
-        2 => draw_second_tab(frame, app, chunks[1]),
-        3 => draw_third_tab(frame, app, chunks[1]),
-        4 => draw_ipfs_tab(frame, app, chunks[1]),
-        5 => draw_peers_tab(frame, app, chunks[1]),
-        6 => draw_fetch_tab(frame, app, chunks[1]),
-        7 => draw_publish_tab(frame, app, chunks[1]),
-        8 => draw_chat_tab(frame, app, chunks[1]),
-        9 => draw_kubo_tab(frame, app, chunks[1]),
-        10 => draw_services_tab(frame, app, chunks[1]),
-        11 => draw_git_tab(frame, app, chunks[1]),
-        12 => draw_repo_tab(frame, app, chunks[1]),
-        13 => draw_issues_tab(frame, app, chunks[1]),
+        0 => draw_first_tab(frame, app, chunks[3]),
+        1 => draw_about_tab(frame, chunks[3]),
+        2 => draw_second_tab(frame, app, chunks[3]),
+        3 => draw_third_tab(frame, app, chunks[3]),
+        4 => draw_ipfs_tab(frame, app, chunks[3]),
+        5 => draw_peers_tab(frame, app, chunks[3]),
+        6 => draw_fetch_tab(frame, app, chunks[3]),
+        7 => draw_publish_tab(frame, app, chunks[3]),
+        8 => draw_chat_tab(frame, app, chunks[3]),
+        9 => draw_kubo_tab(frame, app, chunks[3]),
+        10 => draw_services_tab(frame, app, chunks[3]),
+        11 => draw_git_tab(frame, app, chunks[3]),
+        12 => draw_repo_tab(frame, app, chunks[3]),
+        13 => draw_issues_tab(frame, app, chunks[3]),
         _ => {}
     };
-    // let big_text = BigText::builder()
-    //     .pixel_size(PixelSize::Quadrant)
-    //     .lines(vec!["RATZILLA".white().into()])
-    //     .build();
-    // frame.render_widget(
-    //     big_text,
-    //     frame.area().inner(Margin {
-    //         horizontal: frame.area().width / 2 - 15,
-    //         vertical: 0,
-    //     }),
-    // );
     let area = frame.area();
     app.effects
         .process_effects(elapsed, frame.buffer_mut(), area);
@@ -79,12 +75,151 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
             let flat: String = trimmed.chars().filter(|c| *c != '\n').collect();
             flat
         };
-        let rect = if chunks.len() > 2 { chunks[2] } else { area };
+        let rect = if chunks.len() > 4 { chunks[4] } else { area };
         frame.render_widget(
-            Paragraph::new(bar).style(Style::default().fg(Color::LightGreen)),
+            Paragraph::new(bar).style(Style::default().fg(theme::FG_MUTED)),
             rect,
         );
     }
+}
+
+/// Top-of-page dark bar: app mark + name, the search pill, and the live
+/// connection count on the right (GitHub puts utility nav there).
+fn draw_header(frame: &mut Frame, app: &App, area: Rect) {
+    let inset = Style::default().bg(theme::CANVAS_INSET);
+    let snap = &app.ipfs;
+    let online = !snap.peer_id.is_empty();
+    let (dot, dot_color) = if online {
+        ("●", theme::SUCCESS)
+    } else {
+        ("○", theme::FG_SUBTLE)
+    };
+    let right = format!("{} connection(s)  ", snap.connections.len());
+    let right_width = right.chars().count() + 2;
+    let left_width = 2 + app.title.chars().count() + 24;
+    let pad = (area.width as usize).saturating_sub(left_width + right_width);
+    let line = text::Line::from(vec![
+        Span::styled(" ◆ ", inset.fg(theme::ACCENT)),
+        Span::styled(
+            format!("{:<13}", app.title),
+            inset.fg(theme::FG).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(" ⌕ Search or jump to… / ", inset.fg(theme::FG_SUBTLE)),
+        Span::styled(" ".repeat(pad), inset),
+        Span::styled(format!("{dot} "), inset.fg(dot_color)),
+        Span::styled(right.trim_end().to_string(), inset.fg(theme::FG_MUTED)),
+    ]);
+    frame.render_widget(Paragraph::new(line), area);
+}
+
+/// `owner / name`, Public badge, then Watch/Star/Fork buttons pushed right.
+fn draw_repo_header(frame: &mut Frame, app: &App, area: Rect) {
+    let snap = &app.ipfs;
+    let (owner, name) = if snap.repo_name.is_empty() {
+        ("".to_string(), app.title.to_string())
+    } else {
+        (snap.repo_owner.clone(), snap.repo_name.clone())
+    };
+    let mut spans = vec![
+        Span::raw(" "),
+        Span::styled(owner, Style::default().fg(theme::ACCENT)),
+        Span::styled(" / ", Style::default().fg(theme::FG_SUBTLE)),
+        Span::styled(
+            name.clone(),
+            Style::default().fg(theme::FG).add_modifier(Modifier::BOLD),
+        ),
+    ];
+    spans.push(Span::styled("  ", Style::default()));
+    spans.extend(visibility_badge_spans());
+    // Right-side buttons: Watch ▾, ☆ Star, ⑃ Fork (GitHub order).
+    let buttons = " ▾ Watch   ☆ Star   ⑃ Fork ";
+    let used: usize =
+        1 + snap.repo_owner.chars().count() + 3 + name.chars().count() + 2 + "Public".len() + 2;
+    let pad = (area.width as usize).saturating_sub(used + buttons.chars().count());
+    spans.push(Span::styled(" ".repeat(pad), Style::default()));
+    spans.extend(btn_spans("▾ Watch"));
+    spans.push(Span::raw(" "));
+    spans.extend(btn_spans("☆ Star"));
+    spans.push(Span::raw(" "));
+    spans.extend(btn_spans("⑃ Fork"));
+    frame.render_widget(
+        Paragraph::new(text::Line::from(spans)).style(theme::base()),
+        area,
+    );
+}
+
+fn btn_spans(label: &str) -> Vec<Span<'static>> {
+    theme::btn_spans(label)
+}
+
+fn visibility_badge_spans() -> Vec<Span<'static>> {
+    vec![
+        Span::styled("┌", Style::default().fg(theme::BTN_BORDER)),
+        Span::styled(
+            " Public ",
+            Style::default()
+                .fg(theme::FG_MUTED)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("┐", Style::default().fg(theme::BTN_BORDER)),
+    ]
+}
+
+/// Primer repo tabnav: a muted top border with the orange underline under
+/// the active tab, then the tab titles.
+fn draw_tabnav(frame: &mut Frame, app: &App, area: Rect) {
+    let widths: Vec<usize> = app.tabs.titles.iter().map(|t| t.len() + 2).collect();
+    let mut border = vec![];
+    let mut titles = vec![];
+    let mut offset = 0usize;
+    for (i, title) in app.tabs.titles.iter().enumerate() {
+        let w = widths[i];
+        let active = i == app.tabs.index;
+        if active {
+            border.push(Span::styled(
+                "▔".repeat(w),
+                Style::default().fg(theme::TAB_UNDERLINE),
+            ));
+        } else {
+            border.push(Span::styled(
+                "─".repeat(w),
+                Style::default().fg(theme::BORDER_MUTED),
+            ));
+        }
+        let _ = offset;
+        titles.push(theme::tab(title, active));
+        offset += w + 1;
+    }
+    let used: usize = widths.iter().sum::<usize>() + widths.len().saturating_sub(1);
+    let fill = (area.width as usize).saturating_sub(used);
+    border.push(Span::styled(
+        "─".repeat(fill),
+        Style::default().fg(theme::BORDER_MUTED),
+    ));
+    // One-space gaps between tab cells, in border color on the border row.
+    let mut border_with_gaps = vec![];
+    for (i, span) in border.into_iter().enumerate() {
+        border_with_gaps.push(span);
+        if i + 1 < app.tabs.titles.len() {
+            border_with_gaps.push(Span::styled("─", Style::default().fg(theme::BORDER_MUTED)));
+        }
+    }
+    frame.render_widget(
+        Paragraph::new(text::Line::from(border_with_gaps)).style(theme::base()),
+        Rect::new(area.x, area.y, area.width, 1),
+    );
+    // Title row: tabs separated by single spaces.
+    let mut title_spans = vec![];
+    for (i, span) in titles.into_iter().enumerate() {
+        title_spans.push(span);
+        if i + 1 < app.tabs.titles.len() {
+            title_spans.push(Span::styled(" ", Style::default()));
+        }
+    }
+    frame.render_widget(
+        Paragraph::new(text::Line::from(title_spans)).style(theme::base()),
+        Rect::new(area.x, area.y + 1, area.width, 1),
+    );
 }
 
 fn draw_first_tab(frame: &mut Frame, app: &mut App, area: Rect) {

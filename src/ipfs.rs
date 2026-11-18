@@ -54,6 +54,9 @@ mod imp {
         pub service_names: Vec<String>,
         pub git_seen: usize,
         pub serving: bool,
+        pub repo_owner: String,
+        pub repo_name: String,
+        pub repo_version: String,
     }
 
     fn window() -> JsValue {
@@ -163,6 +166,12 @@ mod imp {
                 .ok()
                 .map(|v| !v.is_null() && !v.is_undefined())
                 .unwrap_or(false);
+        }
+
+        if let Ok(repo) = Reflect::get(&state, &JsValue::from_str("repo")) {
+            snap.repo_owner = get_string(&repo, "owner");
+            snap.repo_name = get_string(&repo, "name");
+            snap.repo_version = get_string(&repo, "version");
         }
 
         snap
@@ -282,6 +291,9 @@ mod imp {
         pub service_names: Vec<String>,
         pub git_seen: usize,
         pub serving: bool,
+        pub repo_owner: String,
+        pub repo_name: String,
+        pub repo_version: String,
     }
 
     pub fn poll() -> Snapshot {

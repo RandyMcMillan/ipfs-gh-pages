@@ -304,7 +304,6 @@ impl<'a> App<'a> {
 
         let mut effects = EffectManager::default();
         effects.add_effect(effects::startup());
-        effects.add_effect(effects::pulsate_selected_tab());
         App {
             title,
             should_quit: false,

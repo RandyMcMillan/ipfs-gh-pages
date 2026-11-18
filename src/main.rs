@@ -64,7 +64,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 #[cfg(all(not(feature = "bundle-wry"), target_arch = "wasm32"))]
 fn browser_main() -> Result<(), Box<dyn Error>> {
-    let app_state = Rc::new(RefCell::new(App::new("Demo", true)));
+    let app_state = Rc::new(RefCell::new(App::new("ipfs-gh-pages", true)));
 
     let webgl2_options = WebGl2BackendOptions::new()
         .measure_performance(true)
