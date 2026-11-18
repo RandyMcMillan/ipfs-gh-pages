@@ -24,6 +24,7 @@ export async function nvidiaChat({
   maxTokens = 1024,
   reasoningEffort = 'high',
   seed = 0,
+  timeoutMs = REQUEST_TIMEOUT_MS,
 }) {
   if (!apiKey) {
     return { ok: false, warning: 'NVIDIA_API_KEY is not set; skipping AI call. Add it as a repository secret to enable.' };
@@ -35,12 +36,11 @@ export async function nvidiaChat({
     max_tokens: maxTokens,
     seed,
     stream: false,
-    stream_options: { include_usage: true },
     reasoning_effort: reasoningEffort,
   };
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   const startedAt = Date.now();
   let response;
   try {
@@ -56,7 +56,7 @@ export async function nvidiaChat({
     });
   } catch (err) {
     clearTimeout(timer);
-    return { ok: false, warning: `NVIDIA API request failed (${err.name === 'AbortError' ? `timeout after ${REQUEST_TIMEOUT_MS / 1000}s` : err.message}); continuing without AI review` };
+    return { ok: false, warning: `NVIDIA API request failed (${err.name === 'AbortError' ? `timeout after ${timeoutMs / 1000}s` : err.message}); continuing without AI review` };
   }
   clearTimeout(timer);
   const statusMs = Date.now() - startedAt;
@@ -67,7 +67,9 @@ export async function nvidiaChat({
   }
 
   const data = await response.json().catch(() => null);
-  const content = data?.choices?.[0]?.message?.content;
+  const message = data?.choices?.[0]?.message;
+  // kimi reasoning models may answer in reasoning_content when content is empty
+  const content = message?.content || message?.reasoning_content;
   if (!content) {
     return { ok: false, warning: 'NVIDIA API response had no choices; continuing without AI review' };
   }
