@@ -265,7 +265,7 @@ fn draw_code_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         footer(
             app,
             "publish",
-            "↑/↓ = move   Enter = open directory   ⌫ = up directory   p = publish repo tree",
+            "↑/↓ = move   Enter = expand/collapse   ⌫ = collapse all   p = publish repo tree",
         ),
         chunks[i],
     );
@@ -411,9 +411,9 @@ fn draw_commit_bar(frame: &mut Frame, app: &App, area: Rect) {
 /// (dirs first, accent, trailing `/`), cursor-highlighted like GitHub's
 /// hover, breadcrumb in the panel title.
 fn draw_file_table(frame: &mut Frame, app: &mut App, area: Rect) {
-    let entries = app.code_entries();
+    let entries = app.code_tree_rows();
     let total = app.ipfs.repo_files.len();
-    let cursor = app.code_cursor.min(entries.len().saturating_sub(1));
+    let cursor = app.tree_cursor.min(entries.len().saturating_sub(1));
     // GitHub's row hover: a hair lighter than the canvas.
     let hover = Style::default().bg(Color::Rgb(0x16, 0x1b, 0x22));
     let mut rows: Vec<Row> = vec![];
@@ -427,29 +427,57 @@ fn draw_file_table(frame: &mut Frame, app: &mut App, area: Rect) {
             Style::default().fg(theme::FG_MUTED),
         ))]));
     }
-    for (i, (name, is_dir)) in entries.iter().enumerate() {
+    for (i, entry) in entries.iter().enumerate() {
         let selected = i == cursor;
-        let (text, style) = if *is_dir {
-            (
-                format!(" {name}/"),
+        // serie-style guides: connectors subtle, names carrying the color.
+        let guide = Span::styled(entry.prefix.clone(), Style::default().fg(theme::FG_SUBTLE));
+        let name = if entry.is_dir {
+            let marker = if app.open_dirs.contains(&entry.path) {
+                "▾ "
+            } else {
+                "▸ "
+            };
+            Span::styled(
+                format!("{marker}{}/", entry.name),
                 Style::default()
                     .fg(theme::ACCENT)
                     .add_modifier(Modifier::BOLD),
             )
         } else {
-            (format!(" {name}"), Style::default().fg(theme::FG))
+            Span::styled(entry.name.clone(), Style::default().fg(theme::FG))
         };
-        let style = if selected { hover.patch(style) } else { style };
-        rows.push(Row::new(vec![Cell::from(Span::styled(text, style))]));
+        let style = if selected { hover } else { Style::default() };
+        rows.push(
+            Row::new(vec![
+                Cell::from(Span::styled(
+                    " ",
+                    if selected { hover } else { Style::default() },
+                )),
+                Cell::from(guide),
+                Cell::from(name),
+            ])
+            .style(style),
+        );
     }
-    let title = if app.code_dir.is_empty() {
+    let title = if app.open_dirs.is_empty() {
         format!("Files ({} path(s))", total)
     } else {
-        format!("{}/", app.code_dir)
+        format!(
+            "Files ({} path(s), {} expanded)",
+            total,
+            app.open_dirs.len()
+        )
     };
-    let table = Table::new(rows, [Constraint::Percentage(100)])
-        .block(content_block(&title))
-        .style(theme::base());
+    let table = Table::new(
+        rows,
+        [
+            Constraint::Length(1),
+            Constraint::Length(28),
+            Constraint::Min(10),
+        ],
+    )
+    .block(content_block(&title))
+    .style(theme::base());
     frame.render_widget(table, area);
 }
 

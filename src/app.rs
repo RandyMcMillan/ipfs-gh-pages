@@ -42,6 +42,17 @@ pub enum InputTarget {
     RawCommand,
 }
 
+/// One visible row of the Code tab file tree: connector prefix (the
+/// ├──/└──/│ guide lines), entry name, repo-relative path, and whether
+/// it is a directory.
+#[derive(Clone)]
+pub struct TreeRow {
+    pub prefix: String,
+    pub name: String,
+    pub path: String,
+    pub is_dir: bool,
+}
+
 pub struct App<'a> {
     pub title: &'a str,
     pub should_quit: bool,
@@ -69,10 +80,10 @@ pub struct App<'a> {
     pub publish_output: String,
     /// Repo publish result (root CID + commands).
     pub repo_output: String,
-    /// Current directory within the repo file tree on the Code tab
-    /// ("" = root), and the cursor row in its listing.
-    pub code_dir: String,
-    pub code_cursor: usize,
+    /// Expanded directories in the Code tab's file tree (paths relative to
+    /// the repo root), and the cursor row over the visible rows.
+    pub open_dirs: std::collections::BTreeSet<String>,
+    pub tree_cursor: usize,
     /// Cursor row in the Issues tab listing (drives the detail panel).
     pub issue_cursor: usize,
     /// Vim-style `:` command bar (any bridge op, any tab). A true PTY
@@ -112,8 +123,8 @@ impl<'a> App<'a> {
             fetch_output: String::new(),
             publish_output: String::new(),
             repo_output: String::new(),
-            code_dir: String::new(),
-            code_cursor: 0,
+            open_dirs: std::collections::BTreeSet::new(),
+            tree_cursor: 0,
             issue_cursor: 0,
             cmd_open: false,
             cmd_buffer: String::new(),
@@ -131,13 +142,13 @@ impl<'a> App<'a> {
         self.add_transition_tab_effect();
     }
 
-    /// Immediate children of `code_dir` in the repo file tree: directories
-    /// first (flagged true), then files — the Code tab listing.
-    pub fn code_entries(&self) -> Vec<(String, bool)> {
-        let prefix = if self.code_dir.is_empty() {
+    /// Immediate children of `dir` in the repo file tree: directories
+    /// first (flagged true), then files.
+    fn code_entries_in(&self, dir: &str) -> Vec<(String, bool)> {
+        let prefix = if dir.is_empty() {
             String::new()
         } else {
-            format!("{}/", self.code_dir)
+            format!("{dir}/")
         };
         let mut dirs: Vec<String> = vec![];
         let mut files: Vec<String> = vec![];
@@ -166,15 +177,44 @@ impl<'a> App<'a> {
             .collect()
     }
 
-    fn on_code_tab(&self) -> bool {
-        self.tabs.index == 0
+    /// The fully rendered tree: recursive walk with expand-in-place — a
+    /// directory's children appear (indented, connector-lined) only while
+    /// its path sits in `open_dirs`.
+    pub fn code_tree_rows(&self) -> Vec<TreeRow> {
+        fn walk(app: &App, dir: &str, prefix: String, rows: &mut Vec<TreeRow>) {
+            let entries = app.code_entries_in(dir);
+            let total = entries.len();
+            for (i, (name, is_dir)) in entries.iter().enumerate() {
+                let last = i + 1 == total;
+                let connector = if last { "└── " } else { "├── " };
+                let path = if dir.is_empty() {
+                    name.clone()
+                } else {
+                    format!("{dir}/{name}")
+                };
+                let is_open = *is_dir && app.open_dirs.contains(&path);
+                rows.push(TreeRow {
+                    prefix: format!("{prefix}{connector}"),
+                    name: name.clone(),
+                    path: path.clone(),
+                    is_dir: *is_dir,
+                });
+                if is_open {
+                    let child_prefix = format!("{prefix}{}", if last { "    " } else { "│   " });
+                    walk(app, &path, child_prefix, rows);
+                }
+            }
+        }
+        let mut rows = vec![];
+        walk(self, "", String::new(), &mut rows);
+        rows
     }
 
     /// Up arrow: move the cursor in the active tab's list (Code tree,
     /// Issues), if it has one.
     pub fn on_up(&mut self) {
         match self.tabs.index {
-            0 if self.code_cursor > 0 => self.code_cursor -= 1,
+            0 if self.tree_cursor > 0 => self.tree_cursor -= 1,
             1 if self.issue_cursor > 0 => self.issue_cursor -= 1,
             _ => {}
         }
@@ -183,41 +223,33 @@ impl<'a> App<'a> {
     /// Down arrow — cursor clamps at render against the live entry count.
     pub fn on_down(&mut self) {
         match self.tabs.index {
-            0 => self.code_cursor += 1,
+            0 => self.tree_cursor += 1,
             1 => self.issue_cursor += 1,
             _ => {}
         }
     }
 
-    /// Enter on a directory row descends into it (files are leaf rows).
+    /// Enter expands/collapses the directory under the cursor (leaf rows
+    /// are no-ops).
     pub fn on_code_enter(&mut self) {
-        if !self.on_code_tab() {
+        if self.tabs.index != 0 {
             return;
         }
-        let entries = self.code_entries();
-        let Some((name, is_dir)) = entries.get(self.code_cursor) else {
+        let rows = self.code_tree_rows();
+        let Some(row) = rows.get(self.tree_cursor) else {
             return;
         };
-        if *is_dir {
-            self.code_dir = if self.code_dir.is_empty() {
-                name.clone()
-            } else {
-                format!("{}/{}", self.code_dir, name)
-            };
-            self.code_cursor = 0;
+        if row.is_dir && !self.open_dirs.remove(&row.path) {
+            self.open_dirs.insert(row.path.clone());
         }
     }
 
-    /// Backspace climbs to the parent directory (root when at top).
+    /// Backspace collapses the whole tree back to the root listing.
     pub fn on_code_back(&mut self) {
-        if !self.on_code_tab() {
-            return;
+        if self.tabs.index == 0 {
+            self.open_dirs.clear();
+            self.tree_cursor = 0;
         }
-        match self.code_dir.rsplit_once('/') {
-            Some((parent, _)) => self.code_dir = parent.to_string(),
-            None => self.code_dir.clear(),
-        }
-        self.code_cursor = 0;
     }
 
     pub fn on_key(&mut self, c: char) {
