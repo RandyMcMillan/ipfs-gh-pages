@@ -1,0 +1,10 @@
+# Build context for docker/Dockerfile.site — keep the context lean; the
+# build re-derives everything from source.
+node_modules
+dist
+target
+.vite
+**/.DS_Store
+certs
+chrome
+*.log

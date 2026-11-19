@@ -1,0 +1,29 @@
+# syntax=docker/dockerfile:1
+# Self-hosting image for ipfs-gh-pages (docs/docker.md). This is NOT the
+# consumer path — the GitHub Action + deploy-gh-pages.yml remain the
+# product; this image serves the same dist/ on your own infrastructure.
+#
+# Build context is the repo ROOT (compose sets it); the TUI overlay ships
+# via the release artifact, not here (see include-tui).
+
+FROM node:26-alpine AS build
+WORKDIR /src
+# git is used by the build-time repo walk + identity resolution when
+# .git is present in the context.
+RUN apk add --no-cache git
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+# Identity for the baked app: the action normally gets this from the
+# GitHub runtime; a self-hoster passes their own owner/name.
+ARG GITHUB_REPOSITORY=RandyMcMillan/ipfs-gh-pages
+ENV GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
+RUN npm run build
+
+FROM nginx:1.27-alpine
+COPY --from=build /src/dist /usr/share/nginx/html
+LABEL org.opencontainers.image.source="https://github.com/RandyMcMillan/ipfs-gh-pages" \
+      org.opencontainers.image.description="ipfs-gh-pages self-hosted: the GitHub-style IPFS repo app"
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
+  CMD wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1
