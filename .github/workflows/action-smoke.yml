@@ -65,8 +65,8 @@ jobs:
       - name: Check wasm browser build
         run: cargo check --target wasm32-unknown-unknown
 
-      - name: Unit tests (TUI tree/navigation/markdown logic)
-        run: cargo test --lib
+      - name: Unit tests (TUI logic + desktop helpers + doctests)
+        run: cargo test --features bundle-wry
 
       # wry 0.55 / webkit2gtk-sys 2.0: pkg-config needs glib-2.0, gtk-3,
       # webkit2gtk-4.1 and libsoup-3.0 dev files on Linux.

@@ -178,7 +178,12 @@ in one place.
   runs build-ipfs-js + build-repo-files + trunk + cargo bundle); clap CLI
   `--host/--port/--serve-dir/--url/--kubo/--repo/--systray`; tray via the
   `tray-icon` crate (NOT tao — tao 0.35 dropped tray); interop loopback
-  server on port 5050.
+  server on port 5050. Native menu bar (muda): Repo menu shells out to
+  git in the --repo checkout (copy path/branch/full-SHA/tag, open folder
+  or terminal — pbcopy/xclip, no new deps), IPFS menu evaluates the same
+  `window.__ipfsCmd` bridge ops the TUI issues (publish/sync/kuboDetect)
+  in the webview and copies the :5050 identity, View menu reloads /
+  opens DevTools.
 
 ### Identity and data model
 
