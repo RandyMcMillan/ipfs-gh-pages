@@ -710,3 +710,39 @@ mod tests {
         assert_eq!(App::json_escape("plain"), "plain");
     }
 }
+
+#[cfg(test)]
+mod nav_tests {
+    use super::*;
+
+    #[test]
+    fn up_down_dispatch_to_the_active_tab_cursor() {
+        let mut app = App::new("t");
+        app.tabs.index = 3; // Actions
+        app.on_down();
+        app.on_down();
+        assert_eq!(app.wf_cursor, 2);
+        app.on_up();
+        assert_eq!(app.wf_cursor, 1);
+        app.tabs.index = 9; // Peer
+        app.on_down();
+        assert_eq!(app.peer_cursor, 1);
+        assert_eq!(app.wf_cursor, 1, "cursors are per-tab");
+        app.tabs.index = 2; // Pulls has no list
+        app.on_down();
+        assert_eq!(app.wf_cursor, 1, "no-list tabs leave cursors alone");
+    }
+
+    #[test]
+    fn digit_jumps_land_and_wrap_via_arrows() {
+        let mut app = App::new("t");
+        app.on_key('5');
+        assert_eq!(app.tabs.index, 4, "'5' -> Projects");
+        app.on_key('0');
+        assert_eq!(app.tabs.index, 9, "'0' -> Peer");
+        app.on_key('1');
+        assert_eq!(app.tabs.index, 0);
+        app.on_left();
+        assert_eq!(app.tabs.index, app.tabs.titles.len() - 1, "left wraps");
+    }
+}

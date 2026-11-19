@@ -1341,6 +1341,17 @@ mod render_tests {
     }
 
     #[test]
+    fn renders_without_panic_at_narrow_widths() {
+        let mut app = App::new("ipfs-gh-pages");
+        // Small terminals must degrade gracefully — never panic, never
+        // divide, and the active tab title still lands somewhere.
+        for (w, h) in [(60u16, 20u16), (40, 12), (30, 8)] {
+            let out = render(&mut app, w, h);
+            assert!(out.contains("Code"), "{w}x{h} keeps the tab label");
+        }
+    }
+
+    #[test]
     fn code_tab_renders_tree_commit_bar_and_readme() {
         let mut app = App::new("ipfs-gh-pages");
         app.ipfs.repo_files = vec!["src/main.rs".to_string(), "README.md".to_string()];
