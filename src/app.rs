@@ -88,6 +88,8 @@ pub struct App<'a> {
     pub issue_cursor: usize,
     /// Cursor row in the Actions tab workflow list.
     pub wf_cursor: usize,
+    /// Cursor row in the Peer tab connection table (drives the detail pane).
+    pub peer_cursor: usize,
     /// Vim-style `:` command bar (any bridge op, any tab). A true PTY
     /// terminal is impossible here — the TUI renders from wasm, which
     /// cannot spawn processes — so this is the in-app command line.
@@ -131,6 +133,7 @@ impl<'a> App<'a> {
             tree_cursor: 0,
             issue_cursor: 0,
             wf_cursor: 0,
+            peer_cursor: 0,
             cmd_open: false,
             cmd_buffer: String::new(),
             cmd_output: String::new(),
@@ -223,6 +226,7 @@ impl<'a> App<'a> {
             0 if self.tree_cursor > 0 => self.tree_cursor -= 1,
             1 if self.issue_cursor > 0 => self.issue_cursor -= 1,
             3 if self.wf_cursor > 0 => self.wf_cursor -= 1,
+            9 if self.peer_cursor > 0 => self.peer_cursor -= 1,
             _ => {}
         }
     }
@@ -233,6 +237,7 @@ impl<'a> App<'a> {
             0 => self.tree_cursor += 1,
             1 => self.issue_cursor += 1,
             3 => self.wf_cursor += 1,
+            9 => self.peer_cursor += 1,
             _ => {}
         }
     }
@@ -324,6 +329,8 @@ impl<'a> App<'a> {
             's' if self.tabs.index == 8 => self.start_input(InputTarget::ServicesSet),
             // Peer: dial a multiaddr, or chat over gossipsub.
             'c' if self.tabs.index == 9 => self.start_input(InputTarget::Connect),
+            'j' if self.tabs.index == 9 => self.on_down(),
+            'k' if self.tabs.index == 9 => self.on_up(),
             'm' if self.tabs.index == 9 => self.start_input(InputTarget::Chat),
             // Publish: arbitrary text/content.
             'p' if self.tabs.index == 10 => self.start_input(InputTarget::Publish),

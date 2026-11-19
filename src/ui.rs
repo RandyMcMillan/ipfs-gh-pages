@@ -131,7 +131,7 @@ fn keybar(app: &App) -> String {
         3 => "↑/↓/j/k move · definitions only, run status on the git host",
         5 => "f fetch CID",
         8 => "s set services",
-        9 => "c connect · m chat",
+        9 => "↑/↓/j/k move · c connect · m chat",
         10 => "p publish text",
         _ => "",
     };
@@ -971,29 +971,40 @@ fn draw_settings_tab(frame: &mut Frame, app: &mut App, area: Rect) {
 // ---- Peer (connections + gossipsub chat) -----------------------------------
 
 fn draw_peer_tab(frame: &mut Frame, app: &mut App, area: Rect) {
-    let chunks = Layout::vertical([Constraint::Percentage(45), Constraint::Min(3)]).split(area);
+    let outer = Layout::vertical([Constraint::Percentage(45), Constraint::Min(3)]).split(area);
     let snap = &app.ipfs;
+    let cursor = app
+        .peer_cursor
+        .min(snap.connections.len().saturating_sub(1));
+    // GitHub's row hover: a hair lighter than the canvas.
+    let hover = Style::default().bg(Color::Rgb(0x16, 0x1b, 0x22));
     let mut rows: Vec<Row> = vec![];
-    for conn in &snap.connections {
+    for (i, conn) in snap.connections.iter().enumerate() {
+        let selected = i == cursor;
         let direction_color = if conn.direction == "inbound" {
             theme::SUCCESS
         } else {
             theme::ACCENT
         };
-        rows.push(Row::new(vec![
-            Cell::from(Span::styled(
-                conn.peer.clone(),
-                Style::default().fg(theme::FG),
-            )),
-            Cell::from(Span::styled(
-                conn.direction.clone(),
-                Style::default().fg(direction_color),
-            )),
-            Cell::from(Span::styled(
-                conn.addr.clone(),
-                Style::default().fg(theme::FG_MUTED),
-            )),
-        ]));
+        let peer_style = if selected {
+            hover.patch(Style::default().fg(theme::FG))
+        } else {
+            Style::default().fg(theme::FG)
+        };
+        rows.push(
+            Row::new(vec![
+                Cell::from(Span::styled(conn.peer.clone(), peer_style)),
+                Cell::from(Span::styled(
+                    conn.direction.clone(),
+                    Style::default().fg(direction_color),
+                )),
+                Cell::from(Span::styled(
+                    conn.addr.clone(),
+                    Style::default().fg(theme::FG_MUTED),
+                )),
+            ])
+            .style(if selected { hover } else { Style::default() }),
+        );
     }
     if rows.is_empty() {
         rows.push(Row::new(vec![Cell::from(Span::styled(
@@ -1028,7 +1039,11 @@ fn draw_peer_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         snap.connections.len()
     )))
     .style(theme::base());
-    frame.render_widget(peers, chunks[0]);
+    frame.render_widget(peers, outer[0]);
+    // Bottom row: chat left, the selected connection's full values right
+    // (the Issues detail-pane pattern).
+    let panes = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
+        .split(outer[1]);
     let inbox = &app.ipfs.chat_inbox;
     let mut chat_lines = vec![];
     if inbox.is_empty() {
@@ -1059,7 +1074,33 @@ fn draw_peer_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         Paragraph::new(chat_lines)
             .block(content_block(&format!("Chat ({} message(s))", inbox.len())))
             .wrap(Wrap { trim: false }),
-        chunks[1],
+        panes[0],
+    );
+    let detail: Vec<text::Line> = match snap.connections.get(cursor) {
+        Some(conn) => vec![
+            text::Line::from(vec![
+                Span::styled("Peer  ", Style::default().fg(theme::FG_MUTED)),
+                Span::styled(conn.peer.clone(), Style::default().fg(theme::FG)),
+            ]),
+            text::Line::from(vec![
+                Span::styled("Direction  ", Style::default().fg(theme::FG_MUTED)),
+                Span::styled(conn.direction.clone(), Style::default().fg(theme::FG)),
+            ]),
+            text::Line::from(vec![
+                Span::styled("Addr  ", Style::default().fg(theme::FG_MUTED)),
+                Span::styled(conn.addr.clone(), Style::default().fg(theme::FG)),
+            ]),
+        ],
+        None => vec![text::Line::from(Span::styled(
+            "(select a connection to see its full values)",
+            Style::default().fg(theme::FG_MUTED),
+        ))],
+    };
+    frame.render_widget(
+        Paragraph::new(detail)
+            .block(content_block("Connection"))
+            .wrap(Wrap { trim: true }),
+        panes[1],
     );
 }
 
