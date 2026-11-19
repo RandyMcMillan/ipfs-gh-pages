@@ -14,7 +14,7 @@ use std::{
 };
 
 use muda::{
-    accelerator::{Accelerator, Code, CMD_OR_CTRL},
+    accelerator::{Accelerator, Code, Modifiers, CMD_OR_CTRL},
     Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu,
 };
 #[cfg(any(
@@ -89,6 +89,69 @@ pub fn run(cli: &Cli) -> Result<(), Box<dyn Error>> {
         .unwrap();
     menu_bar.append(&app_menu).unwrap();
 
+    // Repo menu: native git interaction with the --repo checkout (or the
+    // cwd). Full values on the clipboard, never elided.
+    let repo_path: Option<PathBuf> = cli
+        .repo
+        .as_deref()
+        .map(PathBuf::from)
+        .or_else(|| std::env::current_dir().ok());
+    let repo_menu = Submenu::new("Repo", true);
+    let copy_repo_path_item = MenuItem::new("Copy Repo Path", true, None);
+    let copy_branch_item = MenuItem::new("Copy Branch", true, None);
+    let copy_commit_item = MenuItem::new("Copy Latest Commit", true, None);
+    let copy_tag_item = MenuItem::new("Copy Latest Tag", true, None);
+    let reveal_item = MenuItem::new("Open Repo Folder", true, None);
+    let terminal_item = MenuItem::new("Open in Terminal", true, None);
+    repo_menu
+        .append_items(&[
+            &copy_repo_path_item,
+            &copy_branch_item,
+            &copy_commit_item,
+            &copy_tag_item,
+            &PredefinedMenuItem::separator(),
+            &reveal_item,
+            &terminal_item,
+        ])
+        .unwrap();
+    menu_bar.append(&repo_menu).unwrap();
+
+    // IPFS menu: drive the in-page bridge (the same ops the TUI issues)
+    // and copy the interop identity.
+    let ipfs_menu = Submenu::new("IPFS", true);
+    let publish_repo_item = MenuItem::new("Publish Repo to IPFS", true, None);
+    let sync_issues_item = MenuItem::new("Sync Issues from IPNS", true, None);
+    let detect_kubo_item = MenuItem::new("Detect Kubo", true, None);
+    let copy_identity_item = MenuItem::new("Copy Interop Identity", true, None);
+    ipfs_menu
+        .append_items(&[
+            &publish_repo_item,
+            &sync_issues_item,
+            &detect_kubo_item,
+            &PredefinedMenuItem::separator(),
+            &copy_identity_item,
+        ])
+        .unwrap();
+    menu_bar.append(&ipfs_menu).unwrap();
+
+    // View menu: page-level conveniences. DevTools/Reload are webview
+    // calls (macOS/Windows implementations; harmless elsewhere).
+    let view_menu = Submenu::new("View", true);
+    let reload_item = MenuItem::new(
+        "Reload",
+        true,
+        Some(Accelerator::new(CMD_OR_CTRL, Code::KeyR)),
+    );
+    let devtools_item = MenuItem::new(
+        "Developer Tools",
+        true,
+        Some(Accelerator::new(CMD_OR_CTRL | Modifiers::SHIFT, Code::KeyI)),
+    );
+    view_menu
+        .append_items(&[&reload_item, &devtools_item])
+        .unwrap();
+    menu_bar.append(&view_menu).unwrap();
+
     // Sized for the ratzilla TUI chrome (tabs + content + footer): big
     // enough for ~120x36 cells, small enough not to feel like a maximized
     // blank window on first launch.
@@ -134,7 +197,7 @@ pub fn run(cli: &Cli) -> Result<(), Box<dyn Error>> {
         target_os = "openbsd",
         target_os = "netbsd"
     ))]
-    let _webview = {
+    let webview = {
         use wry::WebViewBuilderExtUnix;
         webview_builder.build_gtk(window.default_vbox().unwrap())?
     };
@@ -145,7 +208,7 @@ pub fn run(cli: &Cli) -> Result<(), Box<dyn Error>> {
         target_os = "openbsd",
         target_os = "netbsd"
     )))]
-    let _webview = webview_builder.build(&window)?;
+    let webview = webview_builder.build(&window)?;
 
     // System tray: dedicated items (Show / Quit) that reuse the existing
     // MenuEvent handler. The TrayIcon must stay alive — it is moved into
@@ -210,18 +273,63 @@ pub fn run(cli: &Cli) -> Result<(), Box<dyn Error>> {
                 }
             }
             Event::UserEvent(UserEvent::MenuEvent(event)) => {
-                if event.id() == about_item.id() {
+                let id = event.id();
+                if id == about_item.id() {
                     if about_window.is_none() {
                         match create_about_window(window_target) {
                             Ok(pair) => about_window = Some(pair),
                             Err(err) => eprintln!("failed to open About window: {err}"),
                         }
                     }
-                } else if event.id() == quit_item.id() || event.id() == tray_quit_item.id() {
+                } else if id == quit_item.id() || id == tray_quit_item.id() {
                     stop_server(&app_source.server, control_flow);
-                } else if event.id() == tray_show_item.id() {
+                } else if id == tray_show_item.id() {
                     window.set_visible(true);
                     window.set_focus();
+                } else if id == copy_repo_path_item.id() {
+                    if let Some(path) = &repo_path {
+                        let _ = copy_to_clipboard(&path.display().to_string());
+                    }
+                } else if id == copy_branch_item.id() {
+                    if let Some(branch) = git_output(&repo_path, &["branch", "--show-current"]) {
+                        let _ = copy_to_clipboard(&branch);
+                    }
+                } else if id == copy_commit_item.id() {
+                    if let Some(sha) = git_output(&repo_path, &["rev-parse", "HEAD"]) {
+                        let _ = copy_to_clipboard(&sha);
+                    }
+                } else if id == copy_tag_item.id() {
+                    match git_output(&repo_path, &["describe", "--tags", "--abbrev=0"]) {
+                        Some(tag) => {
+                            let _ = copy_to_clipboard(&tag);
+                        }
+                        None => eprintln!("menu: no git tags in the repo"),
+                    }
+                } else if id == reveal_item.id() {
+                    if let Some(path) = &repo_path {
+                        reveal_in_folder(path);
+                    }
+                } else if id == terminal_item.id() {
+                    if let Some(path) = &repo_path {
+                        open_in_terminal(path);
+                    }
+                } else if id == publish_repo_item.id() {
+                    bridge_cmd(&webview, "repo.publishAll");
+                } else if id == sync_issues_item.id() {
+                    bridge_cmd(&webview, "issues.sync");
+                } else if id == detect_kubo_item.id() {
+                    bridge_cmd(&webview, "kuboDetect");
+                } else if id == copy_identity_item.id() {
+                    match fetch_interop_identity() {
+                        Some(identity) => {
+                            let _ = copy_to_clipboard(&identity);
+                        }
+                        None => eprintln!("menu: no interop identity published yet"),
+                    }
+                } else if id == reload_item.id() {
+                    let _ = webview.reload();
+                } else if id == devtools_item.id() {
+                    webview.open_devtools();
                 }
             }
             _ => {}
@@ -337,6 +445,216 @@ fn base64_encode(bytes: &[u8]) -> String {
         });
     }
     out
+}
+
+/// Run git in `repo` (falling back to the current directory) and return
+/// trimmed stdout on success. Native-side helper for the Repo menu.
+fn git_output(repo: &Option<PathBuf>, args: &[&str]) -> Option<String> {
+    let mut cmd = Command::new("git");
+    if let Some(dir) = repo {
+        cmd.current_dir(dir);
+    }
+    let out = cmd.args(args).output().ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    Some(String::from_utf8_lossy(&out.stdout).trim().to_string())
+}
+
+/// Copy text to the system clipboard using the platform's built-in tool
+/// (no new dependencies). macOS pbcopy, Windows clip, Linux xclip/xsel.
+fn copy_to_clipboard(text: &str) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    const COMMANDS: &[&[&str]] = &[&["pbcopy"]];
+    #[cfg(target_os = "windows")]
+    const COMMANDS: &[&[&str]] = &[&["clip"]];
+    #[cfg(all(
+        unix,
+        not(target_os = "macos"),
+        not(target_os = "linux"),
+        not(target_os = "dragonfly"),
+        not(target_os = "freebsd"),
+        not(target_os = "openbsd"),
+        not(target_os = "netbsd")
+    ))]
+    const COMMANDS: &[&[&str]] = &[];
+    #[cfg(any(
+        target_os = "linux",
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "openbsd",
+        target_os = "netbsd"
+    ))]
+    const COMMANDS: &[&[&str]] = &[
+        &["xclip", "-selection", "clipboard"],
+        &["xsel", "--clipboard", "--input"],
+    ];
+    for argv in COMMANDS {
+        if argv.is_empty() {
+            continue;
+        }
+        let mut child = match Command::new(argv[0])
+            .args(&argv[1..])
+            .stdin(Stdio::piped())
+            .spawn()
+        {
+            Ok(child) => child,
+            Err(_) => continue, // tool not installed — try the next one
+        };
+        if let Some(mut stdin) = child.stdin.take() {
+            let _ = stdin.write_all(text.as_bytes());
+        }
+        if child.wait().map(|s| s.success()).unwrap_or(false) {
+            return Ok(());
+        }
+    }
+    Err("no clipboard tool found".to_string())
+}
+
+/// GET the bridge-posted identity from the loopback interop server
+/// (docs/interop.md). Returns the JSON body, or None when nothing has
+/// been published yet.
+fn fetch_interop_identity() -> Option<String> {
+    let mut stream = TcpStream::connect((HOST, INTEROP_PORT)).ok()?;
+    stream.set_read_timeout(Some(Duration::from_secs(2))).ok()?;
+    stream
+        .write_all(
+            b"GET /well-known/identity HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
+        )
+        .ok()?;
+    let mut response = Vec::new();
+    stream.read_to_end(&mut response).ok()?;
+    let text = String::from_utf8_lossy(&response);
+    let (head, body) = text.split_once("\r\n\r\n")?;
+    if head.contains("200 OK") {
+        Some(body.trim().to_string())
+    } else {
+        None
+    }
+}
+
+/// Open the repo directory in the platform file browser.
+fn reveal_in_folder(path: &Path) {
+    #[cfg(target_os = "macos")]
+    let _ = Command::new("open").arg(path).spawn();
+    #[cfg(target_os = "windows")]
+    let _ = Command::new("explorer").arg(path).spawn();
+    #[cfg(all(
+        unix,
+        not(target_os = "macos"),
+        not(target_os = "linux"),
+        not(target_os = "dragonfly"),
+        not(target_os = "freebsd"),
+        not(target_os = "openbsd"),
+        not(target_os = "netbsd")
+    ))]
+    let _ = path;
+    #[cfg(any(
+        target_os = "linux",
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "openbsd",
+        target_os = "netbsd"
+    ))]
+    let _ = Command::new("xdg-open").arg(path).spawn();
+}
+
+/// Open a terminal at the repo path (macOS Terminal.app; Linux tries the
+/// common terminal emulators).
+fn open_in_terminal(path: &Path) {
+    #[cfg(target_os = "macos")]
+    let _ = Command::new("open")
+        .args(["-a", "Terminal"])
+        .arg(path)
+        .spawn();
+    #[cfg(target_os = "windows")]
+    let _ = Command::new("cmd")
+        .args(["/c", "start", "cmd", "/K", "cd", "/D"])
+        .arg(path)
+        .spawn();
+    #[cfg(all(
+        unix,
+        not(target_os = "macos"),
+        not(target_os = "linux"),
+        not(target_os = "dragonfly"),
+        not(target_os = "freebsd"),
+        not(target_os = "openbsd"),
+        not(target_os = "netbsd")
+    ))]
+    let _ = path;
+    #[cfg(any(
+        target_os = "linux",
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "openbsd",
+        target_os = "netbsd"
+    ))]
+    for term in ["x-terminal-emulator", "gnome-terminal", "konsole", "xterm"] {
+        if Command::new(term)
+            .arg("--working-directory")
+            .arg(path)
+            .spawn()
+            .is_ok()
+        {
+            break;
+        }
+    }
+}
+
+/// Bridge the menu into the page: run a bridge op the same way the TUI
+/// does (`window.__ipfsCmd`), letting the menu trigger publishes, syncs,
+/// and Kubo detection without keyboard focus.
+fn bridge_cmd(webview: &WebView, op: &str) {
+    let script = format!(
+        "window.__ipfsCmd && window.__ipfsCmd(Date.now(), '{}', {{}})",
+        op.replace('\'', "")
+    );
+    if let Err(err) = webview.evaluate_script(&script) {
+        eprintln!("menu: bridge op '{op}' failed: {err}");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn git_output_runs_in_the_crate_repository() {
+        assert_eq!(
+            git_output(&None, &["rev-parse", "--is-inside-work-tree"]),
+            Some("true".to_string())
+        );
+        let head = git_output(&None, &["rev-parse", "HEAD"]).unwrap();
+        assert_eq!(head.len(), 40, "full SHA, never elided");
+    }
+
+    #[test]
+    fn git_output_none_outside_a_repository() {
+        // Temp dirs created by other tests are not git repos; use the
+        // system temp dir root, which never is one.
+        let dir = std::env::temp_dir();
+        assert!(git_output(&Some(dir), &["rev-parse", "HEAD"]).is_none());
+    }
+
+    #[test]
+    fn interop_response_parsing_splits_head_from_body() {
+        let raw = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"peerId\":\"x\"}\n";
+        let (head, body) = raw.split_once("\r\n\r\n").unwrap();
+        assert!(head.contains("200 OK"));
+        assert_eq!(body.trim(), "{\"peerId\":\"x\"}");
+    }
+
+    #[test]
+    fn bridge_cmd_script_escapes_the_op_name() {
+        // The op is always one of ours (a fixed literal), but the quoting
+        // must survive regardless.
+        let op = "repo.publishAll";
+        let script = format!(
+            "window.__ipfsCmd && window.__ipfsCmd(Date.now(), '{}', {{}})",
+            op.replace('\'', "")
+        );
+        assert!(script.contains("'repo.publishAll'"));
+    }
 }
 
 fn stop_server(server: &Arc<Mutex<Option<ServerHandle>>>, control_flow: &mut ControlFlow) {
