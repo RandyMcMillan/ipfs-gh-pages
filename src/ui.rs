@@ -160,7 +160,7 @@ fn draw_help_overlay(frame: &mut Frame) {
     let lines = vec![
         section("Navigation"),
         text::Line::from("  ←/→  switch tabs    1-9, 0  jump to a tab"),
-        text::Line::from("  ↑/↓   move cursor   j/k      move (Issues, Actions)"),
+        text::Line::from("  ↑/↓   move cursor   j/k      move (Issues, Actions, Peer lists)"),
         text::Line::from("  Enter expand/collapse a directory · ⌫ collapse all (Code)"),
         text::Line::from(""),
         section("Command bar"),
