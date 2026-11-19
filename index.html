@@ -1268,7 +1268,7 @@
             <relative-time class="commit-time f6 color-fg-muted" id="commit-time"></relative-time>
             <span class="flex-auto"></span>
             <code id="clone-cid" class="commit-hash" title="root CID">…</code>
-            <a class="f6 color-fg-muted gh-link" id="commit-count" data-ghpath="/commits" href="#" hidden></a>
+            <a class="f6 color-fg-muted gh-link" id="commit-count" data-ghpath="/commits" href="#" aria-label="View commits" hidden></a>
           </div>
           <div id="file-tree">Loading repository tree...</div>
           </div>
@@ -1368,9 +1368,24 @@
           <textarea id="issue-body" rows="3" class="form-control" style="width: 100%;" placeholder="What happens, what you expected, how to reproduce…"></textarea>
           <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem; margin-top: 0.5rem;">
             <button id="btn-issue-create" class="btn btn-sm" type="button">Create issue</button>
+            <button id="btn-issue-selftest" class="btn btn-sm" type="button" title="Create a real signed issue, publish, and pin to local Kubo if detected">Self-test: create + pin</button>
             <span id="issue-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
           </div>
           <pre id="issue-result" style="margin: 0.4rem 0; display: none;"><code></code></pre>
+          <h4 style="margin-top: 1rem;">GitHub ↔ IPFS bridge</h4>
+          <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem; margin-top: 0.4rem;">
+            <input id="gh-import-url" type="text" class="form-control" style="flex: 1 1 18rem; min-width: 12rem;" placeholder="https://github.com/owner/repo/issues/123" />
+            <button id="btn-gh-list" class="btn btn-sm" type="button">Load this repo's issues</button>
+            <button id="btn-gh-import" class="btn btn-sm" type="button">Import URL</button>
+            <span id="gh-import-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
+          </div>
+          <label class="f6 d-block" style="margin-top: 0.5rem;">GitHub token (comment-back only — your PAT, stored in this browser's localStorage, never logged)</label>
+          <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem;">
+            <input id="gh-token" type="password" class="form-control" style="flex: 1 1 14rem; min-width: 10rem;" placeholder="github_pat_with_permission_issues_read_issues_write_contents_none_this_repo_only" autocomplete="off" />
+            <button id="btn-gh-connect" class="btn btn-sm" type="button">Connect GitHub</button>
+          </div>
+          <ul id="gh-issue-list" style="list-style: none; padding-left: 0; margin: 0.35rem 0 0 0;"></ul>
+          <p class="f6 color-fg-muted" style="margin: 0.25rem 0 0 0;">The whole thread imports as signed notes chained like git commits; the link rides the index tip through <code>refs/notes/&lt;owner&gt;/&lt;repo&gt;/index</code> to any clone.</p>
           <h4 style="margin-top: 1rem;">Issues filed from this browser</h4>
           <ul id="issues-list" style="list-style: none; padding-left: 0; margin: 0;"><li class="f6 color-fg-muted">(none yet)</li></ul>
           <div id="issue-detail" style="display: none; margin-top: 0.75rem; border-top: 1px solid var(--color-border-muted); padding-top: 0.5rem;">
@@ -1397,6 +1412,21 @@
       <section class="tab-panel" role="tabpanel" id="tab-pulls">
         <div class="card">
           <h3>Pull requests</h3>
+          <h4 style="margin: 0.5rem 0 0.25rem 0;">IPFS pull requests</h4>
+          <input id="pr-title" type="text" class="form-control" style="width: 100%;" placeholder="PR title" />
+          <textarea id="pr-body" rows="2" class="form-control" style="width: 100%; margin-top: 0.35rem;" placeholder="What this fork changes…"></textarea>
+          <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem; margin-top: 0.4rem;">
+            <input id="pr-head" type="text" class="form-control" style="flex: 1 1 16rem; min-width: 12rem;" placeholder="Fork root CID (bafy…)" />
+            <button id="btn-pr-create" class="btn btn-sm" type="button">File IPFS PR</button>
+            <span id="pr-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
+          </div>
+          <ul id="ipfs-pr-list" style="list-style: none; padding-left: 0; margin: 0.35rem 0 0.5rem 0;"></ul>
+          <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem;">
+            <button id="btn-gh-list-prs" class="btn btn-sm" type="button">Load this repo's PRs</button>
+            <span id="gh-pr-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
+          </div>
+          <ul id="gh-pr-list" style="list-style: none; padding-left: 0; margin: 0.35rem 0;"></ul>
+          <p class="f6 color-fg-muted" style="margin: 0.25rem 0 0.5rem 0;">Imported PRs land in the Issues index as signed notes with their review comments; the <code>pull_request</code> link stays in the envelope.</p>
           <p>A fork is a republish: the fork's page builds its own root CID and publishes its own branch pointer (<code>/ipns/&lt;peerId&gt;</code>). "Merging" is adopting the fork's root CID as yours — the IPNS pointer flips, DNSLink followers move with it.</p>
           <p>Reviewing a PR = diffing two UnixFS DAGs by CID: fetch both roots (Files → Fetch), compare file CIDs; identical CIDs are identical content, so the delta is exact.</p>
           <p class="f6" style="margin-bottom: 0;">Real PRs: <a class="gh-link" data-ghpath="/pulls" href="https://github.com/__REPO_OWNER__/__REPO_NAME__/pulls">Pull requests on GitHub ↗</a></p>
@@ -1416,6 +1446,12 @@
       <section class="tab-panel" role="tabpanel" id="tab-projects">
         <div class="card">
           <h3>Projects</h3>
+          <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem;">
+            <button id="btn-gh-list-ms" class="btn btn-sm" type="button">Load milestones</button>
+            <span id="gh-ms-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
+          </div>
+          <ul id="gh-ms-list" style="list-style: none; padding-left: 0; margin: 0.35rem 0;"></ul>
+          <p class="f6 color-fg-muted" style="margin: 0.25rem 0 0.5rem 0;">Milestones are GitHub's REST-visible project surface - click an issue to import it into the IPFS index.</p>
           <p>Projects ↔ <strong>named pin sets</strong>. A milestone is a group of CIDs pinned under one name — with the Code dropdown's ☆ Remote pin, use a shared <code>name</code> per milestone and the pinning service groups them; anyone can list the set via <code>GET /pins?name=…</code>.</p>
           <p class="f6" style="margin-bottom: 0;">Real project boards: <a class="gh-link" data-ghpath="/projects" href="https://github.com/__REPO_OWNER__/__REPO_NAME__/projects">Projects on GitHub ↗</a></p>
         </div>
@@ -1424,6 +1460,16 @@
       <section class="tab-panel" role="tabpanel" id="tab-wiki">
         <div class="card">
           <h3>Wiki</h3>
+          <p id="wiki-gh-status" class="f6 color-fg-muted" style="margin: 0.25rem 0;">Checking for a GitHub wiki…</p>
+          <h4 style="margin: 0.5rem 0 0.25rem 0;">IPFS wiki</h4>
+          <input id="wiki-title" type="text" class="form-control" style="width: 100%;" placeholder="Page title" />
+          <textarea id="wiki-body" rows="3" class="form-control" style="width: 100%; margin-top: 0.35rem;" placeholder="Markdown body…"></textarea>
+          <div class="d-flex flex-items-center flex-wrap" style="gap: 0.5rem; margin-top: 0.4rem;">
+            <button id="btn-wiki-create" class="btn btn-sm" type="button">Save page</button>
+            <span id="wiki-status" class="f6 color-fg-muted" style="word-break: break-all;"></span>
+          </div>
+          <ul id="wiki-list" style="list-style: none; padding-left: 0; margin: 0.35rem 0;"></ul>
+          <div id="wiki-page-body"></div>
           <p>A wiki page ↔ <strong>a markdown file in the repo</strong>. It renders exactly like the README card (same renderer) and travels inside the root CID — every clone carries the wiki, and editing a page is a commit like any other.</p>
           <p class="f6" style="margin-bottom: 0;">The real wiki: <a class="gh-link" data-ghpath="/wiki" href="https://github.com/__REPO_OWNER__/__REPO_NAME__/wiki">Wiki on GitHub ↗</a></p>
         </div>
@@ -1502,7 +1548,7 @@
             <p id="share-status"></p>
 
             <details style="margin-top:1rem;">
-              <summary style="cursor: pointer; font-weight: 600;">Connected Peers (<span id="peer-count">0</span>)</summary>
+              <p id="kubo-status" class="f6 color-fg-muted" style="margin: 0.25rem 0 0.5rem 0;">Local Kubo: probing…</p><summary style="cursor: pointer; font-weight: 600;">Connected Peers (<span id="peer-count">0</span>)</summary>
               <ul id="peers-list"><li>(none)</li></ul>
             </details>
             <details style="margin-top:0.5rem;">

@@ -1,0 +1,42 @@
+name: AI failure triage
+
+# Post-failure triage: downloads the failed run's job logs (via gh),
+# pre-filters them to error windows, asks the NVIDIA build API for a
+# diagnosis, and comments it on the associated PR.
+#
+# Runs in the base-repo context (workflow_run), so the NVIDIA_API_KEY
+# secret IS available even for fork PRs. Without the secret the step
+# warns and the job passes — it never blocks anything.
+
+on:
+  workflow_run:
+    workflows:
+      - "Action packaging smoke test"
+      - "Deployed page interop smoke"
+      - "Deploy IPFS site"
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  ai-triage:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # No npm ci: engines requires Node >= 26 and the script uses only
+      # built-ins plus gh (preinstalled on runners).
+      - name: Triage failed run with AI
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/nvidia-ai-triage.mjs

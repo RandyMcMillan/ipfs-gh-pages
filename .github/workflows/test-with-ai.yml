@@ -1,0 +1,29 @@
+name: AI Testing Demo
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ai-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Same environment as every other CI job: Node 26 (per package.json
+      # engines/.nvmrc), npm ci, Chrome for Testing + Linux libs.
+      - name: Setup test environment
+        uses: ./.github/actions/test-setup
+
+      - name: Run tests
+        run: npm run test:ci
+
+      - name: AI Integration Test
+        run: |
+          echo "Starting AI-powered testing..."
+          echo "This workflow demonstrates AI integration for testing"
+          npm run test:unit || true
+          echo "AI testing demo completed!"

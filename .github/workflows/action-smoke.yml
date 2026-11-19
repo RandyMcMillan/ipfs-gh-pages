@@ -87,3 +87,41 @@ jobs:
 
       - name: Check desktop build (bundle-wry)
         run: cargo check --features bundle-wry
+
+  ai-smoke:
+    # Optional AI-assisted diff review via the NVIDIA build API (default
+    # model moonshotai/kimi-k3.1-pro, override with NVIDIA_MODEL). Needs the
+    # NVIDIA_API_KEY repository secret; without it the step warns and this
+    # job passes — it never blocks the smoke suite. Fork PRs get no secrets,
+    # so they warn-and-pass too.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # HEAD~1..HEAD diff for push events
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # No npm ci: engines requires Node >= 26 and the script uses only
+      # built-in fetch.
+      - name: AI diff review (NVIDIA)
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          GH_EVENT: ${{ github.event_name }}
+          GH_BASE_REF: ${{ github.base_ref }}
+        run: node scripts/nvidia-ai.mjs
+
+      # Same-repo PRs only: fork PRs have a read-only token, and their
+      # ai-review.md never exists anyway (no secrets -> warn-and-pass).
+      - name: Comment AI review on PR
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && hashFiles('ai-review.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment ${{ github.event.pull_request.number }} --body-file ai-review.md

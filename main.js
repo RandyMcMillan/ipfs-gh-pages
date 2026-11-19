@@ -14,6 +14,9 @@ import { CarReader } from '@ipld/car/reader';
 import repoIdentity from 'virtual:repo-identity';
 import repoSubmodules from 'virtual:repo-submodules';
 import repoLiveInfo from 'virtual:repo-live-info';
+import { parseIssueUrl, mapGithubIssue, mapGithubComment, fetchGithubThread, postGithubComment, listGithubIssues, fetchContributors, listGithubPRs, fetchRepoMeta } from './js/github-issues.js';
+import { startDeviceFlow, pollDeviceToken } from './js/github-auth.js';
+import { probeKubo, kuboHandoff } from './js/kubo.js';
 import { strings } from '@helia/strings';
 import { unixfs } from '@helia/unixfs';
 import { CID } from 'multiformats/cid';
@@ -245,7 +248,9 @@ function applyBuildInfo() {
     // real number, like every other count on the page.
     if (repoIdentity.commitCount) {
       count.hidden = false;
-      count.textContent = `${repoIdentity.commitCount} Commits`;
+      const commitCount = `${repoIdentity.commitCount} Commits`;
+      count.textContent = commitCount;
+      count.setAttribute('aria-label', commitCount);
     } else {
       count.hidden = true;
       count.textContent = '';
@@ -289,7 +294,11 @@ async function refreshRepoMetadata() {
     return;
   }
   try {
-    const headers = { accept: 'application/vnd.github+json' };
+    // Send the user's PAT when configured: 5,000 req/hr instead of 60,
+    // and no shared quota surprises like the issues-list 403.
+    const headers = { accept: 'application/vnd.github+json', 'user-agent': 'ipfs-gh-pages' };
+    const ghTok = getGithubToken();
+    if (ghTok) headers.authorization = `Bearer ${ghTok}`;
     const [repoRes, langRes, branchRes, tagRes, relRes, relCountRes] = await Promise.all([
       fetch(`https://api.github.com/repos/${repoFullName}`, { headers }),
       fetch(`https://api.github.com/repos/${repoFullName}/languages`, { headers }),
@@ -385,6 +394,26 @@ function applyRepoMetadata(meta) {
     }
   }
 
+  // Contributors: the About heading exists — fill it with live data when
+  // the API answers (PAT makes this fast and quota-free in practice).
+  const [ghOwner, ghName] = repoFullName.split('/');
+  fetchContributors(ghOwner, ghName, { token: getGithubToken() }).then((list) => {
+    const box = document.querySelector('#tab-files .sidebar-section h2');
+    const section = [...document.querySelectorAll('#tab-files h2')].find((h) => h.textContent === 'Contributors')?.parentElement;
+    if (!section || !list.length) return;
+    section.querySelectorAll('.contrib-row').forEach((n) => n.remove());
+    for (const c of list) {
+      const row = document.createElement('a');
+      row.className = 'f6 contrib-row';
+      row.href = c.url;
+      row.target = '_blank';
+      row.rel = 'noopener';
+      row.style.cssText = 'display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;';
+      row.innerHTML = `<img src="${c.avatar}&s=40" width="20" height="20" style="border-radius:50%" alt=""> <span></span> <span class="color-fg-muted">${c.contributions}</span>`;
+      row.querySelector('span').textContent = c.login;
+      section.appendChild(row);
+    }
+  }).catch(() => {});
   if (repo.description) {
     const desc = document.getElementById('about-description');
     if (desc) desc.textContent = repo.description;
@@ -3975,6 +4004,26 @@ function showCidPopover(cid, anchor) {
     }
   });
 
+  if (localKuboRpc) {
+    const kuboBtn = document.createElement('button');
+    kuboBtn.className = 'btn btn-sm';
+    kuboBtn.type = 'button';
+    kuboBtn.textContent = 'Pin to local Kubo';
+    kuboBtn.style.marginLeft = '0.5rem';
+    carRow.appendChild(kuboBtn);
+    kuboBtn.addEventListener('click', async () => {
+      kuboBtn.disabled = true;
+      carStatus.textContent = 'Exporting and importing to local Kubo…';
+      try {
+        const out = await kuboHandoff(cid, { exportCarBytes });
+        carStatus.textContent = `Pinned to local Kubo (${(out.bytes / 1024).toFixed(1)} KB imported)`;
+      } catch (err) {
+        carStatus.textContent = `Kubo pin failed: ${err.message}`;
+        kuboBtn.disabled = false;
+      }
+    });
+  }
+
   document.body.appendChild(pop);
   const r = anchor.getBoundingClientRect();
   const pw = pop.offsetWidth;
@@ -4057,6 +4106,68 @@ async function verifyNote(envelope) {
 }
 
 let currentIssueCid = null;
+// GitHub link of the open issue (from its signed envelope) — set by openIssue.
+let currentIssueGithub = null;
+const GH_TOKEN_KEY = 'github-token';
+// OAuth device flow: client_id is PUBLIC by design (device flow is
+// secretless). Baked plugin default; a consumer org can register their own
+// OAuth app and override via localStorage for their own consent-screen name.
+const GH_OAUTH_CLIENT_ID = 'Ov23lisYGKagLsL5KwID';
+const GH_CLIENT_ID_KEY = 'github-oauth-client-id';
+function getGhClientId() {
+  try { return localStorage.getItem(GH_CLIENT_ID_KEY) || GH_OAUTH_CLIENT_ID; } catch { return GH_OAUTH_CLIENT_ID; }
+}
+
+// Kubo RPC detection for the CID-popover hand-off ('Pin to local Kubo').
+// Distinct from the Peer-settings detectKubo() (dial-address probe): this
+// one tracks an RPC endpoint for dag/import + pin/add. Auto-probes at boot.
+let localKuboRpc = null;
+async function detectKuboRpc() {
+  localKuboRpc = await probeKubo();
+  const el = document.getElementById('kubo-status');
+  if (el) {
+    el.textContent = localKuboRpc
+      ? `Local Kubo: ${localKuboRpc.peerId} (${localKuboRpc.agentVersion || 'kubo'}) — popovers can pin straight to it.`
+      : 'Local Kubo: none detected at 127.0.0.1:5001 (start your node, then reload).';
+  }
+  return localKuboRpc;
+}
+detectKuboRpc();
+
+// Optional relay for the device flow (github.com/login/* has no CORS):
+// localStorage 'github-auth-relay' = e.g. https://auth.example.com/gh
+// which forwards POST /device/code and /oauth/access_token.
+function getGhAuthBaseUrl() {
+  try { return localStorage.getItem('github-auth-relay') || ''; } catch { return ''; }
+}
+
+// GitHub device-flow connect: show the user_code + verification URL, poll
+// for the token, store it under the same key as the PAT fallback.
+async function connectGithub() {
+  const statusEl = document.getElementById('gh-import-status');
+  try {
+    const baseUrl = getGhAuthBaseUrl();
+    const dev = await startDeviceFlow(getGhClientId(), { baseUrl });
+    if (statusEl) {
+      statusEl.innerHTML = '';
+      const a = document.createElement('a');
+      a.href = dev.verification_uri;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = dev.verification_uri;
+      statusEl.append('Enter code ', dev.user_code, ' at ');
+      statusEl.appendChild(a);
+      statusEl.append(' — waiting…');
+    }
+    const { token } = await pollDeviceToken(getGhClientId(), dev.device_code, { interval: dev.interval, baseUrl });
+    try { localStorage.setItem(GH_TOKEN_KEY, token); } catch {}
+    const tokEl = document.getElementById('gh-token');
+    if (tokEl) tokEl.value = token;
+    if (statusEl) statusEl.textContent = 'GitHub connected — token stored in this browser.';
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Connect failed: ${err.message}`;
+  }
+}
 // Phase 3: an issue filed from the file tree anchors to that file's CID —
 // the git-notes model (annotate without mutating the annotated object).
 let pendingIssueAnchor = null;
@@ -4133,7 +4244,13 @@ async function extendChain(addedCids) {
   let parentLamport = 0;
   if (prevTip) {
     try {
-      const prevEntry = await getDagJson(CID.parse(prevTip.cid));
+      // Bounded: the prev tip can point at a block this browser doesn't
+      // hold; bitswap then stalls the whole chain extension (observed:
+      // 'Signing and publishing…' forever). Unresolvable in 8s → genesis.
+      const prevEntry = await Promise.race([
+        getDagJson(CID.parse(prevTip.cid)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('prev tip timeout')), 8000))
+      ]);
       parentHeight = Number(prevEntry.height) || 0;
       parentLamport = Number(prevEntry.lamport) || 0;
     } catch { /* prev unavailable — treat as genesis */ }
@@ -4397,6 +4514,64 @@ async function recordRehost(url, cid) {
   return noteCid;
 }
 
+function getGithubToken() {
+  try { return localStorage.getItem(GH_TOKEN_KEY) || ''; } catch { return ''; }
+}
+
+// GitHub → IPFS: fetch the thread, re-express as signed notes chained like
+// git commits (issue → comment1 → comment2 …), publish all, one chain extend.
+async function importGithubIssue(target) {
+  const statusEl = document.getElementById('gh-import-status');
+  // Seamless path: called with {owner, repo, number} from the listed issues.
+  // Fallback: parse whatever is in the URL box.
+  let parsed = target || null;
+  const urlEl = document.getElementById('gh-import-url');
+  if (!parsed) parsed = parseIssueUrl(urlEl?.value || '');
+  if (!parsed) {
+    if (statusEl) statusEl.textContent = 'Load the repo issues below, or paste an issue URL.';
+    return;
+  }
+  if (!heliaNode) {
+    if (statusEl) statusEl.textContent = 'Wait for the node to come online.';
+    return;
+  }
+  if (statusEl) statusEl.textContent = `Fetching ${parsed.owner}/${parsed.repo}#${parsed.number}…`;
+  try {
+    const { issue, comments } = await fetchGithubThread(parsed.owner, parsed.repo, parsed.number, { token: getGithubToken() });
+    const issueFields = mapGithubIssue({ ...issue, owner: parsed.owner, repo: parsed.repo });
+    const issueNote = await signNote({
+      ns: 'issues', type: 'issue', title: issueFields.title, body: issueFields.body,
+      github: issueFields.github, timestamp: new Date().toISOString()
+    });
+    const issueCid = await publishNote(issueNote.envelope);
+    const cids = [issueCid];
+    const commentIndex = loadCommentIndex();
+    let parent = issueCid;
+    for (const c of comments) {
+      const fields = mapGithubComment(c);
+      const note = await signNote({
+        ns: 'issues', type: 'comment', parent, body: fields.body,
+        github: fields.github, timestamp: new Date().toISOString()
+      });
+      const ccid = await publishNote(note.envelope);
+      cids.push(ccid);
+      (commentIndex[issueCid] = commentIndex[issueCid] || []).push(ccid);
+      parent = ccid;
+    }
+    try { localStorage.setItem(COMMENTS_KEY, JSON.stringify(commentIndex)); } catch {}
+    const issues = loadIssues();
+    issues.unshift({ cid: issueCid, title: issueFields.title, timestamp: issueNote.envelope.timestamp, signer: issueNote.signer, anchors: [] });
+    try { localStorage.setItem(ISSUES_KEY, JSON.stringify(issues)); } catch {}
+    await extendChain(cids);
+    if (statusEl) statusEl.textContent = `Imported ${comments.length + 1} notes — ${issueCid}`;
+    if (urlEl) urlEl.value = '';
+    renderIssues();
+    openIssue(issueCid);
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Import failed: ${err.message}`;
+  }
+}
+
 async function createIssue() {
   const titleEl = document.getElementById('issue-title');
   const bodyEl = document.getElementById('issue-body');
@@ -4430,6 +4605,7 @@ async function createIssue() {
     if (titleEl) titleEl.value = '';
     if (bodyEl) bodyEl.value = '';
     if (statusEl) statusEl.textContent = `Created — ${cid}${pendingIssueAnchor ? ` — anchored to ${pendingIssueAnchor.name}` : ''}`;
+    autoPinToKubo(cid, statusEl);
     pendingIssueAnchor = null;
     // Hand the user the real command at the moment of creation, on its own
     // line (yellow by the global command rule).
@@ -4471,6 +4647,20 @@ async function createComment(issueCid, body) {
     const replyEl = document.getElementById('issue-reply');
     if (replyEl) replyEl.value = '';
     if (statusEl) statusEl.textContent = `Commented — ${cid}`;
+    // Bridge back to GitHub: the issue is linked and a token is configured.
+    // Fires alongside the IPFS comment; failures never undo the local one.
+    if (currentIssueGithub && issueCid === currentIssueCid) {
+      const token = getGithubToken();
+      if (token) {
+        postGithubComment(currentIssueGithub.owner, currentIssueGithub.repo, currentIssueGithub.number, body, { token })
+          .then((gh) => {
+            if (statusEl) statusEl.textContent = `Commented — ${cid} — mirrored to GitHub #${currentIssueGithub.number} (${gh.id})`;
+          })
+          .catch((e) => {
+            if (statusEl) statusEl.textContent = `Commented — ${cid} — GitHub mirror failed: ${e.message}`;
+          });
+      }
+    }
     openIssue(issueCid);
   } catch (err) {
     if (statusEl) statusEl.textContent = `Failed: ${err.message}`;
@@ -4498,6 +4688,7 @@ async function openIssue(cid) {
       return;
     }
     statusEl.textContent = '';
+    currentIssueGithub = signed.github || null;
     if (bodyEl) {
       const h = document.createElement('h4');
       h.style.marginTop = '0';
@@ -4510,6 +4701,18 @@ async function openIssue(cid) {
       body.textContent = signed.body || '';
       bodyEl.appendChild(h);
       bodyEl.appendChild(meta);
+      if (signed.github && signed.github.url) {
+        const ghRow = document.createElement('div');
+        ghRow.className = 'f6';
+        ghRow.style.marginTop = '0.2rem';
+        const a = document.createElement('a');
+        a.href = signed.github.url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = `↔ GitHub ${signed.github.owner}/${signed.github.repo}#${signed.github.number} — comments here post back when a token is set`;
+        ghRow.appendChild(a);
+        bodyEl.appendChild(ghRow);
+      }
       if (signed.body) {
         // Network content renders in a sandboxed iframe (no origin
         // access even if sanitization missed something).
@@ -4572,6 +4775,288 @@ async function openIssue(cid) {
 
 const issueCreateBtn = document.getElementById('btn-issue-create');
 if (issueCreateBtn) issueCreateBtn.addEventListener('click', createIssue);
+// GitHub ↔ IPFS issues bridge (js/github-issues.js): import + token.
+const ghImportBtn = document.getElementById('btn-gh-import');
+if (ghImportBtn) ghImportBtn.addEventListener('click', importGithubIssue);
+// Seamless: list this repo's open GitHub issues — the app already knows
+// repoFullName. Click an entry to import it; no URL copying anywhere.
+const ghListBtn = document.getElementById('btn-gh-list');
+if (ghListBtn) ghListBtn.addEventListener('click', async () => {
+  const statusEl = document.getElementById('gh-import-status');
+  const listEl = document.getElementById('gh-issue-list');
+  const [owner, name] = repoFullName.split('/');
+  if (statusEl) statusEl.textContent = 'Loading open GitHub issues…';
+  try {
+    const issues = await listGithubIssues(owner, name, { token: getGithubToken() });
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    for (const i of issues) {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = `#${i.number} ${i.title}`;
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        importGithubIssue({ owner, repo: name, number: i.number });
+      });
+      li.appendChild(a);
+      listEl.appendChild(li);
+    }
+    if (statusEl) statusEl.textContent = issues.length ? `${issues.length} open issue(s) — click to import:` : 'No open GitHub issues in this repo.';
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Could not list issues: ${err.message} — set a fine-grained PAT (Issues read/write, this repo) in the field above; without one the unauthenticated limit is 60/hr.`;
+  }
+});
+// End-to-end self-test (local testing): create a REAL signed issue note,
+// publish it, extend the chain, and — with a Kubo detected — hand the CAR
+// to dag/import + pin. Every step reports; nothing is mocked. Trigger from
+// the Issues panel button or automatically with ?selftest.
+async function selfTestIssue() {
+  const statusEl = document.getElementById('issue-status');
+  const say = (t) => { if (statusEl) statusEl.textContent = t; };
+  if (!heliaNode) { say('Self-test: node offline — wait for Online.'); return; }
+  const stamp = new Date().toISOString();
+  say('Self-test: signing + publishing…');
+  try {
+    const { envelope, signer } = await signNote({
+      ns: 'issues', type: 'issue', anchors: [],
+      title: `self-test ${stamp}`,
+      body: `Automated end-to-end test from the Issues panel. Node: ${document.getElementById('node-status')?.textContent?.trim() || 'unknown'}. Kubo: ${localKuboRpc ? localKuboRpc.peerId : 'none detected'}.`,
+      timestamp: stamp
+    });
+    const cid = await publishNote(envelope);
+    await extendChain([cid]);
+    say(`Self-test: published ${cid}`);
+    if (localKuboRpc) {
+      say(`Self-test: exporting CAR → local Kubo (${localKuboRpc.peerId})…`);
+      const out = await kuboHandoff(cid, { exportCarBytes });
+      say(`Self-test OK — ${cid} — ${(out.bytes / 1024).toFixed(1)} KB imported and PINNED to local Kubo. Verify: ipfs pin ls | grep ${cid.slice(-8)}`);
+    } else {
+      say(`Self-test OK — ${cid} — published (no local Kubo detected, pin step skipped).`);
+    }
+    const issues = loadIssues();
+    issues.unshift({ cid, title: envelope.title, timestamp: envelope.timestamp, signer, anchors: [] });
+    try { localStorage.setItem(ISSUES_KEY, JSON.stringify(issues)); } catch {}
+    renderIssues();
+  } catch (err) {
+    say(`Self-test FAILED: ${err.message}`);
+  }
+}
+
+// Seamless pinning: with a local Kubo detected, every new note is handed
+// off automatically — the user never runs `ipfs pin add`.
+async function autoPinToKubo(cid, statusEl) {
+  if (!localKuboRpc) return;
+  try {
+    await kuboHandoff(cid, { exportCarBytes });
+    if (statusEl) statusEl.textContent += ` — pinned to local Kubo`;
+  } catch (err) {
+    if (statusEl) statusEl.textContent += ` — Kubo pin failed: ${err.message}`;
+  }
+}
+const selfTestBtn = document.getElementById('btn-issue-selftest');
+if (selfTestBtn) selfTestBtn.addEventListener('click', selfTestIssue);
+if (new URLSearchParams(location.search).has('selftest')) {
+  const t = setInterval(() => {
+    if (/Online/.test(document.getElementById('node-status')?.textContent || '')) { clearInterval(t); selfTestIssue(); }
+  }, 1000);
+}
+// Pull requests: identical seamless list on the #/pulls tab. Import reuses
+// importGithubIssue — GitHub serves PRs at /issues/<n>, comments included.
+const ghListPrBtn = document.getElementById('btn-gh-list-prs');
+if (ghListPrBtn) ghListPrBtn.addEventListener('click', async () => {
+  const statusEl = document.getElementById('gh-pr-status');
+  const listEl = document.getElementById('gh-pr-list');
+  const [owner, name] = repoFullName.split('/');
+  if (statusEl) statusEl.textContent = 'Loading open GitHub pull requests…';
+  try {
+    const prs = await listGithubPRs(owner, name, { token: getGithubToken() });
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    for (const i of prs) {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = `#${i.number} ${i.title}`;
+      a.addEventListener('click', (e) => { e.preventDefault(); importGithubIssue({ owner, repo: name, number: i.number }); });
+      li.appendChild(a);
+      listEl.appendChild(li);
+    }
+    if (statusEl) statusEl.textContent = prs.length ? `${prs.length} open PR(s) — click to import:` : 'No open GitHub pull requests in this repo.';
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Could not list PRs: ${err.message} — set the fine-grained PAT above if quota is gone.`;
+  }
+});
+// Native IPFS pull request: a signed note proposing a new repo root —
+// 'a fork is a republish', made concrete. head = the fork's root CID,
+// base = this repo's current root. Same index, same verification, same
+// comment chains; the merge action (root adoption) lands next.
+const PRS_KEY = 'ipfs-prs';
+const loadPRs = () => { try { return JSON.parse(localStorage.getItem(PRS_KEY) || '[]'); } catch { return []; } };
+async function createIpfsPR() {
+  const title = (document.getElementById('pr-title')?.value || '').trim();
+  const body = (document.getElementById('pr-body')?.value || '').trim();
+  const head = (document.getElementById('pr-head')?.value || '').trim();
+  const statusEl = document.getElementById('pr-status');
+  if (!title || !head) { if (statusEl) statusEl.textContent = 'Give the PR a title and the fork root CID.'; return; }
+  if (!heliaNode) { if (statusEl) statusEl.textContent = 'Wait for the node to come online.'; return; }
+  if (statusEl) statusEl.textContent = 'Signing and publishing…';
+  try {
+    const base = (document.getElementById('output-cid')?.textContent || '').trim();
+    const { envelope, signer } = await signNote({
+      ns: 'issues', type: 'pull-request', title, body,
+      head: { rootCid: head }, base: { rootCid: base },
+      timestamp: new Date().toISOString()
+    });
+    const cid = await publishNote(envelope);
+    await extendChain([cid]);
+    const prs = loadPRs();
+    prs.unshift({ cid, title, timestamp: envelope.timestamp, signer });
+    try { localStorage.setItem(PRS_KEY, JSON.stringify(prs)); } catch {}
+    autoPinToKubo(cid, statusEl);
+    renderPRs();
+    if (statusEl) statusEl.textContent = `PR filed — ${cid}`;
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `Failed: ${err.message}`;
+  }
+}
+function renderPRs() {
+  const listEl = document.getElementById('ipfs-pr-list');
+  if (!listEl) return;
+  const prs = loadPRs();
+  listEl.innerHTML = '';
+  if (!prs.length) { listEl.innerHTML = '<li class="f6 color-fg-muted">(none yet)</li>'; return; }
+  for (const pr of prs) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#';
+    a.textContent = pr.title;
+    a.addEventListener('click', (e) => { e.preventDefault(); openIssue(pr.cid); location.hash = '#/issues'; });
+    li.appendChild(a);
+    if (pr.merged) {
+      const badge = document.createElement('span');
+      badge.className = 'Label Label--secondary';
+      badge.style.marginLeft = '0.4rem';
+      badge.textContent = 'merged';
+      li.appendChild(badge);
+    } else {
+      const mb = document.createElement('button');
+      mb.className = 'btn btn-sm';
+      mb.style.marginLeft = '0.4rem';
+      mb.textContent = 'Merge';
+      mb.addEventListener('click', (ev) => { ev.preventDefault(); mergeIpfsPR(pr); });
+      li.appendChild(mb);
+    }
+    listEl.appendChild(li);
+  }
+}
+const prCreateBtn = document.getElementById('btn-pr-create');
+if (prCreateBtn) prCreateBtn.addEventListener('click', createIpfsPR);
+renderPRs();
+// Projects: seamless milestone list - click a milestone's issue to import.
+const ghMsBtn = document.getElementById('btn-gh-list-ms');
+if (ghMsBtn) ghMsBtn.addEventListener('click', async () => {
+  const statusEl = document.getElementById('gh-ms-status');
+  const listEl = document.getElementById('gh-ms-list');
+  const [owner, name] = repoFullName.split('/');
+  if (statusEl) statusEl.textContent = 'Loading milestones…';
+  try {
+    const ms = await fetchMilestones(owner, name, { token: getGithubToken() });
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    for (const m of ms) {
+      const li = document.createElement('li');
+      li.innerHTML = `<strong></strong> <span class="f6 color-fg-muted"></span>`;
+      li.querySelector('strong').textContent = m.title;
+      li.querySelector('span').textContent = `${m.openIssues.length} open`;
+      for (const i of m.openIssues) {
+        const sub = document.createElement('div');
+        const a = document.createElement('a');
+        a.href = '#';
+        a.textContent = `  #${i.number} ${i.title}`;
+        a.addEventListener('click', (e) => { e.preventDefault(); importGithubIssue({ owner, repo: name, number: i.number }); });
+        sub.appendChild(a);
+        li.appendChild(sub);
+      }
+      listEl.appendChild(li);
+    }
+    if (statusEl) statusEl.textContent = ms.length ? `${ms.length} milestone(s):` : 'No open milestones.';
+  } catch (err) { if (statusEl) statusEl.textContent = `Could not list milestones: ${err.message}`; }
+});
+// Wiki: detect the GitHub wiki, and run the native IPFS wiki (signed notes,
+// ns 'wiki') - create/list/render through the existing markdown pipeline.
+const WIKI_KEY = 'ipfs-wiki';
+const loadWikiPages = () => { try { return JSON.parse(localStorage.getItem(WIKI_KEY) || '[]'); } catch { return []; } };
+function renderWiki() {
+  const listEl = document.getElementById('wiki-list');
+  if (!listEl) return;
+  const pages = loadWikiPages();
+  listEl.innerHTML = '';
+  if (!pages.length) { listEl.innerHTML = '<li class="f6 color-fg-muted">(no pages yet)</li>'; return; }
+  for (const p of pages) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#';
+    a.textContent = p.title;
+    a.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const { ok, signed } = await verifyNote(await getDagJson(CID.parse(p.cid)));
+      const body = document.getElementById('wiki-page-body');
+      if (!body) return;
+      body.innerHTML = '';
+      if (!ok) { body.textContent = 'signature INVALID'; return; }
+      const h = document.createElement('h4'); h.textContent = signed.title; h.style.margin = '0.5rem 0 0.25rem 0';
+      body.appendChild(h);
+      body.appendChild(sandboxedFrame(sanitizeMarkdownHtml(signed.body || ''), { title: 'wiki page' }));
+    });
+    li.appendChild(a);
+    listEl.appendChild(li);
+  }
+}
+async function createWikiPage() {
+  const title = (document.getElementById('wiki-title')?.value || '').trim();
+  const body = (document.getElementById('wiki-body')?.value || '').trim();
+  const statusEl = document.getElementById('wiki-status');
+  if (!title) { if (statusEl) statusEl.textContent = 'Give the page a title.'; return; }
+  if (!heliaNode) { if (statusEl) statusEl.textContent = 'Wait for the node.'; return; }
+  try {
+    const { envelope, signer } = await signNote({ ns: 'wiki', type: 'page', title, body, timestamp: new Date().toISOString() });
+    const cid = await publishNote(envelope);
+    await extendChain([cid]);
+    const pages = loadWikiPages();
+    pages.unshift({ cid, title, timestamp: envelope.timestamp, signer });
+    try { localStorage.setItem(WIKI_KEY, JSON.stringify(pages)); } catch {}
+    autoPinToKubo(cid, statusEl);
+    if (statusEl) statusEl.textContent = `Page saved - ${cid}`;
+    document.getElementById('wiki-title').value = '';
+    document.getElementById('wiki-body').value = '';
+    renderWiki();
+  } catch (err) { if (statusEl) statusEl.textContent = `Failed: ${err.message}`; }
+}
+const wikiCreateBtn = document.getElementById('btn-wiki-create');
+if (wikiCreateBtn) wikiCreateBtn.addEventListener('click', createWikiPage);
+renderWiki();
+// Detection probe: has_wiki from the repo object (token-aware).
+(async () => {
+  const el = document.getElementById('wiki-gh-status');
+  if (!el) return;
+  const [owner, name] = repoFullName.split('/');
+  try {
+    const meta = await fetchRepoMeta(owner, name, { token: getGithubToken() });
+    el.textContent = meta.has_wiki
+      ? 'GitHub wiki detected - pages clone from https://github.com/' + repoFullName + '.wiki.git (git transport bridge planned).'
+      : 'No GitHub wiki on this repo - the IPFS wiki below is the native home.';
+  } catch (err) { el.textContent = `Wiki detection: ${err.message}`; }
+})();
+const ghConnectBtn = document.getElementById('btn-gh-connect');
+if (ghConnectBtn) ghConnectBtn.addEventListener('click', connectGithub);
+const ghTokenEl = document.getElementById('gh-token');
+if (ghTokenEl) {
+  ghTokenEl.value = getGithubToken();
+  ghTokenEl.addEventListener('change', () => {
+    try { localStorage.setItem(GH_TOKEN_KEY, ghTokenEl.value.trim()); } catch {}
+  });
+}
 // Phase 3: from the file tree, route to the issues view with the anchor
 // prefilled — the note is attached to that exact CID, non-invasively.
 const issueOnFileBtn = document.getElementById('btn-issue-on-file');
@@ -4696,3 +5181,23 @@ if (cloneHelpModal && cloneHelpBtn) {
 }
 
 initHelia();
+// Merge an IPFS PR: verify, pin the head root to a detected Kubo, record the
+// adoption as a signed merge note on the index chain.
+async function mergeIpfsPR(pr) {
+  const statusEl = document.getElementById('pr-status');
+  try {
+    const { ok, signed } = await verifyNote(await getDagJson(CID.parse(pr.cid)));
+    if (!ok) { if (statusEl) statusEl.textContent = 'Merge failed: PR signature INVALID.'; return; }
+    const head = signed.head?.rootCid;
+    if (!head) { if (statusEl) statusEl.textContent = 'Merge failed: no head root CID.'; return; }
+    const { envelope } = await signNote({ ns: 'issues', type: 'merge', pr: pr.cid, head, title: `Merge: ${signed.title || pr.cid}`, timestamp: new Date().toISOString() });
+    const cid = await publishNote(envelope);
+    await extendChain([cid]);
+    const prs = loadPRs();
+    const entry = prs.find((p) => p.cid === pr.cid);
+    if (entry) { entry.merged = head; entry.mergeNote = cid; try { localStorage.setItem(PRS_KEY, JSON.stringify(prs)); } catch {} }
+    if (localKuboRpc) { try { await kuboHandoff(head, { exportCarBytes }); } catch {} }
+    if (statusEl) statusEl.textContent = `Merged - adoption note ${cid}, head ${head}`;
+    renderPRs();
+  } catch (err) { if (statusEl) statusEl.textContent = `Merge failed: ${err.message}`; }
+}
