@@ -194,22 +194,26 @@ fn draw_header(frame: &mut Frame, app: &App, area: Rect) {
     } else {
         ("○", theme::FG_SUBTLE)
     };
-    let right = format!("{} connection(s)  ", snap.connections.len());
-    let right_width = right.chars().count() + 2;
-    let left_width = 2 + app.title.chars().count() + 24;
-    let pad = (area.width as usize).saturating_sub(left_width + right_width);
-    let line = text::Line::from(vec![
+    let right = format!("{} connection(s)", snap.connections.len());
+    let spans = vec![
         Span::styled(" ◆ ", inset.fg(theme::ACCENT)),
         Span::styled(
             format!("{:<13}", app.title),
             inset.fg(theme::FG).add_modifier(Modifier::BOLD),
         ),
         Span::styled(" ⌕ Search or jump to… / ", inset.fg(theme::FG_SUBTLE)),
-        Span::styled(" ".repeat(pad), inset),
+    ];
+    let right_spans = vec![
         Span::styled(format!("{dot} "), inset.fg(dot_color)),
-        Span::styled(right.trim_end().to_string(), inset.fg(theme::FG_MUTED)),
-    ]);
-    frame.render_widget(Paragraph::new(line), area);
+        Span::styled(right.clone(), inset.fg(theme::FG_MUTED)),
+    ];
+    let left_width: usize = spans.iter().map(|s| s.content.chars().count()).sum();
+    let right_width: usize = right_spans.iter().map(|s| s.content.chars().count()).sum();
+    let pad = (area.width as usize).saturating_sub(left_width + right_width);
+    let mut line = spans;
+    line.push(Span::styled(" ".repeat(pad), inset));
+    line.extend(right_spans);
+    frame.render_widget(Paragraph::new(text::Line::from(line)), area);
 }
 
 /// `owner / name`, Public badge, then Watch/Star/Fork buttons pushed right.
@@ -231,17 +235,19 @@ fn draw_repo_header(frame: &mut Frame, app: &App, area: Rect) {
         Span::styled("  ", Style::default()),
     ];
     spans.extend(badge_spans("Public"));
-    // Right-side buttons: Watch ▾, ☆ Star, ⑃ Fork (GitHub order).
-    let buttons = " ▾ Watch   ☆ Star   ⑃ Fork ";
-    let used: usize =
-        1 + snap.repo_owner.chars().count() + 3 + name.chars().count() + 2 + "Public".len() + 2;
-    let pad = (area.width as usize).saturating_sub(used + buttons.chars().count());
+    // Right-side buttons: Watch ▾, ☆ Star, ⑃ Fork (GitHub order), sized
+    // from the actual spans so narrow terminals clip padding, never text.
+    let mut right: Vec<Span> = vec![];
+    right.extend(theme::btn_spans("▾ Watch"));
+    right.push(Span::raw(" "));
+    right.extend(theme::btn_spans("☆ Star"));
+    right.push(Span::raw(" "));
+    right.extend(theme::btn_spans("⑃ Fork"));
+    let left_width: usize = spans.iter().map(|s| s.content.chars().count()).sum();
+    let right_width: usize = right.iter().map(|s| s.content.chars().count()).sum();
+    let pad = (area.width as usize).saturating_sub(left_width + right_width);
     spans.push(Span::styled(" ".repeat(pad), Style::default()));
-    spans.extend(theme::btn_spans("▾ Watch"));
-    spans.push(Span::raw(" "));
-    spans.extend(theme::btn_spans("☆ Star"));
-    spans.push(Span::raw(" "));
-    spans.extend(theme::btn_spans("⑃ Fork"));
+    spans.extend(right);
     frame.render_widget(
         Paragraph::new(text::Line::from(spans)).style(theme::base()),
         area,
@@ -1258,5 +1264,102 @@ mod tests {
         let lines = readme_lines("a\r\nb\r\n");
         assert_eq!(line_text(&lines[0]), "a");
         assert_eq!(line_text(&lines[1]), "b");
+    }
+}
+
+#[cfg(test)]
+mod render_tests {
+    use super::*;
+    use crate::app::App;
+    use ratzilla::ratatui::{backend::TestBackend, Terminal};
+
+    fn render(app: &mut App, w: u16, h: u16) -> String {
+        let backend = TestBackend::new(w, h);
+        let mut terminal = Terminal::new(backend).unwrap();
+        // Jump past the startup sweep effect — at t≈0 it paints the whole
+        // frame canvas (the fade-in you see on page load), hiding content.
+        terminal
+            .draw(|f| draw(Duration::from_millis(5000), f, app))
+            .unwrap();
+        let buf = terminal.backend().buffer();
+        let area = buf.area;
+        let mut out = String::new();
+        for y in 0..area.height {
+            for x in 0..area.width {
+                out.push_str(buf.cell((x, y)).map(|c| c.symbol()).unwrap_or(" "));
+            }
+            out.push('\n');
+        }
+        out
+    }
+
+    #[test]
+    fn chrome_renders_github_headers_tabnav_and_keybar() {
+        let mut app = App::new("ipfs-gh-pages");
+        let out = render(&mut app, 120, 30);
+        for needle in [
+            "◆",
+            "ipfs-gh-pages",
+            "Search or jump to…",
+            "Public",
+            "Watch",
+            "Star",
+            "Fork",
+            "Code",
+            "Issues",
+            "Pulls",
+            "Actions",
+            "Projects",
+            "Wiki",
+            "Security",
+            "Insights",
+            "Settings",
+            "Peer",
+            "Publish",
+            ": cmd",
+            "? help",
+            "1-9/0 jump",
+        ] {
+            assert!(out.contains(needle), "frame must contain {needle:?}");
+        }
+        // Primer canvas background is painted, not the terminal default.
+        assert!(
+            out.chars().any(|c| c == '▔'),
+            "tabnav underline row renders"
+        );
+    }
+
+    #[test]
+    fn repo_header_shows_snapshot_identity() {
+        let mut app = App::new("ipfs-gh-pages");
+        app.ipfs.repo_owner = "someone".to_string();
+        app.ipfs.repo_name = "thing".to_string();
+        let out = render(&mut app, 120, 30);
+        assert!(out.contains("someone"), "owner from the snapshot");
+        assert!(out.contains("thing"), "repo name from the snapshot");
+        assert!(out.contains('/'), "owner / name separator");
+    }
+
+    #[test]
+    fn code_tab_renders_tree_commit_bar_and_readme() {
+        let mut app = App::new("ipfs-gh-pages");
+        app.ipfs.repo_files = vec!["src/main.rs".to_string(), "README.md".to_string()];
+        app.ipfs.repo_branch = "main".to_string();
+        app.ipfs.repo_last_commit = "test commit".to_string();
+        app.ipfs.repo_short_sha = "abc1234".to_string();
+        app.ipfs.repo_readme = "# Hello\nworld".to_string();
+        let out = render(&mut app, 120, 40);
+        for needle in [
+            "src/",
+            "README.md",
+            "main",
+            "test commit",
+            "abc1234",
+            "Hello",
+            "Go to file",
+            "Code ▾",
+        ] {
+            assert!(out.contains(needle), "code tab must contain {needle:?}");
+        }
     }
 }
