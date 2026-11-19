@@ -27,6 +27,10 @@ inputs:
     description: 'Run the integration test suite (requires Chromium) before building.'
     required: false
     default: 'false'
+  include-tui:
+    description: "Overlay the action's prebuilt ratzilla TUI (index-rust.html) into the site — the opt-in 'terminal view' add-value. Fetches the same ref's rust-dist.zip from the action repo's GitHub Release; skipped gracefully when absent."
+    required: false
+    default: 'false'
   pinata-jwt:
     description: 'Optional Pinata JWT (pass it as a repo secret, e.g. the PINATA_JWT secret). Pins the built CAR to Pinata public IPFS; empty = skipped.'
     required: false
@@ -111,6 +115,21 @@ runs:
         # (crashed consumer deploys).
         npm run build:action
         echo "dist_path=${{ inputs.out-dir }}" >> "$GITHUB_OUTPUT"
+
+    # Opt-in add-value: the prebuilt ratzilla terminal view, overlaid at
+    # index-rust.html. Graceful no-op when the ref's release has no
+    # rust-dist.zip (e.g. an older pinned action_ref).
+    - name: Overlay TUI (optional add-value)
+      if: ${{ inputs.include-tui == 'true' }}
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        OUT_DIR: ${{ inputs.out-dir }}
+        GITHUB_CONTEXT_PATH: ${{ github.event_path }}
+        IPFS_GH_PAGES_ACTION_REF: ${{ github.action_ref }}
+      run: |
+        node scripts/overlay-tui.mjs "${{ inputs.out-dir }}" "RandyMcMillan/ipfs-gh-pages" \
+          || echo "::warning::TUI overlay skipped (optional add-value — site is unaffected)"
 
     # Optional service (docs/optional-services.md): never fatal, JWT never printed.
     - name: Pin CAR to Pinata (optional)

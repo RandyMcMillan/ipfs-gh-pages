@@ -30,6 +30,11 @@ on:
         required: true
         default: '20'
         type: string
+      include_tui:
+        description: "Overlay the action's prebuilt ratzilla TUI (index-rust.html) — the terminal add-value view"
+        required: false
+        default: 'false'
+        type: string
 
 permissions:
   contents: read
@@ -153,6 +158,7 @@ jobs:
         with:
           node-version: ${{ steps.set-inputs.outputs.node_version }}
           deploy: 'true'
+          include-tui: ${{ github.event.inputs.include_tui || 'false' }}
           # Optional: pin the release CAR to Pinata public IPFS. Create the
           # secret in the repo's Settings → Secrets and variables → Actions
           # (a Pinata JWT from app.pinata.cloud → Keys). Missing/empty = skipped.

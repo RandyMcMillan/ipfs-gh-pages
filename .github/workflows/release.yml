@@ -45,6 +45,18 @@ jobs:
       - name: Build Project
         run: npm run build
 
+      - name: Build TUI archive (terminal-view add-value)
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo install trunk --locked 2>/dev/null || cargo install trunk
+          node scripts/build-ipfs-js.mjs
+          node scripts/build-repo-files.mjs
+          trunk build --release --dist target/tui-release-dist
+          cd target/tui-release-dist
+          zip -r ../../rust-dist.zip .
+          cd ../..
+          ls -lh rust-dist.zip
+
       - name: Archive ./dist
         run: |
           cd dist
@@ -55,5 +67,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist.zip
+          files: |
+            dist.zip
+            rust-dist.zip
           generate_release_notes: true
