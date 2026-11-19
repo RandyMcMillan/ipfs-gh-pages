@@ -15,6 +15,8 @@
 import { build } from 'esbuild';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { listRepoFiles } from './lib/repo-files.mjs';
 
 function resolveIdentity() {
@@ -93,6 +95,11 @@ function stripQuotes(s) {
   return s.replace(/^['"]|['"]$/g, '');
 }
 
+// Trailing " # comment" off a scalar value (keeps '#' inside the value).
+function stripComment(s) {
+  return s.replace(/\s+#.*$/, '').trim();
+}
+
 function parseWorkflow(file, text) {
   const jobs = [];
   let name = '';
@@ -107,7 +114,7 @@ function parseWorkflow(file, text) {
     const line = raw.trim();
     if (!inJobs) {
       const m = line.match(/^name:\s*(.+)$/);
-      if (m && indent === 0) name = stripQuotes(m[1].trim());
+      if (m && indent === 0) name = stripQuotes(stripComment(m[1]));
       if (indent === 0 && line === 'jobs:') inJobs = true;
       continue;
     }
@@ -127,10 +134,10 @@ function parseWorkflow(file, text) {
     }
     if (!current || indent <= jobsIndent) continue;
     const ro = line.match(/^runs-on:\s*(.+)$/);
-    if (ro) current.runs_on = stripQuotes(ro[1].trim());
+    if (ro) current.runs_on = stripQuotes(stripComment(ro[1]));
     const ne = line.match(/^needs:\s*(.*)$/);
     if (ne) {
-      const value = ne[1].trim();
+      const value = stripComment(ne[1]);
       if (value.startsWith('[')) {
         current.needs = stripQuotes(value.replace(/^\[|\]$/g, ''));
         collectingNeeds = false;
@@ -167,51 +174,62 @@ function extractWorkflows(root) {
   return workflows;
 }
 
-const { owner, name, version } = resolveIdentity();
-const repoRoot = process.env.REPO_ROOT || '.';
-const gitMeta = resolveGitMeta(repoRoot);
-const repoFiles = [];
-let repoReadme = '';
-for (const { path: p, full } of listRepoFiles(repoRoot)) {
-  repoFiles.push(p);
-  if (!repoReadme && /(^|\/)readme\.md$/i.test(p)) {
-    try {
-      if (fs.statSync(full).size <= 64 * 1024) {
-        repoReadme = fs.readFileSync(full, 'utf8');
-      }
-    } catch {}
-  }
-}
-const define = {
-  REPO_OWNER: JSON.stringify(owner),
-  REPO_NAME: JSON.stringify(name),
-  REPO_VERSION: JSON.stringify(version),
-  REPO_FILES: JSON.stringify(repoFiles),
-  REPO_README: JSON.stringify(repoReadme),
-  REPO_BRANCH: JSON.stringify(gitMeta.branch),
-  REPO_LAST_COMMIT: JSON.stringify(gitMeta.lastCommitMsg),
-  REPO_LAST_TIME: JSON.stringify(gitMeta.lastCommitTime),
-  REPO_SHORT_SHA: JSON.stringify(gitMeta.shortSha),
-  REPO_COMMIT_COUNT: JSON.stringify(gitMeta.commitCount),
-  REPO_LATEST_TAG: JSON.stringify(gitMeta.latestTag),
-  REPO_COMMITS_SINCE_TAG: JSON.stringify(gitMeta.commitsSinceTag),
-  REPO_UPSTREAM: JSON.stringify(gitMeta.upstream),
-  REPO_AHEAD: JSON.stringify(gitMeta.ahead),
-  REPO_BEHIND: JSON.stringify(gitMeta.behind),
-  REPO_DIRTY: JSON.stringify(gitMeta.dirty),
-  REPO_TAGS: JSON.stringify(gitMeta.tags),
-  REPO_WORKFLOWS: JSON.stringify(extractWorkflows(repoRoot))
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+export {
+  resolveIdentity,
+  resolveGitMeta,
+  parseWorkflow,
+  extractWorkflows
 };
 
-await build({
-  entryPoints: ['js/ipfs-node.js'],
-  bundle: true,
-  format: 'esm',
-  platform: 'browser',
-  target: 'esnext',
-  mainFields: ['browser', 'module', 'main'],
-  sourcemap: false,
-  define,
-  outfile: 'assets/ipfs-node.js',
-  logLevel: 'info'
-});
+if (isMain) {
+  const { owner, name, version } = resolveIdentity();
+  const repoRoot = process.env.REPO_ROOT || '.';
+  const gitMeta = resolveGitMeta(repoRoot);
+  const repoFiles = [];
+  let repoReadme = '';
+  for (const { path: p, full } of listRepoFiles(repoRoot)) {
+    repoFiles.push(p);
+    if (!repoReadme && /(^|\/)readme\.md$/i.test(p)) {
+      try {
+        if (fs.statSync(full).size <= 64 * 1024) {
+          repoReadme = fs.readFileSync(full, 'utf8');
+        }
+      } catch {}
+    }
+  }
+  const define = {
+    REPO_OWNER: JSON.stringify(owner),
+    REPO_NAME: JSON.stringify(name),
+    REPO_VERSION: JSON.stringify(version),
+    REPO_FILES: JSON.stringify(repoFiles),
+    REPO_README: JSON.stringify(repoReadme),
+    REPO_BRANCH: JSON.stringify(gitMeta.branch),
+    REPO_LAST_COMMIT: JSON.stringify(gitMeta.lastCommitMsg),
+    REPO_LAST_TIME: JSON.stringify(gitMeta.lastCommitTime),
+    REPO_SHORT_SHA: JSON.stringify(gitMeta.shortSha),
+    REPO_COMMIT_COUNT: JSON.stringify(gitMeta.commitCount),
+    REPO_LATEST_TAG: JSON.stringify(gitMeta.latestTag),
+    REPO_COMMITS_SINCE_TAG: JSON.stringify(gitMeta.commitsSinceTag),
+    REPO_UPSTREAM: JSON.stringify(gitMeta.upstream),
+    REPO_AHEAD: JSON.stringify(gitMeta.ahead),
+    REPO_BEHIND: JSON.stringify(gitMeta.behind),
+    REPO_DIRTY: JSON.stringify(gitMeta.dirty),
+    REPO_TAGS: JSON.stringify(gitMeta.tags),
+    REPO_WORKFLOWS: JSON.stringify(extractWorkflows(repoRoot))
+  };
+
+  await build({
+    entryPoints: ['js/ipfs-node.js'],
+    bundle: true,
+    format: 'esm',
+    platform: 'browser',
+    target: 'esnext',
+    mainFields: ['browser', 'module', 'main'],
+    sourcemap: false,
+    define,
+    outfile: 'assets/ipfs-node.js',
+    logLevel: 'info'
+  });
+}
