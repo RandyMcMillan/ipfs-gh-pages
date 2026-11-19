@@ -123,10 +123,10 @@ fn browser_main() -> Result<(), Box<dyn Error>> {
                     app_state.on_down();
                 }
                 KeyCode::Enter => {
-                    app_state.on_code_enter();
+                    app_state.on_enter();
                 }
                 KeyCode::Backspace => {
-                    app_state.on_code_back();
+                    app_state.on_back();
                 }
                 KeyCode::Char(c) => app_state.on_key(c),
                 _ => {}

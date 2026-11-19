@@ -14,6 +14,7 @@ use crate::theme;
 /// badge, Watch/Star/Fork), Primer tabnav with the orange active
 /// underline, then the active tab's content and the `:` command bar.
 pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
+    app.last_width = frame.area().width;
     let show_status = app.input_active || !app.last_result.is_empty();
     let show_cmd = app.cmd_open || !app.cmd_output.is_empty();
     let area = frame.area();
@@ -124,6 +125,7 @@ fn input_prompt(app: &App) -> &'static str {
 /// The persistent keybar: active tab's affordances + global keys
 /// (lazygit's options bar).
 fn keybar(app: &App) -> String {
+    let compact = theme::layout_class(app.last_width) == theme::LayoutClass::Compact;
     let tab = match app.tabs.index {
         0 => "↑/↓ move · Enter expand/collapse · ⌫ collapse all · p publish",
         1 => "↑/↓/j/k move · i file issue · s sync",
@@ -135,6 +137,10 @@ fn keybar(app: &App) -> String {
         10 => "p publish text",
         _ => "",
     };
+    if compact {
+        // Compact keeps the active tab's hints; the global tail would wrap.
+        return format!(" {tab}");
+    }
     format!(" {tab}    ←/→ tabs · 1-9/0 jump · : cmd · ? help · q quit")
 }
 
@@ -270,6 +276,26 @@ fn badge_spans(label: &str) -> Vec<Span<'static>> {
 /// Primer repo tabnav: a muted top border with the orange underline under
 /// the active tab, then the tab titles.
 fn draw_tabnav(frame: &mut Frame, app: &App, area: Rect) {
+    if theme::layout_class(area.width) == theme::LayoutClass::Compact {
+        // Compact: GitHub's own responsive treatment — the active tab with
+        // an overflow affordance, instead of an 11-tab strip that cannot
+        // fit. Arrows/digits still switch tabs; the overflow becomes
+        // clickable with the mouse work.
+        let active = app.tabs.titles[app.tabs.index];
+        let line = text::Line::from(vec![
+            Span::styled(
+                format!(" {active} "),
+                Style::default().fg(theme::FG).add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(" ▾  ", Style::default().fg(theme::FG_MUTED)),
+            Span::styled(
+                "←/→ or 1-9,0 switch tabs",
+                Style::default().fg(theme::FG_SUBTLE),
+            ),
+        ]);
+        frame.render_widget(Paragraph::new(line).style(theme::base()), area);
+        return;
+    }
     let widths: Vec<usize> = app.tabs.titles.iter().map(|t| t.len() + 2).collect();
     let mut border_with_gaps = vec![];
     let mut title_spans = vec![];
@@ -612,6 +638,29 @@ fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
             ]));
         }
     }
+    let detail = issue_detail_lines(issues, cursor);
+    let compact = theme::layout_class(area.width) == theme::LayoutClass::Compact;
+    if compact {
+        // Compact (iPhone-style): master OR drilled-in detail, full width.
+        if app.detail_open {
+            let chunks = Layout::vertical([Constraint::Length(1), Constraint::Min(3)]).split(area);
+            back_header(frame, "Issue", chunks[0]);
+            frame.render_widget(
+                Paragraph::new(detail)
+                    .block(content_block("Issue"))
+                    .wrap(Wrap { trim: true }),
+                chunks[1],
+            );
+        } else {
+            frame.render_widget(
+                Paragraph::new(lines)
+                    .block(content_block(&format!("Issues ({} in view)", issues.len())))
+                    .wrap(Wrap { trim: false }),
+                area,
+            );
+        }
+        return;
+    }
     frame.render_widget(
         Paragraph::new(lines)
             .block(content_block(&format!("Issues ({} in view)", issues.len())))
@@ -620,7 +669,21 @@ fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     );
     // Detail pane (GitKraken-style right panel): the selected issue's
     // full values, unwrapped.
-    let detail: Vec<text::Line> = match issues.get(cursor) {
+    frame.render_widget(
+        Paragraph::new(detail)
+            .block(content_block("Issue"))
+            .wrap(Wrap { trim: true }),
+        panes[1],
+    );
+}
+
+/// The selected issue's detail, identical in the split pane and the
+/// compact drill-in view — full values, never elided at any width.
+fn issue_detail_lines(
+    issues: &[crate::ipfs::IssueEntry],
+    cursor: usize,
+) -> Vec<text::Line<'static>> {
+    match issues.get(cursor) {
         Some(issue) => vec![
             text::Line::from(vec![Span::styled(
                 format!("Issue #{}", issues.len() - cursor),
@@ -646,13 +709,19 @@ fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
             "(select an issue to see its full values)",
             Style::default().fg(theme::FG_MUTED),
         ))],
-    };
-    frame.render_widget(
-        Paragraph::new(detail)
-            .block(content_block("Issue"))
-            .wrap(Wrap { trim: true }),
-        panes[1],
-    );
+    }
+}
+
+/// Compact drill-in header: the iOS back affordance.
+fn back_header(frame: &mut Frame, title: &str, area: Rect) {
+    let line = text::Line::from(vec![
+        Span::styled(" ← Back  ", Style::default().fg(theme::ACCENT)),
+        Span::styled(
+            format!(" {title} "),
+            Style::default().fg(theme::FG).add_modifier(Modifier::BOLD),
+        ),
+    ]);
+    frame.render_widget(Paragraph::new(line).style(theme::base()), area);
 }
 
 // ---- Pulls ----------------------------------------------------------------
@@ -688,8 +757,25 @@ fn draw_pulls_tab(frame: &mut Frame, app: &mut App, area: Rect) {
 // ---- Actions / Projects / Security (web-app parity gaps) ------------------
 
 fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
-    let panes =
-        Layout::horizontal([Constraint::Percentage(40), Constraint::Percentage(60)]).split(area);
+    let compact = theme::layout_class(area.width) == theme::LayoutClass::Compact;
+    // Compact: workflows list OR the drilled-in jobs view, full width. A
+    // hidden pane gets zero width and renders nothing.
+    let (list_area, jobs_area) = if !compact {
+        let panes = Layout::horizontal([Constraint::Percentage(40), Constraint::Percentage(60)])
+            .split(area);
+        (panes[0], panes[1])
+    } else if app.detail_open {
+        (Rect::new(area.x, area.y, 0, area.height), area)
+    } else {
+        (area, Rect::new(area.x, area.y, 0, area.height))
+    };
+    let jobs_area = if compact && app.detail_open {
+        let chunks = Layout::vertical([Constraint::Length(1), Constraint::Min(3)]).split(jobs_area);
+        back_header(frame, "Workflow", chunks[0]);
+        chunks[1]
+    } else {
+        jobs_area
+    };
     let snap = &app.ipfs;
     let workflows = &snap.workflows;
     let cursor = app.wf_cursor.min(workflows.len().saturating_sub(1));
@@ -753,7 +839,7 @@ fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         Paragraph::new(lines)
             .block(content_block(&format!("Workflows ({})", workflows.len())))
             .wrap(Wrap { trim: false }),
-        panes[0],
+        list_area,
     );
 
     // Right pane: the selected workflow's jobs (wrkflw's Run view).
@@ -834,7 +920,7 @@ fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     )
     .block(content_block(&jobs_title))
     .style(theme::base());
-    frame.render_widget(jobs, panes[1]);
+    frame.render_widget(jobs, jobs_area);
 }
 
 fn draw_projects_tab(frame: &mut Frame, app: &mut App, area: Rect) {
@@ -1099,9 +1185,70 @@ fn draw_peer_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     frame.render_widget(peers, outer[0]);
     // Bottom row: chat left, the selected connection's full values right
     // (the Issues detail-pane pattern).
-    let panes = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
-        .split(outer[1]);
-    let inbox = &app.ipfs.chat_inbox;
+    let peer_bottom = outer[1];
+    let compact = theme::layout_class(area.width) == theme::LayoutClass::Compact;
+    if compact {
+        // Compact: chat OR the drilled-in connection detail, full width.
+        if app.detail_open {
+            let detail = connection_detail_lines(snap, cursor);
+            let chunks =
+                Layout::vertical([Constraint::Length(1), Constraint::Min(3)]).split(peer_bottom);
+            back_header(frame, "Connection", chunks[0]);
+            frame.render_widget(
+                Paragraph::new(detail)
+                    .block(content_block("Connection"))
+                    .wrap(Wrap { trim: true }),
+                chunks[1],
+            );
+        } else {
+            render_chat(frame, snap, peer_bottom);
+        }
+        // The peers table always owns the top region.
+    } else {
+        let panes = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
+            .split(peer_bottom);
+        render_chat(frame, snap, panes[0]);
+        let detail = connection_detail_lines(snap, cursor);
+        frame.render_widget(
+            Paragraph::new(detail)
+                .block(content_block("Connection"))
+                .wrap(Wrap { trim: true }),
+            panes[1],
+        );
+    }
+}
+
+/// The selected connection's detail, identical in the split pane and the
+/// compact drill-in — full peer id and multiaddr, never elided.
+fn connection_detail_lines(
+    snap: &crate::ipfs::Snapshot,
+    cursor: usize,
+) -> Vec<text::Line<'static>> {
+    match snap.connections.get(cursor) {
+        Some(conn) => vec![
+            text::Line::from(vec![
+                Span::styled("Peer  ", Style::default().fg(theme::FG_MUTED)),
+                Span::styled(conn.peer.clone(), Style::default().fg(theme::FG)),
+            ]),
+            text::Line::from(vec![
+                Span::styled("Direction  ", Style::default().fg(theme::FG_MUTED)),
+                Span::styled(conn.direction.clone(), Style::default().fg(theme::FG)),
+            ]),
+            text::Line::from(vec![
+                Span::styled("Addr  ", Style::default().fg(theme::FG_MUTED)),
+                Span::styled(conn.addr.clone(), Style::default().fg(theme::FG)),
+            ]),
+        ],
+        None => vec![text::Line::from(Span::styled(
+            "(select a connection to see its full values)",
+            Style::default().fg(theme::FG_MUTED),
+        ))],
+    }
+}
+
+/// Chat panel body, shared by the split and compact layouts.
+fn render_chat(frame: &mut Frame, snap: &crate::ipfs::Snapshot, area: Rect) {
+    let inbox = &snap.chat_inbox;
     let mut chat_lines = vec![];
     if inbox.is_empty() {
         chat_lines.push(text::Line::from("(no messages — press m to send one)"));
@@ -1131,33 +1278,7 @@ fn draw_peer_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         Paragraph::new(chat_lines)
             .block(content_block(&format!("Chat ({} message(s))", inbox.len())))
             .wrap(Wrap { trim: false }),
-        panes[0],
-    );
-    let detail: Vec<text::Line> = match snap.connections.get(cursor) {
-        Some(conn) => vec![
-            text::Line::from(vec![
-                Span::styled("Peer  ", Style::default().fg(theme::FG_MUTED)),
-                Span::styled(conn.peer.clone(), Style::default().fg(theme::FG)),
-            ]),
-            text::Line::from(vec![
-                Span::styled("Direction  ", Style::default().fg(theme::FG_MUTED)),
-                Span::styled(conn.direction.clone(), Style::default().fg(theme::FG)),
-            ]),
-            text::Line::from(vec![
-                Span::styled("Addr  ", Style::default().fg(theme::FG_MUTED)),
-                Span::styled(conn.addr.clone(), Style::default().fg(theme::FG)),
-            ]),
-        ],
-        None => vec![text::Line::from(Span::styled(
-            "(select a connection to see its full values)",
-            Style::default().fg(theme::FG_MUTED),
-        ))],
-    };
-    frame.render_widget(
-        Paragraph::new(detail)
-            .block(content_block("Connection"))
-            .wrap(Wrap { trim: true }),
-        panes[1],
+        area,
     );
 }
 
@@ -1338,6 +1459,58 @@ mod render_tests {
         assert!(out.contains("someone"), "owner from the snapshot");
         assert!(out.contains("thing"), "repo name from the snapshot");
         assert!(out.contains('/'), "owner / name separator");
+    }
+
+    #[test]
+    fn compact_drills_into_detail_fullscreen_and_back() {
+        let mut app = App::new("ipfs-gh-pages");
+        app.ipfs.issues = vec![crate::ipfs::IssueEntry {
+            title: "responsive probe issue".to_string(),
+            cid: "bafyprobe full value".to_string(),
+            timestamp: "2026-11-19".to_string(),
+        }];
+        app.tabs.index = 1;
+        let out = render(&mut app, 80, 30);
+        assert!(
+            out.contains("responsive probe issue"),
+            "master list visible"
+        );
+        assert!(!out.contains("Issue #1"), "detail hidden before drill-in");
+        app.on_enter(); // last_width=80 → compact
+        let out = render(&mut app, 80, 30);
+        assert!(out.contains("Issue #1"), "detail owns the screen");
+        assert!(
+            out.contains("bafyprobe full value"),
+            "full CID never elided"
+        );
+        assert!(out.contains("← Back"), "back affordance");
+        app.on_back();
+        let out = render(&mut app, 80, 30);
+        assert!(!out.contains("Issue #1"), "back returns to the master list");
+    }
+
+    #[test]
+    fn regular_width_shows_master_and_detail_side_by_side() {
+        let mut app = App::new("ipfs-gh-pages");
+        app.ipfs.issues = vec![crate::ipfs::IssueEntry {
+            title: "side by side probe".to_string(),
+            cid: "bafyprobe split value".to_string(),
+            timestamp: "2026-11-19".to_string(),
+        }];
+        app.tabs.index = 1;
+        let out = render(&mut app, 120, 30);
+        assert!(out.contains("side by side probe"), "master visible");
+        assert!(out.contains("bafyprobe split value"), "detail visible too");
+    }
+
+    #[test]
+    fn compact_tabnav_collapses_to_active_plus_overflow() {
+        let mut app = App::new("ipfs-gh-pages");
+        let compact = render(&mut app, 80, 30);
+        assert!(compact.contains('▾'), "overflow affordance in compact");
+        assert!(!compact.contains("Pulls"), "compact hides the full strip");
+        let regular = render(&mut app, 120, 30);
+        assert!(regular.contains("Security"), "regular shows every tab");
     }
 
     #[test]

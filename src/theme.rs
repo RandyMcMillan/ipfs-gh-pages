@@ -38,6 +38,30 @@ pub const TAB_UNDERLINE: Color = Color::Rgb(0xf7, 0x81, 0x66);
 pub const PRIMARY: Color = Color::Rgb(0x23, 0x86, 0x36);
 pub const ON_PRIMARY: Color = Color::Rgb(0xff, 0xff, 0xff);
 
+// Responsive breakpoints (terminal columns) — the CSS media-query analog.
+// Compact is the iPhone-like drill-in mode: master lists full-width, Enter
+// opens the detail full-screen with a Back affordance. Regular is the
+// iPad/desktop master/detail split. Wide only stretches splits for now.
+pub const COMPACT_MAX_COLS: u16 = 99;
+pub const WIDE_MIN_COLS: u16 = 160;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LayoutClass {
+    Compact,
+    Regular,
+    Wide,
+}
+
+pub fn layout_class(width: u16) -> LayoutClass {
+    if width <= COMPACT_MAX_COLS {
+        LayoutClass::Compact
+    } else if width >= WIDE_MIN_COLS {
+        LayoutClass::Wide
+    } else {
+        LayoutClass::Regular
+    }
+}
+
 /// Base application style: canvas background, default foreground.
 pub fn base() -> Style {
     Style::default().bg(CANVAS).fg(FG)

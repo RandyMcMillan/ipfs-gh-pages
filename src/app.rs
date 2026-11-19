@@ -92,6 +92,13 @@ pub struct App<'a> {
     pub wf_cursor: usize,
     /// Cursor row in the Peer tab connection table (drives the detail pane).
     pub peer_cursor: usize,
+    /// Compact-mode drill-in: the detail view of a master/detail tab owns
+    /// the full width (iOS navigation-stack idiom). Backspace/Enter backs
+    /// out.
+    pub detail_open: bool,
+    /// Last rendered frame width, cached by ui::draw each frame — the
+    /// responsive breakpoint source for input handling.
+    pub last_width: u16,
     /// Vim-style `:` command bar (any bridge op, any tab). A true PTY
     /// terminal is impossible here — the TUI renders from wasm, which
     /// cannot spawn processes — so this is the in-app command line.
@@ -136,6 +143,8 @@ impl<'a> App<'a> {
             issue_cursor: 0,
             wf_cursor: 0,
             peer_cursor: 0,
+            detail_open: false,
+            last_width: 120,
             cmd_open: false,
             cmd_buffer: String::new(),
             cmd_output: String::new(),
@@ -244,9 +253,16 @@ impl<'a> App<'a> {
         }
     }
 
-    /// Enter expands/collapses the directory under the cursor (leaf rows
-    /// are no-ops).
-    pub fn on_code_enter(&mut self) {
+    /// Enter: on Code, expand/collapse the directory under the cursor; on
+    /// master/detail tabs (Issues, Actions, Peer) in compact width, drill
+    /// into the detail view (iOS-style). Leaf rows are no-ops.
+    pub fn on_enter(&mut self) {
+        let compact =
+            crate::theme::layout_class(self.last_width) == crate::theme::LayoutClass::Compact;
+        if matches!(self.tabs.index, 1 | 3 | 9) && compact {
+            self.detail_open = true;
+            return;
+        }
         if self.tabs.index != 0 {
             return;
         }
@@ -259,8 +275,13 @@ impl<'a> App<'a> {
         }
     }
 
-    /// Backspace collapses the whole tree back to the root listing.
-    pub fn on_code_back(&mut self) {
+    /// Backspace: close a drilled-in detail view first; on Code, collapse
+    /// the whole tree back to the root listing.
+    pub fn on_back(&mut self) {
+        if self.detail_open {
+            self.detail_open = false;
+            return;
+        }
         if self.tabs.index == 0 {
             self.open_dirs.clear();
             self.tree_cursor = 0;
@@ -685,19 +706,19 @@ mod tests {
     }
 
     #[test]
-    fn enter_toggles_dir_and_backspace_clears() {
+    fn enter_toggles_dir_and_back_clears() {
         let mut app = app_with_files(&["src/app.rs"]);
-        app.on_code_enter(); // cursor 0 = src dir
+        app.on_enter(); // cursor 0 = src dir
         assert!(app.open_dirs.contains("src"));
         app.tree_cursor = 1; // the file row — no-op
-        app.on_code_enter();
+        app.on_enter();
         assert_eq!(app.open_dirs.len(), 1);
         app.tree_cursor = 0;
-        app.on_code_enter(); // collapse again
+        app.on_enter(); // collapse again
         assert!(app.open_dirs.is_empty());
         app.open_dirs.insert("a".to_string());
         app.open_dirs.insert("b".to_string());
-        app.on_code_back();
+        app.on_back();
         assert!(app.open_dirs.is_empty());
         assert_eq!(app.tree_cursor, 0);
     }
