@@ -1,0 +1,66 @@
+name: Docker smoke
+
+# Self-hosting image gate (docs/docker.md): build the image, boot it, and
+# assert the served surface. Repo-internal only — never part of the
+# consumer contract (deploy-gh-pages.yml / action.yml are untouched).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docker-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Validate compose schema
+        working-directory: docker
+        run: docker compose config --quiet
+
+      - name: Build the self-hosting image
+        run: docker build -f docker/Dockerfile.site -t ipfs-gh-pages:ci .
+
+      - name: Boot the container
+        run: |
+          docker run -d --name ipfs-gh-pages-smoke -p 8080:80 ipfs-gh-pages:ci
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/ || true)
+            [ "$code" = "200" ] && break
+            sleep 2
+          done
+          [ "$code" = "200" ] || { echo "site did not come up (HTTP $code)"; exit 1; }
+
+      - name: Assert the served surface
+        run: |
+          set -e
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/)" = "200"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/404.html)" = "200"
+          ROOT=$(curl -s http://127.0.0.1:8080/repo-manifest.json | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const m=JSON.parse(d);if(!/^baf[a-z0-9]+$/i.test(m.root||''))process.exit(1);console.log(m.root)})")
+          echo "manifest root: $ROOT"
+          JS=$(curl -s http://127.0.0.1:8080/ | grep -oE 'assets/index-[^"]+\.js' | head -1)
+          test -n "$JS"
+          test "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8080/$JS")" = "200"
+          echo "bundle: $JS"
+
+      - name: Verify CAR presence and size when car-mode
+        run: |
+          if docker exec ipfs-gh-pages-smoke test -f /usr/share/nginx/html/repo.car; then
+            SIZE=$(docker exec ipfs-gh-pages-smoke sh -c 'wc -c < /usr/share/nginx/html/repo.car')
+            echo "repo.car: $SIZE bytes"
+            [ "$SIZE" -gt 4096 ] || { echo "repo.car suspiciously small"; exit 1; }
+            # Parse-level validation is kubo-init's dag import at runtime,
+            # locked by tests/kubo-alignment.test.mjs (CARv1 has no fixed
+            # byte magic — header bytes vary with contents).
+          else
+            echo "embedded-mode build — no repo.car (expected under 20 MiB)"
+          fi
+
+      - name: Tear down
+        if: always()
+        run: docker rm -f ipfs-gh-pages-smoke || true
