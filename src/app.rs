@@ -619,3 +619,94 @@ impl<'a> App<'a> {
         self.effects.add_unique_effect(EffectKey::ChangeTab, effect);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn app_with_files(files: &[&str]) -> App<'static> {
+        let mut app = App::new("test-repo");
+        app.ipfs.repo_files = files.iter().map(|s| s.to_string()).collect();
+        app
+    }
+
+    #[test]
+    fn code_entries_lists_dirs_first_then_files_case_insensitively() {
+        let app = app_with_files(&["src/app.rs", "README.md", "src/ui.rs", "Makefile"]);
+        let entries = app.code_entries_in("");
+        let names: Vec<(String, bool)> = entries.iter().map(|(n, d)| (n.clone(), *d)).collect();
+        assert_eq!(
+            names,
+            vec![
+                ("src".to_string(), true),
+                ("Makefile".to_string(), false),
+                ("README.md".to_string(), false)
+            ]
+        );
+    }
+
+    #[test]
+    fn code_entries_in_subdirectory_filters_by_prefix() {
+        let app = app_with_files(&["src/app.rs", "src/ui.rs", "tests/x.rs"]);
+        let entries = app.code_entries_in("src");
+        let names: Vec<String> = entries.iter().map(|(n, _)| n.clone()).collect();
+        assert_eq!(names, vec!["app.rs", "ui.rs"]);
+    }
+
+    #[test]
+    fn code_tree_rows_renders_connector_guides() {
+        let mut app = app_with_files(&["src/app.rs", "src/ui.rs", "README.md"]);
+        // Collapsed: two root rows, dir first with ├──, last file └──.
+        let rows = app.code_tree_rows();
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[0].prefix, "├── ");
+        assert!(rows[0].is_dir);
+        assert_eq!(rows[0].path, "src");
+        assert_eq!(rows[1].prefix, "└── ");
+        assert_eq!(rows[1].name, "README.md");
+        // Expand src: children indented under a continuing guide.
+        app.open_dirs.insert("src".to_string());
+        let rows = app.code_tree_rows();
+        assert_eq!(rows.len(), 4);
+        assert_eq!(rows[1].prefix, "│   ├── ");
+        assert_eq!(rows[1].path, "src/app.rs");
+        assert_eq!(rows[2].prefix, "│   └── ");
+        assert_eq!(rows[3].prefix, "└── ");
+    }
+
+    #[test]
+    fn enter_toggles_dir_and_backspace_clears() {
+        let mut app = app_with_files(&["src/app.rs"]);
+        app.on_code_enter(); // cursor 0 = src dir
+        assert!(app.open_dirs.contains("src"));
+        app.tree_cursor = 1; // the file row — no-op
+        app.on_code_enter();
+        assert_eq!(app.open_dirs.len(), 1);
+        app.tree_cursor = 0;
+        app.on_code_enter(); // collapse again
+        assert!(app.open_dirs.is_empty());
+        app.open_dirs.insert("a".to_string());
+        app.open_dirs.insert("b".to_string());
+        app.on_code_back();
+        assert!(app.open_dirs.is_empty());
+        assert_eq!(app.tree_cursor, 0);
+    }
+
+    #[test]
+    fn tabs_wrap_in_both_directions() {
+        let mut app = App::new("t");
+        let n = app.tabs.titles.len();
+        app.tabs.index = n - 1;
+        app.tabs.next();
+        assert_eq!(app.tabs.index, 0);
+        app.tabs.previous();
+        assert_eq!(app.tabs.index, n - 1);
+    }
+
+    #[test]
+    fn json_escape_quotes_backslashes_and_controls() {
+        assert_eq!(App::json_escape("a\"b\\c\nd"), "a\\\"b\\\\c\\nd");
+        assert_eq!(App::json_escape("\u{1}"), "\\u0001");
+        assert_eq!(App::json_escape("plain"), "plain");
+    }
+}

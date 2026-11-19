@@ -1217,3 +1217,46 @@ fn draw_publish_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         chunks[1],
     );
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn line_text(line: &text::Line) -> String {
+        line.spans
+            .iter()
+            .map(|s| s.content.as_ref())
+            .collect::<Vec<_>>()
+            .join("")
+    }
+
+    #[test]
+    fn readme_lines_styles_headers_code_quotes_and_rules() {
+        let md = "# Title\n## Section\n### Sub\nplain\n```\ncode line\n```\n> quoted\n---\nafter\n";
+        let lines = readme_lines(md);
+        // fence markers drop out; the code line stays
+        assert_eq!(line_text(&lines[0]), "Title");
+        assert_eq!(line_text(&lines[1]), "Section");
+        assert_eq!(line_text(&lines[2]), "Sub");
+        assert_eq!(line_text(&lines[3]), "plain");
+        assert_eq!(line_text(&lines[4]), " code line");
+        assert_eq!(line_text(&lines[5]), " ▎quoted");
+        assert!(line_text(&lines[6]).starts_with('─'));
+        assert_eq!(line_text(&lines[7]), "after");
+    }
+
+    #[test]
+    fn readme_lines_passes_plain_text_through() {
+        let lines = readme_lines("just text\n**not parsed inline**");
+        assert_eq!(line_text(&lines[0]), "just text");
+        // inline markdown stays literal — no span-level parsing
+        assert_eq!(line_text(&lines[1]), "**not parsed inline**");
+    }
+
+    #[test]
+    fn readme_lines_strips_carriage_returns() {
+        let lines = readme_lines("a\r\nb\r\n");
+        assert_eq!(line_text(&lines[0]), "a");
+        assert_eq!(line_text(&lines[1]), "b");
+    }
+}
