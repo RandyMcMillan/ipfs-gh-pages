@@ -18,9 +18,15 @@ One protocol, three surfaces:
    fetch, download, and arbitrary publish/fetch. Live demo:
    https://randymcmillan.github.io/ipfs-gh-pages/
 2. **Rust app** — the same functionality behind a ratzilla (ratatui in the
-   browser, wasm32) TUI with a wry desktop bundle of the same crate. It
-   does not reimplement IPFS: it drives the shared JS backend over two
-   `window` channels.
+   browser, wasm32) TUI with a wry desktop bundle of the same crate,
+   rendered as a GitHub web-UI lookalike: Primer dark theme, repo chrome
+   (owner/name, Public badge, Watch/Star/Fork, orange-underline tabnav),
+   11 GitHub-vocabulary tabs (Code, Issues, Pulls, Actions, Projects, Wiki,
+   Security, Insights, Settings, Peer, Publish). It does not reimplement
+   IPFS: it drives the shared JS backend over two `window` channels, and
+   `scripts/build-ipfs-js.mjs` bakes the repo's files, README, git meta,
+   workflows, and tags into the bridge bundle for the Code/Actions/Publish
+   views.
 3. **Reusable GitHub Action** (`action.yml`, composite) — any repo can
    build and deploy its own copy of the app embedding its own files with a
    few lines of workflow YAML.
@@ -63,10 +69,13 @@ git@github.com:RandyMcMillan/ipfs-gh-pages.git.
 - `index-rust.html` — Trunk target for the Rust TUI. Must stay at the repo
   root (Trunk canonicalizes the target path).
 - `src/` — the Rust crate: `main.rs` (three cfg-gated build modes),
-  `app.rs` (TUI state/tabs), `backend.rs` (ratzilla DOM/Canvas/WebGL2
-  backends), `ipfs.rs` (typed poll/cmd bridge to `window.__ipfsState` /
-  `window.__ipfsCmd`), `ui.rs`, `effects.rs`, `fps.rs`, `utils.rs`,
-  `cli.rs` + `wry_app.rs` (native-only, cfg-gated).
+  `app.rs` (TUI state: GitHub-vocab tabs, list cursors, inputs, pending
+  commands), `backend.rs` (ratzilla DOM/Canvas/WebGL2 backends), `ipfs.rs`
+  (typed poll/cmd bridge to `window.__ipfsState` / `window.__ipfsCmd`),
+  `theme.rs` (Primer dark palette + shared style helpers — all visual
+  styling imports from here), `ui.rs` (chrome + tab renderers), `effects.rs`
+  (tab-transition/startup sweeps), `fps.rs`, `utils.rs`, `cli.rs` +
+  `wry_app.rs` (native-only, cfg-gated).
 - `scripts/` — build/release/pinning/Kubo tooling (`.mjs` and `.sh`):
   `build-car.mjs` (CAR archives + `repo-manifest.json`, streaming, bounded
   RAM), `build-ipfs-js.mjs` (esbuild bundle of `js/ipfs-node.js`),

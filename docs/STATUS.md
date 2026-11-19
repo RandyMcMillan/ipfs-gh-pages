@@ -8,8 +8,10 @@ design detail. Update it at every release.
 
 Three surfaces share one protocol. **Pages** (`main.js`, vite → GitHub
 Pages) is the mature GitHub-style app. **rust** (`src/`, ratzilla TUI +
-wry desktop bundle) hosts 14 TUI tabs and the native app. They meet in
-the page: the bridge backend (`js/ipfs-node.js`, esbuild-bundled to
+wry desktop bundle) mirrors it: 11 GitHub-vocabulary tabs under Primer
+dark chrome, with the repo's files/README/git-meta/workflows/tags baked
+into the bridge bundle at build time. They meet in the page: the bridge
+backend (`js/ipfs-node.js`, esbuild-bundled to
 `assets/ipfs-node.js`) owns the Helia node; Rust drives it over
 `window.__ipfsState` (polled per frame in `on_tick`) and
 `window.__ipfsCmd(id, op, arg)` (async results keyed by id). Identity:
@@ -31,6 +33,27 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
 - **Bridge plan** (`docs/rust-js-bridge.md`): phases 1–8, 11. Tabs: IPFS, Peers, Fetch, Publish, Chat, Kubo (generic `kubo.rpc` = full API), Services, Git, Repo, Issues. `:` bar = vim command line (whole op surface; `kubo <m> <args>`, second token passes as `sha`).
 - **Phase 9 git clone** (`docs/git-over-ipfs.md`): COMPLETE. `js/git-objects.js` (loose+pack+delta reader), `js/git-upload-pack.js` (in-process smart protocol; real git clones through it, fsck-clean), `js/git-smart.js` (isomorphic-git transport), `git.cloneSmart`/`git.pullSmart`/`git.clones` (lightning-fs, IndexedDB, incremental). TUI Git tab: c/s/u/a/l.
 - **Phase 10 issues** (`docs/issues-car.md`): index on its OWN IPNS name (`ipns-index-key:<repo>` — branch pointer uses the repo key; one name = one value). `extendChain` publishes tip. Cross-surface sync in both surfaces; **multi-parent merge** via shared `js/index-merge.js` `classifyIndexSync` (genesis/ff-either-way/two-parent union). Bridge ops `issues.create`/`issues.sync`; TUI Issues tab (i/s). Issues CAR bundle walk (phase 6): `scripts/index-walk.mjs` walks tip → entries (`prev`) + notes (`added`, comment `parent` links; anchors NOT followed) into the blockstore; `build-car.mjs --index-tip <cid>` (repeatable) or `INDEX_TIPS=<cid,cid>` stages via Kubo RPC (KUBO_RPC) then trustless gateways (INDEX_GATEWAYS) — never fatal; CAR roots = repo root + resolved tips, partial tips bundled but not rooted. Line comments (phase 9, web app): select blob lines → signed `line-comment` note `{ns:'review', anchors:[fileCid], line:{start,end}}` via `js/line-comments.js` helpers (pure, unit-tested); gutter markers + tinted rows, composer, verified-comment panel; CDP-covered (cdp-line-comments). Root chain + blame (phases 10-11, web app): `recordRelease` in `addAllRepoFiles` writes `{type:'release', root, prev, timestamp}` dag-json per new root (dedup on republish; tips in `repo-release-chain`, genesis = current root); Blame toggle attributes each line to the OLDEST release containing it (multiset-exact line-text match, file-CID-diff fetch skip; `js/blame.js` pure, unit-tested), origin column doubles as the blame-comment affordance — signed `{ns:'review', type:'blame-comment', anchors:[fileCid], line:{start}, origin}` notes that ride the line across later versions (`blameCommentMatches`); CDP-covered (cdp-blame). TUI/bridge parity for line/blame comments: not built (web app only, like the rest of review UI).
+- **GitHub-UI TUI overhaul** (this phase, post-v4.0.1): `src/theme.rs`
+  (Primer dark palette — all styling imports from here); ui.rs renders
+  GitHub chrome (dark header, repo header with Public badge and
+  Watch/Star/Fork, orange-underline tabnav) plus a persistent keybar and
+  status line (lazygit's options bar), a `?` help overlay, and 1-9/0 tab
+  jumps. Tabs mirror the web app (Code/Issues/Pulls/Actions/Projects/Wiki/
+  Security/Insights/Settings/Peer/Publish — the old ratzilla demo tabs are
+  gone). Code: serie-style expandable file tree (├──/└──/│ guides), branch
+  bar, latest-commit line, markdown-rendered README panel, clone box —
+  fed by `build-ipfs-js.mjs`, which bakes REPO_FILES (repo-files walk),
+  REPO_README, git meta (branch, HEAD, tag, upstream ahead/behind,
+  dirtiness, 10 recent tags), and REPO_WORKFLOWS (workflow name/jobs/
+  runs-on/needs, line-parsed) into the bridge bundle; js/ipfs-node.js
+  serves them on `state.repo` and `src/ipfs.rs` polls typed fields.
+  Issues: #N rows + right detail pane (GitHub j/k + arrows). Actions:
+  wrkflw-style workflows/jobs panes from the baked workflow map.
+  Publish: git-tags Releases block. Insights: live node/Kubo rows plus a
+  drydock-style "Repository (at bundle build)" panel. Verify with
+  `cargo check --target wasm32-unknown-unknown`, `cargo check --features
+  bundle-wry`, `cargo fmt --check`, `trunk build` (per-increment; the JS
+  unit/CDP suites do not import ipfs-node.js, so they are unaffected).
 - **Git-host bridge** (`docs/issues-car.md` phase 12): `.githooks/` (versioned, activated per clone by `npm run githooks:activate` → `core.hooksPath`). Outbound `pre-push`: resolves the index tip (`IPFS_INDEX_TIP` env → `.git/ipfs-index-tip` export file the app shows under the chain status → `ipfs.indexTip` config → `ipfs.indexName` via Kubo), writes it as a note on every pushed commit under `refs/notes/<owner>/<repo>/index` — native SHA-keyed notes layout, readable by plain `git notes --ref=<ns> show <sha>`; never blocks the push; prints the one-time `+refs/notes/*:refs/notes/*` refspec setup. Inbound `post-merge`: reads the fetched note on HEAD / HEAD^2, prints the full tip CID + `ipfs pin add`, records it in `.git/ipfs-index-tip-incoming`. App side: Issues panel gains "Sync index tip" (`syncIndexFromTip`, refactored out of `syncIndexFromIpns`; note union now also happens on chain-noop, OR-Set semantics) — the paste hand-off a CLI hook can't do into a tab. Unit-tested against real git (`git-notes-bridge`, 7), CDP-covered (cdp-git-bridge).
 - **Release tag identity**: the header "latest release" chip bakes from the repo's latest git tag — `git describe --tags --abbrev=0` at REPO_ROOT in vite.config.js's `resolveIdentity` (`REPO_TAG_VERSION` env overrides without git); the chip prefers `tagVersion`, the action's package version stays on the Actions panel. `consumer.example.yml` gained a "Fetch latest tag" step (newest v* tag only, no full history — shallow consumer checkouts have no tags). Verified by fixture builds: tagged repo → `tagVersion:"9.9.9"` over package.json 0.0.1; untagged → empty fallback. (That example is gone: the step now lives in the single shared `.github/workflows/deploy-gh-pages.yml`, which this repo also deploys itself with.)
 - **Interop** (`docs/interop.md`): steps 1–3. Rust app serves loopback-only `:5050` (`/publish`, `/well-known/identity`, CORS `*`); bridge posts identity after boot + every 30s; main.js probes and adopts silently when no key, else exposes `window.__pendingIdentityAdoption`. Deployed-page CI smoke: `.github/workflows/deployed-smoke.yml` (two headless nodes must discover each other). Interop test vectors (`tests/fixtures/interop-vectors.json`): gnostr.svg `bafkreih2kz6g6n5fhria2x23ana6dp76e2nln6edrt4iyikzgifxomx46a` (raw, 1763 bytes, sha256 `fa567c6f37a53c500d5f5b0341e1bffe269ab6f8838cf88c2159320b7732fcf0`, Pinata) — byte-exactness proven per surface: dedicated + public gateways (plain + `?format=raw`), Kubo RPC block/get (self-seeds via pin/add), in-page Helia via the Files UI (cdp-interop-vector).

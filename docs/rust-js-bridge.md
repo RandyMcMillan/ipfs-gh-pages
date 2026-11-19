@@ -77,14 +77,21 @@ Every op mirrors proven code in main.js (cited per op):
 - `src/ipfs.rs` (new): js-sys wrappers. `poll() -> IpfsStateSnapshot` reads
   `window.__ipfsState` into a typed snapshot (manual field extraction);
   `command(op, arg)` sends with an id counter. All browser-only, gated
-  `#[cfg(target_arch = "wasm32")]`.
+  `#[cfg(target_arch = "wasm32")]`. Beyond live node state, the snapshot
+  carries the repo identity and the build-time data `build-ipfs-js.mjs`
+  bakes into the bundle (file listing, README, git meta incl. tags and
+  upstream ahead/behind, workflow summaries) — all served by
+  js/ipfs-node.js on `state.repo`.
 - `src/app.rs`: App gains an `ipfs: IpfsStateSnapshot` field, per-tab input
   buffers, and an `input_mode: Option<Tab>` — while a tab is in input mode,
   char keys append to that tab's buffer instead of hitting the global
-  handler (protects existing `q`/`t`/arrows).
-- `src/ui.rs`: new tabs alongside Home/About/Status/Theme. Input widgets:
-  bottom line text field (Paragraph + cursor block), results in scrollable
-  Lists. Full identifiers, never truncated (working agreement).
+  handler (protects existing `q`/`t`/arrows). The overhaul replaced the
+  demo tabs with 11 GitHub-vocabulary tabs and added list cursors
+  (`tree_cursor`, `issue_cursor`, `wf_cursor`) plus `open_dirs` for the
+  Code tree.
+- `src/ui.rs`: renders the GitHub chrome + tab content; every screen has a
+  status line and a persistent keybar at the bottom, and `?` opens a help
+  overlay. Full identifiers, never truncated (working agreement).
 
 ## Build phases (in order)
 
