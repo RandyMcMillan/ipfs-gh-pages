@@ -47,6 +47,26 @@ test('opKuboRpc builds Kubo URLs exactly like the reference mapping', () => {
       'swarm/connect',
       ['/ip4/1.2.3.4/udp/4001/p2p/12D3KooW x'],
       (u) => u.includes(`arg=${encodeURIComponent('/ip4/1.2.3.4/udp/4001/p2p/12D3KooW x')}`)
+    ],
+    // kubo source-grounded endpoints (core/commands/{dag,refs,name}.go):
+    // dag/import ingests CARs, refs -r walks every CID under a root (the
+    // honest "clone will succeed" check), name/resolve is the IPNS interop
+    // peer of @helia/ipns publishing.
+    ['dag/import', [], (u) => u.endsWith('/api/v0/dag/import?stream-channels=true')],
+    [
+      'refs',
+      ['-r', FIXTURE.cid],
+      (u) =>
+        u.includes('/api/v0/refs?stream-channels=true') &&
+        u.includes(`arg=${encodeURIComponent('-r')}`) &&
+        u.includes(`arg=${encodeURIComponent(FIXTURE.cid)}`)
+    ],
+    [
+      'name/resolve',
+      [`/ipns/${FIXTURE.cid}`],
+      (u) =>
+        u.includes('/api/v0/name/resolve?stream-channels=true') &&
+        u.includes(`arg=${encodeURIComponent(`/ipns/${FIXTURE.cid}`)}`)
     ]
   ];
   for (const [method, args, check] of matrix) {
@@ -120,4 +140,29 @@ test('live: pin/ls round-trips the fixture CID (the TUI\'s pin form)', { skip: !
   assert.ok(res.ok, `pin/ls HTTP ${res.status}`);
   const body = await res.text();
   assert.ok(body.includes(FIXTURE.cid), 'pin/ls reports the fixture pinned');
+});
+
+test('live: dag export -> dag import round-trips the fixture CAR', { skip: !kubo && 'no local kubo' }, async () => {
+  const exp = await fetch(kuboRpcUrl(kubo, 'dag/export', [FIXTURE.cid]), { method: 'POST' });
+  if (!exp.ok) return; // block absent — nothing to round-trip
+  const car = await exp.arrayBuffer();
+  assert.ok(car.byteLength > 32, `CAR payload (${car.byteLength} bytes)`);
+
+  const imp = await fetch(kuboRpcUrl(kubo, 'dag/import', []), {
+    method: 'POST',
+    // kubo's file-arg machinery wants the CAR as a multipart field
+    // (same as `ipfs add`), not a raw body.
+    body: (() => {
+      const form = new FormData();
+      form.append('file', new Blob([car], { type: 'application/vnd.ipld.car' }), 'fixture.car');
+      return form;
+    })()
+  });
+  assert.ok(imp.ok, `dag/import HTTP ${imp.status}`);
+  // kubo answers dag/import as NDJSON (stream-channels): one object per
+  // imported root — {"Root":{"Cid":{"/":"<cid>"},"PinError":""}}.
+  const reportText = await imp.text();
+  const first = JSON.parse(reportText.split('\n').find((l) => l.trim()) || '{}');
+  const rootCid = first.Root?.Cid?.['/'] || first.Root?.Cid;
+  assert.equal(rootCid, FIXTURE.cid, `dag/import pinned the fixture root: ${reportText.slice(0, 200)}`);
 });
