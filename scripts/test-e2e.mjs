@@ -8,6 +8,8 @@
 // the sum of every suite's bounded waits.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
 import { ensureChrome } from './ci-chrome.mjs';
 
 const HOST = process.env.E2E_HOST || '127.0.0.1';
@@ -70,6 +72,78 @@ if (!process.env.TEST_URL) {
 const env = { ...process.env, CHROME_PATH: chromePath };
 if (!env.TEST_URL) env.TEST_URL = BASE;
 
+// ---- TUI stage -------------------------------------------------------------
+// The cdp-rust-* suites drive the ratzilla TUI (index-rust.html), which the
+// vite dev server does not serve. Build it once with trunk into a dedicated
+// dist (target/ keeps it out of vite's way; trunk caches wasm builds), serve
+// it statically on TUI_PORT, and export TUI_URL for those suites.
+const TUI_DIST = path.join('target', 'tui-test-dist');
+const TUI_PORT = Number(process.env.TUI_PORT || 8077);
+const TUI_URL = `http://${HOST}:${TUI_PORT}`;
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.wasm': 'application/wasm',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.ico': 'image/x-icon'
+};
+
+function runBounded(cmd, args, timeoutMs, label) {
+  return new Promise((resolve, reject) => {
+    console.log(`[test:ci] ${label}: ${cmd} ${args.join(' ')}`);
+    const child = spawn(cmd, args, { stdio: 'inherit' });
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL');
+      reject(new Error(`${label} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+    child.on('exit', (code) => {
+      clearTimeout(timer);
+      if (code === 0) resolve();
+      else reject(new Error(`${label} exited with code ${code}`));
+    });
+  });
+}
+
+let tuiServer = null;
+if (SUITES.some((s) => s.includes('cdp-rust'))) {
+  if (!env.TUI_URL || env.TUI_URL === TUI_URL) {
+    try {
+      // Mirror bundle.sh: keep the publish manifest in lockstep with the
+      // tree so the TUI publishes the byte-identical repo set.
+      await runBounded('node', ['scripts/build-repo-files.mjs'], 120_000, 'build repo-files manifest');
+      await runBounded('trunk', ['build', '--dist', TUI_DIST], 300_000, 'trunk build (TUI)');
+    } catch (err) {
+      console.error(`[test:ci] TUI stage failed: ${err.message}`);
+      if (serverProc && !serverReused) killTree(serverProc.pid);
+      process.exit(1);
+    }
+    const tuiRoot = path.resolve(TUI_DIST);
+    tuiServer = http.createServer((req, res) => {
+      const urlPath = decodeURIComponent((req.url || '/').split('?')[0]);
+      const rel =
+        urlPath === '/'
+          ? ['index-rust.html', 'index.html'].find((n) => fs.existsSync(path.join(tuiRoot, n)))
+          : urlPath.replace(/^\/+/, '');
+      const file = path.resolve(tuiRoot, rel);
+      if (!file.startsWith(tuiRoot + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+        res.writeHead(404, { 'content-type': 'text/plain' });
+        res.end('Not Found');
+        return;
+      }
+      res.writeHead(200, { 'content-type': MIME[path.extname(file)] || 'application/octet-stream' });
+      fs.createReadStream(file).pipe(res);
+    });
+    await new Promise((resolve) => tuiServer.listen(TUI_PORT, HOST, resolve));
+    console.log(`[test:ci] TUI served at ${TUI_URL} from ${TUI_DIST}`);
+    env.TUI_URL = TUI_URL;
+  } else {
+    console.log(`[test:ci] using provided TUI_URL=${env.TUI_URL}`);
+  }
+}
+
 function runSuite(cmd, timeoutMs) {
   return new Promise((resolve) => {
     console.log(`[test:ci] suite start (max ${Math.round(timeoutMs / 1000)}s): ${cmd}`);
@@ -89,6 +163,7 @@ function runSuite(cmd, timeoutMs) {
 const watchdog = setTimeout(() => {
   console.error(`[test:ci] global timeout ${GLOBAL_TIMEOUT_MS}ms exceeded — killing the suite`);
   if (serverProc && !serverReused) killTree(serverProc.pid);
+  if (tuiServer) tuiServer.close();
   process.exit(124);
 }, GLOBAL_TIMEOUT_MS);
 
@@ -102,5 +177,6 @@ for (const cmd of SUITES) {
   }
 }
 clearTimeout(watchdog);
+if (tuiServer) tuiServer.close();
 if (serverProc && !serverReused) killTree(serverProc.pid);
 process.exit(exitCode);
