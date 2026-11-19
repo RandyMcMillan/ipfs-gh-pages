@@ -373,8 +373,8 @@ impl WebEventHandler for FpsTrackingBackend {
 ///
 /// # Example
 ///
-/// ```no_run
-/// use bundle-wry::backend::{BackendType, MultiBackendBuilder};
+/// ```ignore (browser example — references ratzilla, which doctests cannot link)
+/// use ipfs_gh_pages::backend::{BackendType, MultiBackendBuilder};
 /// use ratzilla::backend::canvas::CanvasBackendOptions;
 /// use ratzilla::backend::webgl2::WebGl2BackendOptions;
 /// use ratzilla::ratatui::TerminalOptions;
@@ -467,8 +467,8 @@ impl MultiBackendBuilder {
     ///
     /// # Example
     ///
-    /// ```no_run
-    /// use bundle_wry::backend::{BackendType, MultiBackendBuilder};
+    /// ```ignore (browser example — references ratzilla, which doctests cannot link)
+    /// use ipfs_gh_pages::backend::{BackendType, MultiBackendBuilder};
     ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let terminal = MultiBackendBuilder::with_fallback(BackendType::Canvas)
