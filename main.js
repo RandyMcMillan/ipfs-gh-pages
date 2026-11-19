@@ -351,6 +351,18 @@ async function refreshRepoMetadata() {
   }
 }
 
+// Terminal view (opt-in add-value): shown only when the deploy overlaid
+// the prebuilt ratzilla TUI at ./index-rust.html (the action's
+// include-tui input). Probe-based — hidden until the file is real, the
+// live-values idiom; plain deploys see nothing.
+fetch('index-rust.html', { method: 'HEAD' })
+  .then((r) => {
+    if (!r.ok) return;
+    const link = document.getElementById('terminal-view-link');
+    if (link) link.hidden = false;
+  })
+  .catch(() => {});
+
 function applyRepoMetadata(meta) {
   const { repo, languages } = meta;
   const setCount = (id, n) => {
