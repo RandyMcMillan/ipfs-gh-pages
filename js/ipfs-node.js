@@ -51,6 +51,7 @@ import { zipSync } from 'fflate';
 import { GitStore } from './git-objects.js';
 import { makeSmartHttp } from './git-smart.js';
 import { classifyIndexSync } from './index-merge.js';
+import { latestRunByWorkflow } from './github-actions.js';
 
 // ---- repo identity (parity: main.js lines 27-41) ---------------------------
 
@@ -141,7 +142,17 @@ function resolveEndpoints(field) {
 // ---- state (JS -> Rust) -----------------------------------------------------
 
 const state = {
-  repo: { owner: repoOwner, name: repoName, fullName: repoFullName, version: repoIdentity.version, files: repoFilesList, readme: repoReadmeText, workflows: repoWorkflows, ...repoGitMeta },
+  repo: {
+    owner: repoOwner,
+    name: repoName,
+    fullName: repoFullName,
+    version: repoIdentity.version,
+    files: repoFilesList,
+    readme: repoReadmeText,
+    workflows: repoWorkflows,
+    actions: { runs: [], error: '', updatedAt: '' },
+    ...repoGitMeta
+  },
   node: { status: 'starting', peerId: null, multiaddrs: [], protocols: [], connections: [] },
   chat: { inbox: [] }, // { signer, verified, text, timestamp } — newest first, cap 50
   issues: [], // { cid, title, timestamp } — newest first (local index view)
@@ -151,6 +162,37 @@ const state = {
   results: {} // command results keyed by id
 };
 window.__ipfsState = state;
+
+// ---- live Actions run status (optional service) ----------------------------
+// api.github.com allows anonymous CORS GETs (60 req/h/IP); we poll every
+// 5 minutes. A failed or rate-limited fetch only fills state.repo.actions
+// .error — the TUI's workflow map never depends on it
+// (docs/optional-services.md). Matching lives in js/github-actions.js.
+
+const ACTIONS_CACHE_MS = 5 * 60 * 1000;
+
+async function refreshActionsStatus() {
+  const url = `https://api.github.com/repos/${repoOwner}/${repoName}/actions/runs?per_page=20`;
+  try {
+    const res = await fetch(url, {
+      headers: { Accept: 'application/vnd.github+json' },
+      cache: 'no-store'
+    });
+    if (!res.ok) {
+      state.repo.actions.error = `GitHub API ${res.status}`;
+      return;
+    }
+    const payload = await res.json();
+    state.repo.actions.runs = latestRunByWorkflow(repoWorkflows, payload.workflow_runs || []);
+    state.repo.actions.error = '';
+    state.repo.actions.updatedAt = new Date().toISOString();
+  } catch (err) {
+    state.repo.actions.error = err && err.message ? err.message : 'unreachable';
+  }
+}
+
+refreshActionsStatus();
+setInterval(refreshActionsStatus, ACTIONS_CACHE_MS);
 
 // ---- footer status (written into the ratzilla footer) -----------------------
 

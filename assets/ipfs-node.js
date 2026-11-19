@@ -141390,6 +141390,33 @@ function classifyIndexSync(local, remote, remoteDescendsLocal, localDescendsRemo
   return { action: "merge", height, lamport };
 }
 
+// js/github-actions.js
+init_define_REPO_FILES();
+init_define_REPO_TAGS();
+init_define_REPO_WORKFLOWS();
+function normalizeRun(run) {
+  if (!run || typeof run !== "object") return null;
+  return {
+    status: typeof run.status === "string" ? run.status : "",
+    conclusion: typeof run.conclusion === "string" ? run.conclusion : "",
+    runNumber: Number.isFinite(run.run_number) ? run.run_number : null,
+    headBranch: typeof run.head_branch === "string" ? run.head_branch : "",
+    createdAt: typeof run.created_at === "string" ? run.created_at : ""
+  };
+}
+function latestRunByWorkflow(workflows, runs) {
+  const list = Array.isArray(runs) ? runs : [];
+  return (Array.isArray(workflows) ? workflows : []).map((wf) => {
+    const file = wf && typeof wf.file === "string" ? wf.file : "";
+    const name15 = wf && typeof wf.name === "string" ? wf.name : "";
+    const byPath = file ? list.find(
+      (r) => typeof r.path === "string" && r.path.endsWith(`/${file}`)
+    ) : void 0;
+    const byName = name15 ? list.find((r) => r.name === name15) : void 0;
+    return { file, name: name15, run: normalizeRun(byPath || byName || null) };
+  });
+}
+
 // js/ipfs-node.js
 var repoIdentity = { owner: "RandyMcMillan", name: "ipfs-gh-pages", version: "4.0.1" };
 var { repoOwner, repoName } = (() => {
@@ -141409,14 +141436,14 @@ var repoFilesList = typeof define_REPO_FILES_default === "string" ? JSON.parse(d
 var repoReadmeText = true ? "# Helia IPFS - [deploy-gh-pages](deploy-gh-pages.yml)\n\n[![Deploy IPFS site](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/deploy-gh-pages.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/deploy-gh-pages.yml)\n[![Release](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/release.yml/badge.svg)](https://github.com/RandyMcMillan/ipfs-gh-pages/actions/workflows/release.yml)\n\nA browser-based IPFS node built with [Helia](https://github.com/ipfs/helia) that runs entirely on GitHub Pages. On load it automatically adds every file in the repository to IPFS and exposes a root CID, plus a browsable file tree, content fetch, and download support.\n\nLive demo: https://randymcmillan.github.io/ipfs-gh-pages/\n\n## Features\n\n- In-browser Helia IPFS node (no backend required)\n- Automatically adds all repository files to IPFS on startup\n- Root directory CID displayed after import\n- Repository file/folder tree view with per-file CIDs\n- Click any CID to fetch its content (text, binary, or directory listing)\n- Download button saves the actual retrieved bytes (files download as themselves, directories as a `.zip`)\n- Publish arbitrary text and fetch by CID\n\n## Development\n\n```bash\nnpm install\nnpm run dev\n```\n\nOpen http://localhost:5173.\n\n## Build\n\n```bash\nnpm run build\nnpm run preview\n```\n\nThe production bundle is written to `./dist`.\n\n## Tests\n\nIntegration tests use headless Chrome/Chromium via the Chrome DevTools Protocol.\n\n```bash\n# start the dev server in another terminal\nnpm run dev\n\n# run tests\nnpm run test          # all tests (unit + headless Chrome integration)\nnpm run test:unit     # pure functions only, no browser needed\nnpm run test:eval     # inspect fetched bytes\nnpm run test:zip      # zip a directory\nnpm run test:download # download flow\nnpm run test:share    # share link: two headless browsers, auto-connect via ?connect=\nnode tests/cdp-ui.mjs # UI chrome regression tests (dropdown, tabs, blob view, theme)\nnode tests/car.test.mjs  # CAR round-trip: export/import with locked deps only\nnpm run test:gateway  # public gateway reachability for the repo root (needs a provider)\n\n## Submodules & releases\n\n`actions-test` is a small submodule kept as the fixture for the\nper-submodule CAR build (`build-car` writes `<submodule>/<name>.car`).\nIts `.car` artifacts are ignored (`ignore = untracked` in `.gitmodules`)\nso the superproject stays clean.\n\nRelease procedure with submodules:\n\n1. To update the fixture's content: commit and push inside the\n   submodule, then bump the gitlink here (the normal two-step).\n2. Every build installs the repo's own `.github/workflows/deploy-gh-pages.yml`\n   as the fixture's `actions-test/.github/workflows/deploy.yml` \u2014 one\n   deploy workflow shared by this repo, its consumers, and the fixture\n   (the repo-root `deploy-gh-pages.yml` is a symlink to it) \u2014 then\n   rebuilds every submodule CAR from the checked-out commit. The CAR's\n   root CID changes only when the submodule's tracked files change.\n3. CI checkouts that don't initialize submodules skip the submodule\n   CARs gracefully; the main `dist/ipfs-gh-pages.car` is unaffected.\n\nPush order is critical: the submodule's commits must be on ITS remote\nBEFORE any superproject commit referencing them is pushed \u2014 a gitlink\npointing at an unpushed commit breaks every `submodules: recursive`\ncheckout (CI: \"upload-pack: not our ref\"). Verify with:\n\n```\nnode scripts/check-gitlink.mjs\n```\n\nSync the fixture workflow by hand with:\n\n```\nnpm run install:consumer-example\n```\n\nReleases are cut with `npm run release <version>` \u2014 it bumps,\ncommits, tags, and pushes this repo AND tags the actions-test\nsubmodule at the gitlink's commit, keeping its tags in lockstep.\nnode tests/cdp-ui.mjs # UI chrome regression tests (dropdown, tabs, blob view, theme)\n```\n\nSet `CHROME_PATH` to point at your browser binary if it is not auto-detected.\n\n## Using this as a GitHub Action\n\nThis repository is also a reusable GitHub Action. Other repositories can build (and deploy) a\nbrowser IPFS node that embeds all of their own files with a few lines of YAML:\n\n```yaml\nname: Deploy IPFS site\n\non:\n  push:\n    branches: [main]\n\npermissions:\n  contents: read\n  pages: write\n  id-token: write\n\nconcurrency:\n  group: pages\n  cancel-in-progress: true\n\njobs:\n  build-and-deploy:\n    runs-on: ubuntu-latest\n    environment:\n      name: github-pages\n      url: ${{ steps.deploy.outputs.page_url }}\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v4\n\n      - name: Build and deploy IPFS site\n        id: deploy\n        uses: RandyMcMillan/ipfs-gh-pages@v3.1.5\n        with:\n          node-version: '20'\n          deploy: 'true'\n```\n\nThe example above pins a release tag. A self-updating variant \u2014 it auto-detects the\nnewest `v*` tag of this action at run time (falling back to the default-branch HEAD),\nand takes an explicit pin via `workflow_dispatch` \u2014 is the very workflow this repo\ndeploys itself with:\n[`.github/workflows/deploy-gh-pages.yml`](https://github.com/RandyMcMillan/ipfs-gh-pages/blob/main/.github/workflows/deploy-gh-pages.yml)\n(copy it as `.github/workflows/deploy.yml`; a `deploy-gh-pages.yml` symlink at the\nrepo root points at the same file).\n\nInputs:\n\n- `node-version` (default `20`) \u2014 Node.js version used for the build.\n- `repo-root` (default `${{ github.workspace }}`) \u2014 directory whose tracked files are embedded.\n- `out-dir` (default `${{ github.workspace }}/dist`) \u2014 where the production bundle is written.\n- `deploy` (default `true`) \u2014 whether to deploy to GitHub Pages.\n- `run-tests` (default `false`) \u2014 run the integration suite (installs Chromium) before building.\n- `pinata-jwt` (default empty) \u2014 a Pinata JWT, normally passed as a repo secret (`pinata-jwt: ${{ secrets.PINATA_JWT }}`). When set, the built `ipfs-gh-pages.car` is pinned to Pinata's public IPFS network (`car=true` \u2014 the CAR's roots are what gets pinned). Empty = skipped; failures only warn (optional service).\n- `filebase-access-key-id` / `filebase-secret-access-key` / `filebase-bucket` (default empty) \u2014 Filebase credentials in Filebase's own terms (`accessKeyId` / `secretAccessKey` from the dashboard \u2192 Access Keys, plus your bucket), normally repo secrets `FILEBASE_ACCESS_KEY_ID`, `FILEBASE_SECRET_ACCESS_KEY`, `FILEBASE_BUCKET`. When all three are set, the built `ipfs-gh-pages.car` is pinned to Filebase's IPFS network via an S3 `PUT` (endpoint `https://s3.filebase.io`, region `auto`, signature v4; the pinned CID comes back in the `x-amz-meta-cid` header). Empty = skipped; failures only warn (optional service).\n\nOutputs:\n\n- `dist-path` \u2014 absolute path to the built bundle directory.\n\nSet `deploy: 'false'` to only produce the bundle (e.g. to attach it to a release) and skip\nthe Pages deployment step.\n\n## CI / CD\n\n- `.github/workflows/deploy-gh-pages.yml` is the deploy workflow \u2014 this repo runs it as its own deploy, and consumers copy the same file (auto-detects the newest `v*` tag of the action at run time). It deploys on every push to `main` and re-checks daily.\n- `.github/workflows/release.yml` runs tests, builds the project, archives `./dist` as `dist.zip`, and attaches it to a GitHub Release (triggered by `v*` tags or manually).\n\n## Project Structure\n\n```\nindex.html          # app shell + UI\nmain.js             # Helia node, IPFS import, tree, fetch, download\nvite.config.js      # Vite config + virtual repo-files module\ntests/              # Chrome DevTools Protocol integration tests\n.github/workflows/  # CI/CD pipelines\n```\n\n## License\n\nMIT" : "";
 var repoGitMeta = {
   branch: true ? "main" : "main",
-  lastCommitMsg: true ? "rust+bridge: drydock-style Repository panel on Insights" : "",
-  lastCommitTime: true ? "2026-11-18T18:54:35-05:00" : "",
-  shortSha: true ? "ea4fcac" : "",
-  commitCount: true ? "530" : "",
+  lastCommitMsg: true ? "rust: Peer tab detail pane \u2014 selected connection's full values" : "",
+  lastCommitTime: true ? "2026-11-18T19:03:38-05:00" : "",
+  shortSha: true ? "ac9ee2c" : "",
+  commitCount: true ? "533" : "",
   latestTag: true ? "v4.0.1" : "",
-  commitsSinceTag: true ? "14" : "",
+  commitsSinceTag: true ? "17" : "",
   upstream: true ? "origin/main" : "",
-  ahead: true ? "11" : "",
+  ahead: true ? "14" : "",
   behind: true ? "0" : "",
   dirty: true ? true : false,
   tags: typeof define_REPO_TAGS_default === "string" ? JSON.parse(define_REPO_TAGS_default) : []
@@ -141458,7 +141485,17 @@ function resolveEndpoints(field) {
   return out;
 }
 var state = {
-  repo: { owner: repoOwner, name: repoName, fullName: repoFullName, version: repoIdentity.version, files: repoFilesList, readme: repoReadmeText, workflows: repoWorkflows, ...repoGitMeta },
+  repo: {
+    owner: repoOwner,
+    name: repoName,
+    fullName: repoFullName,
+    version: repoIdentity.version,
+    files: repoFilesList,
+    readme: repoReadmeText,
+    workflows: repoWorkflows,
+    actions: { runs: [], error: "", updatedAt: "" },
+    ...repoGitMeta
+  },
   node: { status: "starting", peerId: null, multiaddrs: [], protocols: [], connections: [] },
   chat: { inbox: [] },
   // { signer, verified, text, timestamp } — newest first, cap 50
@@ -141472,6 +141509,28 @@ var state = {
   // command results keyed by id
 };
 window.__ipfsState = state;
+var ACTIONS_CACHE_MS = 5 * 60 * 1e3;
+async function refreshActionsStatus() {
+  const url = `https://api.github.com/repos/${repoOwner}/${repoName}/actions/runs?per_page=20`;
+  try {
+    const res = await fetch(url, {
+      headers: { Accept: "application/vnd.github+json" },
+      cache: "no-store"
+    });
+    if (!res.ok) {
+      state.repo.actions.error = `GitHub API ${res.status}`;
+      return;
+    }
+    const payload = await res.json();
+    state.repo.actions.runs = latestRunByWorkflow(repoWorkflows, payload.workflow_runs || []);
+    state.repo.actions.error = "";
+    state.repo.actions.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+  } catch (err2) {
+    state.repo.actions.error = err2 && err2.message ? err2.message : "unreachable";
+  }
+}
+refreshActionsStatus();
+setInterval(refreshActionsStatus, ACTIONS_CACHE_MS);
 var statusEl = null;
 var pendingStatus = null;
 function statusLine(text) {
