@@ -203,7 +203,11 @@ if (isMain) {
     REPO_OWNER: JSON.stringify(owner),
     REPO_NAME: JSON.stringify(name),
     REPO_VERSION: JSON.stringify(version),
-    REPO_FILES: JSON.stringify(repoFiles),
+    // JSON arrays/objects must be double-encoded: esbuild parses a define
+    // value that looks like JSON into a real array literal, which breaks
+    // the runtime `typeof X === 'string'` guard (typeof [] is 'object').
+    // Double-encoding guarantees a string literal on the wire.
+    REPO_FILES: JSON.stringify(JSON.stringify(repoFiles)),
     REPO_README: JSON.stringify(repoReadme),
     REPO_BRANCH: JSON.stringify(gitMeta.branch),
     REPO_LAST_COMMIT: JSON.stringify(gitMeta.lastCommitMsg),
@@ -216,8 +220,8 @@ if (isMain) {
     REPO_AHEAD: JSON.stringify(gitMeta.ahead),
     REPO_BEHIND: JSON.stringify(gitMeta.behind),
     REPO_DIRTY: JSON.stringify(gitMeta.dirty),
-    REPO_TAGS: JSON.stringify(gitMeta.tags),
-    REPO_WORKFLOWS: JSON.stringify(extractWorkflows(repoRoot))
+    REPO_TAGS: JSON.stringify(JSON.stringify(gitMeta.tags)),
+    REPO_WORKFLOWS: JSON.stringify(JSON.stringify(extractWorkflows(repoRoot)))
   };
 
   await build({
