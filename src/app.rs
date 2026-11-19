@@ -70,8 +70,10 @@ pub struct App<'a> {
     pub input_active: bool,
     pub input_buffer: String,
     pub input_target: InputTarget,
-    /// Command id awaiting its async result, with the target it belongs to.
-    pub pending: Option<(u64, InputTarget)>,
+    /// In-flight bridge commands: command id -> the input target its
+    /// result belongs to. A map, not a single slot, so overlapping ops
+    /// (a click while a key op is running) never clobber each other.
+    pub pending: std::collections::HashMap<u64, InputTarget>,
     /// One-line status shown on the active tab (command results/errors).
     pub last_result: String,
     /// Fetched content for the Wiki tab (text or directory listing).
@@ -124,7 +126,7 @@ impl<'a> App<'a> {
             input_active: false,
             input_buffer: String::new(),
             input_target: InputTarget::Connect,
-            pending: None,
+            pending: std::collections::HashMap::new(),
             last_result: String::new(),
             fetch_output: String::new(),
             publish_output: String::new(),
@@ -295,7 +297,7 @@ impl<'a> App<'a> {
             // Code: publish the whole repo tree to IPFS.
             'p' if self.tabs.index == 0 => {
                 if let Some(id) = ipfs::cmd("repo.publishAll", "{}") {
-                    self.pending = Some((id, InputTarget::RepoPublish));
+                    self.pending.insert(id, InputTarget::RepoPublish);
                     self.last_result = "publishing repo tree...".to_string();
                 }
             }
@@ -305,7 +307,7 @@ impl<'a> App<'a> {
             'k' if self.tabs.index == 1 => self.on_up(),
             's' if self.tabs.index == 1 => {
                 if let Some(id) = ipfs::cmd("issues.sync", "{}") {
-                    self.pending = Some((id, InputTarget::IssueCreate));
+                    self.pending.insert(id, InputTarget::IssueCreate);
                     self.last_result = "syncing issues from IPNS...".to_string();
                 }
             }
@@ -319,7 +321,7 @@ impl<'a> App<'a> {
             'u' if self.tabs.index == 2 => self.start_input(InputTarget::GitPullSmart),
             'l' if self.tabs.index == 2 => {
                 if let Some(id) = ipfs::cmd("git.clones", "{}") {
-                    self.pending = Some((id, InputTarget::GitCloneSmart));
+                    self.pending.insert(id, InputTarget::GitCloneSmart);
                     self.last_result = "listing clones...".to_string();
                 }
             }
@@ -424,7 +426,7 @@ impl<'a> App<'a> {
             (head, arg)
         };
         if let Some(id) = ipfs::cmd(op, &arg) {
-            self.pending = Some((id, InputTarget::RawCommand));
+            self.pending.insert(id, InputTarget::RawCommand);
             self.cmd_output = format!("{line} -> working...");
         } else {
             self.cmd_output = "bridge unavailable (window.__ipfsCmd missing)".to_string();
@@ -447,7 +449,7 @@ impl<'a> App<'a> {
                 args.join(",")
             );
             if let Some(id) = ipfs::cmd("kubo.rpc", &arg) {
-                self.pending = Some((id, InputTarget::KuboRpc));
+                self.pending.insert(id, InputTarget::KuboRpc);
                 self.last_result = "working...".to_string();
             } else {
                 self.last_result = "bridge unavailable (window.__ipfsCmd missing)".to_string();
@@ -479,7 +481,7 @@ impl<'a> App<'a> {
             InputTarget::RawCommand => "raw-command",
         };
         if let Some(id) = ipfs::cmd(op, &arg) {
-            self.pending = Some((id, self.input_target));
+            self.pending.insert(id, self.input_target);
             self.last_result = "working...".to_string();
         } else {
             self.last_result = "bridge unavailable (window.__ipfsCmd missing)".to_string();
@@ -488,13 +490,21 @@ impl<'a> App<'a> {
     }
 
     fn finish_pending(&mut self) {
-        let Some((id, target)) = self.pending else {
-            return;
-        };
-        let Some(result) = ipfs::take_result(id) else {
-            return;
-        };
-        self.pending = None;
+        // Drain every completed command; still-running ids stay in the map
+        // for a later tick. Collect first — apply_result may submit again.
+        let ids: Vec<u64> = self.pending.keys().copied().collect();
+        for id in ids {
+            let Some(result) = ipfs::take_result(id) else {
+                continue;
+            };
+            let Some(target) = self.pending.remove(&id) else {
+                continue;
+            };
+            self.apply_result(target, result);
+        }
+    }
+
+    fn apply_result(&mut self, target: InputTarget, result: Result<String, String>) {
         match result {
             Ok(value) => {
                 self.last_result = match target {
@@ -744,5 +754,29 @@ mod nav_tests {
         assert_eq!(app.tabs.index, 0);
         app.on_left();
         assert_eq!(app.tabs.index, app.tabs.titles.len() - 1, "left wraps");
+    }
+}
+
+#[cfg(test)]
+mod pending_tests {
+    use super::*;
+
+    #[test]
+    fn overlapping_ops_no_longer_clobber_each_other() {
+        let mut app = App::new("t");
+        // Simulate two in-flight commands (the bridge is a host stub here,
+        // so arm the map the way submit paths do).
+        app.pending.insert(1, InputTarget::IssueCreate);
+        app.pending.insert(2, InputTarget::RepoPublish);
+        assert_eq!(app.pending.len(), 2);
+        assert_eq!(app.pending.get(&1), Some(&InputTarget::IssueCreate));
+        assert_eq!(app.pending.get(&2), Some(&InputTarget::RepoPublish));
+        // finish_pending with no results ready leaves both armed.
+        app.finish_pending();
+        assert_eq!(app.pending.len(), 2);
+        // Draining removes only the completed one.
+        app.pending.remove(&1);
+        assert_eq!(app.pending.len(), 1);
+        assert!(app.pending.contains_key(&2));
     }
 }
