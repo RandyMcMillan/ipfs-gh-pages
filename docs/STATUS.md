@@ -50,10 +50,16 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
   Issues: #N rows + right detail pane (GitHub j/k + arrows). Actions:
   wrkflw-style workflows/jobs panes from the baked workflow map.
   Publish: git-tags Releases block. Insights: live node/Kubo rows plus a
-  drydock-style "Repository (at bundle build)" panel. Verify with
+  drydock-style "Repository (at bundle build)" panel. Peer: connection
+  detail pane (full peer id + multiaddr). Actions: LIVE status — the
+  bridge polls api.github.com /actions/runs every 5 min (CORS anonymous,
+  optional-service failure only fills an error string) and js/
+  github-actions.js (pure, node:test 5 cases, in test:all) matches runs
+  to workflows; the tab gains a conclusion-colored status column and the
+  Jobs pane shows the selected run (#, branch, status). Verify with
   `cargo check --target wasm32-unknown-unknown`, `cargo check --features
-  bundle-wry`, `cargo fmt --check`, `trunk build` (per-increment; the JS
-  unit/CDP suites do not import ipfs-node.js, so they are unaffected).
+  bundle-wry`, `cargo fmt --check`, `trunk build` (per-increment; the
+  other JS unit/CDP suites are unaffected — nothing they import changed).
 - **Git-host bridge** (`docs/issues-car.md` phase 12): `.githooks/` (versioned, activated per clone by `npm run githooks:activate` → `core.hooksPath`). Outbound `pre-push`: resolves the index tip (`IPFS_INDEX_TIP` env → `.git/ipfs-index-tip` export file the app shows under the chain status → `ipfs.indexTip` config → `ipfs.indexName` via Kubo), writes it as a note on every pushed commit under `refs/notes/<owner>/<repo>/index` — native SHA-keyed notes layout, readable by plain `git notes --ref=<ns> show <sha>`; never blocks the push; prints the one-time `+refs/notes/*:refs/notes/*` refspec setup. Inbound `post-merge`: reads the fetched note on HEAD / HEAD^2, prints the full tip CID + `ipfs pin add`, records it in `.git/ipfs-index-tip-incoming`. App side: Issues panel gains "Sync index tip" (`syncIndexFromTip`, refactored out of `syncIndexFromIpns`; note union now also happens on chain-noop, OR-Set semantics) — the paste hand-off a CLI hook can't do into a tab. Unit-tested against real git (`git-notes-bridge`, 7), CDP-covered (cdp-git-bridge).
 - **Release tag identity**: the header "latest release" chip bakes from the repo's latest git tag — `git describe --tags --abbrev=0` at REPO_ROOT in vite.config.js's `resolveIdentity` (`REPO_TAG_VERSION` env overrides without git); the chip prefers `tagVersion`, the action's package version stays on the Actions panel. `consumer.example.yml` gained a "Fetch latest tag" step (newest v* tag only, no full history — shallow consumer checkouts have no tags). Verified by fixture builds: tagged repo → `tagVersion:"9.9.9"` over package.json 0.0.1; untagged → empty fallback. (That example is gone: the step now lives in the single shared `.github/workflows/deploy-gh-pages.yml`, which this repo also deploys itself with.)
 - **Interop** (`docs/interop.md`): steps 1–3. Rust app serves loopback-only `:5050` (`/publish`, `/well-known/identity`, CORS `*`); bridge posts identity after boot + every 30s; main.js probes and adopts silently when no key, else exposes `window.__pendingIdentityAdoption`. Deployed-page CI smoke: `.github/workflows/deployed-smoke.yml` (two headless nodes must discover each other). Interop test vectors (`tests/fixtures/interop-vectors.json`): gnostr.svg `bafkreih2kz6g6n5fhria2x23ana6dp76e2nln6edrt4iyikzgifxomx46a` (raw, 1763 bytes, sha256 `fa567c6f37a53c500d5f5b0341e1bffe269ab6f8838cf88c2159320b7732fcf0`, Pinata) — byte-exactness proven per surface: dedicated + public gateways (plain + `?format=raw`), Kubo RPC block/get (self-seeds via pin/add), in-page Helia via the Files UI (cdp-interop-vector).
