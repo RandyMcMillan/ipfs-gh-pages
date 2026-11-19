@@ -1,6 +1,19 @@
 use crate::effects;
 use crate::ipfs;
+use ratzilla::event::{MouseButton, MouseEvent, MouseEventKind};
+use ratzilla::ratatui::layout::Rect;
 use tachyonfx::{Duration, EffectManager};
+
+/// Clickable region actions, registered per frame by ui::draw and
+/// dispatched by App::on_mouse (immediate-mode hit testing).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum UiAction {
+    SwitchTab(usize),
+    TreeRow(usize),
+    IssueRow(usize),
+    WfRow(usize),
+    PeerRow(usize),
+}
 
 pub struct TabsState<'a> {
     pub titles: Vec<&'a str>,
@@ -99,6 +112,8 @@ pub struct App<'a> {
     /// Last rendered frame width, cached by ui::draw each frame — the
     /// responsive breakpoint source for input handling.
     pub last_width: u16,
+    /// Clickable regions registered by this frame's draw pass.
+    pub regions: Vec<(Rect, UiAction)>,
     /// Vim-style `:` command bar (any bridge op, any tab). A true PTY
     /// terminal is impossible here — the TUI renders from wasm, which
     /// cannot spawn processes — so this is the in-app command line.
@@ -145,6 +160,7 @@ impl<'a> App<'a> {
             peer_cursor: 0,
             detail_open: false,
             last_width: 120,
+            regions: Vec::new(),
             cmd_open: false,
             cmd_buffer: String::new(),
             cmd_output: String::new(),
@@ -627,6 +643,62 @@ impl<'a> App<'a> {
         }
     }
 
+    /// Mouse input: left-click hit-tests the registered regions (topmost
+    /// wins). ratzilla 0.3.1 surfaces no wheel events, so list scrolling
+    /// stays keyboard-driven; wheel lands with a ratzilla bump.
+    pub fn on_mouse(&mut self, event: &MouseEvent) {
+        if event.kind != MouseEventKind::SingleClick(MouseButton::Left) {
+            return;
+        }
+        let (col, row) = (event.col, event.row);
+        if let Some((_, action)) = self
+            .regions
+            .iter()
+            .rev()
+            .find(|(rect, _)| {
+                col >= rect.x
+                    && col < rect.x + rect.width
+                    && row >= rect.y
+                    && row < rect.y + rect.height
+            })
+            .map(|(r, a)| (*r, *a))
+        {
+            self.run_action(action);
+        }
+    }
+
+    fn run_action(&mut self, action: UiAction) {
+        match action {
+            UiAction::SwitchTab(i) => {
+                if self.tabs.index != i {
+                    self.tabs.index = i;
+                    self.detail_open = false;
+                    self.add_transition_tab_effect();
+                }
+            }
+            UiAction::TreeRow(i) => {
+                if self.tabs.index == 0 {
+                    self.tree_cursor = i;
+                }
+            }
+            UiAction::IssueRow(i) => {
+                if self.tabs.index == 1 {
+                    self.issue_cursor = i;
+                }
+            }
+            UiAction::WfRow(i) => {
+                if self.tabs.index == 3 {
+                    self.wf_cursor = i;
+                }
+            }
+            UiAction::PeerRow(i) => {
+                if self.tabs.index == 9 {
+                    self.peer_cursor = i;
+                }
+            }
+        }
+    }
+
     pub fn on_tick(&mut self) -> Duration {
         // Refresh the IPFS backend snapshot ~every half second (the draw
         // loop runs at display refresh rate; Reflect reads are cheap but
@@ -775,6 +847,58 @@ mod nav_tests {
         assert_eq!(app.tabs.index, 0);
         app.on_left();
         assert_eq!(app.tabs.index, app.tabs.titles.len() - 1, "left wraps");
+    }
+}
+
+#[cfg(test)]
+mod mouse_tests {
+    use super::*;
+    use ratzilla::event::{MouseButton, MouseEvent, MouseEventKind};
+    use ratzilla::ratatui::layout::Rect;
+
+    fn click(col: u16, row: u16) -> MouseEvent {
+        MouseEvent {
+            kind: MouseEventKind::SingleClick(MouseButton::Left),
+            col,
+            row,
+            ctrl: false,
+            alt: false,
+            shift: false,
+        }
+    }
+
+    #[test]
+    fn click_hit_tests_regions_topmost_wins() {
+        let mut app = App::new("t");
+        app.tabs.index = 1; // row actions are guarded to their tab
+                            // Draw order: background first, the row's region after — the
+                            // hit-test scans last-to-first, so the row wins inside its rect.
+        app.regions
+            .push((Rect::new(0, 0, 100, 40), UiAction::SwitchTab(4)));
+        app.regions
+            .push((Rect::new(10, 5, 20, 1), UiAction::IssueRow(7)));
+        app.on_mouse(&click(15, 5));
+        assert_eq!(app.issue_cursor, 7, "topmost region wins");
+        assert_eq!(app.tabs.index, 1, "row selection does not switch tabs");
+        app.on_mouse(&click(90, 30));
+        assert_eq!(app.tabs.index, 4, "background region catches the rest");
+        assert_eq!(app.issue_cursor, 7, "row selection untouched");
+    }
+
+    #[test]
+    fn non_click_events_are_ignored() {
+        let mut app = App::new("t");
+        app.tabs.index = 2;
+        let moved = MouseEvent {
+            kind: MouseEventKind::Moved,
+            col: 3,
+            row: 3,
+            ctrl: false,
+            alt: false,
+            shift: false,
+        };
+        app.on_mouse(&moved);
+        assert_eq!(app.tabs.index, 2);
     }
 }
 

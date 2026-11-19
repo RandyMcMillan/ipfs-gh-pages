@@ -15,6 +15,7 @@ use crate::theme;
 /// underline, then the active tab's content and the `:` command bar.
 pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
     app.last_width = frame.area().width;
+    app.regions.clear();
     let show_status = app.input_active || !app.last_result.is_empty();
     let show_cmd = app.cmd_open || !app.cmd_output.is_empty();
     let area = frame.area();
@@ -275,7 +276,7 @@ fn badge_spans(label: &str) -> Vec<Span<'static>> {
 
 /// Primer repo tabnav: a muted top border with the orange underline under
 /// the active tab, then the tab titles.
-fn draw_tabnav(frame: &mut Frame, app: &App, area: Rect) {
+fn draw_tabnav(frame: &mut Frame, app: &mut App, area: Rect) {
     if theme::layout_class(area.width) == theme::LayoutClass::Compact {
         // Compact: GitHub's own responsive treatment — the active tab with
         // an overflow affordance, instead of an 11-tab strip that cannot
@@ -318,6 +319,13 @@ fn draw_tabnav(frame: &mut Frame, app: &App, area: Rect) {
             border_with_gaps.push(Span::styled("─", Style::default().fg(theme::BORDER_MUTED)));
             title_spans.push(Span::styled(" ", Style::default()));
         }
+    }
+    // Clickable tab cells: the title row of each tab's column range.
+    let mut x_cursor = area.x;
+    for (i, w) in widths.iter().enumerate() {
+        let cell = Rect::new(x_cursor, area.y + 1, *w as u16 + 1, 1);
+        region(app, cell, crate::app::UiAction::SwitchTab(i));
+        x_cursor += *w as u16 + 1;
     }
     let used: usize = widths.iter().sum::<usize>() + widths.len().saturating_sub(1);
     let fill = (area.width as usize).saturating_sub(used);
@@ -574,6 +582,9 @@ fn draw_file_table(frame: &mut Frame, app: &mut App, area: Rect) {
             .style(style),
         );
     }
+    for (i, entry) in entries.iter().enumerate() {
+        region(app, row_area(area, i, 0), crate::app::UiAction::TreeRow(i));
+    }
     let title = if app.open_dirs.is_empty() {
         format!("Files ({} path(s))", total)
     } else {
@@ -599,6 +610,13 @@ fn draw_file_table(frame: &mut Frame, app: &mut App, area: Rect) {
 // ---- Issues ---------------------------------------------------------------
 
 fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
+    let compact = theme::layout_class(area.width) == theme::LayoutClass::Compact;
+    if !(compact && app.detail_open) {
+        for i in 0..app.ipfs.issues.len() {
+            region(app, row_area(area, i, 0), crate::app::UiAction::IssueRow(i));
+        }
+    }
+
     let panes =
         Layout::horizontal([Constraint::Percentage(55), Constraint::Percentage(45)]).split(area);
     let issues = &app.ipfs.issues;
@@ -639,7 +657,7 @@ fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         }
     }
     let detail = issue_detail_lines(issues, cursor);
-    let compact = theme::layout_class(area.width) == theme::LayoutClass::Compact;
+    let issue_count = issues.len();
     if compact {
         // Compact (iPhone-style): master OR drilled-in detail, full width.
         if app.detail_open {
@@ -661,9 +679,14 @@ fn draw_issues_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         }
         return;
     }
+    if !(compact && app.detail_open) {
+        for i in 0..issue_count {
+            region(app, row_area(area, i, 0), crate::app::UiAction::IssueRow(i));
+        }
+    }
     frame.render_widget(
         Paragraph::new(lines)
-            .block(content_block(&format!("Issues ({} in view)", issues.len())))
+            .block(content_block(&format!("Issues ({issue_count} in view)")))
             .wrap(Wrap { trim: false }),
         panes[0],
     );
@@ -710,6 +733,22 @@ fn issue_detail_lines(
             Style::default().fg(theme::FG_MUTED),
         ))],
     }
+}
+
+/// Register a clickable region for this frame.
+fn region(app: &mut App, rect: Rect, action: crate::app::UiAction) {
+    app.regions.push((rect, action));
+}
+
+/// The rect of row `i` inside a bordered table widget (1-cell border, plus
+/// `header_rows` header lines).
+fn row_area(table: Rect, i: usize, header_rows: u16) -> Rect {
+    Rect::new(
+        table.x + 1,
+        table.y + 1 + header_rows + i as u16,
+        table.width.saturating_sub(2),
+        1,
+    )
 }
 
 /// Compact drill-in header: the iOS back affordance.
@@ -769,6 +808,15 @@ fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     } else {
         (area, Rect::new(area.x, area.y, 0, area.height))
     };
+    if !(compact && app.detail_open) {
+        for i in 0..app.ipfs.workflows.len() {
+            region(
+                app,
+                row_area(list_area, i, 0),
+                crate::app::UiAction::WfRow(i),
+            );
+        }
+    }
     let jobs_area = if compact && app.detail_open {
         let chunks = Layout::vertical([Constraint::Length(1), Constraint::Min(3)]).split(jobs_area);
         back_header(frame, "Workflow", chunks[0]);
@@ -920,6 +968,7 @@ fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     )
     .block(content_block(&jobs_title))
     .style(theme::base());
+    let wf_count = workflows.len();
     frame.render_widget(jobs, jobs_area);
 }
 
@@ -1114,6 +1163,7 @@ fn draw_settings_tab(frame: &mut Frame, app: &mut App, area: Rect) {
 // ---- Peer (connections + gossipsub chat) -----------------------------------
 
 fn draw_peer_tab(frame: &mut Frame, app: &mut App, area: Rect) {
+    let compact = theme::layout_class(area.width) == theme::LayoutClass::Compact;
     let outer = Layout::vertical([Constraint::Percentage(45), Constraint::Min(3)]).split(area);
     let snap = &app.ipfs;
     let cursor = app
@@ -1155,6 +1205,7 @@ fn draw_peer_tab(frame: &mut Frame, app: &mut App, area: Rect) {
             Style::default().fg(theme::FG_MUTED),
         ))]));
     }
+    let conn_count = rows.len();
     let peers = Table::new(
         rows,
         [

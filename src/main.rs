@@ -134,6 +134,13 @@ fn browser_main() -> Result<(), Box<dyn Error>> {
         }
     })?;
 
+    terminal.on_mouse_event({
+        let app_state_cloned = app_state.clone();
+        move |event| {
+            app_state_cloned.borrow_mut().on_mouse(&event);
+        }
+    })?;
+
     terminal.draw_web(move |f| {
         let mut app_state = app_state.borrow_mut();
         let elapsed = app_state.on_tick();
