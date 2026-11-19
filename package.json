@@ -8,6 +8,8 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:remote": "vite --host",
+    "dev:rust": "trunk serve",
     "build:ipfs-js": "node scripts/build-ipfs-js.mjs",
     "build": "export NODE_OPTIONS=--max-old-space-size=8192 && vite build && node scripts/install-consumer-example.mjs && node scripts/build-car.mjs",
     "build:action": "export NODE_OPTIONS=--max-old-space-size=8192 && vite build && node scripts/build-car.mjs",
