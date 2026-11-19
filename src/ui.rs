@@ -128,7 +128,7 @@ fn keybar(app: &App) -> String {
         0 => "↑/↓ move · Enter expand/collapse · ⌫ collapse all · p publish",
         1 => "↑/↓/j/k move · i file issue · s sync",
         2 => "c clone · s live clone · u pull · a advertise · l list",
-        3 => "↑/↓/j/k move · definitions only, run status on the git host",
+        3 => "↑/↓/j/k move · live status from api.github.com",
         5 => "f fetch CID",
         8 => "s set services",
         9 => "↑/↓/j/k move · c connect · m chat",
@@ -684,11 +684,20 @@ fn draw_pulls_tab(frame: &mut Frame, app: &mut App, area: Rect) {
 fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     let panes =
         Layout::horizontal([Constraint::Percentage(40), Constraint::Percentage(60)]).split(area);
-    let workflows = &app.ipfs.workflows;
+    let snap = &app.ipfs;
+    let workflows = &snap.workflows;
     let cursor = app.wf_cursor.min(workflows.len().saturating_sub(1));
     let hover = Style::default().bg(Color::Rgb(0x16, 0x1b, 0x22));
 
-    // Left pane: the workflow list (wrkflw's Workflows view).
+    // Left pane: the workflow list (wrkflw's Workflows view), with the
+    // live run status from the GitHub API fetch ("—" until the first
+    // poll succeeds — never a fabricated value).
+    let run_for = |file: &str| {
+        snap.action_runs
+            .iter()
+            .find(|r| r.file == file)
+            .filter(|r| !r.conclusion.is_empty() || !r.status.is_empty())
+    };
     let mut lines = vec![];
     if workflows.is_empty() {
         lines.push(text::Line::from(
@@ -702,6 +711,18 @@ fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         } else {
             Style::default().fg(theme::FG)
         };
+        let (status_text, status_color) = match run_for(&wf.file) {
+            Some(r) if !r.conclusion.is_empty() => {
+                let color = match r.conclusion.as_str() {
+                    "success" => theme::SUCCESS,
+                    "failure" | "timed_out" => theme::DANGER,
+                    _ => theme::FG_MUTED,
+                };
+                (r.conclusion.clone(), color)
+            }
+            Some(r) => (r.status.clone(), theme::ATTENTION),
+            None => ("—".to_string(), theme::FG_SUBTLE),
+        };
         lines.push(text::Line::from(vec![
             Span::styled(wf.name.clone(), name_style),
             Span::styled(
@@ -709,10 +730,18 @@ fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
                 Style::default().fg(theme::FG_SUBTLE),
             ),
             Span::styled(
-                format!("{} job(s)", wf.jobs.len()),
+                format!("{} job(s)  ", wf.jobs.len()),
                 Style::default().fg(theme::FG_MUTED),
             ),
+            Span::styled(status_text, Style::default().fg(status_color)),
         ]));
+    }
+    if !snap.actions_error.is_empty() {
+        lines.push(text::Line::from(""));
+        lines.push(text::Line::from(Span::styled(
+            format!("live status unavailable — {}", snap.actions_error),
+            Style::default().fg(theme::FG_MUTED),
+        )));
     }
     frame.render_widget(
         Paragraph::new(lines)
@@ -753,6 +782,31 @@ fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
             Style::default().fg(theme::FG_MUTED),
         ))]));
     }
+    let jobs_title = match workflows.get(cursor).and_then(|wf| run_for(&wf.file)) {
+        Some(r) => {
+            let mut label = String::new();
+            if !r.run_number.is_empty() {
+                label.push_str(&format!("run #{} ", r.run_number));
+            }
+            if !r.head_branch.is_empty() {
+                label.push_str(&format!("{} ", r.head_branch));
+            }
+            label.push_str(if r.conclusion.is_empty() {
+                r.status.as_str()
+            } else {
+                r.conclusion.as_str()
+            });
+            format!(
+                "Jobs ({}) — {}",
+                workflows.get(cursor).map_or(0, |w| w.jobs.len()),
+                label
+            )
+        }
+        None => format!(
+            "Jobs ({})",
+            workflows.get(cursor).map_or(0, |w| w.jobs.len())
+        ),
+    };
     let jobs = Table::new(
         rows,
         [
@@ -772,10 +826,7 @@ fn draw_actions_tab(frame: &mut Frame, app: &mut App, area: Rect) {
         ])
         .bottom_margin(1),
     )
-    .block(content_block(&format!(
-        "Jobs ({})",
-        workflows.get(cursor).map_or(0, |w| w.jobs.len())
-    )))
+    .block(content_block(&jobs_title))
     .style(theme::base());
     frame.render_widget(jobs, panes[1]);
 }

@@ -62,6 +62,16 @@ mod imp {
     }
 
     #[derive(Clone, Debug, Default)]
+    pub struct ActionRun {
+        pub file: String,
+        pub name: String,
+        pub status: String,
+        pub conclusion: String,
+        pub run_number: String,
+        pub head_branch: String,
+    }
+
+    #[derive(Clone, Debug, Default)]
     pub struct Snapshot {
         pub node_status: String,
         pub peer_id: String,
@@ -93,6 +103,8 @@ mod imp {
         pub repo_behind: String,
         pub repo_dirty: bool,
         pub repo_tags: Vec<ReleaseTag>,
+        pub action_runs: Vec<ActionRun>,
+        pub actions_error: String,
     }
 
     fn window() -> JsValue {
@@ -237,6 +249,26 @@ mod imp {
                     })
                 })
                 .collect();
+            if let Ok(actions) = Reflect::get(&repo, &JsValue::from_str("actions")) {
+                snap.actions_error = get_string(&actions, "error");
+                snap.action_runs = get_array(&actions, "runs")
+                    .into_iter()
+                    .filter_map(|r| {
+                        if !r.is_object() {
+                            return None;
+                        }
+                        let run = Reflect::get(&r, &JsValue::from_str("run")).ok()?;
+                        Some(ActionRun {
+                            file: get_string(&r, "file"),
+                            name: get_string(&r, "name"),
+                            status: get_string(&run, "status"),
+                            conclusion: get_string(&run, "conclusion"),
+                            run_number: get_string(&run, "runNumber"),
+                            head_branch: get_string(&run, "headBranch"),
+                        })
+                    })
+                    .collect();
+            }
             snap.workflows = get_array(&repo, "workflows")
                 .into_iter()
                 .filter_map(|w| {
@@ -390,6 +422,16 @@ mod imp {
     }
 
     #[derive(Clone, Debug, Default)]
+    pub struct ActionRun {
+        pub file: String,
+        pub name: String,
+        pub status: String,
+        pub conclusion: String,
+        pub run_number: String,
+        pub head_branch: String,
+    }
+
+    #[derive(Clone, Debug, Default)]
     pub struct Snapshot {
         pub node_status: String,
         pub peer_id: String,
@@ -421,6 +463,8 @@ mod imp {
         pub repo_behind: String,
         pub repo_dirty: bool,
         pub repo_tags: Vec<ReleaseTag>,
+        pub action_runs: Vec<ActionRun>,
+        pub actions_error: String,
     }
 
     pub fn poll() -> Snapshot {
@@ -441,6 +485,6 @@ mod imp {
 }
 
 pub use imp::{
-    cmd, json_field, poll, take_result, ChatMessage, Connection, IssueEntry, ReleaseTag, Snapshot,
-    Workflow, WorkflowJob,
+    cmd, json_field, poll, take_result, ActionRun, ChatMessage, Connection, IssueEntry, ReleaseTag,
+    Snapshot, Workflow, WorkflowJob,
 };
