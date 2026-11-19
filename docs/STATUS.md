@@ -56,7 +56,17 @@ P7-signed dag-json, gossipsub topics are `repo-gossip:<repo>`(+`:chat`).
   optional-service failure only fills an error string) and js/
   github-actions.js (pure, node:test 5 cases, in test:all) matches runs
   to workflows; the tab gains a conclusion-colored status column and the
-  Jobs pane shows the selected run (#, branch, status). Verify with
+  Jobs pane shows the selected run (#, branch, status). Test locking
+  (this phase): tests/build-meta.test.mjs (7 — workflow/git-meta baking,
+  incl. a trailing-comment parse fix), tests/bridge-contract.test.mjs
+  (9 — the JS↔Rust state-shape contract; changing either side without
+  updating it fails), tests/ops-contract.test.mjs (3 — every op the TUI
+  emits is registered in the bridge ops table), tests/kubo-alignment
+  .test.mjs (RPC mapping contract + live local-Kubo checks that skip
+  when no daemon runs), and in-crate Rust tests (`cargo test --lib`, 15
+  — tree/connector layout, cursor dispatch, digit jumps, json_escape,
+  readme_lines, TestBackend chrome renders incl. a real width-clipping
+  fix; gated in rust-smoke CI). Verify with `cargo test --lib`,
   `cargo check --target wasm32-unknown-unknown`, `cargo check --features
   bundle-wry`, `cargo fmt --check`, `trunk build` (per-increment; the
   other JS unit/CDP suites are unaffected — nothing they import changed).
