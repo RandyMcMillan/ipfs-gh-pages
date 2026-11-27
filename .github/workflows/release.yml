@@ -21,6 +21,8 @@ jobs:
 
       - name: Setup test environment
         uses: ./.github/actions/test-setup
+        with:
+          tui: 'true' # test:ci builds the TUI with trunk for the cdp-rust-* suites
 
       - name: Run Tests
         run: npm run test:ci

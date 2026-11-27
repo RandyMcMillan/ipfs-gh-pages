@@ -5,6 +5,10 @@ inputs:
     description: 'Node.js version to use.'
     required: false
     default: '26'
+  tui:
+    description: 'Install the Rust toolchain + trunk for the test:ci TUI stage (cdp-rust-* suites). Only jobs running test:ci need this.'
+    required: false
+    default: 'false'
 runs:
   using: 'composite'
   steps:
@@ -43,3 +47,21 @@ runs:
     - name: Ensure Chrome
       shell: bash
       run: npm run ci:chrome
+
+    # test:ci's TUI stage (scripts/test-e2e.mjs) builds the ratzilla TUI
+    # with trunk for the cdp-rust-* suites. trunk is a cargo install —
+    # rust-cache restores ~/.cargo/bin so warm runs skip the compile.
+    - name: Rust toolchain (TUI build)
+      if: inputs.tui == 'true'
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: wasm32-unknown-unknown
+
+    - name: Cache cargo artifacts
+      if: inputs.tui == 'true'
+      uses: Swatinem/rust-cache@v2
+
+    - name: Install trunk
+      if: inputs.tui == 'true'
+      shell: bash
+      run: cargo install trunk --locked 2>/dev/null || cargo install trunk
