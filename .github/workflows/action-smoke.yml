@@ -65,9 +65,6 @@ jobs:
       - name: Check wasm browser build
         run: cargo check --target wasm32-unknown-unknown
 
-      - name: Unit tests (TUI logic + desktop helpers + doctests)
-        run: cargo test --features bundle-wry
-
       # wry 0.55 / webkit2gtk-sys 2.0: pkg-config needs glib-2.0, gtk-3,
       # webkit2gtk-4.1 and libsoup-3.0 dev files on Linux.
       # The .deb set + package lists are cached; the key hashes this
@@ -87,6 +84,12 @@ jobs:
             sudo apt-get update
           fi
           sudo apt-get install -y libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev
+
+      # bundle-wry compiles wry/tao on the host target, so this MUST run
+      # after the desktop deps install — runner images are not guaranteed
+      # to preinstall the glib/gtk dev files.
+      - name: Unit tests (TUI logic + desktop helpers + doctests)
+        run: cargo test --features bundle-wry
 
       - name: Check desktop build (bundle-wry)
         run: cargo check --features bundle-wry
